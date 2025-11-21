@@ -6,9 +6,16 @@ import { usePathname } from 'next/navigation';
 import { Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 export function Header() {
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
 
   const navLinks = [
     { href: '/league', label: 'League' },
@@ -26,7 +33,7 @@ export function Header() {
           <span className="font-headline font-bold text-lg hidden sm:inline tracking-tighter">Engineering EightyEight</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
-          {navLinks.map((link) => {
+          {isMounted && navLinks.map((link) => {
             const isActive = pathname ? pathname.startsWith(link.href) : false;
             return (
               <Button
