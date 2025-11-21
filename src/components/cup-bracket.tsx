@@ -115,26 +115,16 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
         }
     });
 
-    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32'];
+    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32', 'Preliminary Round'];
     
     return Object.entries(roundsMap)
       .map(([name, matchesInRound]) => ({ name, matches: matchesInRound }))
       .sort((a, b) => {
           const aIndex = roundOrder.indexOf(a.name);
           const bIndex = roundOrder.indexOf(b.name);
-          // If both are named rounds, sort by the pre-defined order (reversed for display)
           if (aIndex !== -1 && bIndex !== -1) return bIndex - aIndex; 
-          
-           // If only one is a named round, it should come later (be on the left).
           if (aIndex !== -1) return 1;
           if (bIndex !== -1) return -1;
-          
-          // Fallback for numeric rounds (e.g., Round of 64), sort descending
-          const aNum = parseInt(a.name.replace('Round of ', ''), 10);
-          const bNum = parseInt(b.name.replace('Round of ', ''), 10);
-          if (!isNaN(aNum) && !isNaN(bNum)) return bNum - aNum;
-
-          // Final fallback sort by match count (more matches = earlier round)
           return b.matches.length - a.matches.length; 
       }).reverse(); // Reverse to have final on the right
 
@@ -169,7 +159,7 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
               className="flex flex-col gap-8 relative"
             >
               {round.matches.map((match, matchIndex) => {
-                const isFinalMatch = roundIndex === rounds.length - 1;
+                const isFinalMatch = round.name === 'Final';
 
                 const baseGap = 2; // in rem
                 const multiplier = 2 ** roundIndex;
@@ -190,21 +180,24 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
                         <div className="absolute left-full top-1/2 h-px w-4 sm:w-8 bg-border"></div>
                         
                         {/* Vertical line connecting pairs */}
-                        <div
-                            className={cn("absolute w-px bg-border",
-                                (match.matchNumber ?? 0) % 2 !== 0 ? 'top-1/2' : 'bottom-1/2'
-                            )}
-                            style={{ 
-                                left: `calc(100% + 2rem)`,
-                                height: `calc(50% + ${dynamicGap / 2}rem + 1px)`
-                             }}
-                         />
+                         {matchIndex % 2 === 0 && (
+                            <div
+                                className="absolute w-px bg-border top-1/2"
+                                style={{ 
+                                    left: `calc(100% + 2rem)`,
+                                    height: `calc(${dynamicGap}rem + 2px)`
+                                }}
+                            />
+                         )}
                         
                         {/* Horizontal line from connector to next match */}
-                        {(match.matchNumber ?? 0) % 2 !== 0 &&
+                        {matchIndex % 2 === 0 &&
                           <div
-                              className="absolute top-1/2 h-px w-4 sm:w-8 bg-border"
-                              style={{ left: `calc(100% + 2rem)` }}
+                              className="absolute h-px w-4 sm:w-8 bg-border"
+                              style={{ 
+                                left: `calc(100% + 2rem)`,
+                                top: `calc(50% + ${dynamicGap/2}rem + 1px)`
+                               }}
                           ></div>
                         }
                       </>
