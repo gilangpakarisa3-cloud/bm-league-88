@@ -35,6 +35,16 @@ const MatchCard = ({ match }: { match: CupMatch }) => (
 );
 
 export function CupBracket() {
+
+  if (cupData.length === 0) {
+    return (
+      <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
+        <h2 className="text-xl font-medium text-muted-foreground">The cup hasn't started yet.</h2>
+        <p className="text-sm text-muted-foreground mt-2">Check back later for the tournament bracket.</p>
+      </div>
+    );
+  }
+
   const finalRoundIndex = cupData.length - 1;
   const numRounds = cupData.length;
 

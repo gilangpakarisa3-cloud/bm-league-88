@@ -62,33 +62,39 @@ export default function Home() {
         <section>
           <h2 className="text-3xl font-bold mb-4 text-center">Top Players</h2>
           <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px] pl-4">#</TableHead>
-                  <TableHead>Player</TableHead>
-                  <TableHead className="text-right">Pts</TableHead>
-                  <TableHead className="hidden sm:table-cell text-right pr-4">GD</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {topPlayers.map((entry) => (
-                  <TableRow key={entry.rank}>
-                    <TableCell className="font-bold text-lg pl-4">{entry.rank}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <div className="font-medium">{entry.player.name}</div>
-                          <div className="text-xs sm:text-sm text-muted-foreground">{entry.player.team.name}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">{entry.points}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-right pr-4">{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
+            {topPlayers.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px] pl-4">#</TableHead>
+                    <TableHead>Player</TableHead>
+                    <TableHead className="text-right">Pts</TableHead>
+                    <TableHead className="hidden sm:table-cell text-right pr-4">GD</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {topPlayers.map((entry) => (
+                    <TableRow key={entry.rank}>
+                      <TableCell className="font-bold text-lg pl-4">{entry.rank}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <div className="font-medium">{entry.player.name}</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground">{entry.player.team.name}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">{entry.points}</TableCell>
+                      <TableCell className="hidden sm:table-cell text-right pr-4">{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="p-8 text-center text-muted-foreground">
+                No players in the league yet.
+              </div>
+            )}
           </Card>
         </section>
       </div>

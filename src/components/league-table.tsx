@@ -12,6 +12,15 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 
 export function LeagueTable() {
+  if (leagueTable.length === 0) {
+    return (
+      <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
+        <h2 className="text-xl font-medium text-muted-foreground">The league hasn't started yet.</h2>
+        <p className="text-sm text-muted-foreground mt-2">Check back later for standings.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
       <div className="w-full overflow-x-auto">
@@ -48,7 +57,7 @@ export function LeagueTable() {
                 <TableCell className="text-center text-red-400">{entry.loss}</TableCell>
                 <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
                 <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
-                <TableCell className="text-center font-medium">
+                <TableCell className="font-medium">
                   {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
                 </TableCell>
                 <TableCell className="text-center font-bold text-lg text-primary">{entry.points}</TableCell>
