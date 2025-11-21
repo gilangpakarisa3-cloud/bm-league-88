@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, RefreshCw } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -39,19 +39,31 @@ const generateFixtures = (leaguePlayers: Player[]): CupMatch[] => {
 
 
 export default function FixturesPage() {
-  const leaguePlayers = useMemo(() => initialLeagueTable.map(entry => entry.player), []);
-  const initialMatches = useMemo(() => generateFixtures(leaguePlayers), [leaguePlayers]);
-
-  const [matches, setMatches] = useState<CupMatch[]>(initialMatches);
   const [leagueTable, setLeagueTable] = useState<LeagueEntry[]>(initialLeagueTable);
+  
+  const generateNewFixtures = () => {
+    const leaguePlayers = leagueTable.map(entry => entry.player);
+    return generateFixtures(leaguePlayers);
+  }
+
+  const [matches, setMatches] = useState<CupMatch[]>(generateNewFixtures);
   const [editingMatch, setEditingMatch] = useState<CupMatch | null>(null);
 
   const getPlayerByTeam = (teamId: string): Player | undefined => {
     return players.find(p => p.team.id === teamId);
   }
+  
+  const handleRefreshFixtures = () => {
+    // Re-initialize league table and generate new fixtures
+    setLeagueTable(initialLeagueTable);
+    const newFixtures = generateFixtures(initialLeagueTable.map(entry => entry.player));
+    setMatches(newFixtures);
+  };
 
   const handleUpdateScore = (matchId: string, scores: { score1: number, score2: number }) => {
     let updatedMatch: CupMatch | null = null;
+    const originalMatch = matches.find(m => m.id === matchId);
+
     setMatches(prevMatches =>
       prevMatches.map(m => {
         if (m.id === matchId) {
@@ -69,81 +81,72 @@ export default function FixturesPage() {
     setEditingMatch(null);
 
     if (updatedMatch) {
-      updateLeagueTable(updatedMatch);
+      updateLeagueTable(updatedMatch, originalMatch);
     }
   };
 
-  const updateLeagueTable = (match: CupMatch) => {
+  const updateLeagueTable = (match: CupMatch, originalMatch: CupMatch | undefined) => {
     const team1Player = getPlayerByTeam(match.team1!.id);
     const team2Player = getPlayerByTeam(match.team2!.id);
 
     if (!team1Player || !team2Player) return;
 
+    const scoreAlreadyEntered = originalMatch?.score1 !== null && originalMatch?.score2 !== null;
+
     setLeagueTable(prevTable => {
         const newTable = [...prevTable];
         
-        const updatePlayerStats = (playerId: string, isWinner: boolean, isDraw: boolean, goalsFor: number, goalsAgainst: number) => {
+        const updatePlayerStats = (
+            playerId: string, 
+            goalsFor: number, 
+            goalsAgainst: number,
+            oldGoalsFor: number,
+            oldGoalsAgainst: number,
+            result: 'win' | 'draw' | 'loss',
+            oldResult: 'win' | 'draw' | 'loss' | null
+        ) => {
             const playerIndex = newTable.findIndex(p => p.player.id === playerId);
             if (playerIndex === -1) return;
 
             const playerStats = {...newTable[playerIndex]};
             
-            const existingMatch = matches.find(m => m.id === match.id);
-            const scoreAlreadyEntered = existingMatch?.score1 !== null && existingMatch?.score2 !== null;
-
+            // Update Played
             if (!scoreAlreadyEntered) {
                 playerStats.played += 1;
             }
 
-            playerStats.goalsFor = (playerStats.goalsFor - (existingMatch?.score1 ?? 0)) + goalsFor;
-            playerStats.goalsAgainst = (playerStats.goalsAgainst - (existingMatch?.score2 ?? 0)) + goalsAgainst;
-            
-            if (isDraw) {
-                if(!scoreAlreadyEntered) {
-                    playerStats.draw += 1;
-                    playerStats.points += 1;
-                }
-            } else if (isWinner) {
-                if(!scoreAlreadyEntered) {
-                    playerStats.win += 1;
-                    playerStats.points += 3;
-                } else {
-                    // This handles if the result was a draw before and now is a win
-                    if(existingMatch?.score1 === existingMatch?.score2) {
-                        playerStats.draw -=1;
-                        playerStats.win += 1;
-                        playerStats.points += 2; // from 1 for a draw to 3 for a win
-                    }
-                }
-            } else { // loss
-                if(!scoreAlreadyEntered) {
-                    playerStats.loss += 1;
-                } else {
-                    // This handles if the result was a draw before and now is a loss
-                    if(existingMatch?.score1 === existingMatch?.score2) {
-                        playerStats.draw -=1;
-                        playerStats.loss += 1;
-                        playerStats.points -= 1; // from 1 for a draw to 0 for a loss
-                    }
-                    // This handles if the result was a win before and now is a loss
-                    if(existingMatch && existingMatch.score1 !== null && existingMatch.score2 !== null && existingMatch.score1 > existingMatch.score2) {
-                         playerStats.win -=1;
-                         playerStats.loss += 1;
-                         playerStats.points -= 3;
-                    }
-                }
-            }
-
+            // Update Goals
+            playerStats.goalsFor = playerStats.goalsFor - oldGoalsFor + goalsFor;
+            playerStats.goalsAgainst = playerStats.goalsAgainst - oldGoalsAgainst + goalsAgainst;
             playerStats.goalDifference = playerStats.goalsFor - playerStats.goalsAgainst;
+
+            // Update W/D/L and Points
+            if (oldResult) {
+                playerStats[oldResult] -= 1;
+                playerStats.points -= oldResult === 'win' ? 3 : oldResult === 'draw' ? 1 : 0;
+            }
+            
+            playerStats[result] += 1;
+            playerStats.points += result === 'win' ? 3 : result === 'draw' ? 1 : 0;
+
             newTable[playerIndex] = playerStats;
         };
         
-        const isDraw = match.score1 === match.score2;
-        const team1Won = match.score1! > match.score2!;
+        const getResult = (score1: number | null, score2: number | null): 'win' | 'draw' | 'loss' | null => {
+            if (score1 === null || score2 === null) return null;
+            if (score1 > score2) return 'win';
+            if (score1 < score2) return 'loss';
+            return 'draw';
+        }
 
-        updatePlayerStats(team1Player.id, team1Won, isDraw, match.score1!, match.score2!);
-        updatePlayerStats(team2Player.id, !team1Won, isDraw, match.score2!, match.score1!);
+        const newResult1 = getResult(match.score1, match.score2);
+        const newResult2 = getResult(match.score2, match.score1);
+        const oldResult1 = getResult(originalMatch?.score1 ?? null, originalMatch?.score2 ?? null);
+        const oldResult2 = getResult(originalMatch?.score2 ?? null, originalMatch?.score1 ?? null);
 
+        if(newResult1) updatePlayerStats(team1Player.id, match.score1!, match.score2!, originalMatch?.score1 ?? 0, originalMatch?.score2 ?? 0, newResult1, oldResult1);
+        if(newResult2) updatePlayerStats(team2Player.id, match.score2!, match.score1!, originalMatch?.score2 ?? 0, originalMatch?.score1 ?? 0, newResult2, oldResult2);
+        
         newTable.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points;
             if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
@@ -157,6 +160,7 @@ export default function FixturesPage() {
   
   const unplayedMatches = matches.filter(m => m.score1 === null);
   const playedMatches = matches.filter(m => m.score1 !== null);
+  const leagueStarted = playedMatches.length > 0;
 
   const MatchList = ({ title, matchList }: {title: string, matchList: CupMatch[]}) => (
      <div>
@@ -204,6 +208,10 @@ export default function FixturesPage() {
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight">
                     League Fixtures
                 </h1>
+                <Button onClick={handleRefreshFixtures} disabled={leagueStarted}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh Fixtures
+                </Button>
             </div>
             <div className="space-y-12">
                 <MatchList title="Remaining Matches" matchList={unplayedMatches} />
@@ -235,5 +243,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
