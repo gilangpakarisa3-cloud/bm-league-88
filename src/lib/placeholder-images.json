@@ -3,122 +3,122 @@
     {
       "id": "team-logo-arsenal",
       "description": "Arsenal FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085233-3f10b25fac1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1620064798309-5a907c1681e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWQlMjB0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0ODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red team logo"
     },
     {
       "id": "team-logo-mancity",
       "description": "Manchester City FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1631607054628-673628849843?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1738511538182-4114cbdd26ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Ymx1ZSUyMHRlYW0lMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue team logo"
     },
     {
       "id": "team-logo-liverpool",
       "description": "Liverpool FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085241-a60d8d782c5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1763128734412-e1aa7d71d006?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZWQlMjBiaXJkJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0ODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red bird logo"
     },
     {
       "id": "team-logo-astonvilla",
       "description": "Aston Villa FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085233-3f10b25fac1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1739460677746-7aec1b70a3f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjbGFyZXQlMjBsaW9uJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "claret lion logo"
     },
     {
       "id": "team-logo-realmadrid",
       "description": "Real Madrid CF logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085330-9b559d57dc6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1739323980445-b76a6e459d0b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnb2xkJTIwY3Jvd24lMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ4OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gold crown logo"
     },
     {
       "id": "team-logo-barcelona",
       "description": "FC Barcelona logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085330-9b559d57dc6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1647006872770-a47c2c8aacad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxibHVlJTIwcmVkJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue red logo"
     },
     {
       "id": "team-logo-girona",
       "description": "Girona FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1760132800504-b1ffe29b7a33?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1694265113831-7d17249f50b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWQlMjBzaGllbGQlMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red shield logo"
     },
     {
       "id": "team-logo-atletico",
       "description": "Atlético Madrid logo",
-      "imageUrl": "https://images.unsplash.com/photo-1760132800504-b1ffe29b7a33?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1643651340058-c5d899aa93f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWQlMjB3aGl0ZSUyMHN0cmlwZXN8ZW58MHx8fHwxNzYzNzA1NDg5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white stripes"
     },
     {
       "id": "team-logo-psg",
       "description": "Paris Saint-Germain logo",
-      "imageUrl": "https://images.unsplash.com/photo-1631607054628-673628849843?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1741503928763-4017cddf6b33?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxibHVlJTIwdG93ZXIlMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue tower logo"
     },
     {
       "id": "team-logo-monaco",
       "description": "AS Monaco logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085330-9b559d57dc6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-inter",
-      "description": "Inter Milan logo",
-      "imageUrl": "https://images.unsplash.com/photo-1640182837698-d1dee88748b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-acmilan",
-      "description": "AC Milan logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085241-a60d8d782c5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-juventus",
-      "description": "Juventus logo",
-      "imageUrl": "https://images.unsplash.com/photo-1761942943074-45eaf3ced2cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dGVhbSUyMGxvZ298ZW58MHx8fHwxNzYzNTk1NDc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-bologna",
-      "description": "Bologna logo",
-      "imageUrl": "https://images.unsplash.com/photo-1631607054683-fa9cbe49e5f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-leverkusen",
-      "description": "Bayer 04 Leverkusen logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085330-9b559d57dc6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-stuttgart",
-      "description": "VfB Stuttgart logo",
-      "imageUrl": "https://images.unsplash.com/photo-1631607054683-fa9cbe49e5f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-bayern",
-      "description": "FC Bayern Munich logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085233-3f10b25fac1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
-    },
-    {
-      "id": "team-logo-leipzig",
-      "description": "RB Leipzig logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085233-3f10b25fac1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1646035911826-7d349c94abe4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxyZWQlMjB3aGl0ZSUyMHNoaWVsZHxlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white shield"
     },
     {
       "id": "team-logo-marseille",
       "description": "Olympique de Marseille logo",
-      "imageUrl": "https://images.unsplash.com/photo-1625392085233-3f10b25fac1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1686125069659-a80f691170b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibHVlJTIwd2hpdGUlMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue white logo"
     },
     {
       "id": "team-logo-lyon",
       "description": "Olympique Lyonnais logo",
-      "imageUrl": "https://images.unsplash.com/photo-1640182837698-d1dee88748b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM1OTU0Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1739195863682-08eda2acb6e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2hpdGUlMjBsaW9uJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "white lion logo"
+    },
+    {
+      "id": "team-logo-inter",
+      "description": "Inter Milan logo",
+      "imageUrl": "https://images.unsplash.com/photo-1547131327-c978d2dc5249?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxibHVlJTIwYmxhY2slMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue black logo"
+    },
+    {
+      "id": "team-logo-acmilan",
+      "description": "AC Milan logo",
+      "imageUrl": "https://images.unsplash.com/photo-1623500006871-81fd925ddac3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWQlMjBibGFjayUyMGxvZ298ZW58MHx8fHwxNzYzNzA1NDkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red black logo"
+    },
+    {
+      "id": "team-logo-juventus",
+      "description": "Juventus logo",
+      "imageUrl": "https://images.unsplash.com/photo-1737659663405-b9f57d9a9885?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibGFjayUyMHdoaXRlJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black white logo"
+    },
+    {
+      "id": "team-logo-bologna",
+      "description": "Bologna logo",
+      "imageUrl": "https://images.unsplash.com/photo-1510562295710-abc2d5a97531?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyZWQlMjBibHVlJTIwc2hpZWxkfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red blue shield"
+    },
+    {
+      "id": "team-logo-leverkusen",
+      "description": "Bayer 04 Leverkusen logo",
+      "imageUrl": "https://images.unsplash.com/photo-1643883203445-c3590919cf28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWQlMjBibGFjayUyMGNpcmNsZXxlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red black circle"
+    },
+    {
+      "id": "team-logo-stuttgart",
+      "description": "VfB Stuttgart logo",
+      "imageUrl": "https://images.unsplash.com/photo-1643732994256-c1a91817955e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWQlMjBiYW5kJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red band logo"
+    },
+    {
+      "id": "team-logo-bayern",
+      "description": "FC Bayern Munich logo",
+      "imageUrl": "https://images.unsplash.com/photo-1686581792821-ead89882657e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxibHVlJTIwcmVkJTIwY2lyY2xlfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue red circle"
+    },
+    {
+      "id": "team-logo-leipzig",
+      "description": "RB Leipzig logo",
+      "imageUrl": "https://picsum.photos/seed/leipzig/128/128",
+      "imageHint": "red bulls logo"
     },
     {
       "id": "winner-profile",
