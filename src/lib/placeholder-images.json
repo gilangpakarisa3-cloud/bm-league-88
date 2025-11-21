@@ -3,26 +3,26 @@
     {
       "id": "team-logo-arsenal",
       "description": "Arsenal FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1620064798309-5a907c1681e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWQlMjB0ZWFtJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0ODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "red team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1715753441836-1c1a14a43c21?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYW5ub24lMjBsb2dvfGVufDB8fHx8MTc2MzcwNTY0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cannon logo"
     },
     {
       "id": "team-logo-mancity",
       "description": "Manchester City FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1738511538182-4114cbdd26ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Ymx1ZSUyMHRlYW0lMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "blue team logo"
+      "imageUrl": "https://images.unsplash.com/photo-1724167954496-a5c4befea483?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzaGlwJTIwY3Jlc3QlMjBsb2dvfGVufDB8fHx8MTc2MzcwNTY0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ship crest logo"
     },
     {
       "id": "team-logo-liverpool",
       "description": "Liverpool FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1718632626941-2673a94e8577?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWQlMjBiaXJkJTIwbG9nb3xlbnwwfHx8fDE3NjM4ODk3MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "red bird logo"
+      "imageUrl": "https://images.unsplash.com/photo-1601084192145-1316dfec2f84?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsaXZlciUyMGJpcmQlMjBsb2dvfGVufDB8fHx8MTc2MzcwNTY0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "liver bird logo"
     },
     {
       "id": "team-logo-astonvilla",
       "description": "Aston Villa FC logo",
-      "imageUrl": "https://images.unsplash.com/photo-1739460677746-7aec1b70a3f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjbGFyZXQlMjBsaW9uJTIwbG9nb3xlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "claret lion logo"
+      "imageUrl": "https://images.unsplash.com/photo-1561299274-6a224179c931?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsaW9uJTIwbG9nb3xlbnwwfHx8fDE3NjM2Mjc1ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lion logo"
     },
     {
       "id": "team-logo-realmadrid",
