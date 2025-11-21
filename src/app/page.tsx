@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trophy, Shield, ArrowRight } from 'lucide-react';
 
 export default function Home() {
-  const topPlayers = leagueTable.slice(0, 3);
+  const topPlayers = leagueTable.slice(0, 5);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -22,12 +22,14 @@ export default function Home() {
           </p>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <Link href="/league" className="block group">
             <Card className="h-full hover:border-primary transition-colors duration-300">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-2xl">League Standings</CardTitle>
-                <Trophy className="w-8 h-8 text-primary" />
+              <CardHeader>
+                <div className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-2xl">League Standings</CardTitle>
+                    <Trophy className="w-8 h-8 text-primary" />
+                </div>
               </CardHeader>
               <CardContent>
                 <CardDescription>View the official player rankings, track points, and see who's dominating the season.</CardDescription>
@@ -40,9 +42,11 @@ export default function Home() {
           </Link>
           <Link href="/cup" className="block group">
             <Card className="h-full hover:border-primary transition-colors duration-300">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-2xl">Cup Tournament</CardTitle>
-                <Shield className="w-8 h-8 text-primary" />
+              <CardHeader>
+                <div className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-2xl">Cup Tournament</CardTitle>
+                    <Shield className="w-8 h-8 text-primary" />
+                </div>
               </CardHeader>
               <CardContent>
                 <CardDescription>Follow the knockout stages, check match results, and see the path to the final.</CardDescription>
@@ -61,34 +65,34 @@ export default function Home() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">Rank</TableHead>
+                  <TableHead className="w-[50px] pl-4">#</TableHead>
                   <TableHead>Player</TableHead>
-                  <TableHead className="text-right">Points</TableHead>
-                  <TableHead className="text-right">GD</TableHead>
+                  <TableHead className="text-right">Pts</TableHead>
+                  <TableHead className="hidden sm:table-cell text-right pr-4">GD</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {topPlayers.map((entry) => (
                   <TableRow key={entry.rank}>
-                    <TableCell className="font-bold text-lg">{entry.rank}</TableCell>
+                    <TableCell className="font-bold text-lg pl-4">{entry.rank}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Image
                           src={entry.player.team.logoUrl}
                           alt={`${entry.player.team.name} logo`}
-                          width={40}
-                          height={40}
-                          className="rounded-full"
+                          width={32}
+                          height={32}
+                          className="rounded-full w-8 h-8"
                           data-ai-hint="team logo"
                         />
                         <div>
                           <div className="font-medium">{entry.player.name}</div>
-                          <div className="text-sm text-muted-foreground">{entry.player.team.name}</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">{entry.player.team.name}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-semibold">{entry.points}</TableCell>
-                    <TableCell className="text-right">{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-right pr-4">{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

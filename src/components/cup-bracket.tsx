@@ -21,12 +21,12 @@ const MatchTeam = ({ team, score, isWinner }: { team: Team | null, score: number
                 <Image
                     src={team.logoUrl}
                     alt={`${team.name} logo`}
-                    width={24}
-                    height={24}
-                    className="rounded-full"
+                    width={20}
+                    height={20}
+                    className="rounded-full w-5 h-5"
                     data-ai-hint="team logo"
                 />
-                <span className="text-sm">{team.name}</span>
+                <span className="text-xs sm:text-sm">{team.name}</span>
             </div>
             {score !== null && <span className={cn("font-semibold text-sm", isWinner && 'text-primary')}>{score}</span>}
         </div>
@@ -34,7 +34,7 @@ const MatchTeam = ({ team, score, isWinner }: { team: Team | null, score: number
 }
 
 const MatchCard = ({ match }: { match: CupMatch }) => (
-    <div className="bg-card border rounded-md w-64 shadow-sm">
+    <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm">
         <MatchTeam team={match.team1} score={match.score1} isWinner={match.winner?.id === match.team1?.id} />
         <div className="border-t">
             <MatchTeam team={match.team2} score={match.score2} isWinner={match.winner?.id === match.team2?.id} />
@@ -48,14 +48,14 @@ export function CupBracket() {
 
   return (
     <ScrollArea className="w-full whitespace-nowrap rounded-lg border bg-card/50">
-      <div className="flex p-8 gap-8">
+      <div className="flex p-4 sm:p-8 gap-4 sm:gap-8">
         {cupData.map((round, roundIndex) => (
           <div key={round.name} className="flex flex-col justify-center">
-            <h3 className="text-xl font-bold text-center mb-6 text-primary">{round.name}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-center mb-6 text-primary">{round.name}</h3>
             <div
               className="flex flex-col"
               style={{
-                gap: `${roundIndex > 0 ? (2 ** roundIndex -1) * 6 + 2 : 4}rem`
+                gap: `${roundIndex > 0 ? (2 ** roundIndex -1) * 5.5 + 2 : 4}rem`
               }}
             >
               {round.matches.map((match, matchIndex) => {
@@ -66,12 +66,12 @@ export function CupBracket() {
                     {!isFinalMatch && (
                        <>
                         {/* Horizontal line from match to connector */}
-                        <div className="absolute left-full top-1/2 h-px w-8 bg-border"></div>
+                        <div className="absolute left-full top-1/2 h-px w-4 sm:w-8 bg-border"></div>
                         {/* Vertical connector line */}
                         <div
                             className="absolute h-full w-px bg-border"
                             style={{
-                                left: 'calc(100% + 2rem)',
+                                left: `calc(100% + ${roundIndex === 0 ? '1rem' : '2rem'})`,
                                 top: matchIndex % 2 === 0 ? '50%' : `-${(100 * (2**(roundIndex+1)-1) - 100) / 2}%`,
                                 height: matchIndex % 2 === 0 ? `${(100 * (2**(roundIndex+1)-1))}%`: '0%',
                             }}
@@ -79,8 +79,8 @@ export function CupBracket() {
                         {/* Horizontal line from connector to next match */}
                         {matchIndex % 2 === 0 &&
                           <div
-                              className="absolute top-1/2 h-px w-8 bg-border"
-                              style={{ left: `calc(100% + 2rem)` }}
+                              className="absolute top-1/2 h-px w-4 sm:w-8 bg-border"
+                              style={{ left: `calc(100% + ${roundIndex === 0 ? '1rem' : '2rem'})` }}
                           ></div>
                         }
                       </>
