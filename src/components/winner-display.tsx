@@ -22,8 +22,8 @@ export function WinnerDisplay({ title, winnerName, teamName, imageUrl, imageHint
             </div>
             
             <Card className="w-full max-w-md overflow-hidden shadow-lg shadow-primary/10 border-2 border-primary/50">
-                <div className="bg-gradient-to-br from-card to-secondary p-8 pt-12 text-center relative">
-                     <div className="relative w-40 h-40 mx-auto mb-4">
+                <div className="bg-gradient-to-br from-card to-secondary p-8 text-center relative">
+                     <div className="relative w-40 h-40 mx-auto">
                         <Image
                             src={imageUrl}
                             alt={`Portrait of ${winnerName}`}
@@ -42,7 +42,7 @@ export function WinnerDisplay({ title, winnerName, teamName, imageUrl, imageHint
                     </div>
                 </div>
 
-                <CardContent className="p-6 bg-card">
+                <CardContent className="p-6 bg-card pt-6">
                     <h3 className="text-lg font-semibold mb-4 text-left">Champion Stats</h3>
                     <div className="space-y-3">
                         {stats.map((stat, index) => (
