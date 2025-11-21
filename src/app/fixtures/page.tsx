@@ -1,6 +1,15 @@
 
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { MatchForm } from '@/components/match-form';
 
 export default function FixturesPage() {
   return (
@@ -10,10 +19,23 @@ export default function FixturesPage() {
             <h1 className="font-headline text-4xl font-extrabold tracking-tight">
                 Fixtures
             </h1>
-            <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Match
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add New Match
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Match</DialogTitle>
+                  <DialogDescription>
+                    Select the teams and enter the match details.
+                  </DialogDescription>
+                </DialogHeader>
+                <MatchForm />
+              </DialogContent>
+            </Dialog>
         </div>
         <div className="border rounded-lg p-8 text-center bg-card">
             <h2 className="text-xl font-medium text-muted-foreground">No matches yet</h2>
