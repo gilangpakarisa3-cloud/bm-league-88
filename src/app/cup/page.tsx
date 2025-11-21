@@ -20,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, doc, serverTimestamp, writeBatch, query, getDocs, deleteDoc } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, doc, serverTimestamp, writeBatch, query, getDocs, deleteDoc, runTransaction, where } from 'firebase/firestore';
 import type { Season, Player, WithId, Match } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { ScoreForm } from '@/components/score-form';
 
 
 // For simplicity, we'll work with a single, hardcoded cup.
@@ -97,20 +98,27 @@ const generateBracket = (players: WithId<Player>[]) => {
   });
 
   // --- Generate subsequent rounds ---
-  let currentRoundPlayerSlots = nextPowerOfTwo / 2;
-  while(currentRoundPlayerSlots >= 2) {
-    const nextRoundName = getRoundName(currentRoundPlayerSlots);
-    for (let i = 0; i < currentRoundPlayerSlots; i += 2) {
-       matches.push({
-         player1Id: 'TBD',
-         player2Id: 'TBD',
-         isCompleted: false,
-         round: nextRoundName,
-         matchNumber: matchNumber++,
-       });
-    }
-    currentRoundPlayerSlots /= 2;
+  let currentRoundMatchesCount = nextPowerOfTwo / 2;
+  let currentRoundPlayerCount = nextPowerOfTwo;
+
+  while (currentRoundPlayerCount >= 2) {
+      const roundName = getRoundName(currentRoundPlayerCount);
+      // Skip creating placeholders for the first round as they are already created
+      if (roundName !== round1Name) {
+          for (let i = 0; i < currentRoundMatchesCount; i++) {
+              matches.push({
+                  player1Id: 'TBD',
+                  player2Id: 'TBD',
+                  isCompleted: false,
+                  round: roundName,
+                  matchNumber: matchNumber++,
+              });
+          }
+      }
+      currentRoundPlayerCount /= 2;
+      currentRoundMatchesCount /= 2;
   }
+
 
   return matches;
 };
@@ -125,6 +133,7 @@ export default function CupPage() {
   const [newSeasonName, setNewSeasonName] = useState('');
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
+  const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
   
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -149,7 +158,7 @@ export default function CupPage() {
         : null,
     [firestore, activeSeasonId]
   );
-  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
+  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection, 'matchNumber');
   
   const playersCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'players') : null),
@@ -241,7 +250,16 @@ export default function CupPage() {
     if (!firestore || !activeSeasonId || !allPlayers) return;
 
     const playersToRegister = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
-    if (playersToRegister.length === 0) return;
+    
+    // Prevent re-registering players who are already in.
+    const alreadyRegisteredIds = new Set((participants || []).map(p => p.id));
+    const newPlayersToRegister = playersToRegister.filter(p => !alreadyRegisteredIds.has(p.id));
+
+    if (newPlayersToRegister.length === 0) {
+        toast({ title: 'No new players to register.'});
+        setShowRegisterPlayers(false);
+        return;
+    }
     
     if (activeSeason?.status !== 'Not Started') {
       toast({ variant: 'destructive', title: 'Registration Closed', description: 'Cannot register players for a cup that is in progress or completed.' });
@@ -251,7 +269,7 @@ export default function CupPage() {
     const batch = writeBatch(firestore);
     
     // Register participants
-    playersToRegister.forEach(player => {
+    newPlayersToRegister.forEach(player => {
         const participantRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/cupParticipants`, player.id);
         batch.set(participantRef, player);
     });
@@ -263,7 +281,7 @@ export default function CupPage() {
     existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
 
     // Then, generate new matches with all currently registered participants.
-    const allRegisteredPlayers = [...(participants || []), ...playersToRegister];
+    const allRegisteredPlayers = [...(participants || []), ...newPlayersToRegister];
     const uniquePlayers = allRegisteredPlayers.filter((p, i, a) => a.findIndex(t => t.id === p.id) === i);
     
     const newMatches = generateBracket(uniquePlayers);
@@ -274,7 +292,7 @@ export default function CupPage() {
 
     try {
         await batch.commit();
-        toast({ title: 'Success', description: `${playersToRegister.length} players registered and bracket (re)generated.` });
+        toast({ title: 'Success', description: `${newPlayersToRegister.length} players registered and bracket (re)generated.` });
     } catch (error) {
         console.error("Error registering players/generating bracket: ", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not complete registration.' });
@@ -289,6 +307,75 @@ export default function CupPage() {
     const seasonRef = doc(firestore, `cups/${CUP_ID}/seasons`, activeSeason.id);
     updateDocumentNonBlocking(seasonRef, { status });
     toast({ title: 'Season Updated', description: `Season status changed to '${status}'.` });
+  };
+  
+  const handleUpdateScore = async (matchId: string, scores: { score1: number; score2: number }) => {
+    if (!firestore || !activeSeasonId || !matches) return;
+  
+    const matchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, matchId);
+    const currentMatch = matches.find(m => m.id === matchId);
+    if (!currentMatch) return;
+  
+    const winnerId = scores.score1 > scores.score2 ? currentMatch.player1Id : currentMatch.player2Id;
+    const sortedMatches = [...matches].sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+    const rounds = [...new Set(sortedMatches.map(m => m.round))];
+    
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        // 1. Update the current match score
+        transaction.update(matchRef, {
+          player1Score: scores.score1,
+          player2Score: scores.score2,
+          isCompleted: true,
+        });
+  
+        // 2. Find and update the next match if this isn't the final
+        if (currentMatch.round !== 'Final') {
+          const totalMatches = sortedMatches.length;
+          const currentMatchIndex = sortedMatches.findIndex(m => m.id === currentMatch.id);
+          const roundMatchCount = sortedMatches.filter(m => m.round === currentMatch.round).length;
+          
+          // Simplified logic: next match is halfway through the next round's block
+          const nextMatchIndex = currentMatchIndex + roundMatchCount - Math.floor(currentMatchIndex / 2);
+          const nextMatch = sortedMatches.find(m => m.matchNumber === (currentMatch.matchNumber ?? 0) + roundMatchCount);
+          
+          let nextAvailableMatch: WithId<Match> | undefined = undefined;
+          let searchIndex = 0;
+          let baseIndex = 0;
+          let foundRound = false;
+          for(let roundName of rounds) {
+            const roundMatches = sortedMatches.filter(m => m.round === roundName);
+            if(foundRound) {
+              const matchIndexInRound = Math.floor(searchIndex / 2);
+              nextAvailableMatch = roundMatches[matchIndexInRound];
+              break;
+            }
+            if(roundName === currentMatch.round) {
+              foundRound = true;
+              searchIndex = roundMatches.findIndex(m => m.id === currentMatch.id);
+            }
+          }
+          
+          if(nextAvailableMatch) {
+            const nextMatchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, nextAvailableMatch.id);
+            const isPlayer1Slot = (currentMatch.matchNumber || 0) % 2 !== 0;
+
+            if (isPlayer1Slot) {
+                transaction.update(nextMatchRef, { player1Id: winnerId });
+            } else {
+                transaction.update(nextMatchRef, { player2Id: winnerId });
+            }
+          }
+        }
+      });
+  
+      toast({ title: "Score Updated", description: "Match result saved and bracket updated." });
+    } catch (e) {
+      console.error("Failed to update score and advance winner: ", e);
+      toast({ variant: 'destructive', title: 'Update Failed', description: (e as Error).message });
+    }
+  
+    setEditingMatch(null);
   };
   
   return (
@@ -354,6 +441,8 @@ export default function CupPage() {
           matches={matches || []} 
           players={allPlayers || []}
           isLoading={isLoadingMatches || isLoadingPlayers} 
+          onUpdateMatch={setEditingMatch}
+          seasonStatus={activeSeason?.status}
         />
       </div>
 
@@ -398,7 +487,7 @@ export default function CupPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Register Players for Cup</DialogTitle>
-            <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The bracket will be generated automatically.</DialogDescription>
+            <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The bracket will be regenerated based on the final player list.</DialogDescription>
           </DialogHeader>
           <RegisterPlayersForm
             allPlayers={allPlayers || []}
@@ -408,7 +497,28 @@ export default function CupPage() {
           />
         </DialogContent>
       </Dialog>
+      
+       {/* Update Score Dialog */}
+        <Dialog open={!!editingMatch} onOpenChange={(isOpen) => !isOpen && setEditingMatch(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Match Score</DialogTitle>
+              <DialogDescription>
+                Enter the final score. The winner will advance automatically.
+              </DialogDescription>
+            </DialogHeader>
+            {editingMatch && allPlayers && (
+              <ScoreForm 
+                match={editingMatch} 
+                onSave={(scores) => handleUpdateScore(editingMatch.id, scores)} 
+                players={allPlayers} 
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
     </div>
   );
 }
+
+    

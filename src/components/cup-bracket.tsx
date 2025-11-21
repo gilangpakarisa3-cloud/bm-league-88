@@ -1,11 +1,13 @@
 
 'use client';
 
-import type { Match, Player, WithId } from '@/lib/types';
+import type { Match, Player, WithId, Season } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
+import { Button } from './ui/button';
+import { Pencil } from 'lucide-react';
 
 const MatchTeam = ({ player, score, isWinner, isBye }: { player: WithId<Player> | null, score: number | null, isWinner: boolean, isBye?: boolean }) => {
     if (isBye) {
@@ -39,20 +41,33 @@ interface MatchWithPlayers extends WithId<Match> {
   winner: WithId<Player> | null;
 }
 
-const MatchCard = ({ match }: { match: MatchWithPlayers }) => {
+const MatchCard = ({ match, onUpdateMatch, canUpdate }: { match: MatchWithPlayers, onUpdateMatch: (match: WithId<Match>) => void, canUpdate: boolean }) => {
     const isByeMatch = match.player2Id === 'BYE';
+    const canBeUpdated = canUpdate && !isByeMatch && match.player1Id !== 'TBD' && match.player2Id !== 'TBD';
+
     return (
-        <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm">
+        <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm relative group">
             <MatchTeam player={match.player1} score={match.player1Score ?? null} isWinner={match.winner?.id === match.player1?.id} />
             <div className="border-t">
                 <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={match.winner?.id === match.player2?.id} isBye={isByeMatch} />
             </div>
+            {canBeUpdated && (
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="absolute top-1/2 -right-4 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => onUpdateMatch(match)}
+                >
+                    <Pencil className="h-4 w-4" />
+                    <span className="sr-only">Update Score</span>
+                </Button>
+            )}
         </div>
     );
 };
 
 
-export function CupBracket({ matches, players, isLoading }: { matches: WithId<Match>[], players: WithId<Player>[], isLoading: boolean }) {
+export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonStatus }: { matches: WithId<Match>[], players: WithId<Player>[], isLoading: boolean, onUpdateMatch: (match: WithId<Match>) => void, seasonStatus?: Season['status'] }) {
 
   const playersById = useMemo(() => {
     return players.reduce((acc, player) => {
@@ -64,15 +79,18 @@ export function CupBracket({ matches, players, isLoading }: { matches: WithId<Ma
   const rounds = useMemo(() => {
     if (!matches || matches.length === 0) return [];
     
-    const matchesWithPlayers: MatchWithPlayers[] = matches.map(match => {
+    const sortedMatches = [...matches].sort((a, b) => (a.matchNumber ?? 0) - (b.matchNumber ?? 0));
+
+    const matchesWithPlayers: MatchWithPlayers[] = sortedMatches.map(match => {
         const player1 = match.player1Id !== 'TBD' ? playersById[match.player1Id] || null : null;
         const player2 = match.player2Id !== 'TBD' && match.player2Id !== 'BYE' ? playersById[match.player2Id] || null : null;
         let winner: WithId<Player> | null = null;
         if (match.isCompleted && typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
             if (match.player1Score > match.player2Score) winner = player1;
             else if (match.player2Score > match.player1Score) winner = player2;
+        } else if (match.player2Id === 'BYE') {
+            winner = player1;
         }
-        if (match.player2Id === 'BYE') winner = player1;
 
         return {
             ...match,
@@ -92,23 +110,21 @@ export function CupBracket({ matches, players, isLoading }: { matches: WithId<Ma
         }
     });
 
-    // Sort rounds logically (e.g., Round of 16, Quarter-finals, Semi-finals, Final)
     const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32'];
+    
     return Object.entries(roundsMap)
-      .map(([name, matches]) => ({ name, matches: matches.sort((a,b) => (a.matchNumber || 0) - (b.matchNumber || 0)) }))
+      .map(([name, matchesInRound]) => ({ name, matches: matchesInRound }))
       .sort((a, b) => {
-          const aTotalPlayers = a.matches.reduce((acc, m) => acc + (m.player2Id === 'BYE' ? 1 : 2), 0);
-          const bTotalPlayers = b.matches.reduce((acc, m) => acc + (m.player2Id === 'BYE' ? 1 : 2), 0);
-          const aName = a.name.split(' ')[0] === 'Round' ? `Round of ${aTotalPlayers}` : a.name;
-          const bName = b.name.split(' ')[0] === 'Round' ? `Round of ${bTotalPlayers}` : b.name;
+          const aIndex = roundOrder.indexOf(a.name);
+          const bIndex = roundOrder.indexOf(b.name);
+          if (aIndex !== -1 && bIndex !== -1) return bIndex - aIndex; // Correctly sorts textual rounds
           
-          const aIndex = roundOrder.indexOf(aName);
-          const bIndex = roundOrder.indexOf(bName);
+          // Fallback for numeric rounds (e.g., Round of 64)
+          const aNum = parseInt(a.name.replace('Round of ', ''), 10);
+          const bNum = parseInt(b.name.replace('Round of ', ''), 10);
+          if (!isNaN(aNum) && !isNaN(bNum)) return bNum - aNum;
 
-          if (aIndex !== -1 && bIndex !== -1) {
-            return bIndex - aIndex;
-          }
-          return b.matches.length - a.matches.length;
+          return b.matches.length - a.matches.length; // Fallback sort by match count
       });
 
   }, [matches, playersById]);
@@ -130,41 +146,45 @@ export function CupBracket({ matches, players, isLoading }: { matches: WithId<Ma
     );
   }
 
+  const canUpdateMatches = seasonStatus === 'In Progress';
+
   return (
     <ScrollArea className="w-full whitespace-nowrap rounded-lg border bg-card/50">
-      <div className="flex p-4 sm:p-8 gap-4 sm:gap-8">
+      <div className="flex p-4 sm:p-8 gap-8 sm:gap-16">
         {rounds.map((round, roundIndex) => (
           <div key={round.name} className="flex flex-col justify-center">
             <h3 className="text-lg sm:text-xl font-bold text-center mb-6 text-primary">{round.name}</h3>
             <div
-              className="flex flex-col"
+              className="flex flex-col gap-8"
               style={{
-                gap: `${roundIndex > 0 ? (2 ** roundIndex -1) * 5.5 + 2 : 4}rem`
+                paddingTop: roundIndex > 0 ? `${(2 ** (roundIndex - 1)) * 4}rem` : 0,
+                paddingBottom: roundIndex > 0 ? `${(2 ** (roundIndex - 1)) * 4}rem` : 0,
+                gap: roundIndex > 0 ? `${(2 ** roundIndex) * 4}rem` : '2rem',
               }}
             >
-              {round.matches.map((match, matchIndex) => {
+              {round.matches.map((match) => {
                 const isFinalMatch = round.name === 'Final';
                 return (
                   <div key={match.id} className="relative flex items-center">
-                    <MatchCard match={match} />
+                    <MatchCard match={match} onUpdateMatch={onUpdateMatch} canUpdate={canUpdateMatches} />
                     {!isFinalMatch && (
                        <>
                         {/* Horizontal line from match to connector */}
                         <div className="absolute left-full top-1/2 h-px w-4 sm:w-8 bg-border"></div>
-                        {/* Vertical connector line */}
+                        
+                        {/* Vertical line connecting pairs */}
                         <div
-                            className="absolute h-full w-px bg-border"
-                            style={{
-                                left: `calc(100% + ${roundIndex === 0 ? '1rem' : '2rem'})`,
-                                top: matchIndex % 2 === 0 ? '50%' : `-${(100 * (2**(roundIndex+1)-1) - 100) / 2}%`,
-                                height: matchIndex % 2 === 0 ? `${(100 * (2**(roundIndex+1)-1))}%`: '0%',
-                            }}
-                        ></div>
+                            className={cn("absolute w-px bg-border",
+                                match.matchNumber && match.matchNumber % 2 !== 0 ? 'top-1/2 h-full' : 'bottom-1/2 h-full'
+                            )}
+                            style={{ left: `calc(100% + 2rem)` }}
+                         />
+                        
                         {/* Horizontal line from connector to next match */}
-                        {matchIndex % 2 === 0 &&
+                        {match.matchNumber && match.matchNumber % 2 !== 0 &&
                           <div
                               className="absolute top-1/2 h-px w-4 sm:w-8 bg-border"
-                              style={{ left: `calc(100% + ${roundIndex === 0 ? '1rem' : '2rem'})` }}
+                              style={{ left: `calc(100% + 2rem)` }}
                           ></div>
                         }
                       </>
@@ -180,3 +200,5 @@ export function CupBracket({ matches, players, isLoading }: { matches: WithId<Ma
     </ScrollArea>
   );
 }
+
+    
