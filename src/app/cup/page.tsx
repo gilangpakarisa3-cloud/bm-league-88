@@ -551,7 +551,7 @@ export default function CupPage() {
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">Cup Tournament</h1>
                 {activeSeason && (
                   <>
-                    <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>
+                    <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>
                     {formattedDateRange && <p className="text-sm font-medium text-primary">{formattedDateRange}</p>}
                   </>
                 )}
