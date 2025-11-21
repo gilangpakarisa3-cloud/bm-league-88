@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -16,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Combobox } from './ui/combobox';
 import type { Player, Team, WithId, League, LeagueEntry, Cup } from '@/lib/types';
-import { useCollection, addDocumentNonBlocking } from '@/firebase';
+import { useCollection, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
 import React from 'react';
@@ -78,7 +79,13 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       form.reset({
         name: player.name,
         teamId: player.teamId,
-        photoUrl: player.photoUrl,
+        photoUrl: player.photoUrl || '',
+      });
+    } else {
+      form.reset({
+        name: '',
+        teamId: '',
+        photoUrl: '',
       });
     }
   }, [player, form]);
@@ -105,7 +112,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         return;
     }
     
-    const playerData: Player = {
+    const playerData: Omit<Player, 'id'> = {
         name: data.name,
         teamId: data.teamId,
         teamName: selectedTeam.name,
@@ -137,7 +144,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                         batch.update(entryRef, { 
                             playerName: playerData.name,
                             teamName: playerData.teamName,
-                            photoUrl: playerData.photoUrl,
+                            teamId: playerData.teamId
                         });
                     });
                 }

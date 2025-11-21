@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc } from 'firebase/firestore';
-import type { League, Season, LeagueEntry, Player, WithId, Match } from '@/lib/types';
+import type { League, Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -78,6 +78,12 @@ export default function LeaguePage() {
   );
   const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
   
+  const teamsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'teams') : null),
+    [firestore]
+  );
+  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
   const matchesCollection = useMemoFirebase(
     () =>
       firestore && activeSeasonId
@@ -89,19 +95,45 @@ export default function LeaguePage() {
 
   // --- Memoized Derived State ---
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
+  
+  const playersById = useMemo(() => {
+    if (!allPlayers) return {};
+    return allPlayers.reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+    }, {} as Record<string, WithId<Player>>);
+  }, [allPlayers]);
+
+  const teamsById = useMemo(() => {
+    if (!allTeams) return {};
+    return allTeams.reduce((acc, t) => {
+        acc[t.id] = t;
+        return acc;
+    }, {} as Record<string, WithId<Team>>);
+  }, [allTeams]);
+
+
   const sortedTable = useMemo(() => {
     if (!leagueTable) return [];
+    
+    const enrichedTable = leagueTable.map(entry => ({
+        ...entry,
+        player: playersById[entry.playerId],
+        team: teamsById[entry.teamId],
+    }));
+
     // if season is not started yet, sort by name
     if (activeSeason?.status === 'Not Started') {
-        return [...leagueTable].sort((a, b) => a.playerName.localeCompare(b.playerName)).map((entry, index) => ({...entry, rank: index + 1}));
+        return [...enrichedTable].sort((a, b) => a.playerName.localeCompare(b.playerName)).map((entry, index) => ({...entry, rank: index + 1}));
     }
-    return [...leagueTable].sort((a, b) => {
+    return [...enrichedTable].sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
         if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
         return a.playerName.localeCompare(b.playerName);
     }).map((entry, index) => ({...entry, rank: index + 1}));
-  }, [leagueTable, activeSeason]);
+  }, [leagueTable, activeSeason, playersById, teamsById]);
+
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
 
   // --- Effects ---
@@ -209,7 +241,6 @@ export default function LeaguePage() {
             teamId: player.teamId,
             playerName: player.name,
             teamName: player.teamName,
-            photoUrl: player.photoUrl,
             played: 0,
             win: 0,
             draw: 0,
@@ -332,7 +363,7 @@ export default function LeaguePage() {
 
         <LeagueTable 
             tableData={sortedTable} 
-            isLoading={isLoadingTable || isLoadingMatches}
+            isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams}
             onRemovePlayer={setDeletingEntry}
             seasonStatus={activeSeason?.status}
         />

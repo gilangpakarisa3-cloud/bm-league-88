@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type WithId<T> = T & { id: string };
@@ -38,7 +39,6 @@ export type LeagueEntry = {
   teamId: string;
   playerName: string;
   teamName: string;
-  photoUrl?: string;
   played: number;
   win: number;
   draw: number;

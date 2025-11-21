@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -76,7 +77,10 @@ export function PlayerList({ onEdit }: PlayerListProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Skeleton className="h-5 w-32" />
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
                 </TableCell>
                 <TableCell className="text-right pr-4 flex justify-end gap-2">
                   <Skeleton className="h-8 w-8 rounded-full" />
@@ -128,6 +132,10 @@ export function PlayerList({ onEdit }: PlayerListProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={player.teamLogoUrl} alt={player.teamName} />
+                        <AvatarFallback>{player.teamName?.charAt(0)}</AvatarFallback>
+                      </Avatar>
                       <div className="text-sm sm:text-base text-muted-foreground">{player.teamName}</div>
                     </div>
                   </TableCell>
