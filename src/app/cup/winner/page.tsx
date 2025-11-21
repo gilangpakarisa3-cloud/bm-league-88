@@ -1,13 +1,16 @@
+
 'use client';
 
 import { use, useEffect, useState, Suspense } from 'react';
 import { WinnerDisplay } from '@/components/winner-display';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, doc, query, where, getDocs, getDoc, orderBy, limit } from 'firebase/firestore';
 import type { Match, Player, Season, WithId } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 // For simplicity, we'll work with a single, hardcoded cup.
 const CUP_ID = 'main-cup';
@@ -38,7 +41,6 @@ function CupWinnerPageContents() {
             setIsLoading(true);
             const matchesRef = collection(firestore, `cups/${CUP_ID}/seasons/${seasonId}/matches`);
             
-            // Find the final match
             const finalQuery = query(matchesRef, where('round', '==', 'Final'), limit(1));
             const finalSnapshot = await getDocs(finalQuery);
 
@@ -52,44 +54,55 @@ function CupWinnerPageContents() {
             const finalMatchData = { id: finalMatchDoc.id, ...finalMatchDoc.data() } as WithId<Match>;
             setFinalMatch(finalMatchData);
 
-            // Determine winner
             if (finalMatchData.isCompleted && finalMatchData.player1Score != null && finalMatchData.player2Score != null) {
                 const winnerId = finalMatchData.player1Score > finalMatchData.player2Score ? finalMatchData.player1Id : finalMatchData.player2Id;
+                
                 if (winnerId && winnerId !== 'TBD') {
                     const playerRef = doc(firestore, 'players', winnerId);
-                    const playerSnap = await getDocs(query(collection(firestore, 'players'), where('__name__', '==', winnerId)));
-                    if (!playerSnap.empty) {
-                        setWinner({ id: playerSnap.docs[0].id, ...playerSnap.docs[0].data() } as WithId<Player>);
+                    const playerSnap = await getDoc(playerRef);
+                    if (playerSnap.exists()) {
+                        setWinner({ id: playerSnap.id, ...playerSnap.data() } as WithId<Player>);
                     }
                 }
             }
              setIsLoading(false);
         };
         
-        if (season && season.status === 'Completed') {
-            findWinner();
-        } else {
-             setIsLoading(false);
-        }
+        findWinner();
 
-    }, [firestore, seasonId, season, router]);
+    }, [firestore, seasonId, router]);
 
 
     if (isLoading) {
         return <WinnerSkeleton title="Cup Champion" />;
     }
 
-    if (!winner || !finalMatch) {
+    const isSeasonCompleted = season?.status === 'Completed';
+
+    if (!finalMatch) {
+         return (
+            <div className="container mx-auto px-4 py-8 text-center">
+                <h1 className="text-3xl font-bold">Cup Not Yet Started</h1>
+                <p className="text-muted-foreground mt-2">The bracket has not been generated for this season.</p>
+                <Button onClick={() => router.push('/cup')} className="mt-4">Back to Cup</Button>
+            </div>
+        );
+    }
+
+    if (!winner || !isSeasonCompleted) {
          return (
             <div className="container mx-auto px-4 py-8 text-center">
                 <h1 className="text-3xl font-bold">Cup Not Yet Decided</h1>
-                <p className="text-muted-foreground mt-2">The final match has not been completed yet, or the season is not finished.</p>
+                <p className="text-muted-foreground mt-2">The final match has not been completed or the season is still in progress.</p>
                 <Button onClick={() => router.push('/cup')} className="mt-4">Back to Cup</Button>
             </div>
         );
     }
     
-    const finalScore = `${finalMatch.player1Score} - ${finalMatch.player2Score}`;
+    const p1Score = finalMatch.player1Id === winner.id ? finalMatch.player1Score : finalMatch.player2Score;
+    const p2Score = finalMatch.player1Id === winner.id ? finalMatch.player2Score : finalMatch.player1Score;
+
+    const finalScore = `${p1Score} - ${p2Score}`;
     const winnerImage = PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
 
     const stats = [
@@ -132,9 +145,6 @@ const WinnerSkeleton = ({title}: {title: string}) => (
      </div>
 );
 
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 
 export default function CupWinnerPage() {
     return (

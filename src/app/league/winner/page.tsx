@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
@@ -54,13 +55,10 @@ function LeagueWinnerPageContents() {
             setIsLoading(false);
         };
         
-        if (season && season.status === 'Completed') {
-            findWinner();
-        } else {
-            setIsLoading(false);
-        }
+        // Always try to find the leader, regardless of season status
+        findWinner();
 
-    }, [firestore, seasonId, season, router]);
+    }, [firestore, seasonId, router]);
 
     if (isLoading) {
         return <WinnerSkeleton title="League Champion" />;
@@ -79,14 +77,16 @@ function LeagueWinnerPageContents() {
     if (!winner) {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
-                <h1 className="text-3xl font-bold">League Not Yet Decided</h1>
-                <p className="text-muted-foreground mt-2">The season is not completed yet, or there are no players.</p>
+                <h1 className="text-3xl font-bold">League Not Started</h1>
+                <p className="text-muted-foreground mt-2">There are no players registered for this season yet.</p>
                 <Button onClick={() => router.push('/league')} className="mt-4">Back to League</Button>
             </div>
         );
     }
     
     const winnerImage = PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
+
+    const isSeasonCompleted = season?.status === 'Completed';
 
     const stats = [
         { label: 'Points', value: winner.points },
@@ -97,7 +97,7 @@ function LeagueWinnerPageContents() {
 
     return (
         <WinnerDisplay
-            title="League Champion"
+            title={isSeasonCompleted ? "League Champion" : "Current League Leader"}
             winnerName={winner.playerName}
             teamName={winner.teamName}
             imageUrl={winnerImage}
