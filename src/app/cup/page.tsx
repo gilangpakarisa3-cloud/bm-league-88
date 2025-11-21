@@ -292,7 +292,7 @@ export default function CupPage() {
                       <PlusCircle className="mr-2 h-4 w-4" />
                       New
                     </Button>
-                    <Button onClick={handleOpenEditDialog} variant="outline" size="icon" disabled={!activeSeason}>
+                    <Button onClick={handleOpenEditDialog} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
                         <Pencil className="h-4 w-4" />
                         <span className="sr-only">Edit Season</span>
                     </Button>
