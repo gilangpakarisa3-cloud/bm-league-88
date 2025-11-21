@@ -41,18 +41,15 @@ import {
 // For simplicity, we'll work with a single, hardcoded cup.
 const CUP_ID = 'main-cup';
 
-// Function to generate rounds for a power-of-2 number of players
 const generateBracket = (players: WithId<Player>[]) => {
   const matches: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
   const numPlayers = players.length;
-  const rounds = Math.log2(numPlayers);
 
-  if (Math.ceil(rounds) !== Math.floor(rounds)) {
-    // Not a power of 2, handle seeding or byes if necessary.
-    // For now, we'll just truncate to the nearest power of 2 for simplicity.
-    // In a real app, you would want a more robust solution.
-    console.error("Number of players is not a power of 2. Bracket may be incomplete.");
-  }
+  if (numPlayers < 2) return [];
+
+  const nextPowerOfTwo = 2 ** Math.ceil(Math.log2(numPlayers));
+  const byes = nextPowerOfTwo - numPlayers;
+  const roundOneMatches = (numPlayers - byes) / 2;
   
   const roundNames: { [key: number]: string } = {
     [2]: 'Final',
@@ -66,37 +63,54 @@ const generateBracket = (players: WithId<Player>[]) => {
     return roundNames[numTeams] || `Round of ${numTeams}`;
   }
 
-  // Round 1
   const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-  let matchNumber = 1;
-  const round1Name = getRoundName(numPlayers);
 
-  for (let i = 0; i < numPlayers; i += 2) {
+  const playersWithByes = shuffledPlayers.slice(0, byes);
+  const playersInRoundOne = shuffledPlayers.slice(byes);
+
+  let matchNumber = 1;
+
+  // --- Generate Round 1 matches ---
+  const round1Name = getRoundName(nextPowerOfTwo);
+  for (let i = 0; i < playersInRoundOne.length; i += 2) {
     matches.push({
-      player1Id: shuffledPlayers[i].id,
-      player2Id: shuffledPlayers[i + 1].id,
+      player1Id: playersInRoundOne[i].id,
+      player2Id: playersInRoundOne[i + 1].id,
       isCompleted: false,
       round: round1Name,
       matchNumber: matchNumber++,
     });
   }
   
-  let currentRoundPlayers = numPlayers / 2;
-  
-  while(currentRoundPlayers >= 2) {
-    const nextRoundName = getRoundName(currentRoundPlayers);
-    for (let i = 0; i < currentRoundPlayers; i += 2) {
+  // --- Create placeholders for players with byes in the first round visual ---
+  // This makes the bracket look correct, showing the bye.
+  playersWithByes.forEach(player => {
+    matches.push({
+      player1Id: player.id,
+      player2Id: 'BYE', // Special indicator for a bye
+      isCompleted: true, // Mark as complete to auto-advance
+      round: round1Name,
+      matchNumber: matchNumber++,
+      player1Score: 1, // Give a score to indicate winner
+      player2Score: 0,
+    });
+  });
+
+  // --- Generate subsequent rounds ---
+  let currentRoundPlayerSlots = nextPowerOfTwo / 2;
+  while(currentRoundPlayerSlots >= 2) {
+    const nextRoundName = getRoundName(currentRoundPlayerSlots);
+    for (let i = 0; i < currentRoundPlayerSlots; i += 2) {
        matches.push({
-         player1Id: 'TBD', // Winner of a previous match
-         player2Id: 'TBD', // Winner of a previous match
+         player1Id: 'TBD',
+         player2Id: 'TBD',
          isCompleted: false,
          round: nextRoundName,
          matchNumber: matchNumber++,
        });
     }
-    currentRoundPlayers /= 2;
+    currentRoundPlayerSlots /= 2;
   }
-
 
   return matches;
 };
@@ -229,9 +243,8 @@ export default function CupPage() {
     const playersToRegister = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
     if (playersToRegister.length === 0) return;
     
-    const isPowerOfTwo = (n: number) => (n > 0) && ((n & (n - 1)) === 0);
-    if (!isPowerOfTwo(playersToRegister.length)) {
-      toast({ variant: "destructive", title: "Invalid Number of Players", description: "The number of players for a cup must be a power of 2 (e.g., 4, 8, 16)." });
+    if (activeSeason?.status !== 'Not Started') {
+      toast({ variant: 'destructive', title: 'Registration Closed', description: 'Cannot register players for a cup that is in progress or completed.' });
       return;
     }
 
@@ -243,8 +256,17 @@ export default function CupPage() {
         batch.set(participantRef, player);
     });
 
-    // Generate and save bracket matches
-    const newMatches = generateBracket(playersToRegister);
+    // --- Generate Bracket Logic ---
+    // First, clear any existing matches for this season to re-generate them.
+    const existingMatchesQuery = query(collection(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`));
+    const existingMatchesSnap = await getDocs(existingMatchesQuery);
+    existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
+
+    // Then, generate new matches with all currently registered participants.
+    const allRegisteredPlayers = [...(participants || []), ...playersToRegister];
+    const uniquePlayers = allRegisteredPlayers.filter((p, i, a) => a.findIndex(t => t.id === p.id) === i);
+    
+    const newMatches = generateBracket(uniquePlayers);
     newMatches.forEach(match => {
         const matchRef = doc(collection(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`));
         batch.set(matchRef, { ...match, seasonId: activeSeasonId, matchDate: serverTimestamp() });
@@ -252,7 +274,7 @@ export default function CupPage() {
 
     try {
         await batch.commit();
-        toast({ title: 'Success', description: `${playersToRegister.length} players registered and bracket generated.` });
+        toast({ title: 'Success', description: `${playersToRegister.length} players registered and bracket (re)generated.` });
     } catch (error) {
         console.error("Error registering players/generating bracket: ", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not complete registration.' });
@@ -376,7 +398,7 @@ export default function CupPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Register Players for Cup</DialogTitle>
-            <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The number of players must be a power of 2 (e.g., 4, 8, 16).</DialogDescription>
+            <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The bracket will be generated automatically.</DialogDescription>
           </DialogHeader>
           <RegisterPlayersForm
             allPlayers={allPlayers || []}

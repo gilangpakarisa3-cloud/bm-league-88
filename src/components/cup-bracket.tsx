@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Match, Player, WithId } from '@/lib/types';
@@ -6,7 +7,13 @@ import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
 
-const MatchTeam = ({ player, score, isWinner }: { player: WithId<Player> | null, score: number | null, isWinner: boolean }) => {
+const MatchTeam = ({ player, score, isWinner, isBye }: { player: WithId<Player> | null, score: number | null, isWinner: boolean, isBye?: boolean }) => {
+    if (isBye) {
+        return <div className="flex items-center justify-between p-2 h-10">
+            <span className="text-sm font-semibold text-muted-foreground">BYE</span>
+        </div>
+    }
+
     if (!player) {
         return <div className="flex items-center justify-between p-2 h-10">
             <span className="text-sm text-muted-foreground">TBD</span>
@@ -32,14 +39,17 @@ interface MatchWithPlayers extends WithId<Match> {
   winner: WithId<Player> | null;
 }
 
-const MatchCard = ({ match }: { match: MatchWithPlayers }) => (
-    <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm">
-        <MatchTeam player={match.player1} score={match.player1Score ?? null} isWinner={match.winner?.id === match.player1?.id} />
-        <div className="border-t">
-            <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={match.winner?.id === match.player2?.id} />
+const MatchCard = ({ match }: { match: MatchWithPlayers }) => {
+    const isByeMatch = match.player2Id === 'BYE';
+    return (
+        <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm">
+            <MatchTeam player={match.player1} score={match.player1Score ?? null} isWinner={match.winner?.id === match.player1?.id} />
+            <div className="border-t">
+                <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={match.winner?.id === match.player2?.id} isBye={isByeMatch} />
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 
 export function CupBracket({ matches, players, isLoading }: { matches: WithId<Match>[], players: WithId<Player>[], isLoading: boolean }) {
@@ -56,12 +66,14 @@ export function CupBracket({ matches, players, isLoading }: { matches: WithId<Ma
     
     const matchesWithPlayers: MatchWithPlayers[] = matches.map(match => {
         const player1 = match.player1Id !== 'TBD' ? playersById[match.player1Id] || null : null;
-        const player2 = match.player2Id !== 'TBD' ? playersById[match.player2Id] || null : null;
+        const player2 = match.player2Id !== 'TBD' && match.player2Id !== 'BYE' ? playersById[match.player2Id] || null : null;
         let winner: WithId<Player> | null = null;
         if (match.isCompleted && typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
             if (match.player1Score > match.player2Score) winner = player1;
             else if (match.player2Score > match.player1Score) winner = player2;
         }
+        if (match.player2Id === 'BYE') winner = player1;
+
         return {
             ...match,
             player1,
@@ -85,9 +97,18 @@ export function CupBracket({ matches, players, isLoading }: { matches: WithId<Ma
     return Object.entries(roundsMap)
       .map(([name, matches]) => ({ name, matches: matches.sort((a,b) => (a.matchNumber || 0) - (b.matchNumber || 0)) }))
       .sort((a, b) => {
-          const aName = a.name.split(' ')[0] === 'Round' ? `Round of ${a.matches.length * 2}` : a.name;
-          const bName = b.name.split(' ')[0] === 'Round' ? `Round of ${b.matches.length * 2}` : b.name;
-          return roundOrder.indexOf(bName) - roundOrder.indexOf(aName);
+          const aTotalPlayers = a.matches.reduce((acc, m) => acc + (m.player2Id === 'BYE' ? 1 : 2), 0);
+          const bTotalPlayers = b.matches.reduce((acc, m) => acc + (m.player2Id === 'BYE' ? 1 : 2), 0);
+          const aName = a.name.split(' ')[0] === 'Round' ? `Round of ${aTotalPlayers}` : a.name;
+          const bName = b.name.split(' ')[0] === 'Round' ? `Round of ${bTotalPlayers}` : b.name;
+          
+          const aIndex = roundOrder.indexOf(aName);
+          const bIndex = roundOrder.indexOf(bName);
+
+          if (aIndex !== -1 && bIndex !== -1) {
+            return bIndex - aIndex;
+          }
+          return b.matches.length - a.matches.length;
       });
 
   }, [matches, playersById]);
