@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, Copy } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, Copy, CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp } from 'firebase/firestore';
 import type { League, Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ShareDialog } from '@/components/share-dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -55,6 +60,7 @@ export default function LeaguePage() {
   const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
+  const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({ from: undefined, to: undefined });
 
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -157,16 +163,23 @@ export default function LeaguePage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Season name cannot be empty.' });
       return;
     }
+
+    const seasonData: Partial<Season> = {
+        name: newSeasonName.trim(),
+        ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
+        ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
+    }
+
     if (editingSeason) {
       // Update existing season
       const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, editingSeason.id);
-      updateDocumentNonBlocking(seasonRef, { name: newSeasonName.trim() });
+      updateDocumentNonBlocking(seasonRef, seasonData);
       toast({ title: 'Success', description: `Season name updated to '${newSeasonName.trim()}'.` });
     } else {
       // Create new season
       const seasonsRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons`);
       addDocumentNonBlocking(seasonsRef, {
-        name: newSeasonName.trim(),
+        ...seasonData,
         status: 'Not Started',
         createdAt: serverTimestamp(),
       });
@@ -175,15 +188,27 @@ export default function LeaguePage() {
     setShowCreateSeason(false);
     setNewSeasonName('');
     setEditingSeason(null);
+    setDateRange({ from: undefined, to: undefined });
   };
   
   const handleOpenEditDialog = () => {
     if (activeSeason) {
       setEditingSeason(activeSeason);
       setNewSeasonName(activeSeason.name);
+      setDateRange({
+        from: activeSeason.startDate?.toDate(),
+        to: activeSeason.endDate?.toDate(),
+      });
       setShowCreateSeason(true);
     }
   };
+
+  const handleOpenCreateDialog = () => {
+    setEditingSeason(null);
+    setNewSeasonName('');
+    setDateRange({ from: undefined, to: undefined });
+    setShowCreateSeason(true);
+  }
 
   const handleDeleteSeason = async () => {
     if (!firestore || !deletingSeason) return;
@@ -286,21 +311,33 @@ export default function LeaguePage() {
     const header = `*Liga Tarkam Participants - ${seasonName}*\n\n`;
     
     const participantsList = sortedTable
-      .map((p, index) => `${index + 1}. ${p.playerName} (${p.teamName})`)
+      .map((p, index) => `${index + 1}. ${p.playerName} (${p.team?.name})`)
       .join('\n');
       
     setShareText(header + participantsList);
     setShareDialogOpen(true);
   };
 
+  const formattedDateRange = useMemo(() => {
+    if (!activeSeason || !activeSeason.startDate || !activeSeason.endDate) return null;
+    const start = format(activeSeason.startDate.toDate(), 'd LLL');
+    const end = format(activeSeason.endDate.toDate(), 'd LLL yyyy');
+    return `${start} - ${end}`;
+  }, [activeSeason]);
+
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <h1 className="font-headline text-4xl font-extrabold tracking-tight">League Standings</h1>
-            {activeSeason && <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>}
+            {activeSeason && (
+              <>
+                <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>
+                {formattedDateRange && <p className="text-sm font-medium text-primary">{formattedDateRange}</p>}
+              </>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
              <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
@@ -314,7 +351,7 @@ export default function LeaguePage() {
                 </SelectContent>
             </Select>
             <div className="flex gap-2">
-                <Button onClick={() => { setEditingSeason(null); setNewSeasonName(''); setShowCreateSeason(true); }} className="w-full sm:w-auto">
+                <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     New
                 </Button>
@@ -374,14 +411,57 @@ export default function LeaguePage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingSeason ? 'Edit Season' : 'Create New Season'}</DialogTitle>
-            <DialogDescription>{editingSeason ? 'Update the name for this season.' : 'Enter a name for the new season (e.g., "2024/25 Season").'}</DialogDescription>
+            <DialogDescription>{editingSeason ? 'Update the details for this season.' : 'Enter the details for the new season.'}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input 
-                placeholder="Season name"
-                value={newSeasonName}
-                onChange={(e) => setNewSeasonName(e.target.value)}
-            />
+            <div className="space-y-2">
+                <Label htmlFor="season-name">Season Name</Label>
+                <Input 
+                    id="season-name"
+                    placeholder="e.g., 2024/25 Season"
+                    value={newSeasonName}
+                    onChange={(e) => setNewSeasonName(e.target.value)}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label>Date Range</Label>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateRange.from && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.from ? (
+                        dateRange.to ? (
+                            <>
+                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                            {format(dateRange.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(dateRange.from, "LLL dd, y")
+                        )
+                        ) : (
+                        <span>Pick a date range</span>
+                        )}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange.from}
+                        selected={dateRange}
+                        onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+                        numberOfMonths={2}
+                    />
+                    </PopoverContent>
+                </Popover>
+            </div>
             <Button onClick={handleSeasonDialogSubmit} className="w-full">
                 {editingSeason ? 'Save Changes' : 'Create Season'}
             </Button>

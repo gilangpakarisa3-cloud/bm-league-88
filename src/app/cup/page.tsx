@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { CupBracket } from '@/components/cup-bracket';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Play, Flag, Trophy, Pencil, Trash2, Share2, Copy } from 'lucide-react';
+import { PlusCircle, UserPlus, Play, Flag, Trophy, Pencil, Trash2, Share2, Copy, CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, doc, serverTimestamp, writeBatch, query, getDocs, deleteDoc, runTransaction, where } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, writeBatch, query, getDocs, deleteDoc, runTransaction, where, Timestamp } from 'firebase/firestore';
 import type { Season, Player, WithId, Match } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
@@ -40,107 +40,147 @@ import {
 import { ScoreForm } from '@/components/score-form';
 import { ShareDialog } from '@/components/share-dialog';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 
 // For simplicity, we'll work with a single, hardcoded cup.
 const CUP_ID = 'main-cup';
 
 const generateBracket = (players: WithId<Player>[]) => {
-  const playersList = [...players].sort(() => Math.random() - 0.5); // Seeded by random shuffle
-  const numPlayers = playersList.length;
+    // 1. Initial setup
+    let playersList = [...players].sort(() => Math.random() - 0.5); // Shuffle for seeding
+    const numPlayers = playersList.length;
 
-  if (numPlayers < 2) return [];
+    if (numPlayers < 2) return [];
 
-  const bracketSize = Math.pow(2, Math.ceil(Math.log2(numPlayers)));
-  const numByes = bracketSize - numPlayers;
-  const numFirstRoundMatches = bracketSize / 2;
+    const roundNames: { [key: number]: string } = {
+        2: 'Final',
+        4: 'Semi-finals',
+        8: 'Quarter-finals',
+        16: 'Round of 16',
+        32: 'Round of 32',
+        64: 'Round of 64',
+    };
 
-  const roundNames: { [key: number]: string } = {
-    2: 'Final',
-    4: 'Semi-finals',
-    8: 'Quarter-finals',
-    16: 'Round of 16',
-    32: 'Round of 32',
-  };
+    // 2. Determine bracket size
+    const bracketSize = Math.pow(2, Math.ceil(Math.log2(numPlayers)));
+    const byes = bracketSize - numPlayers;
+    
+    // 3. Create rounds
+    const rounds: { name: string, matches: Omit<Match, 'seasonId' | 'matchDate'>[] }[] = [];
+    let currentRoundSize = bracketSize;
+    let matchCounter = 1;
 
-  const matches: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
-  let matchCounter = 1;
-
-  // --- Create all match placeholders for the entire bracket ---
-  let totalMatches = bracketSize - 1;
-  let matchesInRound: { [key: string]: number } = {};
-  let currentRoundSize = bracketSize;
-  while(currentRoundSize > 1) {
-    const roundName = roundNames[currentRoundSize] || `Round of ${currentRoundSize}`;
-    matchesInRound[roundName] = currentRoundSize / 2;
-    currentRoundSize /= 2;
-  }
-  
-  const orderedRoundNames = Object.keys(roundNames)
-    .map(Number)
-    .sort((a,b) => a - b)
-    .map(size => roundNames[size])
-    .filter(name => matchesInRound[name]);
-
-  // Adjust order for bracket generation: from largest round to final
-  const reversedRoundNames = [...orderedRoundNames].reverse();
-  const firstRoundName = reversedRoundNames[0];
-
-  for (const roundName of reversedRoundNames) {
-    for (let i = 0; i < matchesInRound[roundName]; i++) {
-       matches.push({
-        player1Id: 'TBD',
-        player2Id: 'TBD',
-        isCompleted: false,
-        round: roundName,
-        matchNumber: matchCounter++,
-      });
-    }
-  }
-
-  // --- Assign players to the first round ---
-  const firstRoundMatches = matches.filter(m => m.round === firstRoundName);
-  const byePlayers = playersList.slice(0, numByes);
-  const nonByePlayers = playersList.slice(numByes);
-
-  // Assign players who don't have a bye
-  for(let i = 0; i < nonByePlayers.length; i+=2) {
-    const matchIndex = Math.floor(i / 2) + numByes; // Start filling matches after the byes
-    if (firstRoundMatches[matchIndex]) {
-        firstRoundMatches[matchIndex].player1Id = nonByePlayers[i]?.id || 'TBD';
-        firstRoundMatches[matchIndex].player2Id = nonByePlayers[i+1]?.id || 'TBD';
-    }
-  }
-
-  // Assign byes
-  for(let i = 0; i < numByes; i++) {
-     if (firstRoundMatches[i]) {
-        firstRoundMatches[i].player1Id = byePlayers[i]?.id || 'TBD';
-        firstRoundMatches[i].player2Id = 'BYE';
-        firstRoundMatches[i].isCompleted = true; // A bye is an automatic win
-     }
-  }
-  
-  // --- Pre-populate next round with bye winners ---
-  if (numByes > 0) {
-      const secondRoundName = reversedRoundNames[1];
-      const secondRoundMatches = matches.filter(m => m.round === secondRoundName);
-
-      for(let i = 0; i < numByes; i++) {
-          const nextMatchIndex = Math.floor(i / 2);
-          const playerToAdvance = firstRoundMatches[i].player1Id;
-
-          if (secondRoundMatches[nextMatchIndex]) {
-              if (i % 2 === 0) {
-                  secondRoundMatches[nextMatchIndex].player1Id = playerToAdvance;
-              } else {
-                  secondRoundMatches[nextMatchIndex].player2Id = playerToAdvance;
-              }
-          }
+    // Add a preliminary round if necessary (when not a power of 2)
+    if (byes > 0) {
+      const numPreliminaryMatches = numPlayers - byes;
+      const prelimMatches: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
+      for (let i = 0; i < numPreliminaryMatches; i++) {
+        prelimMatches.push({
+          player1Id: 'TBD',
+          player2Id: 'TBD',
+          isCompleted: false,
+          round: 'Preliminary Round',
+          matchNumber: matchCounter++,
+        });
       }
-  }
+      if (prelimMatches.length > 0) {
+        rounds.push({ name: 'Preliminary Round', matches: prelimMatches });
+      }
+    }
+    
+    // Create main bracket rounds
+    while (currentRoundSize >= 2) {
+        const roundName = roundNames[currentRoundSize] || `Round of ${currentRoundSize}`;
+        const numMatchesInRound = currentRoundSize / 2;
+        const matchesInRound: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
+        for (let i = 0; i < numMatchesInRound; i++) {
+            matchesInRound.push({
+                player1Id: 'TBD',
+                player2Id: 'TBD',
+                isCompleted: false,
+                round: roundName,
+                matchNumber: matchCounter++,
+            });
+        }
+        rounds.unshift({ name: roundName, matches: matchesInRound }); // unshift to build from final to first
+        currentRoundSize /= 2;
+    }
 
-  return matches.sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+
+    // 4. Assign players
+    const playersWithByes = playersList.slice(0, byes);
+    const playersInPrelim = playersList.slice(byes);
+
+    // Assign prelim players
+    const prelimRound = rounds.find(r => r.name === 'Preliminary Round');
+    if (prelimRound) {
+        for(let i = 0; i < prelimRound.matches.length; i++) {
+            prelimRound.matches[i].player1Id = playersInPrelim[i*2]?.id || 'TBD';
+            prelimRound.matches[i].player2Id = playersInPrelim[i*2+1]?.id || 'TBD';
+        }
+    }
+
+    // Assign bye players to the first main round
+    const firstMainRound = rounds.find(r => r.name !== 'Preliminary Round');
+    if (firstMainRound) {
+        let byePlayerIndex = 0;
+        for (let i = 0; i < firstMainRound.matches.length && byePlayerIndex < playersWithByes.length; i++) {
+            if (firstMainRound.matches[i].player1Id === 'TBD') {
+                firstMainRound.matches[i].player1Id = playersWithByes[byePlayerIndex++]?.id || 'TBD';
+            } else if (firstMainRound.matches[i].player2Id === 'TBD') {
+                firstMainRound.matches[i].player2Id = playersWithByes[byePlayerIndex++]?.id || 'TBD';
+            }
+        }
+    }
+
+    // Flatten all matches into a single array
+    const allMatches = rounds.flatMap(r => r.matches);
+
+    // Auto-advance bye players
+    const byePlayerIds = new Set(playersWithByes.map(p => p.id));
+    const firstRoundMatches = allMatches.filter(m => m.round === firstMainRound?.name);
+
+    firstRoundMatches.forEach(match => {
+        const isP1Bye = byePlayerIds.has(match.player1Id);
+        const isP2Bye = byePlayerIds.has(match.player2Id);
+
+        if (isP1Bye && match.player2Id === 'TBD') {
+            match.player2Id = 'BYE';
+            match.isCompleted = true;
+        } else if (isP2Bye && match.player1Id === 'TBD') {
+            match.player1Id = 'BYE';
+            match.isCompleted = true;
+        }
+    });
+    
+    // This is a simplified advancement, a more robust solution would trace winners up the bracket
+    // but for initial generation this places the byes correctly.
+    const advanceByeWinners = () => {
+        const mainRounds = rounds.filter(r => r.name !== 'Preliminary Round');
+        for (let i = 0; i < mainRounds.length - 1; i++) {
+            const currentRound = mainRounds[i];
+            const nextRound = mainRounds[i + 1];
+
+            currentRound.matches.forEach((match, matchIndex) => {
+                if (match.isCompleted && match.player2Id === 'BYE') {
+                    const winnerId = match.player1Id;
+                    const nextMatchIndex = Math.floor(matchIndex / 2);
+                    const slot = matchIndex % 2 === 0 ? 'player1Id' : 'player2Id';
+                    if (nextRound.matches[nextMatchIndex]) {
+                       (nextRound.matches[nextMatchIndex] as any)[slot] = winnerId;
+                    }
+                }
+            });
+        }
+    };
+    
+    advanceByeWinners();
+
+    return allMatches.sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
 };
 
 export default function CupPage() {
@@ -158,6 +198,7 @@ export default function CupPage() {
   const [passwordInput, setPasswordInput] = useState('');
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
+  const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({ from: undefined, to: undefined });
   
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -206,6 +247,13 @@ export default function CupPage() {
     return [...matches].sort((a,b) => (a.matchNumber || 0) - (b.matchNumber || 0));
   }, [matches])
 
+  const formattedDateRange = useMemo(() => {
+    if (!activeSeason || !activeSeason.startDate || !activeSeason.endDate) return null;
+    const start = format(activeSeason.startDate.toDate(), 'd LLL');
+    const end = format(activeSeason.endDate.toDate(), 'd LLL yyyy');
+    return `${start} - ${end}`;
+  }, [activeSeason]);
+
   // --- Effects ---
   useEffect(() => {
     // When seasons load, if no season is active, select the most recent one.
@@ -226,17 +274,23 @@ export default function CupPage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Season name cannot be empty.' });
       return;
     }
+    
+    const seasonData: Partial<Season> = {
+        name: newSeasonName.trim(),
+        ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
+        ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
+    }
 
     if (editingSeason) {
       // Update existing season
       const seasonRef = doc(firestore, `cups/${CUP_ID}/seasons`, editingSeason.id);
-      updateDocumentNonBlocking(seasonRef, { name: newSeasonName.trim() });
+      updateDocumentNonBlocking(seasonRef, seasonData);
       toast({ title: 'Success', description: `Season name updated to '${newSeasonName.trim()}'.` });
     } else {
       // Create new season
       const seasonsRef = collection(firestore, `cups/${CUP_ID}/seasons`);
       addDocumentNonBlocking(seasonsRef, {
-        name: newSeasonName.trim(),
+        ...seasonData,
         status: 'Not Started',
         createdAt: serverTimestamp(),
       });
@@ -245,15 +299,27 @@ export default function CupPage() {
     setShowCreateSeason(false);
     setEditingSeason(null);
     setNewSeasonName('');
+    setDateRange({ from: undefined, to: undefined });
   };
 
   const handleOpenEditDialog = () => {
     if (activeSeason) {
       setEditingSeason(activeSeason);
       setNewSeasonName(activeSeason.name);
+      setDateRange({
+        from: activeSeason.startDate?.toDate(),
+        to: activeSeason.endDate?.toDate(),
+      });
       setShowCreateSeason(true);
     }
   };
+
+  const handleOpenCreateDialog = () => {
+    setEditingSeason(null);
+    setNewSeasonName('');
+    setDateRange({ from: undefined, to: undefined });
+    setShowCreateSeason(true);
+  }
 
   const handleDeleteSeason = async () => {
     if (!firestore || !deletingSeason) return;
@@ -356,8 +422,9 @@ export default function CupPage() {
     const winnerId = scores.score1 > scores.score2 ? currentMatch.player1Id : currentMatch.player2Id;
     
     // Create a deterministic order for rounds
-    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32'];
-    const roundsInBracket = [...new Set(sortedMatches.map(m => m.round))]
+     const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32', 'Round of 64', 'Preliminary Round'];
+    const roundsInBracket = [...new Set(sortedMatches.map(m => m.round || ''))]
+        .filter(Boolean)
         .sort((a,b) => roundOrder.indexOf(b) - roundOrder.indexOf(a)).reverse();
     
     try {
@@ -371,7 +438,7 @@ export default function CupPage() {
   
         // 2. Find and update the next match if this isn't the final
         if (currentMatch.round !== 'Final') {
-          const currentRoundIndex = roundsInBracket.indexOf(currentMatch.round);
+          const currentRoundIndex = roundsInBracket.indexOf(currentMatch.round || '');
           const nextRoundName = roundsInBracket[currentRoundIndex + 1];
 
           if (nextRoundName) {
@@ -380,12 +447,32 @@ export default function CupPage() {
 
               // Find the match this winner should advance to.
               const matchIndexInCurrentRound = currentRoundMatches.findIndex(m => m.id === currentMatch.id);
-              const nextMatchIndex = Math.floor(matchIndexInCurrentRound / 2);
+              
+              // Find the player who is advancing from the preliminary round
+              const prelimMatches = sortedMatches.filter(m => m.round === 'Preliminary Round');
+              const numByePlayers = (2 ** Math.ceil(Math.log2(participants?.length || 2))) - (participants?.length || 0);
+              
+              let nextMatchIndex;
+              // If we are in the preliminary round, the winner plays against a bye player
+              if (currentMatch.round === 'Preliminary Round') {
+                nextMatchIndex = numByePlayers + matchIndexInCurrentRound;
+              } else {
+                nextMatchIndex = Math.floor(matchIndexInCurrentRound / 2);
+              }
+
               const nextMatch = nextRoundMatches[nextMatchIndex];
 
               if (nextMatch) {
                   const nextMatchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, nextMatch.id);
-                  const isPlayer1Slot = matchIndexInCurrentRound % 2 === 0;
+                  let isPlayer1Slot = matchIndexInCurrentRound % 2 === 0;
+
+                  // If advancing from prelim, slot might be P2
+                  if(currentMatch.round !== 'Preliminary Round' && nextMatch.player1Id !== 'TBD' && nextMatch.player2Id === 'TBD') {
+                    isPlayer1Slot = false;
+                  } else if (currentMatch.round === 'Preliminary Round') {
+                    isPlayer1Slot = false; // prelim winners always go to p2 slot of first main round matches
+                  }
+
 
                   if (isPlayer1Slot) {
                       transaction.update(nextMatchRef, { player1Id: winnerId });
@@ -460,9 +547,14 @@ export default function CupPage() {
     <div className="container mx-auto px-4 py-8">
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-1">
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight">Cup Tournament</h1>
-                {activeSeason && <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>}
+                {activeSeason && (
+                  <>
+                    <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>
+                    {formattedDateRange && <p className="text-sm font-medium text-primary">{formattedDateRange}</p>}
+                  </>
+                )}
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
@@ -476,7 +568,7 @@ export default function CupPage() {
                     </SelectContent>
                 </Select>
                  <div className="flex gap-2">
-                    <Button onClick={() => { setEditingSeason(null); setNewSeasonName(''); setShowCreateSeason(true); }} className="w-full sm:w-auto">
+                    <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
                       <PlusCircle className="mr-2 h-4 w-4" />
                       New
                     </Button>
@@ -533,14 +625,57 @@ export default function CupPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingSeason ? 'Edit Cup Season' : 'Create New Cup Season'}</DialogTitle>
-            <DialogDescription>{editingSeason ? 'Update the name for this cup season.' : 'Enter a name for the new cup season (e.g., "2024/25 Cup").'}</DialogDescription>
+            <DialogDescription>{editingSeason ? 'Update the details for this cup season.' : 'Enter the details for the new cup season.'}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input 
-                placeholder="Cup season name"
-                value={newSeasonName}
-                onChange={(e) => setNewSeasonName(e.target.value)}
-            />
+             <div className="space-y-2">
+                <Label htmlFor="season-name">Season Name</Label>
+                <Input 
+                    id="season-name"
+                    placeholder="e.g., 2024/25 Cup"
+                    value={newSeasonName}
+                    onChange={(e) => setNewSeasonName(e.target.value)}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label>Date Range</Label>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateRange.from && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.from ? (
+                        dateRange.to ? (
+                            <>
+                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                            {format(dateRange.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(dateRange.from, "LLL dd, y")
+                        )
+                        ) : (
+                        <span>Pick a date range</span>
+                        )}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange.from}
+                        selected={dateRange}
+                        onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+                        numberOfMonths={2}
+                    />
+                    </PopoverContent>
+                </Popover>
+            </div>
             <Button onClick={handleSeasonDialogSubmit} className="w-full">
               {editingSeason ? 'Save Changes' : 'Create Season'}
             </Button>

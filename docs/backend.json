@@ -63,10 +63,6 @@
           "type": "string",
           "description": "Denormalized name of the team for easier display."
         },
-        "teamLogoUrl": {
-          "type": "string",
-          "description": "Denormalized URL for the team's logo for easier display."
-        },
         "photoUrl": {
             "type": "string",
             "description": "URL for the player's profile photo.",
@@ -132,6 +128,16 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp when the season was created."
+        },
+        "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The start date of the season."
+        },
+        "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The end date of the season."
         }
       },
       "required": [

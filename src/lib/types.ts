@@ -29,6 +29,8 @@ export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
+  startDate?: Timestamp;
+  endDate?: Timestamp;
 }
 
 export type LeagueEntry = {
@@ -65,8 +67,8 @@ export type CupMatch = {
   matchNumber: number;
   player1: WithId<Player> | null;
   player2: WithId<Player> | null;
-  team1: WithId<Team> | null; // Kept for compatibility if needed, but player contains team info
-  team2: WithId<Team> | null; // Kept for compatibility if needed, but player contains team info
+  team1: WithId<Team> | null;
+  team2: WithId<Team> | null;
   score1: number | null;
   score2: number | null;
   winner: WithId<Player> | null;
