@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, RefreshCw } from 'lucide-react';
 import {
@@ -11,22 +11,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Team, CupMatch, LeagueEntry, Player } from '@/lib/types';
-import { teams as allTeams, players, leagueTable as initialLeagueTable } from '@/lib/data';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import type { CupMatch, LeagueEntry, Player } from '@/lib/types';
+import { leagueTable as initialLeagueTable } from '@/lib/data';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ScoreForm } from '@/components/score-form';
 
 const generateFixtures = (leaguePlayers: Player[]): CupMatch[] => {
     const fixtures: CupMatch[] = [];
+    // Home and away fixtures
     for (let i = 0; i < leaguePlayers.length; i++) {
-        for (let j = i + 1; j < leaguePlayers.length; j++) {
+        for (let j = 0; j < leaguePlayers.length; j++) {
+            if (i === j) continue; // Players don't play against themselves
+
             const player1 = leaguePlayers[i];
             const player2 = leaguePlayers[j];
             fixtures.push({
-                id: `match-${player1.id}-${player2.id}`,
+                id: `match-home-${player1.id}-away-${player2.id}`,
                 matchNumber: fixtures.length + 1,
-                team1: player1.team,
-                team2: player2.team,
+                player1: player1,
+                player2: player2,
+                team1: player1.team, // for compatibility
+                team2: player2.team, // for compatibility
                 score1: null,
                 score2: null,
                 winner: null,
@@ -41,21 +46,17 @@ export default function FixturesPage() {
   const [leagueTable, setLeagueTable] = useState<LeagueEntry[]>(initialLeagueTable);
   
   const generateNewFixtures = () => {
-    const leaguePlayers = leagueTable.map(entry => entry.player);
+    const leaguePlayers = initialLeagueTable.map(entry => entry.player);
     return generateFixtures(leaguePlayers);
   }
 
   const [matches, setMatches] = useState<CupMatch[]>(generateNewFixtures);
   const [editingMatch, setEditingMatch] = useState<CupMatch | null>(null);
-
-  const getPlayerByTeam = (teamId: string): Player | undefined => {
-    return players.find(p => p.team.id === teamId);
-  }
   
   const handleRefreshFixtures = () => {
     // Re-initialize league table and generate new fixtures
     setLeagueTable(initialLeagueTable);
-    const newFixtures = generateFixtures(initialLeagueTable.map(entry => entry.player));
+    const newFixtures = generateNewFixtures();
     setMatches(newFixtures);
   };
 
@@ -70,7 +71,7 @@ export default function FixturesPage() {
             ...m,
             score1: scores.score1,
             score2: scores.score2,
-            winner: scores.score1 > scores.score2 ? m.team1 : scores.score2 > scores.score1 ? m.team2 : null,
+            winner: scores.score1 > scores.score2 ? m.player1 : scores.score2 > scores.score1 ? m.player2 : null,
           };
           return updatedMatch;
         }
@@ -85,8 +86,8 @@ export default function FixturesPage() {
   };
 
   const updateLeagueTable = (match: CupMatch, originalMatch: CupMatch | undefined) => {
-    const team1Player = getPlayerByTeam(match.team1!.id);
-    const team2Player = getPlayerByTeam(match.team2!.id);
+    const team1Player = match.player1;
+    const team2Player = match.player2;
 
     if (!team1Player || !team2Player) return;
 
@@ -121,7 +122,7 @@ export default function FixturesPage() {
 
             // Update W/D/L and Points
             if (oldResult) {
-                playerStats[oldResult] -= 1;
+                if (playerStats[oldResult] > 0) playerStats[oldResult] -= 1;
                 playerStats.points -= oldResult === 'win' ? 3 : oldResult === 'draw' ? 1 : 0;
             }
             
@@ -173,15 +174,17 @@ export default function FixturesPage() {
             {matchList.map(match => (
               <Card key={match.id} className="flex flex-col">
                 <CardContent className="flex-grow flex items-center justify-around p-4">
-                  <div className="flex flex-col items-center gap-2 w-1/3 text-center">
-                    <span className="font-semibold text-sm">{match.team1?.name}</span>
+                  <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                    <span className="font-semibold text-sm truncate w-full">{match.player1?.name}</span>
+                    <span className="text-xs text-muted-foreground">{match.player1?.team.name}</span>
                     {match.score1 !== null && <span className="text-2xl font-bold text-primary">{match.score1}</span>}
                   </div>
-                  <div className="text-2xl font-bold text-muted-foreground">
+                  <div className="text-2xl font-bold text-muted-foreground w-1/5 text-center">
                     {match.score1 !== null ? '-' : 'VS'}
                   </div>
-                  <div className="flex flex-col items-center gap-2 w-1/3 text-center">
-                    <span className="font-semibold text-sm">{match.team2?.name}</span>
+                  <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                    <span className="font-semibold text-sm truncate w-full">{match.player2?.name}</span>
+                    <span className="text-xs text-muted-foreground">{match.player2?.team.name}</span>
                     {match.score2 !== null && <span className="text-2xl font-bold text-primary">{match.score2}</span>}
                   </div>
                 </CardContent>
@@ -223,7 +226,7 @@ export default function FixturesPage() {
             <DialogHeader>
               <DialogTitle>Update Match Score</DialogTitle>
               <DialogDescription>
-                Enter the final score for {editingMatch?.team1?.name} vs {editingMatch?.team2?.name}.
+                Enter the final score for {editingMatch?.player1?.name} vs {editingMatch?.player2?.name}.
               </DialogDescription>
             </DialogHeader>
             {editingMatch && <ScoreForm match={editingMatch} onSave={(scores) => handleUpdateScore(editingMatch.id, scores)} />}

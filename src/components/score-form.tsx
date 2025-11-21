@@ -46,7 +46,7 @@ export function ScoreForm({ match, onSave }: ScoreFormProps) {
             name="score1"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{match.team1?.name}</FormLabel>
+                <FormLabel>{match.player1?.name}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
@@ -59,7 +59,7 @@ export function ScoreForm({ match, onSave }: ScoreFormProps) {
             name="score2"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{match.team2?.name}</FormLabel>
+                <FormLabel>{match.player2?.name}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>

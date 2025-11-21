@@ -29,11 +29,13 @@ export type LeagueEntry = {
 export type CupMatch = {
   id: string;
   matchNumber: number;
-  team1: Team | null;
-  team2: Team | null;
+  player1: Player | null;
+  player2: Player | null;
+  team1: Team | null; // Kept for compatibility, but player1.team should be used
+  team2: Team | null; // Kept for compatibility, but player2.team should be used
   score1: number | null;
   score2: number | null;
-  winner: Team | null;
+  winner: Player | null; // Winner is a player
   date?: Date;
 };
 
