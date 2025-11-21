@@ -52,6 +52,7 @@ export default function LeaguePage() {
   const [newSeasonName, setNewSeasonName] = useState('');
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
+  const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
 
@@ -179,6 +180,19 @@ export default function LeaguePage() {
     
     setDeletingSeason(null);
   };
+  
+  const handleDeleteEntry = () => {
+    if (!firestore || !activeSeasonId || !deletingEntry) return;
+
+    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, deletingEntry.id);
+    deleteDocumentNonBlocking(entryRef);
+
+    toast({
+        title: 'Player Removed',
+        description: `${deletingEntry.playerName} has been removed from the season.`,
+    });
+    setDeletingEntry(null);
+  };
 
   const handleRegisterPlayers = async (selectedPlayerIds: string[]) => {
     if (!firestore || !activeSeasonId || !allPlayers) return;
@@ -190,7 +204,7 @@ export default function LeaguePage() {
     
     playersToRegister.forEach(player => {
         const leagueEntryRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`));
-        const newEntry: Omit<LeagueEntry, 'rank'> = {
+        const newEntry: Omit<LeagueEntry, 'id' | 'rank'> = {
             playerId: player.id,
             teamId: player.teamId,
             playerName: player.name,
@@ -315,7 +329,12 @@ export default function LeaguePage() {
             </div>
         )}
 
-        <LeagueTable tableData={sortedTable} isLoading={isLoadingTable || isLoadingMatches} />
+        <LeagueTable 
+            tableData={sortedTable} 
+            isLoading={isLoadingTable || isLoadingMatches}
+            onRemovePlayer={setDeletingEntry}
+            seasonStatus={activeSeason?.status}
+        />
       </div>
 
       {/* Create/Edit Season Dialog */}
@@ -350,6 +369,22 @@ export default function LeaguePage() {
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteSeason} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Player Entry Confirmation Dialog */}
+        <AlertDialog open={!!deletingEntry} onOpenChange={(isOpen) => !isOpen && setDeletingEntry(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Remove Player from Season?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to remove <strong>{deletingEntry?.playerName}</strong> from this season? This cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteEntry} className="bg-destructive hover:bg-destructive/90">Remove</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

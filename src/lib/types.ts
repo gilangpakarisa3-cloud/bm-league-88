@@ -31,11 +31,11 @@ export type Season = {
 }
 
 export type LeagueEntry = {
+  id: string;
   rank: number;
   playerId: string;
   teamId: string;
   playerName: string;
-
   teamName: string;
   played: number;
   win: number;

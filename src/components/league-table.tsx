@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -6,15 +7,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { LeagueEntry } from "@/lib/types";
+import type { LeagueEntry, Season, WithId } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
+import { Trash2 } from "lucide-react";
 
 interface LeagueTableProps {
-  tableData: LeagueEntry[];
+  tableData: WithId<LeagueEntry>[];
   isLoading?: boolean;
+  onRemovePlayer?: (entry: WithId<LeagueEntry>) => void;
+  seasonStatus?: Season['status'];
 }
 
-export function LeagueTable({ tableData, isLoading = false }: LeagueTableProps) {
+export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seasonStatus }: LeagueTableProps) {
   if (isLoading) {
     return <LeagueTableSkeleton />;
   }
@@ -27,6 +32,8 @@ export function LeagueTable({ tableData, isLoading = false }: LeagueTableProps) 
       </div>
     );
   }
+  
+  const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer;
 
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
@@ -44,11 +51,12 @@ export function LeagueTable({ tableData, isLoading = false }: LeagueTableProps) 
               <TableHead className="hidden md:table-cell text-center">GA</TableHead>
               <TableHead className="text-center">GD</TableHead>
               <TableHead className="text-center font-bold">Pts</TableHead>
+              {canRemovePlayer && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {tableData.map((entry) => (
-              <TableRow key={entry.rank}>
+              <TableRow key={entry.id}>
                 <TableCell className="text-center font-bold text-lg text-muted-foreground">{entry.rank}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -68,6 +76,19 @@ export function LeagueTable({ tableData, isLoading = false }: LeagueTableProps) 
                   {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
                 </TableCell>
                 <TableCell className="text-center font-bold text-lg text-primary">{entry.points}</TableCell>
+                 {canRemovePlayer && (
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onRemovePlayer?.(entry)}
+                      title={`Remove ${entry.playerName}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <span className="sr-only">Remove Player</span>
+                    </Button>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
