@@ -1,19 +1,19 @@
-import type { LeagueEntry, CupRound, Player } from './types';
+import type { LeagueEntry, CupRound, Player, Team, WithId } from './types';
 
-// --- THIS FILE IS NOW DEPRECATED FOR TEAMS AND PLAYERS ---
-// Data will be fetched from Firestore.
-// This file is kept for legacy data structures like LeagueEntry and CupRound
-// which will also be migrated to Firestore soon.
-
+// --- THIS FILE IS NOW DEPRECATED ---
+// All data will be fetched from Firestore.
+// This file is kept only for type definitions that might still be in use
+// but will be removed soon.
 
 // --- LEAGUE DATA ---
-// This is now just a placeholder structure.
 export const leagueTable: LeagueEntry[] = [];
-
 export const leagueWinner: LeagueEntry | null = null;
 
-
 // --- CUP DATA ---
-// All cup data is cleared
 export const cupData: CupRound[] = [];
 export const cupWinner: Player | null = null;
+
+// --- TEAM & PLAYER DATA ---
+// The following arrays are now empty as data is sourced from Firestore.
+export const teams: WithId<Team>[] = [];
+export const players: WithId<Player>[] = [];

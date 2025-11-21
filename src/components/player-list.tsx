@@ -10,23 +10,31 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import { PlayerForm } from './player-form';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { Player, WithId } from '@/lib/types';
-import { useCollection } from '@/firebase';
+import { useCollection, deleteDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
-import { collection } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
-export function PlayerList() {
-  const [editingPlayer, setEditingPlayer] = useState<WithId<Player> | null>(null);
+interface PlayerListProps {
+  onEdit: (player: WithId<Player>) => void;
+}
+
+export function PlayerList({ onEdit }: PlayerListProps) {
+  const { toast } = useToast();
+  const [deletingPlayer, setDeletingPlayer] = useState<WithId<Player> | null>(null);
   const firestore = useFirestore();
 
   const playersCollection = useMemoFirebase(
@@ -34,6 +42,17 @@ export function PlayerList() {
     [firestore]
   );
   const { data: players, isLoading } = useCollection<Player>(playersCollection);
+
+  const handleDelete = () => {
+    if (!firestore || !deletingPlayer) return;
+    const playerRef = doc(firestore, 'players', deletingPlayer.id);
+    deleteDocumentNonBlocking(playerRef);
+    toast({
+        title: 'Player Deleted',
+        description: `${deletingPlayer.name} has been removed.`,
+    });
+    setDeletingPlayer(null);
+  };
 
   if (isLoading) {
     return (
@@ -55,7 +74,8 @@ export function PlayerList() {
                 <TableCell>
                   <Skeleton className="h-5 w-32" />
                 </TableCell>
-                <TableCell className="text-right pr-4">
+                <TableCell className="text-right pr-4 flex justify-end gap-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
                   <Skeleton className="h-8 w-8 rounded-full" />
                 </TableCell>
               </TableRow>
@@ -102,9 +122,13 @@ export function PlayerList() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right pr-4">
-                    <Button variant="ghost" size="icon" onClick={() => setEditingPlayer(player)}>
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(player)}>
                       <Pencil className="h-4 w-4" />
                       <span className="sr-only">Edit Player</span>
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => setDeletingPlayer(player)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <span className="sr-only">Delete Player</span>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -114,17 +138,26 @@ export function PlayerList() {
         </div>
       </div>
 
-      <Dialog open={!!editingPlayer} onOpenChange={(isOpen) => !isOpen && setEditingPlayer(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Player</DialogTitle>
-            <DialogDescription>
-              Update the details for {editingPlayer?.name}.
-            </DialogDescription>
-          </DialogHeader>
-          <PlayerForm player={editingPlayer} onSave={() => setEditingPlayer(null)} />
-        </DialogContent>
-      </Dialog>
+      <AlertDialog open={!!deletingPlayer} onOpenChange={(isOpen) => !isOpen && setDeletingPlayer(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the player
+                <span className="font-bold"> {deletingPlayer?.name}</span>.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+                Delete
+            </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
