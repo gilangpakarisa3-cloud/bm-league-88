@@ -14,16 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { teams } from "@/lib/data";
 import type { Player } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { Combobox } from "./ui/combobox";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -48,6 +42,11 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       teamId: player?.team.id || "",
     },
   });
+
+  const teamOptions = teams.map(team => ({
+    value: team.id,
+    label: team.name
+  }));
 
   const onSubmit = (data: PlayerFormValues) => {
     // In a real app, you would handle saving the data to a database here.
@@ -82,22 +81,18 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
           control={form.control}
           name="teamId"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>Team</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a team" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Combobox
+                  options={teamOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select a team"
+                  searchPlaceholder="Search team..."
+                  emptyPlaceholder="No team found."
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
