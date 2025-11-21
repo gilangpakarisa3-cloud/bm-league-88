@@ -1,64 +1,51 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { MatchForm } from '@/components/match-form';
 import type { Team, CupMatch, LeagueEntry, Player } from '@/lib/types';
 import { teams as allTeams, players, leagueTable as initialLeagueTable } from '@/lib/data';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { format } from 'date-fns';
 import { ScoreForm } from '@/components/score-form';
 import { LeagueTable } from '@/components/league-table';
 
-type NewMatch = {
-  team1Id: string;
-  team2Id: string;
-  date: Date;
-}
+const generateFixtures = (leaguePlayers: Player[]): CupMatch[] => {
+    const fixtures: CupMatch[] = [];
+    for (let i = 0; i < leaguePlayers.length; i++) {
+        for (let j = i + 1; j < leaguePlayers.length; j++) {
+            const player1 = leaguePlayers[i];
+            const player2 = leaguePlayers[j];
+            fixtures.push({
+                id: `match-${player1.id}-${player2.id}`,
+                matchNumber: fixtures.length + 1,
+                team1: player1.team,
+                team2: player2.team,
+                score1: null,
+                score2: null,
+                winner: null,
+            });
+        }
+    }
+    return fixtures;
+};
 
-type MatchWithScore = {
-  team1Id: string;
-  team2Id: string;
-  score1: number;
-  score2: number;
-}
 
 export default function FixturesPage() {
-  const [matches, setMatches] = useState<CupMatch[]>([]);
+  const leaguePlayers = useMemo(() => initialLeagueTable.map(entry => entry.player), []);
+  const initialMatches = useMemo(() => generateFixtures(leaguePlayers), [leaguePlayers]);
+
+  const [matches, setMatches] = useState<CupMatch[]>(initialMatches);
   const [leagueTable, setLeagueTable] = useState<LeagueEntry[]>(initialLeagueTable);
-  const [isAddMatchOpen, setIsAddMatchOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<CupMatch | null>(null);
 
-  const handleAddMatch = (data: NewMatch) => {
-    const team1 = allTeams.find(t => t.id === data.team1Id);
-    const team2 = allTeams.find(t => t.id === data.team2Id);
-
-    if (team1 && team2) {
-      const newMatch: CupMatch = {
-        id: `match-${Date.now()}`,
-        matchNumber: matches.length + 1,
-        team1,
-        team2,
-        score1: null,
-        score2: null,
-        winner: null,
-        date: data.date,
-      };
-      setMatches(prevMatches => [...prevMatches, newMatch].sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0)));
-    }
-    setIsAddMatchOpen(false);
-  };
-  
   const getPlayerByTeam = (teamId: string): Player | undefined => {
     return players.find(p => p.team.id === teamId);
   }
@@ -100,20 +87,54 @@ export default function FixturesPage() {
             if (playerIndex === -1) return;
 
             const playerStats = {...newTable[playerIndex]};
-            playerStats.played += 1;
-            playerStats.goalsFor += goalsFor;
-            playerStats.goalsAgainst += goalsAgainst;
-            playerStats.goalDifference = playerStats.goalsFor - playerStats.goalsAgainst;
+            
+            const existingMatch = matches.find(m => m.id === match.id);
+            const scoreAlreadyEntered = existingMatch?.score1 !== null && existingMatch?.score2 !== null;
 
-            if (isDraw) {
-                playerStats.draw += 1;
-                playerStats.points += 1;
-            } else if (isWinner) {
-                playerStats.win += 1;
-                playerStats.points += 3;
-            } else {
-                playerStats.loss += 1;
+            if (!scoreAlreadyEntered) {
+                playerStats.played += 1;
             }
+
+            playerStats.goalsFor = (playerStats.goalsFor - (existingMatch?.score1 ?? 0)) + goalsFor;
+            playerStats.goalsAgainst = (playerStats.goalsAgainst - (existingMatch?.score2 ?? 0)) + goalsAgainst;
+            
+            if (isDraw) {
+                if(!scoreAlreadyEntered) {
+                    playerStats.draw += 1;
+                    playerStats.points += 1;
+                }
+            } else if (isWinner) {
+                if(!scoreAlreadyEntered) {
+                    playerStats.win += 1;
+                    playerStats.points += 3;
+                } else {
+                    // This handles if the result was a draw before and now is a win
+                    if(existingMatch?.score1 === existingMatch?.score2) {
+                        playerStats.draw -=1;
+                        playerStats.win += 1;
+                        playerStats.points += 2; // from 1 for a draw to 3 for a win
+                    }
+                }
+            } else { // loss
+                if(!scoreAlreadyEntered) {
+                    playerStats.loss += 1;
+                } else {
+                    // This handles if the result was a draw before and now is a loss
+                    if(existingMatch?.score1 === existingMatch?.score2) {
+                        playerStats.draw -=1;
+                        playerStats.loss += 1;
+                        playerStats.points -= 1; // from 1 for a draw to 0 for a loss
+                    }
+                    // This handles if the result was a win before and now is a loss
+                    if(existingMatch && existingMatch.score1 !== null && existingMatch.score2 !== null && existingMatch.score1 > existingMatch.score2) {
+                         playerStats.win -=1;
+                         playerStats.loss += 1;
+                         playerStats.points -= 3;
+                    }
+                }
+            }
+
+            playerStats.goalDifference = playerStats.goalsFor - playerStats.goalsAgainst;
             newTable[playerIndex] = playerStats;
         };
         
@@ -133,6 +154,47 @@ export default function FixturesPage() {
         return newTable.map((entry, index) => ({ ...entry, rank: index + 1 }));
     });
   };
+  
+  const unplayedMatches = matches.filter(m => m.score1 === null);
+  const playedMatches = matches.filter(m => m.score1 !== null);
+
+  const MatchList = ({ title, matchList }: {title: string, matchList: CupMatch[]}) => (
+     <div>
+        <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">{title} ({matchList.length})</h2>
+        {matchList.length === 0 ? (
+          <div className="border rounded-lg p-8 text-center bg-card">
+              <h2 className="text-xl font-medium text-muted-foreground">No matches in this category.</h2>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {matchList.map(match => (
+              <Card key={match.id} className="flex flex-col">
+                <CardContent className="flex-grow flex items-center justify-around p-4">
+                  <div className="flex flex-col items-center gap-2 w-1/3 text-center">
+                    <span className="font-semibold text-sm">{match.team1?.name}</span>
+                    {match.score1 !== null && <span className="text-2xl font-bold text-primary">{match.score1}</span>}
+                  </div>
+                  <div className="text-2xl font-bold text-muted-foreground">
+                    {match.score1 !== null ? '-' : 'VS'}
+                  </div>
+                  <div className="flex flex-col items-center gap-2 w-1/3 text-center">
+                    <span className="font-semibold text-sm">{match.team2?.name}</span>
+                    {match.score2 !== null && <span className="text-2xl font-bold text-primary">{match.score2}</span>}
+                  </div>
+                </CardContent>
+                <CardFooter className="p-4 pt-0">
+                  <Button variant="outline" className="w-full" onClick={() => setEditingMatch(match)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    {match.score1 !== null ? 'Edit Score' : 'Update Score'}
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+     </div>
+  );
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -140,63 +202,13 @@ export default function FixturesPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight">
-                    Fixtures
+                    League Fixtures
                 </h1>
-                <Dialog open={isAddMatchOpen} onOpenChange={setIsAddMatchOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add New Match
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Match</DialogTitle>
-                      <DialogDescription>
-                        Select the teams and enter the match details. Only teams with registered players are shown.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <MatchForm onSave={handleAddMatch} />
-                  </DialogContent>
-                </Dialog>
             </div>
-            {matches.length === 0 ? (
-              <div className="border rounded-lg p-8 text-center bg-card">
-                  <h2 className="text-xl font-medium text-muted-foreground">No matches scheduled</h2>
-                  <p className="text-sm text-muted-foreground mt-2">Get started by adding a new match.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {matches.map(match => (
-                  <Card key={match.id} className="flex flex-col">
-                    <CardHeader>
-                      <CardTitle className="text-sm text-center text-muted-foreground font-medium">
-                        {match.date ? format(match.date, 'eeee, MMMM d, yyyy') : 'Date TBD'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-around p-4 pt-0">
-                      <div className="flex flex-col items-center gap-2 w-1/3 text-center">
-                        <span className="font-semibold text-sm">{match.team1?.name}</span>
-                        {match.score1 !== null && <span className="text-2xl font-bold text-primary">{match.score1}</span>}
-                      </div>
-                      <div className="text-2xl font-bold text-muted-foreground">
-                        {match.score1 !== null ? '-' : 'VS'}
-                      </div>
-                      <div className="flex flex-col items-center gap-2 w-1/3 text-center">
-                        <span className="font-semibold text-sm">{match.team2?.name}</span>
-                        {match.score2 !== null && <span className="text-2xl font-bold text-primary">{match.score2}</span>}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0">
-                      <Button variant="outline" className="w-full" onClick={() => setEditingMatch(match)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        {match.score1 !== null ? 'Edit Score' : 'Update Score'}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <div className="space-y-12">
+                <MatchList title="Remaining Matches" matchList={unplayedMatches} />
+                <MatchList title="Completed Matches" matchList={playedMatches} />
+            </div>
         </div>
         
         <div>
@@ -223,3 +235,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
