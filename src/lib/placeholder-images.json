@@ -25,6 +25,102 @@
       "imageHint": "lion logo"
     },
     {
+      "id": "team-logo-tottenham",
+      "description": "Tottenham Hotspur logo",
+      "imageUrl": "https://images.unsplash.com/photo-1644900809409-789366e84933?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2NrZXJlbCUyMGJhbGx8ZW58MHx8fHwxNzYzNzA1OTI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cockerel ball"
+    },
+    {
+      "id": "team-logo-chelsea",
+      "description": "Chelsea FC logo",
+      "imageUrl": "https://images.unsplash.com/photo-1748195892778-d83e41ab3d30?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsaW9uJTIwc3RhZmZ8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lion staff"
+    },
+    {
+      "id": "team-logo-newcastle",
+      "description": "Newcastle United logo",
+      "imageUrl": "https://images.unsplash.com/photo-1501562146-c66d8ef18068?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzZWFob3JzZXMlMjBzaGllbGR8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "seahorses shield"
+    },
+    {
+      "id": "team-logo-manutd",
+      "description": "Manchester United logo",
+      "imageUrl": "https://images.unsplash.com/photo-1642763907630-17bad0853f15?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZWQlMjBkZXZpbHxlbnwwfHx8fDE3NjM3MDU5Mjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red devil"
+    },
+    {
+      "id": "team-logo-westham",
+      "description": "West Ham United logo",
+      "imageUrl": "https://images.unsplash.com/photo-1647006873226-f9a93f3b753a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxoYW1tZXJzJTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hammers crest"
+    },
+    {
+      "id": "team-logo-crystalpalace",
+      "description": "Crystal Palace logo",
+      "imageUrl": "https://images.unsplash.com/photo-1715002383611-63488b956401?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxlYWdsZSUyMGJhbGx8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "eagle ball"
+    },
+    {
+      "id": "team-logo-brighton",
+      "description": "Brighton & Hove Albion logo",
+      "imageUrl": "https://images.unsplash.com/photo-1747326294450-d8dd2fe9b351?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzZWFndWxsJTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "seagull crest"
+    },
+    {
+      "id": "team-logo-bournemouth",
+      "description": "Bournemouth logo",
+      "imageUrl": "https://images.unsplash.com/photo-1684942487629-599fc19a4d1b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2hlcnJ5JTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cherry crest"
+    },
+    {
+      "id": "team-logo-fulham",
+      "description": "Fulham logo",
+      "imageUrl": "https://images.unsplash.com/photo-1587569298236-28ceab2d321e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaGllbGQlMjBtb25vZ3JhbXxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "shield monogram"
+    },
+    {
+      "id": "team-logo-wolves",
+      "description": "Wolverhampton Wanderers logo",
+      "imageUrl": "https://images.unsplash.com/photo-1655466830078-793ffb84bdc6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b2xmJTIwaGVhZHxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wolf head"
+    },
+    {
+      "id": "team-logo-everton",
+      "description": "Everton logo",
+      "imageUrl": "https://images.unsplash.com/photo-1760991847081-1c6bf4660b93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0b3dlciUyMGNyZXN0fGVufDB8fHx8MTc2MzcwNTkyOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tower crest"
+    },
+    {
+      "id": "team-logo-brentford",
+      "description": "Brentford logo",
+      "imageUrl": "https://images.unsplash.com/photo-1584710905543-2dc7a48c17b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiZWUlMjBjcmVzdHxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bee crest"
+    },
+    {
+      "id": "team-logo-nottingham",
+      "description": "Nottingham Forest logo",
+      "imageUrl": "https://images.unsplash.com/photo-1476400424721-e25994a9f0ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx0cmVlJTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tree crest"
+    },
+    {
+      "id": "team-logo-luton",
+      "description": "Luton Town logo",
+      "imageUrl": "https://images.unsplash.com/photo-1603939041129-6a1ebe95d213?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxoYXR0ZXJzJTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hatters crest"
+    },
+    {
+      "id": "team-logo-burnley",
+      "description": "Burnley logo",
+      "imageUrl": "https://images.unsplash.com/photo-1569349316909-3f05bf14c22d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjbGFyZXRzJTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "clarets crest"
+    },
+    {
+      "id": "team-logo-sheffield",
+      "description": "Sheffield United logo",
+      "imageUrl": "https://images.unsplash.com/photo-1645905306015-422c0ec6af26?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxibGFkZXMlMjBjcmVzdHxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blades crest"
+    },
+    {
       "id": "team-logo-realmadrid",
       "description": "Real Madrid CF logo",
       "imageUrl": "https://images.unsplash.com/photo-1739323980445-b76a6e459d0b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnb2xkJTIwY3Jvd24lMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ4OXww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -47,6 +143,102 @@
       "description": "Atlético Madrid logo",
       "imageUrl": "https://images.unsplash.com/photo-1643651340058-c5d899aa93f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWQlMjB3aGl0ZSUyMHN0cmlwZXN8ZW58MHx8fHwxNzYzNzA1NDg5fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "red white stripes"
+    },
+    {
+      "id": "team-logo-bilbao",
+      "description": "Athletic Bilbao logo",
+      "imageUrl": "https://images.unsplash.com/photo-1645871614404-06db551d86f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyZWQlMjB3aGl0ZSUyMHNoaWVsZHxlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white shield"
+    },
+    {
+      "id": "team-logo-sociedad",
+      "description": "Real Sociedad logo",
+      "imageUrl": "https://images.unsplash.com/photo-1609743307371-9495ca150e6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjcm93biUyMGJhbGx8ZW58MHx8fHwxNzYzNzA1OTI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "crown ball"
+    },
+    {
+      "id": "team-logo-betis",
+      "description": "Real Betis logo",
+      "imageUrl": "https://images.unsplash.com/photo-1510259529325-fc390a0adaaa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxncmVlbiUyMHdoaXRlJTIwc3RyaXBlc3xlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green white stripes"
+    },
+    {
+      "id": "team-logo-villarreal",
+      "description": "Villarreal logo",
+      "imageUrl": "https://images.unsplash.com/photo-1569347665764-0eee766c909d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx5ZWxsb3clMjBzdWJtYXJpbmV8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow submarine"
+    },
+    {
+      "id": "team-logo-valencia",
+      "description": "Valencia logo",
+      "imageUrl": "https://images.unsplash.com/photo-1567628065168-58617ef867fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxiYXQlMjBzaGllbGR8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bat shield"
+    },
+    {
+      "id": "team-logo-alaves",
+      "description": "Alavés logo",
+      "imageUrl": "https://images.unsplash.com/photo-1655818928102-23da04e3cacb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxibHVlJTIwd2hpdGUlMjBmbGFnfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue white flag"
+    },
+    {
+      "id": "team-logo-osasuna",
+      "description": "Osasuna logo",
+      "imageUrl": "https://images.unsplash.com/photo-1565600230016-de8464f406e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZWQlMjBjaXJjbGV8ZW58MHx8fHwxNzYzNjM3MTQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red circle"
+    },
+    {
+      "id": "team-logo-getafe",
+      "description": "Getafe logo",
+      "imageUrl": "https://images.unsplash.com/photo-1501682855625-15c985cd12a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibHVlJTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue crest"
+    },
+    {
+      "id": "team-logo-celtavigo",
+      "description": "Celta Vigo logo",
+      "imageUrl": "https://images.unsplash.com/photo-1675260897040-9331e0be210c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxza3klMjBibHVlJTIwc2hpZWxkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sky blue shield"
+    },
+    {
+      "id": "team-logo-sevilla",
+      "description": "Sevilla logo",
+      "imageUrl": "https://images.unsplash.com/photo-1635872492105-e5322770f2a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyZWQlMjB3aGl0ZSUyMG1vbm9ncmFtfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white monogram"
+    },
+    {
+      "id": "team-logo-mallorca",
+      "description": "Mallorca logo",
+      "imageUrl": "https://images.unsplash.com/photo-1640911969406-953e2edaeeb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWQlMjBzaGlwfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red ship"
+    },
+    {
+      "id": "team-logo-laspalmas",
+      "description": "Las Palmas logo",
+      "imageUrl": "https://images.unsplash.com/photo-1648733750625-bb6014fc99e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx5ZWxsb3clMjBibHVlJTIwc2hpZWxkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow blue shield"
+    },
+    {
+      "id": "team-logo-rayo",
+      "description": "Rayo Vallecano logo",
+      "imageUrl": "https://images.unsplash.com/photo-1672130263263-812f0d76f41e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxyZWQlMjBzYXNofGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red sash"
+    },
+    {
+      "id": "team-logo-cadiz",
+      "description": "Cádiz logo",
+      "imageUrl": "https://images.unsplash.com/photo-1627938326282-dca624c56575?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8eWVsbG93JTIwYmx1ZSUyMHRyaWFuZ2xlfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow blue triangle"
+    },
+    {
+      "id": "team-logo-almeria",
+      "description": "Almería logo",
+      "imageUrl": "https://images.unsplash.com/photo-1602088113035-f33eae097fb8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cmVkJTIwd2hpdGUlMjBzdHJpcGVzfGVufDB8fHx8MTc2MzcwNTQ4OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white stripes"
+    },
+    {
+      "id": "team-logo-granada",
+      "description": "Granada logo",
+      "imageUrl": "https://images.unsplash.com/photo-1574709755755-1699988a9c82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwb21lZ3JhbmF0ZSUyMHNoaWVsZHxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pomegranate shield"
     },
     {
       "id": "team-logo-psg",
@@ -73,6 +265,102 @@
       "imageHint": "white lion logo"
     },
     {
+      "id": "team-logo-lille",
+      "description": "Lille logo",
+      "imageUrl": "https://images.unsplash.com/photo-1745237850651-b0459718dd2e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxkb2clMjBjcmVzdHxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog crest"
+    },
+    {
+      "id": "team-logo-nice",
+      "description": "Nice logo",
+      "imageUrl": "https://images.unsplash.com/photo-1719437492355-9686ac0bb4d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxlYWdsZSUyMGNyZXN0fGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "eagle crest"
+    },
+    {
+      "id": "team-logo-lens",
+      "description": "Lens logo",
+      "imageUrl": "https://images.unsplash.com/photo-1479664156478-6017f061f07b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWQlMjBnb2xkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red gold"
+    },
+    {
+      "id": "team-logo-rennes",
+      "description": "Rennes logo",
+      "imageUrl": "https://images.unsplash.com/photo-1606500617890-7a7cd1cc0d45?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cmVkJTIwYmxhY2t8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red black"
+    },
+    {
+      "id": "team-logo-reims",
+      "description": "Reims logo",
+      "imageUrl": "https://images.unsplash.com/photo-1647527935970-72c83056b9b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWQlMjB3aGl0ZSUyMGNyZXN0fGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white crest"
+    },
+    {
+      "id": "team-logo-strasbourg",
+      "description": "Strasbourg logo",
+      "imageUrl": "https://images.unsplash.com/photo-1715417123052-d71e0ed6aca4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibHVlJTIwd2hpdGUlMjBiaXJkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue white bird"
+    },
+    {
+      "id": "team-logo-nantes",
+      "description": "Nantes logo",
+      "imageUrl": "https://images.unsplash.com/photo-1653441080499-cbbe33dd9a04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx5ZWxsb3clMjBncmVlbnxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow green"
+    },
+    {
+      "id": "team-logo-lehavre",
+      "description": "Le Havre logo",
+      "imageUrl": "https://images.unsplash.com/photo-1665107277503-db2f43b0e76d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibHVlJTIwYW5jaG9yfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue anchor"
+    },
+    {
+      "id": "team-logo-montpellier",
+      "description": "Montpellier logo",
+      "imageUrl": "https://images.unsplash.com/photo-1636159095840-8d22faad6c6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxvcmFuZ2UlMjBibHVlfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "orange blue"
+    },
+    {
+      "id": "team-logo-toulouse",
+      "description": "Toulouse logo",
+      "imageUrl": "https://images.unsplash.com/photo-1629730273767-928536db80df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwdXJwbGUlMjB3aGl0ZXxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "purple white"
+    },
+    {
+      "id": "team-logo-brest",
+      "description": "Brest logo",
+      "imageUrl": "https://images.unsplash.com/photo-1667223293039-59ac4b3742e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZWQlMjB3aGl0ZSUyMGZsZXVyLWRlLWx5c3xlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white fleur-de-lys"
+    },
+    {
+      "id": "team-logo-lorient",
+      "description": "Lorient logo",
+      "imageUrl": "https://images.unsplash.com/photo-1739248490258-6fdc598ed47b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBibGFjayUyMGZpc2h8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "orange black fish"
+    },
+    {
+      "id": "team-logo-clermont",
+      "description": "Clermont Foot logo",
+      "imageUrl": "https://images.unsplash.com/photo-1562273549-7958687b2e6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cmVkJTIwYmx1ZSUyMGhvcnNlfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red blue horse"
+    },
+    {
+      "id": "team-logo-metz",
+      "description": "Metz logo",
+      "imageUrl": "https://images.unsplash.com/photo-1713041441262-fb6981f21dcc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtYXJvb24lMjBjcm9zc3xlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "maroon cross"
+    },
+    {
+      "id": "team-logo-auxerre",
+      "description": "Auxerre logo",
+      "imageUrl": "https://images.unsplash.com/photo-1600027436625-6364c0c4aeee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibHVlJTIwd2hpdGUlMjBzdGFyfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue white star"
+    },
+    {
+      "id": "team-logo-angers",
+      "description": "Angers logo",
+      "imageUrl": "https://images.unsplash.com/photo-1714995988875-6bee73b0977d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxibGFjayUyMHdoaXRlJTIwc2hpZWxkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black white shield"
+    },
+    {
       "id": "team-logo-inter",
       "description": "Inter Milan logo",
       "imageUrl": "https://images.unsplash.com/photo-1547131327-c978d2dc5249?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxibHVlJTIwYmxhY2slMjBsb2dvfGVufDB8fHx8MTc2MzcwNTQ5MHww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -97,6 +385,102 @@
       "imageHint": "red blue shield"
     },
     {
+      "id": "team-logo-roma",
+      "description": "Roma logo",
+      "imageUrl": "https://images.unsplash.com/photo-1719612629080-55229cf47499?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b2xmJTIwc2hpZWxkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wolf shield"
+    },
+    {
+      "id": "team-logo-lazio",
+      "description": "Lazio logo",
+      "imageUrl": "https://images.unsplash.com/photo-1628927013432-99ae87d89cb7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlYWdsZSUyMHNoaWVsZHxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "eagle shield"
+    },
+    {
+      "id": "team-logo-fiorentina",
+      "description": "Fiorentina logo",
+      "imageUrl": "https://images.unsplash.com/photo-1565824212145-d48bb56469c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwdXJwbGUlMjBsaWx5fGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "purple lily"
+    },
+    {
+      "id": "team-logo-napoli",
+      "description": "Napoli logo",
+      "imageUrl": "https://images.unsplash.com/photo-1547299296-093038394acd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibHVlJTIwTnxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue N"
+    },
+    {
+      "id": "team-logo-torino",
+      "description": "Torino logo",
+      "imageUrl": "https://images.unsplash.com/photo-1672066120126-f853fb0678ca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYXJvb24lMjBidWxsfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "maroon bull"
+    },
+    {
+      "id": "team-logo-genoa",
+      "description": "Genoa logo",
+      "imageUrl": "https://images.unsplash.com/photo-1720681275814-e6512b9e4295?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxncmlmZmluJTIwc2hpZWxkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "griffin shield"
+    },
+    {
+      "id": "team-logo-monza",
+      "description": "Monza logo",
+      "imageUrl": "https://images.unsplash.com/photo-1657547481323-3eb0bbb8bf55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZWQlMjB3aGl0ZSUyMHN0cmlwZXN8ZW58MHx8fHwxNzYzNzA1NDg5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white stripes"
+    },
+    {
+      "id": "team-logo-verona",
+      "description": "Hellas Verona logo",
+      "imageUrl": "https://images.unsplash.com/photo-1558696214-c0235abeaee2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Ymx1ZSUyMHllbGxvdyUyMGxhZGRlcnxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue yellow ladder"
+    },
+    {
+      "id": "team-logo-lecce",
+      "description": "Lecce logo",
+      "imageUrl": "https://images.unsplash.com/photo-1593893327083-30e6b37cd44d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZWQlMjB5ZWxsb3clMjBzdHJpcGVzfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red yellow stripes"
+    },
+    {
+      "id": "team-logo-udinese",
+      "description": "Udinese logo",
+      "imageUrl": "https://images.unsplash.com/photo-1600714942735-81f9aa88132d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxibGFjayUyMHdoaXRlJTIwc2hpZWxkfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black white shield"
+    },
+    {
+      "id": "team-logo-cagliari",
+      "description": "Cagliari logo",
+      "imageUrl": "https://images.unsplash.com/photo-1553862424-98aaa514c1ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyZWQlMjBibHVlJTIwc3RyaXBlc3xlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red blue stripes"
+    },
+    {
+      "id": "team-logo-empoli",
+      "description": "Empoli logo",
+      "imageUrl": "https://images.unsplash.com/photo-1631991762512-c3b2ab9b7d27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxibHVlJTIwc2hpZWxkfGVufDB8fHx8MTc2MzY0NzUzNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue shield"
+    },
+    {
+      "id": "team-logo-sassuolo",
+      "description": "Sassuolo logo",
+      "imageUrl": "https://images.unsplash.com/photo-1669868601554-f1efb1517384?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxncmVlbiUyMGJsYWNrJTIwc3RyaXBlc3xlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green black stripes"
+    },
+    {
+      "id": "team-logo-frosinone",
+      "description": "Frosinone logo",
+      "imageUrl": "https://images.unsplash.com/photo-1656963792065-54f47dc590fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8eWVsbG93JTIwYmx1ZSUyMGxpb258ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow blue lion"
+    },
+    {
+      "id": "team-logo-salernitana",
+      "description": "Salernitana logo",
+      "imageUrl": "https://images.unsplash.com/photo-1673323677743-b6b39ac0fc98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtYXJvb24lMjBzZWFob3JzZXxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "maroon seahorse"
+    },
+    {
+      "id": "team-logo-parma",
+      "description": "Parma logo",
+      "imageUrl": "https://images.unsplash.com/photo-1662586519441-a1cfc32290b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx5ZWxsb3clMjBibHVlJTIwY3Jvc3N8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow blue cross"
+    },
+    {
       "id": "team-logo-leverkusen",
       "description": "Bayer 04 Leverkusen logo",
       "imageUrl": "https://images.unsplash.com/photo-1643883203445-c3590919cf28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWQlMjBibGFjayUyMGNpcmNsZXxlbnwwfHx8fDE3NjM3MDU0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -119,6 +503,102 @@
       "description": "RB Leipzig logo",
       "imageUrl": "https://picsum.photos/seed/leipzig/128/128",
       "imageHint": "red bulls logo"
+    },
+    {
+      "id": "team-logo-dortmund",
+      "description": "Borussia Dortmund logo",
+      "imageUrl": "https://images.unsplash.com/photo-1562144041-0f349fa18d37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx5ZWxsb3clMjBibGFja3xlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yellow black"
+    },
+    {
+      "id": "team-logo-frankfurt",
+      "description": "Eintracht Frankfurt logo",
+      "imageUrl": "https://images.unsplash.com/photo-1652095985032-dd3048451829?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWQlMjBlYWdsZXxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red eagle"
+    },
+    {
+      "id": "team-logo-hoffenheim",
+      "description": "Hoffenheim logo",
+      "imageUrl": "https://images.unsplash.com/photo-1650820707745-aa325a2f2200?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxibHVlJTIwd2hpdGUlMjBzaGllbGR8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue white shield"
+    },
+    {
+      "id": "team-logo-heidenheim",
+      "description": "Heidenheim logo",
+      "imageUrl": "https://images.unsplash.com/photo-1655543975299-a68f0475eba3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWQlMjBibHVlJTIwY2FzdGxlfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red blue castle"
+    },
+    {
+      "id": "team-logo-bremen",
+      "description": "Werder Bremen logo",
+      "imageUrl": "https://images.unsplash.com/photo-1575296020525-faff52f00d8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxncmVlbiUyMGRpYW1vbmR8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green diamond"
+    },
+    {
+      "id": "team-logo-freiburg",
+      "description": "Freiburg logo",
+      "imageUrl": "https://images.unsplash.com/photo-1642103122127-cef548803935?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmlmZmluJTIwaGVhZHxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "griffin head"
+    },
+    {
+      "id": "team-logo-augsburg",
+      "description": "Augsburg logo",
+      "imageUrl": "https://images.unsplash.com/photo-1688280760331-6a0075fcab5c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyZWQlMjBncmVlbiUyMHdoaXRlfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red green white"
+    },
+    {
+      "id": "team-logo-wolfsburg",
+      "description": "Wolfsburg logo",
+      "imageUrl": "https://images.unsplash.com/photo-1518900844933-1ed4df26f7c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxncmVlbiUyMHdvbGZ8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green wolf"
+    },
+    {
+      "id": "team-logo-mainz",
+      "description": "Mainz 05 logo",
+      "imageUrl": "https://images.unsplash.com/photo-1678962855773-2e5767f8807f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWQlMjB3aGl0ZSUyMGxldHRlcnN8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red white letters"
+    },
+    {
+      "id": "team-logo-monchengladbach",
+      "description": "Borussia Mönchengladbach logo",
+      "imageUrl": "https://images.unsplash.com/photo-1617753617022-97597f3b3d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibGFjayUyMHdoaXRlJTIwZ3JlZW58ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black white green"
+    },
+    {
+      "id": "team-logo-unionberlin",
+      "description": "Union Berlin logo",
+      "imageUrl": "https://images.unsplash.com/photo-1707221879930-0a33b17710c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxiZWFyJTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bear crest"
+    },
+    {
+      "id": "team-logo-bochum",
+      "description": "Bochum logo",
+      "imageUrl": "https://images.unsplash.com/photo-1591623657169-a09670423dea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibHVlJTIwd2hpdGUlMjBjaXJjbGV8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue white circle"
+    },
+    {
+      "id": "team-logo-darmstadt",
+      "description": "Darmstadt 98 logo",
+      "imageUrl": "https://images.unsplash.com/photo-1668887464419-8ca9d932bc50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxibHVlJTIwbGlseXxlbnwwfHx8fDE3NjM3MDU5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue lily"
+    },
+    {
+      "id": "team-logo-koln",
+      "description": "FC Köln logo",
+      "imageUrl": "https://images.unsplash.com/photo-1557431177-d277c24390e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxnb2F0JTIwY3Jlc3R8ZW58MHx8fHwxNzYzNzA1OTI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "goat crest"
+    },
+    {
+      "id": "team-logo-hamburg",
+      "description": "Hamburger SV logo",
+      "imageUrl": "https://images.unsplash.com/photo-1619097277288-c50a8d40f3bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxibHVlJTIwYmxhY2slMjBkaWFtb25kfGVufDB8fHx8MTc2MzcwNTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue black diamond"
+    },
+    {
+      "id": "team-logo-schalke",
+      "description": "Schalke 04 logo",
+      "imageUrl": "https://images.unsplash.com/photo-1647006873249-8d3c75e6ca11?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibHVlJTIwd2hpdGUlMjBoYW1tZXJ8ZW58MHx8fHwxNzYzNzA1OTMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue white hammer"
     },
     {
       "id": "winner-profile",
