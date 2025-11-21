@@ -548,7 +548,7 @@ export default function CupPage() {
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div className="space-y-1">
-                <h1 className="font-headline text-4xl font-extrabold tracking-tight">Cup Tournament</h1>
+                <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">Cup Tournament</h1>
                 {activeSeason && (
                   <>
                     <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>
