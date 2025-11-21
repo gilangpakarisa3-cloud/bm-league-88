@@ -355,7 +355,12 @@ export default function FixturesPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="p-4 pt-0">
-                      <Button variant="outline" className="w-full" onClick={() => handleMatchClick(match)} disabled={activeSeason?.status !== 'In Progress'}>
+                       <Button
+                        variant={match.isCompleted ? 'outline' : 'default'}
+                        className="w-full"
+                        onClick={() => handleMatchClick(match)}
+                        disabled={activeSeason?.status !== 'In Progress'}
+                      >
                         <Pencil className="mr-2 h-4 w-4" />
                         {match.isCompleted ? 'Edit Score' : 'Update Score'}
                       </Button>
@@ -377,7 +382,7 @@ export default function FixturesPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                  <div className="space-y-2">
                     <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">League Fixtures</h1>
-                    {activeSeason && <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>}
+                    {activeSeason && <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
@@ -471,3 +476,4 @@ export default function FixturesPage() {
     
 
     
+
