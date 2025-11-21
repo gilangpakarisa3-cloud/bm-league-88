@@ -19,6 +19,7 @@ import type { Player, Team, WithId } from '@/lib/types';
 import { useCollection, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc } from 'firebase/firestore';
+import React from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -44,6 +45,12 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
   );
   const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
 
+  const playersCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'players') : null),
+    [firestore]
+  );
+  const { data: players, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,11 +59,21 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     },
   });
 
-  const teamOptions =
-    teams?.map((team) => ({
-      value: team.id,
-      label: team.name,
-    })) || [];
+  const teamOptions = React.useMemo(() => {
+    if (!teams || !players) return [];
+
+    const assignedTeamIds = new Set(
+        players.filter(p => p.id !== player?.id).map(p => p.teamId)
+    );
+
+    return teams
+        .filter(team => !assignedTeamIds.has(team.id))
+        .map(team => ({
+            value: team.id,
+            label: team.name,
+        }));
+  }, [teams, players, player]);
+
 
   const onSubmit = (data: PlayerFormValues) => {
     if (!firestore) return;
@@ -129,7 +146,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                   onChange={field.onChange}
                   placeholder="Select a team"
                   searchPlaceholder="Search team..."
-                  emptyPlaceholder={isLoadingTeams ? "Loading teams..." : "No team found."}
+                  emptyPlaceholder={isLoadingTeams || isLoadingPlayers ? "Loading teams..." : "No available teams found."}
                 />
               </FormControl>
               <FormMessage />
