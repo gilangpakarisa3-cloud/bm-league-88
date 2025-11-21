@@ -45,7 +45,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-16 text-center font-bold text-primary">Rank</TableHead>
-              <TableHead className="min-w-[200px] text-center font-bold text-primary">Player</TableHead>
+              <TableHead className="text-left font-bold text-primary">Player</TableHead>
               <TableHead className="text-center font-bold text-accent">Played</TableHead>
               <TableHead className="text-center font-bold text-accent">W</TableHead>
               <TableHead className="text-center font-bold text-accent">D</TableHead>
