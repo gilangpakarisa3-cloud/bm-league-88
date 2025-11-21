@@ -12,6 +12,7 @@ export type Player = {
   teamId: string;
   teamName: string;
   teamLogoUrl?: string; // For display purposes
+  photoUrl?: string;
 };
 
 export type League = {
@@ -37,6 +38,7 @@ export type LeagueEntry = {
   teamId: string;
   playerName: string;
   teamName: string;
+  photoUrl?: string;
   played: number;
   win: number;
   draw: number;

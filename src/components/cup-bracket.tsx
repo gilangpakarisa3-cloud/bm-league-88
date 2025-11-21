@@ -7,28 +7,33 @@ import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, User } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const MatchTeam = ({ player, score, isWinner, isBye }: { player: WithId<Player> | null, score: number | null, isWinner: boolean, isBye?: boolean }) => {
     if (isBye) {
-        return <div className="flex items-center justify-between p-2 h-10">
+        return <div className="flex items-center justify-between p-2 h-12">
             <span className="text-sm font-semibold text-muted-foreground">BYE</span>
         </div>
     }
 
     if (!player) {
-        return <div className="flex items-center justify-between p-2 h-10">
+        return <div className="flex items-center justify-between p-2 h-12">
             <span className="text-sm text-muted-foreground">TBD</span>
         </div>
     }
 
     return (
         <div className={cn(
-            "flex items-center justify-between p-2 h-10",
+            "flex items-center justify-between p-2 h-12",
             isWinner ? "font-bold text-foreground" : "text-muted-foreground"
         )}>
-            <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm">{player.name}</span>
+            <div className="flex items-center gap-2 truncate">
+                <Avatar className="h-6 w-6">
+                    <AvatarImage src={player.photoUrl} alt={player.name} />
+                    <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                </Avatar>
+                <span className="text-xs sm:text-sm truncate">{player.name}</span>
             </div>
             {score !== null && <span className={cn("font-semibold text-sm", isWinner && 'text-primary')}>{score}</span>}
         </div>
@@ -168,7 +173,7 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
 
                 const baseGap = 2; // in rem
                 const multiplier = 2 ** roundIndex;
-                const dynamicGap = (multiplier - 1) * 5.25 + baseGap; // 5.25rem is height of a match card
+                const dynamicGap = (multiplier - 1) * 6.5 + baseGap; // 6.5rem is height of a match card
 
                 return (
                   <div 

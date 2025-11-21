@@ -103,7 +103,7 @@ function CupWinnerPageContents() {
     const p2Score = finalMatch.player1Id === winner.id ? finalMatch.player2Score : finalMatch.player1Score;
 
     const finalScore = `${p1Score} - ${p2Score}`;
-    const winnerImage = PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
+    const winnerImage = winner.photoUrl || PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
 
     const stats = [
         { label: 'Final Score', value: finalScore },

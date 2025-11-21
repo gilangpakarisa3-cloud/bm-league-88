@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Match, Player, WithId } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { User } from "lucide-react";
 
 const formSchema = z.object({
   score1: z.coerce.number().min(0, "Score must be positive."),
@@ -51,7 +53,13 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
             name="score1"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{player1?.name}</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={player1?.photoUrl} />
+                        <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
+                    {player1?.name}
+                </FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
@@ -64,7 +72,13 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
             name="score2"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{player2?.name}</FormLabel>
+                 <FormLabel className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={player2?.photoUrl} />
+                        <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
+                    {player2?.name}
+                </FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>

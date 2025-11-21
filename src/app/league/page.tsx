@@ -209,6 +209,7 @@ export default function LeaguePage() {
             teamId: player.teamId,
             playerName: player.name,
             teamName: player.teamName,
+            photoUrl: player.photoUrl,
             played: 0,
             win: 0,
             draw: 0,

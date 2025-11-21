@@ -1,13 +1,14 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Trophy } from 'lucide-react';
+import { Trophy, User } from 'lucide-react';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type WinnerDisplayProps = {
     title: string;
     winnerName: string;
     teamName: string;
-    imageUrl: string;
+    imageUrl?: string | null;
     imageHint: string;
     stats: { label: string; value: string | number }[];
 }
@@ -24,14 +25,12 @@ export function WinnerDisplay({ title, winnerName, teamName, imageUrl, imageHint
             <Card className="w-full max-w-sm overflow-hidden shadow-lg shadow-primary/10 border-2 border-primary/50">
                 <div className="bg-gradient-to-br from-card to-secondary p-6 sm:p-8 text-center relative">
                      <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-4">
-                        <Image
-                            src={imageUrl}
-                            alt={`Portrait of ${winnerName}`}
-                            fill
-                            sizes="(max-width: 640px) 128px, 160px"
-                            className="rounded-full object-cover border-4 border-primary/80 shadow-2xl"
-                            data-ai-hint={imageHint}
-                        />
+                        <Avatar className="w-full h-full border-4 border-primary/80 shadow-2xl">
+                            <AvatarImage src={imageUrl ?? undefined} alt={`Portrait of ${winnerName}`} />
+                            <AvatarFallback>
+                                <User className="w-16 h-16" />
+                            </AvatarFallback>
+                        </Avatar>
                          <div className="absolute -bottom-1 -right-1 bg-card p-1.5 sm:p-2 rounded-full shadow-lg">
                             <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
                         </div>

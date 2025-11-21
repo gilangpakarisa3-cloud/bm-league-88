@@ -6,6 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import type { Player, LeagueEntry, WithId } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from './ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { User } from 'lucide-react';
 
 interface RegisterPlayersFormProps {
   allPlayers: WithId<Player>[];
@@ -99,6 +101,10 @@ export function RegisterPlayersForm({
                 checked={!!selected[player.id]}
                 onCheckedChange={() => handleSelect(player.id)}
               />
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={player.photoUrl} />
+                <AvatarFallback><User /></AvatarFallback>
+              </Avatar>
               <label htmlFor={`player-${player.id}`} className="flex-1 cursor-pointer">
                 <div className="font-medium">{player.name}</div>
                 <div className="text-sm text-muted-foreground">{player.teamName}</div>

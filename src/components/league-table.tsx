@@ -10,8 +10,9 @@ import {
 import type { LeagueEntry, Season, WithId } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface LeagueTableProps {
   tableData: WithId<LeagueEntry>[];
@@ -76,6 +77,10 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
+                       <Avatar className="h-10 w-10">
+                        <AvatarImage src={entry.photoUrl} alt={entry.playerName} />
+                        <AvatarFallback><User /></AvatarFallback>
+                      </Avatar>
                       <div>
                         <div className={cn("font-medium", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</div>
                         <div className="text-xs sm:text-sm text-muted-foreground">{entry.teamName}</div>
@@ -142,6 +147,7 @@ function LeagueTableSkeleton() {
                 <TableCell><Skeleton className="h-6 w-6 mx-auto" /></TableCell>
                 <TableCell>
                     <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
                         <div>
                             <Skeleton className="h-5 w-24 mb-1" />
                             <Skeleton className="h-4 w-32" />

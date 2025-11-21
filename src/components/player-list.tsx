@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, User } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +27,7 @@ import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
@@ -69,7 +70,10 @@ export function PlayerList({ onEdit }: PlayerListProps) {
             {[...Array(5)].map((_, i) => (
               <TableRow key={i}>
                 <TableCell>
-                  <Skeleton className="h-5 w-24" />
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-5 w-32" />
@@ -114,7 +118,13 @@ export function PlayerList({ onEdit }: PlayerListProps) {
               {players.map((player) => (
                 <TableRow key={player.id}>
                   <TableCell>
-                    <div className="font-medium text-sm sm:text-base">{player.name}</div>
+                    <div className="flex items-center gap-3">
+                        <Avatar>
+                            <AvatarImage src={player.photoUrl} alt={player.name} />
+                            <AvatarFallback><User /></AvatarFallback>
+                        </Avatar>
+                        <div className="font-medium text-sm sm:text-base">{player.name}</div>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">

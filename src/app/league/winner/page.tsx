@@ -84,7 +84,7 @@ function LeagueWinnerPageContents() {
         );
     }
     
-    const winnerImage = PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
+    const winnerImage = winner.photoUrl || PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
 
     const isSeasonCompleted = season?.status === 'Completed';
 

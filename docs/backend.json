@@ -66,6 +66,11 @@
         "teamLogoUrl": {
           "type": "string",
           "description": "Denormalized URL for the team's logo for easier display."
+        },
+        "photoUrl": {
+            "type": "string",
+            "description": "URL for the player's profile photo.",
+            "format": "uri"
         }
       },
       "required": [
@@ -204,6 +209,10 @@
         },
         "teamName": {
           "type": "string"
+        },
+        "photoUrl": {
+            "type": "string",
+            "format": "uri"
         },
         "played": {
           "type": "number"
