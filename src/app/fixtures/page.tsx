@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ScoreForm } from '@/components/score-form';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -302,16 +303,36 @@ export default function FixturesPage() {
               <Card key={match.id} className="flex flex-col">
                 <CardContent className="flex-grow flex items-center justify-around p-4">
                   <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={match.player1?.photoUrl} alt={match.player1?.name} />
+                        <AvatarFallback>{match.player1?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
                     <span className="font-semibold text-sm truncate w-full">{match.player1?.name}</span>
-                    <span className="text-xs text-muted-foreground">{match.player1?.teamName}</span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Avatar className="h-4 w-4">
+                            <AvatarImage src={match.player1?.teamLogoUrl} alt={match.player1?.teamName} />
+                            <AvatarFallback>{match.player1?.teamName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {match.player1?.teamName}
+                    </span>
                     {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player1Score}</span>}
                   </div>
                   <div className="text-2xl font-bold text-muted-foreground w-1/5 text-center">
                     {match.isCompleted ? '-' : 'VS'}
                   </div>
                   <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={match.player2?.photoUrl} alt={match.player2?.name} />
+                        <AvatarFallback>{match.player2?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
                     <span className="font-semibold text-sm truncate w-full">{match.player2?.name}</span>
-                    <span className="text-xs text-muted-foreground">{match.player2?.teamName}</span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                       <Avatar className="h-4 w-4">
+                            <AvatarImage src={match.player2?.teamLogoUrl} alt={match.player2?.teamName} />
+                            <AvatarFallback>{match.player2?.teamName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {match.player2?.teamName}
+                    </span>
                     {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player2Score}</span>}
                   </div>
                 </CardContent>
@@ -427,3 +448,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
