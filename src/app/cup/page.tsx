@@ -307,7 +307,7 @@ export default function CupPage() {
 
         {activeSeason && (
             <div className="mb-8 flex flex-wrap gap-2">
-                <Button onClick={() => setShowRegisterPlayers(true)} disabled={activeSeason.status !== 'Not Started' || (participants || []).length > 0}>
+                <Button onClick={() => setShowRegisterPlayers(true)} disabled={activeSeason.status !== 'Not Started'}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Register Players
                 </Button>

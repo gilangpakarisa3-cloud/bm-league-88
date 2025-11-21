@@ -87,13 +87,17 @@ export default function LeaguePage() {
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
   const sortedTable = useMemo(() => {
     if (!leagueTable) return [];
+    // if season is not started yet, sort by name
+    if (activeSeason?.status === 'Not Started') {
+        return [...leagueTable].sort((a, b) => a.playerName.localeCompare(b.playerName)).map((entry, index) => ({...entry, rank: index + 1}));
+    }
     return [...leagueTable].sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
         if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
         return a.playerName.localeCompare(b.playerName);
     }).map((entry, index) => ({...entry, rank: index + 1}));
-  }, [leagueTable]);
+  }, [leagueTable, activeSeason]);
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
 
   // --- Effects ---
@@ -258,7 +262,7 @@ export default function LeaguePage() {
 
         {activeSeason && (
             <div className="mb-8 flex flex-wrap gap-2">
-                <Button onClick={() => setShowRegisterPlayers(true)} disabled={activeSeason.status !== 'Not Started' || (leagueTable || []).length > 0}>
+                <Button onClick={() => setShowRegisterPlayers(true)} disabled={activeSeason.status !== 'Not Started'}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Register Players
                 </Button>
