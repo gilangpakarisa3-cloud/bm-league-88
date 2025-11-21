@@ -116,9 +116,8 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         name: data.name,
         teamId: data.teamId,
         teamName: selectedTeam.name,
-        teamLogoUrl: selectedTeam.logoUrl,
         photoUrl: data.photoUrl,
-    }
+    };
 
     if (player) {
       // --- Update Flow ---
@@ -252,3 +251,5 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     </Form>
   );
 }
+
+    
