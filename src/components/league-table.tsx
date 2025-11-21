@@ -44,17 +44,17 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-16 text-center">Rank</TableHead>
-              <TableHead className="min-w-[200px]">Player</TableHead>
-              <TableHead className="text-center">Played</TableHead>
-              <TableHead className="text-center">W</TableHead>
-              <TableHead className="text-center">D</TableHead>
-              <TableHead className="text-center">L</TableHead>
-              <TableHead className="hidden md:table-cell text-center">GF</TableHead>
-              <TableHead className="hidden md:table-cell text-center">GA</TableHead>
-              <TableHead className="text-center">GD</TableHead>
-              <TableHead className="text-center font-bold">Pts</TableHead>
-              {canRemovePlayer && <TableHead className="text-right">Actions</TableHead>}
+              <TableHead className="w-16 text-center font-bold text-accent">Rank</TableHead>
+              <TableHead className="min-w-[200px] font-bold text-accent">Player</TableHead>
+              <TableHead className="text-center font-bold text-accent">Played</TableHead>
+              <TableHead className="text-center font-bold text-accent">W</TableHead>
+              <TableHead className="text-center font-bold text-accent">D</TableHead>
+              <TableHead className="text-center font-bold text-accent">L</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-bold text-accent">GF</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-bold text-accent">GA</TableHead>
+              <TableHead className="text-center font-bold text-accent">GD</TableHead>
+              <TableHead className="text-center font-bold text-accent">Pts</TableHead>
+              {canRemovePlayer && <TableHead className="text-right font-bold text-accent">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
