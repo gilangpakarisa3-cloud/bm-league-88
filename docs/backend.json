@@ -10,10 +10,6 @@
           "type": "string",
           "description": "Unique identifier for the user profile."
         },
-        "teamId": {
-          "type": "string",
-          "description": "Reference to the Team the user is associated with. (Relationship: Team 1:N UserProfile)"
-        },
         "username": {
           "type": "string",
           "description": "The username of the user."
@@ -26,8 +22,7 @@
       },
       "required": [
         "id",
-        "username",
-        "teamId"
+        "username"
       ]
     },
     "Team": {
@@ -36,23 +31,43 @@
       "type": "object",
       "description": "Represents a football team.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the team."
-        },
         "name": {
           "type": "string",
           "description": "The name of the team."
         },
-        "logoUri": {
+        "logoUrl": {
           "type": "string",
-          "description": "URI for the team's logo image.",
+          "description": "URL for the team's logo image.",
           "format": "uri"
         }
       },
       "required": [
-        "id",
         "name"
+      ]
+    },
+    "Player": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Player",
+      "type": "object",
+      "description": "Represents a player in the league.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the player."
+        },
+        "teamId": {
+          "type": "string",
+          "description": "Reference to the Team the player is associated with."
+        },
+        "teamName": {
+          "type": "string",
+          "description": "Denormalized name of the team for easier display."
+        }
+      },
+      "required": [
+        "name",
+        "teamId",
+        "teamName"
       ]
     },
     "League": {
@@ -61,21 +76,16 @@
       "type": "object",
       "description": "Represents a league competition.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the league."
-        },
         "name": {
           "type": "string",
           "description": "The name of the league."
         },
         "currentSeasonId": {
           "type": "string",
-          "description": "Reference to the current Season. (Relationship: League 1:1 Season)"
+          "description": "Reference to the current Season."
         }
       },
       "required": [
-        "id",
         "name"
       ]
     },
@@ -85,21 +95,16 @@
       "type": "object",
       "description": "Represents a cup competition.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the cup."
-        },
         "name": {
           "type": "string",
           "description": "The name of the cup."
         },
         "currentSeasonId": {
           "type": "string",
-          "description": "Reference to the current Season. (Relationship: Cup 1:1 Season)"
+          "description": "Reference to the current Season."
         }
       },
       "required": [
-        "id",
         "name"
       ]
     },
@@ -109,17 +114,13 @@
       "type": "object",
       "description": "Represents a season within a league or cup.",
       "properties": {
-        "id": {
+        "name": {
           "type": "string",
-          "description": "Unique identifier for the season."
+          "description": "The name of the season (e.g., '2024/25 Season')."
         },
         "leagueId": {
           "type": "string",
-          "description": "Reference to the League this season belongs to. (Relationship: League 1:N Season)"
-        },
-        "cupId": {
-          "type": "string",
-          "description": "Reference to the Cup this season belongs to. (Relationship: Cup 1:N Season)"
+          "description": "Reference to the League this season belongs to."
         },
         "startDate": {
           "type": "string",
@@ -130,81 +131,124 @@
           "type": "string",
           "description": "The end date of the season.",
           "format": "date-time"
+        },
+        "isCompleted": {
+          "type": "boolean",
+          "description": "Flag indicating if the season is finished."
         }
       },
       "required": [
-        "id",
+        "name",
+        "leagueId",
         "startDate",
-        "endDate"
+        "isCompleted"
       ]
     },
     "Match": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Match",
       "type": "object",
-      "description": "Represents a match between two teams.",
+      "description": "Represents a match between two players.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the match."
-        },
         "seasonId": {
           "type": "string",
-          "description": "Reference to the Season this match belongs to. (Relationship: Season 1:N Match)"
+          "description": "Reference to the Season this match belongs to."
         },
-        "team1Id": {
+        "player1Id": {
           "type": "string",
-          "description": "Reference to the first team in the match. (Relationship: Team 1:N Match)"
+          "description": "Reference to the first player in the match."
         },
-        "team2Id": {
+        "player2Id": {
           "type": "string",
-          "description": "Reference to the second team in the match. (Relationship: Team 1:N Match)"
+          "description": "Reference to the second player in the match."
         },
-        "team1Score": {
+        "player1Score": {
           "type": "number",
-          "description": "The score of the first team."
+          "description": "The score of the first player."
         },
-        "team2Score": {
+        "player2Score": {
           "type": "number",
-          "description": "The score of the second team."
+          "description": "The score of the second player."
         },
         "matchDate": {
           "type": "string",
           "description": "The date and time of the match.",
           "format": "date-time"
+        },
+        "isCompleted": {
+          "type": "boolean",
+          "description": "Flag indicating if the match has been played."
         }
       },
       "required": [
-        "id",
         "seasonId",
-        "team1Id",
-        "team2Id",
-        "matchDate"
+        "player1Id",
+        "player2Id",
+        "matchDate",
+        "isCompleted"
       ]
+    },
+    "LeagueEntry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LeagueEntry",
+      "type": "object",
+      "description": "Represents a player's entry in a league table for a season.",
+      "properties": {
+        "playerId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "playerName": {
+          "type": "string"
+        },
+        "teamName": {
+          "type": "string"
+        },
+        "played": {
+          "type": "number"
+        },
+        "win": {
+          "type": "number"
+        },
+        "draw": {
+          "type": "number"
+        },
+        "loss": {
+          "type": "number"
+        },
+        "goalsFor": {
+          "type": "number"
+        },
+        "goalsAgainst": {
+          "type": "number"
+        },
+        "goalDifference": {
+          "type": "number"
+        },
+        "points": {
+          "type": "number"
+        }
+      },
+      "required": ["playerId", "teamId", "playerName", "teamName", "played", "win", "draw", "loss", "goalsFor", "goalsAgainst", "goalDifference", "points"]
     }
   },
   "auth": {
     "providers": [
-      "password",
       "anonymous"
     ]
   },
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}/profile",
+        "path": "/users/{userId}",
         "definition": {
           "entityName": "UserProfile",
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores user profile information. Path-based ownership for user data. Includes denormalized 'teamId' for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            }
-          ]
+          "description": "Stores user profile information."
         }
       },
       {
@@ -214,13 +258,17 @@
           "schema": {
             "$ref": "#/backend/entities/Team"
           },
-          "description": "Stores team information.",
-          "params": [
-            {
-              "name": "teamId",
-              "description": "The unique identifier of the team."
-            }
-          ]
+          "description": "Stores all team information."
+        }
+      },
+      {
+        "path": "/players/{playerId}",
+        "definition": {
+          "entityName": "Player",
+          "schema": {
+            "$ref": "#/backend/entities/Player"
+          },
+          "description": "Stores all player information."
         }
       },
       {
@@ -230,29 +278,7 @@
           "schema": {
             "$ref": "#/backend/entities/League"
           },
-          "description": "Stores league information. Contains 'currentSeasonId' to reference the active season.",
-          "params": [
-            {
-              "name": "leagueId",
-              "description": "The unique identifier of the league."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/cups/{cupId}",
-        "definition": {
-          "entityName": "Cup",
-          "schema": {
-            "$ref": "#/backend/entities/Cup"
-          },
-          "description": "Stores cup information. Contains 'currentSeasonId' to reference the active season.",
-          "params": [
-            {
-              "name": "cupId",
-              "description": "The unique identifier of the cup."
-            }
-          ]
+          "description": "Stores information about different leagues."
         }
       },
       {
@@ -262,60 +288,29 @@
           "schema": {
             "$ref": "#/backend/entities/Season"
           },
-          "description": "Stores season information for a league.",
-          "params": [
-            {
-              "name": "leagueId",
-              "description": "The unique identifier of the league."
-            },
-            {
-              "name": "seasonId",
-              "description": "The unique identifier of the season."
-            }
-          ]
+          "description": "Stores season information for a specific league."
         }
       },
       {
-        "path": "/cups/{cupId}/seasons/{seasonId}",
-        "definition": {
-          "entityName": "Season",
-          "schema": {
-            "$ref": "#/backend/entities/Season"
-          },
-          "description": "Stores season information for a cup.",
-          "params": [
-            {
-              "name": "cupId",
-              "description": "The unique identifier of the cup."
-            },
-            {
-              "name": "seasonId",
-              "description": "The unique identifier of the season."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/seasons/{seasonId}/matches/{matchId}",
+        "path": "/leagues/{leagueId}/seasons/{seasonId}/matches/{matchId}",
         "definition": {
           "entityName": "Match",
           "schema": {
             "$ref": "#/backend/entities/Match"
           },
-          "description": "Stores match information. Includes 'seasonId', 'team1Id', and 'team2Id' for efficient querying and authorization.",
-          "params": [
-            {
-              "name": "seasonId",
-              "description": "The unique identifier of the season."
-            },
-            {
-              "name": "matchId",
-              "description": "The unique identifier of the match."
-            }
-          ]
+          "description": "Stores all matches for a given season of a league."
+        }
+      },
+      {
+        "path": "/leagues/{leagueId}/seasons/{seasonId}/leagueTable/{leagueEntryId}",
+        "definition": {
+          "entityName": "LeagueEntry",
+          "schema": {
+            "$ref": "#/backend/entities/LeagueEntry"
+          },
+          "description": "Stores the league table for a given season of a league."
         }
       }
-    ],
-    "reasoning": "The Firestore data structure is designed to support the Engineering EightyEight Liga Tarkam App, focusing on leagues, cups, seasons, teams, user profiles, and matches. The structure prioritizes authorization independence and efficient data retrieval.  \n\n**Authorization Independence (Denormalization):**\nTo avoid `get()` calls in security rules and enable atomic operations, key authorization data is denormalized.\n*   `UserProfile` documents store `teamId` to associate users with teams directly, enabling team-based authorization without needing to fetch the Team document.\n*   `Match` documents include `seasonId` which allows to query matches by season directly.\n\n**Structural Segregation:**\n*   Leagues and Cups are stored in separate collections (`/leagues` and `/cups`), ensuring that security rules are consistently applied to each type of competition.\n*   Seasons are stored as subcollections under Leagues and Cups (`/leagues/{leagueId}/seasons` and `/cups/{cupId}/seasons`), reflecting the parent-child relationship and isolating season-specific data and configurations.\n\n**Access Modeling:**\n*   User profiles are stored in a path-based ownership structure under `/users/{userId}/profile`, providing straightforward ownership-based security.\n*   Teams, Leagues, and Cups use simple collection-based access, with administrative roles potentially managed through a separate roles collection (not explicitly defined in the data structure but implied for administrative access).\n\n**QAPs (Rules are not Filters):**\nThe structure supports secure `list` operations:\n*   Listing matches for a specific season is efficient due to the `seasonId` field within `Match` documents.  Security rules can easily filter matches based on the `seasonId`.\n\n**Invariants:**\nThe structure facilitates maintaining data integrity:\n*   The `currentSeasonId` field in both `League` and `Cup` documents maintains a clear reference to the active season, simplifying queries for current season data.\n*   Timestamps for `startDate` and `endDate` in the `Season` entity, can be used to implement validation rules ensuring correct temporal relationships."
+    ]
   }
 }

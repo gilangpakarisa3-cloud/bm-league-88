@@ -1,10 +1,9 @@
+'use client';
 
-"use client";
-
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -12,51 +11,91 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { teams } from "@/lib/data";
-import type { Player } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
-import { Combobox } from "./ui/combobox";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Combobox } from './ui/combobox';
+import type { Player, Team, WithId } from '@/lib/types';
+import { useCollection, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { collection, doc } from 'firebase/firestore';
 
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Player name must be at least 2 characters.",
+    message: 'Player name must be at least 2 characters.',
   }),
-  teamId: z.string({ required_error: "Please select a team." }),
+  teamId: z.string({ required_error: 'Please select a team.' }),
 });
 
 type PlayerFormValues = z.infer<typeof formSchema>;
 
 interface PlayerFormProps {
-  player?: Player | null;
+  player?: WithId<Player> | null;
   onSave?: () => void;
 }
 
 export function PlayerForm({ player, onSave }: PlayerFormProps) {
   const { toast } = useToast();
+  const firestore = useFirestore();
+
+  const teamsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'teams') : null),
+    [firestore]
+  );
+  const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: player?.name || "",
-      teamId: player?.team.id || "",
+      name: player?.name || '',
+      teamId: player?.teamId || '',
     },
   });
 
-  const teamOptions = teams.map(team => ({
-    value: team.id,
-    label: team.name
-  }));
+  const teamOptions =
+    teams?.map((team) => ({
+      value: team.id,
+      label: team.name,
+    })) || [];
 
   const onSubmit = (data: PlayerFormValues) => {
-    // In a real app, you would handle saving the data to a database here.
-    // For now, we'll just log it and show a success message.
-    console.log("Saving player data:", data);
+    if (!firestore) return;
+    
+    const selectedTeam = teams?.find(t => t.id === data.teamId);
+    if (!selectedTeam) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Selected team not found.",
+        });
+        return;
+    }
+    
+    const playerData: Player = {
+        name: data.name,
+        teamId: data.teamId,
+        teamName: selectedTeam.name,
+        teamLogoUrl: selectedTeam.logoUrl
+    }
 
-    toast({
-      title: `Player ${player ? 'updated' : 'added'}!`,
-      description: `${data.name} has been successfully saved.`,
-    });
+    if (player) {
+      // Update existing player
+      const playerRef = doc(firestore, 'players', player.id);
+      updateDocumentNonBlocking(playerRef, playerData);
+      toast({
+        title: `Player updated!`,
+        description: `${data.name} has been successfully saved.`,
+      });
+
+    } else {
+      // Add new player
+      const playersRef = collection(firestore, 'players');
+      addDocumentNonBlocking(playersRef, playerData);
+      toast({
+        title: `Player added!`,
+        description: `${data.name} has been successfully added.`,
+      });
+    }
 
     onSave?.(); // Close the dialog
   };
@@ -90,7 +129,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                   onChange={field.onChange}
                   placeholder="Select a team"
                   searchPlaceholder="Search team..."
-                  emptyPlaceholder="No team found."
+                  emptyPlaceholder={isLoadingTeams ? "Loading teams..." : "No team found."}
                 />
               </FormControl>
               <FormMessage />
@@ -98,7 +137,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
           )}
         />
         <div className="flex justify-end gap-2">
-            <Button type="submit">{player ? "Save Changes" : "Create Player"}</Button>
+          <Button type="submit">{player ? 'Save Changes' : 'Create Player'}</Button>
         </div>
       </form>
     </Form>

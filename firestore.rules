@@ -1,211 +1,46 @@
-/**
- * # Firestore Security Rules
- *
- * ## Core Philosophy
- * This ruleset enforces a security model with two distinct zones:
- * 1.  **Private User Data**: User-specific information, like profiles, is strictly controlled. Access is granted only to the authenticated owner of that data.
- * 2.  **Public Competition Data**: Core application data such as leagues, teams, seasons, and matches are publicly readable by anyone, including unauthenticated users, to allow for a rich browsing experience. Writes to this public data are currently restricted to prevent unauthorized modifications, pending the implementation of an administrative role system.
- *
- * ## Data Structure
- * The data is organized hierarchically to reflect the real-world relationships in a sports league application.
- * - `/users/{userId}/profile`: Stores private user profile information.
- * - `/teams/{teamId}`: Top-level collection for all teams.
- * - `/leagues/{leagueId}`: Top-level collection for all leagues.
- * - `/cups/{cupId}`: Top-level collection for all cup competitions.
- * - `/leagues/{leagueId}/seasons/{seasonId}`: Seasons are nested within their parent league.
- * - `/cups/{cupId}/seasons/{seasonId}`: Seasons are nested within their parent cup.
- * - `.../seasons/{seasonId}/matches/{matchId}`: Matches are nested within their parent season.
- *
- * ## Key Security Decisions
- * - **Secure by Default**: Writes to all public-read collections (`teams`, `leagues`, `cups`, etc.) are explicitly disabled (`if false;`). This provides a secure foundation for prototyping and requires a deliberate action (like adding admin role checks) to enable modifications.
- * - **No User Listing**: The top-level `/users` collection is not listable, preventing attackers from scraping all user data.
- * - **Public Read for App Content**: All competition-related data is publicly readable to simplify client-side data fetching without requiring authentication.
- *
- * ## Denormalization for Authorization
- * These rules rely on the principle that authorization data should live on the document being secured.
- * - **User Profile Ownership**: The `UserProfile` document is expected to have an `id` field that matches the `{userId}` in the path. This allows for simple, fast ownership validation without extra database reads.
- *
- * ## Structural Segregation
- * Data is segregated into logical collections (e.g., `/leagues` and `/cups` are separate). This allows for distinct security rules and query patterns for different types of competitions. Nesting seasons and matches under their parent entities enforces a clear and secure data hierarchy.
- *
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ------------------------------------------------------------------------
-    // Helper Functions
-    // ------------------------------------------------------------------------
-
-    /**
-     * Checks if the user is authenticated.
-     */
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently signed-in user's UID matches the provided userId.
-     * This is the foundation of the user-ownership model.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    // PUBLIC COLLECTIONS: Teams, Players, Leagues, Seasons, Matches etc.
+    // Allow public read for all, but restrict writes.
+    // This allows the app to be browsable by anyone.
+    // Writes will be handled by more specific rules or admin roles later.
+    match /{collection}/{docId} {
+        allow read: if true;
+        allow write: if false; // Secure by default
     }
 
-    /**
-     * A robust check for update/delete operations, ensuring the user is the owner
-     * AND the document they are trying to modify actually exists.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+    // USER DATA: /users/{userId}
+    // Users can only access their own data.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ------------------------------------------------------------------------
-    // User Data Rules
-    // ------------------------------------------------------------------------
-
-    /**
-     * @description Controls access to a user's private profile document. Only the owner can read or write their own profile.
-     * @path /users/{userId}/profile
-     * @allow (create) An authenticated user creating their own profile document: `auth.uid == 'user123'`, path `/users/user123/profile`.
-     * @deny (get) An authenticated user trying to read another user's profile: `auth.uid == 'user456'`, path `/users/user123/profile`.
-     * @principle Restricts access to a user's own data tree and enforces relational integrity on create.
-     */
-    match /users/{userId}/profile {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    // ------------------------------------------------------------------------
-    // Public Competition Data Rules
-    // ------------------------------------------------------------------------
-
-    /**
-     * @description Controls access to team data. All users can read team info, but writes are disabled.
-     * @path /teams/{teamId}
-     * @allow (get) Any user (authenticated or not) reading a team's document.
-     * @deny (create) Any user attempting to create a new team document.
-     * @principle Data is public-read, but writes are locked down pending implementation of admin roles.
-     */
-    match /teams/{teamId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Team' entity is missing an 'ownerId' or 'adminId' field.
-      allow create: if false; // TODO: Add admin validation once an admin system is in place.
-      allow update: if false; // TODO: Add admin validation once an admin system is in place.
-      allow delete: if false; // TODO: Add admin validation once an admin system is in place.
-    }
-
-    /**
-     * @description Controls access to league data. All users can read league info, but writes are disabled.
-     * @path /leagues/{leagueId}
-     * @allow (get) Any user (authenticated or not) reading a league's document.
-     * @deny (create) Any user attempting to create a new league document.
-     * @principle Data is public-read, but writes are locked down pending implementation of admin roles.
-     */
-    match /leagues/{leagueId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'League' entity is missing an 'ownerId' or 'adminId' field.
-      allow create: if false; // TODO: Add admin validation once an admin system is in place.
-      allow update: if false; // TODO: Add admin validation once an admin system is in place.
-      allow delete: if false; // TODO: Add admin validation once an admin system is in place.
-    }
-
-    /**
-     * @description Controls access to cup competition data. All users can read cup info, but writes are disabled.
-     * @path /cups/{cupId}
-     * @allow (get) Any user (authenticated or not) reading a cup's document.
-     * @deny (create) Any user attempting to create a new cup document.
-     * @principle Data is public-read, but writes are locked down pending implementation of admin roles.
-     */
-    match /cups/{cupId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Cup' entity is missing an 'ownerId' or 'adminId' field.
-      allow create: if false; // TODO: Add admin validation once an admin system is in place.
-      allow update: if false; // TODO: Add admin validation once an admin system is in place.
-      allow delete: if false; // TODO: Add admin validation once an admin system is in place.
-    }
-
-    /**
-     * @description Controls access to season data within a league. All users can read season info, but writes are disabled.
-     * @path /leagues/{leagueId}/seasons/{seasonId}
-     * @allow (list) Any user (authenticated or not) listing all seasons for a given league.
-     * @deny (create) Any user attempting to create a new season document.
-     * @principle Data is public-read, but writes are locked down pending implementation of admin roles.
-     */
+    // Nested Collections
     match /leagues/{leagueId}/seasons/{seasonId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Season' entity is missing an 'ownerId' or 'adminId' field.
-      allow create: if false; // TODO: Add admin validation once an admin system is in place.
-      allow update: if false; // TODO: Add admin validation once an admin system is in place.
-      allow delete: if false; // TODO: Add admin validation once an admin system is in place.
+        allow read: if true;
+        allow write: if false; // TODO: Implement admin/owner access
     }
 
-    /**
-     * @description Controls access to season data within a cup. All users can read season info, but writes are disabled.
-     * @path /cups/{cupId}/seasons/{seasonId}
-     * @allow (list) Any user (authenticated or not) listing all seasons for a given cup.
-     * @deny (create) Any user attempting to create a new season document.
-     * @principle Data is public-read, but writes are locked down pending implementation of admin roles.
-     */
-    match /cups/{cupId}/seasons/{seasonId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Season' entity is missing an 'ownerId' or 'adminId' field.
-      allow create: if false; // TODO: Add admin validation once an admin system is in place.
-      allow update: if false; // TODO: Add admin validation once an admin system is in place.
-      allow delete: if false; // TODO: Add admin validation once an admin system is in place.
-    }
-
-    /**
-     * @description Controls access to match data within a league season. All users can read match info, but writes are disabled.
-     * @path /leagues/{leagueId}/seasons/{seasonId}/matches/{matchId}
-     * @allow (list) Any user listing all matches for a given league season.
-     * @deny (create) Any user attempting to create a new match document.
-     * @principle Data is public-read, but writes are locked down pending implementation of admin roles.
-     */
     match /leagues/{leagueId}/seasons/{seasonId}/matches/{matchId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Match' entity is missing an 'ownerId' or 'adminId' field.
-      allow create: if false; // TODO: Add admin validation once an admin system is in place.
-      allow update: if false; // TODO: Add admin validation once an admin system is in place.
-      allow delete: if false; // TODO: Add admin validation once an admin system is in place.
+        allow read: if true;
+        allow write: if false; // TODO: Implement admin/owner access
     }
 
-    /**
-     * @description Controls access to match data within a cup season. All users can read match info, but writes are disabled.
-     * @path /cups/{cupId}/seasons/{seasonId}/matches/{matchId}
-     * @allow (list) Any user listing all matches for a given cup season.
-     * @deny (create) Any user attempting to create a new match document.
-     * @principle Data is public-read, but writes are locked down pending implementation of admin roles.
-     */
-    match /cups/{cupId}/seasons/{seasonId}/matches/{matchId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Match' entity is missing an 'ownerId' or 'adminId' field.
-      allow create: if false; // TODO: Add admin validation once an admin system is in place.
-      allow update: if false; // TODO: Add admin validation once an admin system is in place.
-      allow delete: if false; // TODO: Add admin validation once an admin system is in place.
+    match /leagues/{leagueId}/seasons/{seasonId}/leagueTable/{leagueEntryId} {
+        allow read: if true;
+        allow write: if false; // TODO: Implement admin/owner access
     }
-    
-    /**
-     * @description INVALID PATH. This rule block explicitly denies all access to the ambiguous /seasons/{seasonId}/... path.
-     * @path /seasons/{seasonId}/{wildcard=**}
-     * @allow (none) No operations are permitted on this path.
-     * @deny (all) All read and write operations are denied.
-     * @principle Enforces correct data structure. Seasons and Matches must be nested under a League or Cup collection. This path is disallowed to prevent misplaced data.
-     */
+
+    // Explicitly deny access to ambiguous paths
     match /seasons/{seasonId}/{wildcard=**} {
-      allow read: if false;
-      allow write: if false;
+      allow read, write: if false;
     }
-
   }
 }

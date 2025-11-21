@@ -1,10 +1,9 @@
+'use client';
 
-"use client";
-
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -12,25 +11,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { players } from "@/lib/data";
-import type { CupMatch } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
-import { Combobox } from "./ui/combobox";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "./ui/calendar";
-import { format } from "date-fns";
+} from '@/components/ui/form';
+import type { CupMatch, Player, WithId } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { Combobox } from './ui/combobox';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { cn } from '@/lib/utils';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from './ui/calendar';
+import { format } from 'date-fns';
+import { useCollection } from '@/firebase';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { collection } from 'firebase/firestore';
 
-const formSchema = z.object({
-  team1Id: z.string({ required_error: "Please select team 1." }),
-  team2Id: z.string({ required_error: "Please select team 2." }),
-  date: z.date({ required_error: "Please select a date." }),
-}).refine(data => data.team1Id !== data.team2Id, {
-    message: "Teams must be different.",
-    path: ["team2Id"],
-});
+const formSchema = z
+  .object({
+    team1Id: z.string({ required_error: 'Please select team 1.' }),
+    team2Id: z.string({ required_error: 'Please select team 2.' }),
+    date: z.date({ required_error: 'Please select a date.' }),
+  })
+  .refine((data) => data.team1Id !== data.team2Id, {
+    message: 'Teams must be different.',
+    path: ['team2Id'],
+  });
 
 type MatchFormValues = z.infer<typeof formSchema>;
 
@@ -41,21 +44,33 @@ interface MatchFormProps {
 
 export function MatchForm({ match, onSave }: MatchFormProps) {
   const { toast } = useToast();
+  const firestore = useFirestore();
+
+  const playersCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'players') : null),
+    [firestore]
+  );
+  const { data: players, isLoading } = useCollection<Player>(playersCollection);
+  
   const form = useForm<MatchFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      team1Id: match?.team1?.id || "",
-      team2Id: match?.team2?.id || "",
+      team1Id: match?.team1?.id || '',
+      team2Id: match?.team2?.id || '',
       date: match?.date || new Date(),
     },
   });
 
-  const teamsWithPlayers = Array.from(new Set(players.map(p => p.team.id)))
-    .map(teamId => players.find(p => p.team.id === teamId)!.team);
+  const teamsWithPlayers = players
+    ? Array.from(new Set(players.map((p) => p.teamId))).map((teamId) => {
+        const player = players.find((p) => p.teamId === teamId)!;
+        return { id: player.teamId, name: player.teamName, logoUrl: player.teamLogoUrl || '' };
+      })
+    : [];
 
-  const teamOptions = teamsWithPlayers.map(team => ({
+  const teamOptions = teamsWithPlayers.map((team) => ({
     value: team.id,
-    label: team.name
+    label: team.name,
   }));
 
   const onSubmit = (data: MatchFormValues) => {
@@ -122,14 +137,14 @@ export function MatchForm({ match, onSave }: MatchFormProps) {
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
-                      variant={"outline"}
+                      variant={'outline'}
                       className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        'w-full pl-3 text-left font-normal',
+                        !field.value && 'text-muted-foreground'
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP")
+                        format(field.value, 'PPP')
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -143,7 +158,7 @@ export function MatchForm({ match, onSave }: MatchFormProps) {
                     selected={field.value}
                     onSelect={field.onChange}
                     disabled={(date) =>
-                      date < new Date(new Date().setHours(0,0,0,0))
+                      date < new Date(new Date().setHours(0, 0, 0, 0))
                     }
                     initialFocus
                   />
@@ -154,7 +169,7 @@ export function MatchForm({ match, onSave }: MatchFormProps) {
           )}
         />
         <div className="flex justify-end gap-2">
-            <Button type="submit">{match ? "Save Changes" : "Create Match"}</Button>
+          <Button type="submit">{match ? 'Save Changes' : 'Create Match'}</Button>
         </div>
       </form>
     </Form>

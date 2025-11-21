@@ -1,16 +1,15 @@
-
-import type { ImagePlaceholder } from './placeholder-images';
+export type WithId<T> = T & { id: string };
 
 export type Team = {
-  id: string;
   name: string;
   logoUrl: string;
 };
 
 export type Player = {
-  id: string;
   name: string;
-  team: Team;
+  teamId: string;
+  teamName: string;
+  teamLogoUrl?: string; // For display purposes
 };
 
 export type LeagueEntry = {
@@ -31,11 +30,11 @@ export type CupMatch = {
   matchNumber: number;
   player1: Player | null;
   player2: Player | null;
-  team1: Team | null; // Kept for compatibility, but player1.team should be used
-  team2: Team | null; // Kept for compatibility, but player2.team should be used
+  team1: Team | null;
+  team2: Team | null;
   score1: number | null;
   score2: number | null;
-  winner: Player | null; // Winner is a player
+  winner: Player | null;
   date?: Date;
 };
 
