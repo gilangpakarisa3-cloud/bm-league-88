@@ -1,5 +1,16 @@
 
 import { PlayerList } from '@/components/player-list';
+import { PlayerForm } from '@/components/player-form';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { PlusCircle } from 'lucide-react';
 
 export default function PlayersPage() {
   return (
@@ -9,6 +20,23 @@ export default function PlayersPage() {
             <h1 className="font-headline text-4xl font-extrabold tracking-tight">
             Players
             </h1>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add New Player
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Player</DialogTitle>
+                  <DialogDescription>
+                    Enter the details for the new player.
+                  </DialogDescription>
+                </DialogHeader>
+                <PlayerForm />
+              </DialogContent>
+            </Dialog>
         </div>
         <PlayerList />
       </div>
