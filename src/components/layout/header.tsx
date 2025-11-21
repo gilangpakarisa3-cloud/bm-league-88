@@ -14,6 +14,7 @@ export function Header() {
     { href: '/league', label: 'League' },
     { href: '/cup', label: 'Cup' },
     { href: '/players', label: 'Players' },
+    { href: '/teams', label: 'Teams' },
   ];
 
   return (
