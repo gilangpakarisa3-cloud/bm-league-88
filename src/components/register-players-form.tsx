@@ -29,6 +29,10 @@ export function RegisterPlayersForm({
   const availablePlayers = React.useMemo(() =>
     allPlayers.filter(p => !registeredPlayerIds.has(p.id))
   , [allPlayers, registeredPlayerIds]);
+  
+  const areAllSelected = React.useMemo(() => 
+    availablePlayers.length > 0 && availablePlayers.every(p => !!selected[p.id])
+  , [availablePlayers, selected]);
 
   const handleSelect = (playerId: string) => {
     setSelected(prev => ({
@@ -36,6 +40,19 @@ export function RegisterPlayersForm({
       [playerId]: !prev[playerId],
     }));
   };
+  
+  const handleSelectAll = (checked: boolean | 'indeterminate') => {
+    if (checked === true) {
+      const newSelected = availablePlayers.reduce((acc, player) => {
+        acc[player.id] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
+      setSelected(newSelected);
+    } else {
+      setSelected({});
+    }
+  };
+
 
   const handleSubmit = () => {
     const selectedIds = Object.keys(selected).filter(id => selected[id]);
@@ -56,6 +73,19 @@ export function RegisterPlayersForm({
 
   return (
     <div className="space-y-4">
+       <div className="flex items-center space-x-3 p-2 rounded-md border">
+        <Checkbox
+          id="select-all"
+          checked={areAllSelected}
+          onCheckedChange={handleSelectAll}
+        />
+        <label
+          htmlFor="select-all"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Select All Players
+        </label>
+      </div>
       <ScrollArea className="h-64 border rounded-md">
         <div className="p-4 space-y-2">
           {availablePlayers.map(player => (
