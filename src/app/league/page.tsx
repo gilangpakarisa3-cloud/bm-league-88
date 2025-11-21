@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2 } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, Copy } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -36,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { ShareDialog } from '@/components/share-dialog';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -51,6 +52,8 @@ export default function LeaguePage() {
   const [newSeasonName, setNewSeasonName] = useState('');
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareText, setShareText] = useState('');
 
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -240,8 +243,8 @@ export default function LeaguePage() {
       .map((p, index) => `${index + 1}. ${p.playerName} (${p.teamName})`)
       .join('\n');
       
-    const message = encodeURIComponent(header + participantsList);
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    setShareText(header + participantsList);
+    setShareDialogOpen(true);
   };
 
 
@@ -366,6 +369,15 @@ export default function LeaguePage() {
           />
         </DialogContent>
       </Dialog>
+      
+       {/* Share Dialog */}
+       <ShareDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          title="Share League Participants"
+          shareText={shareText}
+        />
+
     </div>
   );
 }

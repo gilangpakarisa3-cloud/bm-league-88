@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { CupBracket } from '@/components/cup-bracket';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Play, Flag, Trophy, Pencil, Trash2, Share2 } from 'lucide-react';
+import { PlusCircle, UserPlus, Play, Flag, Trophy, Pencil, Trash2, Share2, Copy } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ScoreForm } from '@/components/score-form';
+import { ShareDialog } from '@/components/share-dialog';
 
 
 // For simplicity, we'll work with a single, hardcoded cup.
@@ -134,6 +135,8 @@ export default function CupPage() {
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareText, setShareText] = useState('');
   
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -378,7 +381,7 @@ export default function CupPage() {
     setEditingMatch(null);
   };
   
-    const handleShareParticipants = () => {
+  const handleShareParticipants = () => {
     if (!activeSeason || !participants || participants.length === 0) {
       toast({
         variant: 'destructive',
@@ -396,8 +399,8 @@ export default function CupPage() {
       .map((p, index) => `${index + 1}. ${p.name} (${p.teamName})`)
       .join('\n');
       
-    const message = encodeURIComponent(header + participantsList);
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    setShareText(header + participantsList);
+    setShareDialogOpen(true);
   };
 
   return (
@@ -542,6 +545,14 @@ export default function CupPage() {
             )}
           </DialogContent>
         </Dialog>
+        
+        {/* Share Dialog */}
+        <ShareDialog
+            open={shareDialogOpen}
+            onOpenChange={setShareDialogOpen}
+            title="Share Cup Participants"
+            shareText={shareText}
+        />
 
     </div>
   );
