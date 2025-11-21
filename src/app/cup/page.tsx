@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -274,7 +275,7 @@ export default function CupPage() {
          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div className="space-y-2">
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight">Cup Tournament</h1>
-                {activeSeason && <p className="text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>}
+                {activeSeason && <p className="text-xl font-bold text-muted-foreground">{activeSeason.name} ({activeSeason.status})</p>}
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
