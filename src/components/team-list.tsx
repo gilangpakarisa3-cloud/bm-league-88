@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -46,6 +46,11 @@ export function TeamList({ onEdit }: TeamListProps) {
   );
   const { data: teams, isLoading } = useCollection<Team>(teamsCollection);
   
+  const sortedTeams = useMemo(() => {
+    if (!teams) return [];
+    return [...teams].sort((a, b) => a.name.localeCompare(b.name));
+  }, [teams]);
+  
   const handleDelete = () => {
     if (!firestore || !deletingTeam) return;
     const teamRef = doc(firestore, 'teams', deletingTeam.id);
@@ -86,7 +91,7 @@ export function TeamList({ onEdit }: TeamListProps) {
     );
   }
   
-  if (!teams || teams.length === 0) {
+  if (!sortedTeams || sortedTeams.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
         <h2 className="text-xl font-medium text-muted-foreground">No teams found.</h2>
@@ -109,7 +114,7 @@ export function TeamList({ onEdit }: TeamListProps) {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {teams.map((team: WithId<Team>) => (
+                {sortedTeams.map((team: WithId<Team>) => (
                 <TableRow key={team.id}>
                     <TableCell>
                     <div className="font-medium text-sm sm:text-base">{team.name}</div>
