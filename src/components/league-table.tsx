@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -8,17 +7,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { LeagueEntry } from "@/lib/types";
+import { Skeleton } from "./ui/skeleton";
 
 interface LeagueTableProps {
   tableData: LeagueEntry[];
+  isLoading?: boolean;
 }
 
-export function LeagueTable({ tableData }: LeagueTableProps) {
+export function LeagueTable({ tableData, isLoading = false }: LeagueTableProps) {
+  if (isLoading) {
+    return <LeagueTableSkeleton />;
+  }
+  
   if (tableData.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
-        <h2 className="text-xl font-medium text-muted-foreground">The league hasn't started yet.</h2>
-        <p className="text-sm text-muted-foreground mt-2">Check back later for standings.</p>
+        <h2 className="text-xl font-medium text-muted-foreground">No players registered for this season.</h2>
+        <p className="text-sm text-muted-foreground mt-2">Use the "Register Players" button to add participants.</p>
       </div>
     );
   }
@@ -48,8 +53,8 @@ export function LeagueTable({ tableData }: LeagueTableProps) {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div>
-                      <div className="font-medium text-sm sm:text-base">{entry.player.name}</div>
-                      <div className="text-xs sm:text-sm text-muted-foreground">{entry.player.team.name}</div>
+                      <div className="font-medium text-sm sm:text-base">{entry.playerName}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">{entry.teamName}</div>
                     </div>
                   </div>
                 </TableCell>
@@ -63,6 +68,54 @@ export function LeagueTable({ tableData }: LeagueTableProps) {
                   {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
                 </TableCell>
                 <TableCell className="text-center font-bold text-lg text-primary">{entry.points}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function LeagueTableSkeleton() {
+  return (
+    <div className="w-full overflow-hidden rounded-lg border bg-card">
+      <div className="w-full overflow-x-auto">
+        <Table className="min-w-[700px]">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-16 text-center">Rank</TableHead>
+              <TableHead className="min-w-[200px]">Player</TableHead>
+              <TableHead className="text-center">Played</TableHead>
+              <TableHead className="text-center">W</TableHead>
+              <TableHead className="text-center">D</TableHead>
+              <TableHead className="text-center">L</TableHead>
+              <TableHead className="hidden md:table-cell text-center">GF</TableHead>
+              <TableHead className="hidden md:table-cell text-center">GA</TableHead>
+              <TableHead className="text-center">GD</TableHead>
+              <TableHead className="text-center font-bold">Pts</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...Array(5)].map((_, i) => (
+              <TableRow key={i}>
+                <TableCell><Skeleton className="h-6 w-6 mx-auto" /></TableCell>
+                <TableCell>
+                    <div className="flex items-center gap-3">
+                        <div>
+                            <Skeleton className="h-5 w-24 mb-1" />
+                            <Skeleton className="h-4 w-32" />
+                        </div>
+                    </div>
+                </TableCell>
+                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type WithId<T> = T & { id: string };
 
 export type Team = {
@@ -12,9 +14,23 @@ export type Player = {
   teamLogoUrl?: string; // For display purposes
 };
 
+export type League = {
+  name: string;
+  currentSeasonId?: string;
+}
+
+export type Season = {
+  name: string;
+  status: 'Not Started' | 'In Progress' | 'Completed';
+  createdAt: Timestamp;
+}
+
 export type LeagueEntry = {
   rank: number;
-  player: Player;
+  playerId: string;
+  teamId: string;
+  playerName: string;
+  teamName: string;
   played: number;
   win: number;
   draw: number;

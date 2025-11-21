@@ -79,10 +79,6 @@
         "name": {
           "type": "string",
           "description": "The name of the league."
-        },
-        "currentSeasonId": {
-          "type": "string",
-          "description": "Reference to the current Season."
         }
       },
       "required": [
@@ -98,10 +94,6 @@
         "name": {
           "type": "string",
           "description": "The name of the cup."
-        },
-        "currentSeasonId": {
-          "type": "string",
-          "description": "Reference to the current Season."
         }
       },
       "required": [
@@ -118,30 +110,21 @@
           "type": "string",
           "description": "The name of the season (e.g., '2024/25 Season')."
         },
-        "leagueId": {
+        "status": {
           "type": "string",
-          "description": "Reference to the League this season belongs to."
+          "description": "The current status of the season.",
+          "enum": ["Not Started", "In Progress", "Completed"]
         },
-        "startDate": {
-          "type": "string",
-          "description": "The start date of the season.",
-          "format": "date-time"
-        },
-        "endDate": {
-          "type": "string",
-          "description": "The end date of the season.",
-          "format": "date-time"
-        },
-        "isCompleted": {
-          "type": "boolean",
-          "description": "Flag indicating if the season is finished."
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the season was created."
         }
       },
       "required": [
         "name",
-        "leagueId",
-        "startDate",
-        "isCompleted"
+        "status",
+        "createdAt"
       ]
     },
     "Match": {
