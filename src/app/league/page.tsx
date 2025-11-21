@@ -309,7 +309,7 @@ export default function LeaguePage() {
 
       {/* Register Players Dialog */}
       <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Register Players</DialogTitle>
             <DialogDescription>Select players to include in the '{activeSeason?.name}' season.</DialogDescription>

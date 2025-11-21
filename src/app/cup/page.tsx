@@ -372,7 +372,7 @@ export default function CupPage() {
 
       {/* Register Players Dialog */}
       <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Register Players for Cup</DialogTitle>
             <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The number of players must be a power of 2 (e.g., 4, 8, 16).</DialogDescription>
