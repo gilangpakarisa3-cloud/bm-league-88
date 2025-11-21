@@ -17,7 +17,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ScoreForm } from '@/components/score-form';
 import { Input } from '@/components/ui/input';
 
-const generateFixtures = (leaguePlayers: Player[]): CupMatch[] => {
+const generateAllFixtures = (leaguePlayers: Player[]): CupMatch[] => {
     const fixtures: CupMatch[] = [];
     // Home and away fixtures
     for (let i = 0; i < leaguePlayers.length; i++) {
@@ -46,19 +46,19 @@ const generateFixtures = (leaguePlayers: Player[]): CupMatch[] => {
 export default function FixturesPage() {
   const [leagueTable, setLeagueTable] = useState<LeagueEntry[]>(initialLeagueTable);
   
-  const generateNewFixtures = () => {
+  const generateFixtures = () => {
     const leaguePlayers = initialLeagueTable.map(entry => entry.player);
-    return generateFixtures(leaguePlayers);
+    return generateAllFixtures(leaguePlayers);
   }
 
-  const [matches, setMatches] = useState<CupMatch[]>(generateNewFixtures);
+  const [matches, setMatches] = useState<CupMatch[]>(generateFixtures);
   const [editingMatch, setEditingMatch] = useState<CupMatch | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const handleRefreshFixtures = () => {
+  const handleGenerateFixtures = () => {
     // Re-initialize league table and generate new fixtures
     setLeagueTable(initialLeagueTable);
-    const newFixtures = generateNewFixtures();
+    const newFixtures = generateFixtures();
     setMatches(newFixtures);
   };
 
@@ -225,9 +225,9 @@ export default function FixturesPage() {
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight">
                     League Fixtures
                 </h1>
-                <Button onClick={handleRefreshFixtures} disabled={leagueStarted}>
+                <Button onClick={handleGenerateFixtures} disabled={leagueStarted}>
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Refresh Fixtures
+                    Generate Fixture
                 </Button>
             </div>
             <div className="mb-8 relative">
@@ -261,3 +261,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
