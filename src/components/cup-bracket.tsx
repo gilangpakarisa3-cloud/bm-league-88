@@ -17,7 +17,7 @@ const MatchTeam = ({ player, score, isWinner, isBye }: { player: WithId<Player> 
         </div>
     }
 
-    if (!player) {
+    if (!player || player.id === 'TBD') {
         return <div className="flex items-center justify-between p-2 h-12">
             <span className="text-sm text-muted-foreground">TBD</span>
         </div>
@@ -87,14 +87,17 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
     const sortedMatches = [...matches].sort((a, b) => (a.matchNumber ?? 0) - (b.matchNumber ?? 0));
 
     const matchesWithPlayers: MatchWithPlayers[] = sortedMatches.map(match => {
-        const player1 = match.player1Id !== 'TBD' ? playersById[match.player1Id] || null : null;
-        const player2 = match.player2Id !== 'TBD' && match.player2Id !== 'BYE' ? playersById[match.player2Id] || null : null;
+        const player1 = playersById[match.player1Id] || null;
+        const player2 = playersById[match.player2Id] || null;
+
         let winner: WithId<Player> | null = null;
-        if (match.isCompleted && typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
-            if (match.player1Score > match.player2Score) winner = player1;
-            else if (match.player2Score > match.player1Score) winner = player2;
-        } else if (match.player2Id === 'BYE') {
-            winner = player1;
+        if (match.isCompleted) {
+            if (match.player2Id === 'BYE') {
+                winner = player1;
+            } else if (typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
+                if (match.player1Score > match.player2Score) winner = player1;
+                else if (match.player2Score > match.player1Score) winner = player2;
+            }
         }
 
         return {
@@ -115,7 +118,7 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
         }
     });
 
-    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32', 'Preliminary Round'];
+    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32'];
     
     return Object.entries(roundsMap)
       .map(([name, matchesInRound]) => ({ name, matches: matchesInRound }))
@@ -125,7 +128,7 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
           if (aIndex !== -1 && bIndex !== -1) return bIndex - aIndex; 
           if (aIndex !== -1) return 1;
           if (bIndex !== -1) return -1;
-          return b.matches.length - a.matches.length; 
+          return a.matches.length - b.matches.length; // Fallback for custom round names
       }).reverse(); // Reverse to have final on the right
 
   }, [matches, playersById]);
