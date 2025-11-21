@@ -48,14 +48,6 @@ export function PlayerList() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Image
-                        src={player.team.logoUrl}
-                        alt={`${player.team.name} logo`}
-                        width={32}
-                        height={32}
-                        className="rounded-full border-2 border-border"
-                        data-ai-hint="team logo"
-                      />
                       <div className="text-sm sm:text-base text-muted-foreground">{player.team.name}</div>
                     </div>
                   </TableCell>

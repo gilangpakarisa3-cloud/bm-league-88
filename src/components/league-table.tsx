@@ -36,14 +36,6 @@ export function LeagueTable() {
                 <TableCell className="text-center font-bold text-lg text-muted-foreground">{entry.rank}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Image
-                      src={entry.player.team.logoUrl}
-                      alt={`${entry.player.team.name} logo`}
-                      width={32}
-                      height={32}
-                      className="rounded-full border-2 border-border"
-                      data-ai-hint="team logo"
-                    />
                     <div>
                       <div className="font-medium text-sm sm:text-base">{entry.player.name}</div>
                       <div className="text-xs sm:text-sm text-muted-foreground">{entry.player.team.name}</div>

@@ -77,14 +77,6 @@ export default function Home() {
                     <TableCell className="font-bold text-lg pl-4">{entry.rank}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Image
-                          src={entry.player.team.logoUrl}
-                          alt={`${entry.player.team.name} logo`}
-                          width={32}
-                          height={32}
-                          className="rounded-full w-8 h-8"
-                          data-ai-hint="team logo"
-                        />
                         <div>
                           <div className="font-medium">{entry.player.name}</div>
                           <div className="text-xs sm:text-sm text-muted-foreground">{entry.player.team.name}</div>

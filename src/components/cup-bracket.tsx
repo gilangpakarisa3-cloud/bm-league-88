@@ -18,14 +18,6 @@ const MatchTeam = ({ team, score, isWinner }: { team: Team | null, score: number
             isWinner ? "font-bold text-foreground" : "text-muted-foreground"
         )}>
             <div className="flex items-center gap-2">
-                <Image
-                    src={team.logoUrl}
-                    alt={`${team.name} logo`}
-                    width={20}
-                    height={20}
-                    className="rounded-full w-5 h-5"
-                    data-ai-hint="team logo"
-                />
                 <span className="text-xs sm:text-sm">{team.name}</span>
             </div>
             {score !== null && <span className={cn("font-semibold text-sm", isWinner && 'text-primary')}>{score}</span>}
