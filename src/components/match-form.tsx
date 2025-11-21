@@ -13,8 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { teams } from "@/lib/data";
+import { players } from "@/lib/data";
 import type { CupMatch } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Combobox } from "./ui/combobox";
@@ -51,7 +50,10 @@ export function MatchForm({ match, onSave }: MatchFormProps) {
     },
   });
 
-  const teamOptions = teams.map(team => ({
+  const teamsWithPlayers = Array.from(new Set(players.map(p => p.team.id)))
+    .map(teamId => players.find(p => p.team.id === teamId)!.team);
+
+  const teamOptions = teamsWithPlayers.map(team => ({
     value: team.id,
     label: team.name
   }));
