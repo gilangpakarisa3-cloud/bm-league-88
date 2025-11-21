@@ -36,7 +36,7 @@ type MatchFormValues = z.infer<typeof formSchema>;
 
 interface MatchFormProps {
   match?: CupMatch | null;
-  onSave?: () => void;
+  onSave?: (data: MatchFormValues) => void;
 }
 
 export function MatchForm({ match, onSave }: MatchFormProps) {
@@ -46,7 +46,7 @@ export function MatchForm({ match, onSave }: MatchFormProps) {
     defaultValues: {
       team1Id: match?.team1?.id || "",
       team2Id: match?.team2?.id || "",
-      date: new Date(),
+      date: match?.date || new Date(),
     },
   });
 
@@ -59,14 +59,14 @@ export function MatchForm({ match, onSave }: MatchFormProps) {
   }));
 
   const onSubmit = (data: MatchFormValues) => {
-    console.log("Saving match data:", data);
+    if (onSave) {
+      onSave(data);
+    }
 
     toast({
       title: `Match ${match ? 'updated' : 'added'}!`,
       description: `The match has been successfully saved.`,
     });
-
-    onSave?.();
   };
 
   return (

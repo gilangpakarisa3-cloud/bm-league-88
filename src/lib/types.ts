@@ -34,6 +34,7 @@ export type CupMatch = {
   score1: number | null;
   score2: number | null;
   winner: Team | null;
+  date?: Date;
 };
 
 export type CupRound = {
