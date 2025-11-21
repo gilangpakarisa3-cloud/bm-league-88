@@ -15,7 +15,6 @@ import type { Team, CupMatch, LeagueEntry, Player } from '@/lib/types';
 import { teams as allTeams, players, leagueTable as initialLeagueTable } from '@/lib/data';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScoreForm } from '@/components/score-form';
-import { LeagueTable } from '@/components/league-table';
 
 const generateFixtures = (leaguePlayers: Player[]): CupMatch[] => {
     const fixtures: CupMatch[] = [];
@@ -217,15 +216,6 @@ export default function FixturesPage() {
                 <MatchList title="Remaining Matches" matchList={unplayedMatches} />
                 <MatchList title="Completed Matches" matchList={playedMatches} />
             </div>
-        </div>
-        
-        <div>
-           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                <h2 className="font-headline text-3xl font-bold tracking-tight">
-                    Live League Table
-                </h2>
-            </div>
-            <LeagueTable tableData={leagueTable} />
         </div>
 
         <Dialog open={!!editingMatch} onOpenChange={(isOpen) => !isOpen && setEditingMatch(null)}>
