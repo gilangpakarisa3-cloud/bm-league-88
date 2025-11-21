@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { CupBracket } from '@/components/cup-bracket';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Play, Flag, Trophy, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, UserPlus, Play, Flag, Trophy, Pencil, Trash2, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -378,6 +378,28 @@ export default function CupPage() {
     setEditingMatch(null);
   };
   
+    const handleShareParticipants = () => {
+    if (!activeSeason || !participants || participants.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No participants to share',
+        description: 'Register players for this season first.',
+      });
+      return;
+    }
+
+    const seasonName = activeSeason.name;
+    const header = `*Cup Participants - ${seasonName}*\n\n`;
+    
+    const participantsList = participants
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((p, index) => `${index + 1}. ${p.name} (${p.teamName})`)
+      .join('\n');
+      
+    const message = encodeURIComponent(header + participantsList);
+    window.open(`https://wa.me/?text=${message}`, '_blank');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -427,6 +449,10 @@ export default function CupPage() {
                 <Button onClick={() => handleUpdateSeasonStatus('Completed')} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
                     <Flag className="mr-2 h-4 w-4" />
                     Finish Cup
+                </Button>
+                 <Button onClick={handleShareParticipants} variant="outline" disabled={!participants || participants.length === 0}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share Participants
                 </Button>
                  <Button asChild variant="outline">
                     <Link href={`/cup/winner?seasonId=${activeSeasonId}`}>
@@ -520,5 +546,3 @@ export default function CupPage() {
     </div>
   );
 }
-
-    

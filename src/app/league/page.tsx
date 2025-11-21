@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -222,6 +222,27 @@ export default function LeaguePage() {
     updateDocumentNonBlocking(seasonRef, { status });
     toast({ title: 'Season Updated', description: `Season status changed to '${status}'.` });
   };
+  
+  const handleShareParticipants = () => {
+    if (!activeSeason || !sortedTable || sortedTable.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No participants to share',
+        description: 'Register players for this season first.',
+      });
+      return;
+    }
+
+    const seasonName = activeSeason.name;
+    const header = `*Liga Tarkam Participants - ${seasonName}*\n\n`;
+    
+    const participantsList = sortedTable
+      .map((p, index) => `${index + 1}. ${p.playerName} (${p.teamName})`)
+      .join('\n');
+      
+    const message = encodeURIComponent(header + participantsList);
+    window.open(`https://wa.me/?text=${message}`, '_blank');
+  };
 
 
   return (
@@ -277,6 +298,10 @@ export default function LeaguePage() {
                 <Button onClick={() => handleUpdateSeasonStatus('Completed')} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
                     <Flag className="mr-2 h-4 w-4" />
                     Finish Season
+                </Button>
+                <Button onClick={handleShareParticipants} variant="outline" disabled={!leagueTable || leagueTable.length === 0}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share Participants
                 </Button>
                  <Button asChild variant="outline">
                     <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
