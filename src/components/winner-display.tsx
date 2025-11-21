@@ -22,7 +22,7 @@ export function WinnerDisplay({ title, winnerName, teamName, imageUrl, imageHint
             </div>
             
             <Card className="w-full max-w-md overflow-hidden shadow-lg shadow-primary/10 border-2 border-primary/50">
-                <div className="bg-gradient-to-br from-card to-secondary p-8 text-center">
+                <div className="bg-gradient-to-br from-card to-secondary p-8 pt-12 text-center relative">
                      <div className="relative w-40 h-40 mx-auto mb-4">
                         <Image
                             src={imageUrl}
@@ -36,7 +36,7 @@ export function WinnerDisplay({ title, winnerName, teamName, imageUrl, imageHint
                             <Trophy className="w-6 h-6 text-yellow-400" />
                         </div>
                     </div>
-                    <div className="mt-8">
+                    <div className="mt-4">
                         <h2 className="text-3xl font-bold">{winnerName}</h2>
                         <p className="text-xl text-muted-foreground font-medium">{teamName}</p>
                     </div>
