@@ -15,10 +15,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Combobox } from './ui/combobox';
-import type { Player, Team, WithId } from '@/lib/types';
+import type { Player, Team, WithId, League, LeagueEntry } from '@/lib/types';
 import { useCollection, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
 import React from 'react';
 
 const formSchema = z.object({
@@ -50,6 +50,12 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     [firestore]
   );
   const { data: players, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+  
+  const leaguesCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'leagues') : null),
+    [firestore]
+  );
+  const { data: leagues, isLoading: isLoadingLeagues } = useCollection<League>(leaguesCollection);
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(formSchema),
@@ -75,7 +81,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
   }, [teams, players, player]);
 
 
-  const onSubmit = (data: PlayerFormValues) => {
+  const onSubmit = async (data: PlayerFormValues) => {
     if (!firestore) return;
     
     const selectedTeam = teams?.find(t => t.id === data.teamId);
@@ -96,16 +102,53 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     }
 
     if (player) {
-      // Update existing player
+      // --- Update Flow ---
+      const batch = writeBatch(firestore);
+      
+      // 1. Update the player document
       const playerRef = doc(firestore, 'players', player.id);
-      updateDocumentNonBlocking(playerRef, playerData);
-      toast({
-        title: `Player updated!`,
-        description: `${data.name} has been successfully saved.`,
-      });
+      batch.update(playerRef, playerData);
+
+      try {
+        // 2. Find and update all league entries for this player
+        if (leagues) {
+            for (const lg of leagues) {
+                const seasonsRef = collection(firestore, `leagues/${lg.id}/seasons`);
+                const seasonsSnap = await getDocs(seasonsRef);
+                for (const seasonDoc of seasonsSnap.docs) {
+                    const leagueTableRef = collection(seasonsRef, seasonDoc.id, 'leagueTable');
+                    const q = query(leagueTableRef, where('playerId', '==', player.id));
+                    const leagueEntriesSnap = await getDocs(q);
+                    
+                    leagueEntriesSnap.forEach(entryDoc => {
+                        const entryRef = doc(leagueTableRef, entryDoc.id);
+                        batch.update(entryRef, { 
+                            playerName: playerData.name,
+                            teamName: playerData.teamName 
+                        });
+                    });
+                }
+            }
+        }
+        
+        await batch.commit();
+        toast({
+          title: `Player updated!`,
+          description: `${data.name} has been successfully saved everywhere.`,
+        });
+
+      } catch (error) {
+        console.error("Failed to update player and their league entries: ", error);
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: "Could not sync player updates to league tables.",
+        });
+      }
+
 
     } else {
-      // Add new player
+      // --- Add New Player Flow ---
       const playersRef = collection(firestore, 'players');
       addDocumentNonBlocking(playersRef, playerData);
       toast({

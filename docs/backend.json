@@ -229,21 +229,7 @@
         "points": {
           "type": "number"
         }
-      },
-      "required": [
-        "playerId",
-        "teamId",
-        "playerName",
-        "teamName",
-        "played",
-        "win",
-        "draw",
-        "loss",
-        "goalsFor",
-        "goalsAgainst",
-        "goalDifference",
-        "points"
-      ]
+      }
     }
   },
   "auth": {

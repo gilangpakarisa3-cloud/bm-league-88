@@ -28,6 +28,10 @@ service cloud.firestore {
 
     // LEAGUES: Nested Collections
     // Public read for all, writes for signed-in users.
+    match /leagues/{leagueId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+    }
     match /leagues/{leagueId}/{documents=**} {
         allow read: if true;
         allow write: if isSignedIn();
