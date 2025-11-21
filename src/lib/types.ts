@@ -12,7 +12,6 @@ export type Player = {
   name: string;
   teamId: string;
   teamName: string;
-  teamLogoUrl?: string; // For display purposes
   photoUrl?: string;
 };
 

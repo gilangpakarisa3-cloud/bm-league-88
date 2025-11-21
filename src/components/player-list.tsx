@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { Player, WithId } from '@/lib/types';
+import type { Player, Team, WithId } from '@/lib/types';
 import { useCollection, deleteDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc } from 'firebase/firestore';
@@ -43,7 +43,22 @@ export function PlayerList({ onEdit }: PlayerListProps) {
     () => (firestore ? collection(firestore, 'players') : null),
     [firestore]
   );
-  const { data: players, isLoading } = useCollection<Player>(playersCollection);
+  const { data: players, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+
+  const teamsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'teams') : null),
+    [firestore]
+  );
+  const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
+  const teamsById = useMemo(() => {
+    if (!teams) return {};
+    return teams.reduce((acc, team) => {
+      acc[team.id] = team;
+      return acc;
+    }, {} as Record<string, WithId<Team>>);
+  }, [teams]);
+
 
   const handleDelete = () => {
     if (!firestore || !deletingPlayer) return;
@@ -55,6 +70,8 @@ export function PlayerList({ onEdit }: PlayerListProps) {
     });
     setDeletingPlayer(null);
   };
+
+  const isLoading = isLoadingPlayers || isLoadingTeams;
 
   if (isLoading) {
     return (
@@ -119,38 +136,41 @@ export function PlayerList({ onEdit }: PlayerListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {players.map((player) => (
-                <TableRow key={player.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                        <Avatar>
-                            <AvatarImage src={player.photoUrl} alt={player.name} />
-                            <AvatarFallback><User /></AvatarFallback>
+              {players.map((player) => {
+                const team = teamsById[player.teamId];
+                return (
+                    <TableRow key={player.id}>
+                    <TableCell>
+                        <div className="flex items-center gap-3">
+                            <Avatar>
+                                <AvatarImage src={player.photoUrl} alt={player.name} />
+                                <AvatarFallback><User /></AvatarFallback>
+                            </Avatar>
+                            <div className="font-medium text-sm sm:text-base">{player.name}</div>
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex items-center gap-3">
+                        <Avatar className="h-6 w-6">
+                            <AvatarImage src={team?.logoUrl} alt={player.teamName} />
+                            <AvatarFallback>{player.teamName?.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <div className="font-medium text-sm sm:text-base">{player.name}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={player.teamLogoUrl} alt={player.teamName} />
-                        <AvatarFallback>{player.teamName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="text-sm sm:text-base text-muted-foreground">{player.teamName}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right pr-4">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(player)}>
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit Player</span>
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeletingPlayer(player)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                        <span className="sr-only">Delete Player</span>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        <div className="text-sm sm:text-base text-muted-foreground">{player.teamName}</div>
+                        </div>
+                    </TableCell>
+                    <TableCell className="text-right pr-4">
+                        <Button variant="ghost" size="icon" onClick={() => onEdit(player)}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit Player</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeletingPlayer(player)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <span className="sr-only">Delete Player</span>
+                        </Button>
+                    </TableCell>
+                    </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </div>
