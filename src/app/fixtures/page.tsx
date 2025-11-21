@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, RefreshCw } from 'lucide-react';
+import { Pencil, RefreshCw, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import type { CupMatch, LeagueEntry, Player } from '@/lib/types';
 import { leagueTable as initialLeagueTable } from '@/lib/data';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ScoreForm } from '@/components/score-form';
+import { Input } from '@/components/ui/input';
 
 const generateFixtures = (leaguePlayers: Player[]): CupMatch[] => {
     const fixtures: CupMatch[] = [];
@@ -52,6 +53,7 @@ export default function FixturesPage() {
 
   const [matches, setMatches] = useState<CupMatch[]>(generateNewFixtures);
   const [editingMatch, setEditingMatch] = useState<CupMatch | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const handleRefreshFixtures = () => {
     // Re-initialize league table and generate new fixtures
@@ -157,17 +159,30 @@ export default function FixturesPage() {
         return newTable.map((entry, index) => ({ ...entry, rank: index + 1 }));
     });
   };
+
+  const filteredMatches = matches.filter(match => {
+    const term = searchTerm.toLowerCase();
+    const player1Name = match.player1?.name.toLowerCase() || '';
+    const player2Name = match.player2?.name.toLowerCase() || '';
+    const team1Name = match.player1?.team.name.toLowerCase() || '';
+    const team2Name = match.player2?.team.name.toLowerCase() || '';
+
+    return player1Name.includes(term) ||
+           player2Name.includes(term) ||
+           team1Name.includes(term) ||
+           team2Name.includes(term);
+  });
   
-  const unplayedMatches = matches.filter(m => m.score1 === null);
-  const playedMatches = matches.filter(m => m.score1 !== null);
-  const leagueStarted = playedMatches.length > 0;
+  const unplayedMatches = filteredMatches.filter(m => m.score1 === null);
+  const playedMatches = filteredMatches.filter(m => m.score1 !== null);
+  const leagueStarted = matches.some(m => m.score1 !== null);
 
   const MatchList = ({ title, matchList }: {title: string, matchList: CupMatch[]}) => (
      <div>
         <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">{title} ({matchList.length})</h2>
         {matchList.length === 0 ? (
           <div className="border rounded-lg p-8 text-center bg-card">
-              <h2 className="text-xl font-medium text-muted-foreground">No matches in this category.</h2>
+              <h2 className="text-xl font-medium text-muted-foreground">{searchTerm ? 'No matches found.' : 'No matches in this category.'}</h2>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -214,6 +229,16 @@ export default function FixturesPage() {
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Refresh Fixtures
                 </Button>
+            </div>
+            <div className="mb-8 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by player or team..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <div className="space-y-12">
                 <MatchList title="Remaining Matches" matchList={unplayedMatches} />
