@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { CupMatch } from "@/lib/types";
+import type { Match, Player, WithId } from "@/lib/types";
 
 const formSchema = z.object({
   score1: z.coerce.number().min(0, "Score must be positive."),
@@ -24,16 +24,21 @@ const formSchema = z.object({
 type ScoreFormValues = z.infer<typeof formSchema>;
 
 interface ScoreFormProps {
-  match: CupMatch;
+  match: WithId<Match>;
   onSave: (data: ScoreFormValues) => void;
+  players: WithId<Player>[];
 }
 
-export function ScoreForm({ match, onSave }: ScoreFormProps) {
+export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
+
+  const player1 = players.find(p => p.id === match.player1Id);
+  const player2 = players.find(p => p.id === match.player2Id);
+  
   const form = useForm<ScoreFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      score1: match.score1 ?? 0,
-      score2: match.score2 ?? 0,
+      score1: match.player1Score ?? 0,
+      score2: match.player2Score ?? 0,
     },
   });
 
@@ -46,7 +51,7 @@ export function ScoreForm({ match, onSave }: ScoreFormProps) {
             name="score1"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{match.player1?.name}</FormLabel>
+                <FormLabel>{player1?.name}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
@@ -59,7 +64,7 @@ export function ScoreForm({ match, onSave }: ScoreFormProps) {
             name="score2"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{match.player2?.name}</FormLabel>
+                <FormLabel>{player2?.name}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
