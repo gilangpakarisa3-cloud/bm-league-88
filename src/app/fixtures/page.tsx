@@ -94,8 +94,8 @@ export default function FixturesPage() {
       return;
     }
     
-    if (activeSeason?.status !== 'In Progress') {
-       toast({ variant: 'destructive', title: 'Error', description: 'Fixtures can only be generated for a season that is "In Progress".' });
+    if (activeSeason?.status !== 'Not Started') {
+       toast({ variant: 'destructive', title: 'Error', description: 'Fixtures can only be generated for a season that has not started yet.' });
        return;
     }
 
@@ -253,7 +253,7 @@ export default function FixturesPage() {
 
   const unplayedMatches = matchesWithPlayers.filter(m => !m.isCompleted);
   const playedMatches = matchesWithPlayers.filter(m => m.isCompleted);
-  const leagueStarted = activeSeason?.status === 'In Progress' && (matches || []).length > 0;
+  const hasFixtures = (matches || []).length > 0;
 
   const MatchList = ({ title, matchList }: { title: string, matchList: (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[] }) => (
      <div>
@@ -316,7 +316,7 @@ export default function FixturesPage() {
                             ))}
                         </SelectContent>
                     </Select>
-                     <Button onClick={handleGenerateFixtures} disabled={!activeSeasonId || leagueStarted || activeSeason?.status !== 'In Progress'}>
+                     <Button onClick={handleGenerateFixtures} disabled={!activeSeasonId || hasFixtures || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Generate Fixture
                     </Button>
@@ -334,10 +334,15 @@ export default function FixturesPage() {
             </div>
             {isLoading ? (
                 <p>Loading fixtures...</p>
-            ) : (
+            ) : hasFixtures ? (
                  <div className="space-y-12">
                     <MatchList title="Remaining Matches" matchList={unplayedMatches} />
                     <MatchList title="Completed Matches" matchList={playedMatches} />
+                </div>
+            ) : (
+                <div className="border rounded-lg p-8 text-center bg-card">
+                  <h2 className="text-xl font-medium text-muted-foreground">No Fixtures Generated</h2>
+                  <p className="text-muted-foreground mt-2">Register players for this season on the League page, then generate fixtures here.</p>
                 </div>
             )}
         </div>

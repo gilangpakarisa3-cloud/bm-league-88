@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc } from 'firebase/firestore';
-import type { League, Season, LeagueEntry, Player, WithId } from '@/lib/types';
+import type { League, Season, LeagueEntry, Player, WithId, Match } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -72,6 +72,15 @@ export default function LeaguePage() {
     [firestore]
   );
   const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+  
+  const matchesCollection = useMemoFirebase(
+    () =>
+      firestore && activeSeasonId
+        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`)
+        : null,
+    [firestore, activeSeasonId]
+  );
+  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
 
   // --- Memoized Derived State ---
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
@@ -84,6 +93,7 @@ export default function LeaguePage() {
         return a.playerName.localeCompare(b.playerName);
     }).map((entry, index) => ({...entry, rank: index + 1}));
   }, [leagueTable]);
+  const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
 
   // --- Effects ---
   useEffect(() => {
@@ -251,7 +261,11 @@ export default function LeaguePage() {
                     <UserPlus className="mr-2 h-4 w-4" />
                     Register Players
                 </Button>
-                <Button onClick={() => handleUpdateSeasonStatus('In Progress')} variant="outline" disabled={activeSeason.status !== 'Not Started' || (leagueTable || []).length < 2}>
+                <Button 
+                    onClick={() => handleUpdateSeasonStatus('In Progress')} 
+                    variant="outline" 
+                    disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
+                    title={!hasFixtures ? "Fixtures must be generated before starting the season." : ""}>
                     <Play className="mr-2 h-4 w-4" />
                     Start Season
                 </Button>
@@ -268,7 +282,7 @@ export default function LeaguePage() {
             </div>
         )}
 
-        <LeagueTable tableData={sortedTable} isLoading={isLoadingTable} />
+        <LeagueTable tableData={sortedTable} isLoading={isLoadingTable || isLoadingMatches} />
       </div>
 
       {/* Create/Edit Season Dialog */}
