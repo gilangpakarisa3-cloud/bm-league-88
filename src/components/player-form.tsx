@@ -15,8 +15,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Combobox } from './ui/combobox';
-import type { Player, Team, WithId, League, LeagueEntry } from '@/lib/types';
-import { useCollection, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import type { Player, Team, WithId, League, LeagueEntry, Cup } from '@/lib/types';
+import { useCollection, addDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
 import React from 'react';
@@ -55,7 +55,13 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     () => (firestore ? collection(firestore, 'leagues') : null),
     [firestore]
   );
-  const { data: leagues, isLoading: isLoadingLeagues } = useCollection<League>(leaguesCollection);
+  const { data: leagues } = useCollection<League>(leaguesCollection);
+
+  const cupsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'cups') : null),
+    [firestore]
+  );
+  const { data: cups } = useCollection<Cup>(cupsCollection);
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(formSchema),
@@ -64,21 +70,23 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       teamId: player?.teamId || '',
     },
   });
+  
+  React.useEffect(() => {
+    if (player) {
+      form.reset({
+        name: player.name,
+        teamId: player.teamId,
+      });
+    }
+  }, [player, form]);
 
   const teamOptions = React.useMemo(() => {
-    if (!teams || !players) return [];
-
-    const assignedTeamIds = new Set(
-        players.filter(p => p.id !== player?.id).map(p => p.teamId)
-    );
-
-    return teams
-        .filter(team => !assignedTeamIds.has(team.id))
-        .map(team => ({
-            value: team.id,
-            label: team.name,
-        }));
-  }, [teams, players, player]);
+    if (!teams) return [];
+    return teams.map(team => ({
+        value: team.id,
+        label: team.name,
+    }));
+  }, [teams]);
 
 
   const onSubmit = async (data: PlayerFormValues) => {
@@ -105,7 +113,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       // --- Update Flow ---
       const batch = writeBatch(firestore);
       
-      // 1. Update the player document
+      // 1. Update the main player document
       const playerRef = doc(firestore, 'players', player.id);
       batch.update(playerRef, playerData);
 
@@ -131,18 +139,32 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
             }
         }
         
+        // 3. Find and update all cup participant entries for this player
+        if (cups) {
+          for (const cp of cups) {
+              const seasonsRef = collection(firestore, `cups/${cp.id}/seasons`);
+              const seasonsSnap = await getDocs(seasonsRef);
+              for (const seasonDoc of seasonsSnap.docs) {
+                  const participantsRef = doc(firestore, `cups/${cp.id}/seasons/${seasonDoc.id}/cupParticipants`, player.id);
+                  // Since we store a copy of the player object, we update it directly.
+                  // The doc ref is based on player.id so we dont need a query.
+                  batch.update(participantsRef, playerData);
+              }
+          }
+        }
+
         await batch.commit();
         toast({
           title: `Player updated!`,
-          description: `${data.name} has been successfully saved everywhere.`,
+          description: `${data.name}'s details have been synchronized across all competitions.`,
         });
 
       } catch (error) {
-        console.error("Failed to update player and their league entries: ", error);
+        console.error("Failed to update player and their entries: ", error);
         toast({
           variant: "destructive",
           title: "Update Failed",
-          description: "Could not sync player updates to league tables.",
+          description: "Could not sync player updates to league/cup tables.",
         });
       }
 
@@ -189,7 +211,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                   onChange={field.onChange}
                   placeholder="Select a team"
                   searchPlaceholder="Search team..."
-                  emptyPlaceholder={isLoadingTeams || isLoadingPlayers ? "Loading teams..." : "No available teams found."}
+                  emptyPlaceholder={isLoadingTeams ? "Loading teams..." : "No teams found."}
                 />
               </FormControl>
               <FormMessage />
@@ -197,7 +219,9 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
           )}
         />
         <div className="flex justify-end gap-2">
-          <Button type="submit">{player ? 'Save Changes' : 'Create Player'}</Button>
+          <Button type="submit" disabled={isLoadingTeams || isLoadingPlayers}>
+            {player ? 'Save Changes' : 'Create Player'}
+          </Button>
         </div>
       </form>
     </Form>
