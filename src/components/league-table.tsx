@@ -71,7 +71,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                 >
                   <TableCell className={cn(
                     "text-center font-bold text-lg",
-                    isFirst ? "text-yellow-400 text-xl" : "text-muted-foreground"
+                    isFirst ? "text-yellow-400 text-xl" : "text-accent"
                     )}>
                     {entry.rank}
                   </TableCell>
