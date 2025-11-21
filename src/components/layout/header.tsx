@@ -13,6 +13,7 @@ export function Header() {
   const navLinks = [
     { href: '/league', label: 'League' },
     { href: '/cup', label: 'Cup' },
+    { href: '/players', label: 'Players' },
   ];
 
   return (
