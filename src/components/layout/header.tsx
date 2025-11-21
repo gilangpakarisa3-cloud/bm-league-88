@@ -26,19 +26,22 @@ export function Header() {
           <span className="font-headline font-bold text-lg hidden sm:inline tracking-tighter">Engineering EightyEight</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
-          {navLinks.map((link) => (
-            <Button
-              key={link.href}
-              variant="ghost"
-              asChild
-              className={cn(
-                'transition-colors',
-                pathname.startsWith(link.href) ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Link href={link.href}>{link.label}</Link>
-            </Button>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = pathname.startsWith(link.href);
+            return (
+              <Button
+                key={link.href}
+                variant={isActive ? "default" : "ghost"}
+                asChild
+                className={cn(
+                  'transition-colors',
+                  !isActive && 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Link href={link.href}>{link.label}</Link>
+              </Button>
+            )
+          })}
         </nav>
       </div>
     </header>
