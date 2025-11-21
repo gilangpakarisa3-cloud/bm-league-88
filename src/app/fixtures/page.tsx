@@ -101,8 +101,13 @@ export default function FixturesPage() {
     }
 
     const batch = writeBatch(firestore);
+
+    // 1. Delete existing fixtures for this season
+    const existingMatchesQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`));
+    const existingMatchesSnap = await getDocs(existingMatchesQuery);
+    existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
     
-    // Home and away fixtures
+    // 2. Generate new Home and away fixtures
     for (let i = 0; i < leagueTable.length; i++) {
         for (let j = 0; j < leagueTable.length; j++) {
             if (i === j) continue; // Players don't play against themselves
@@ -317,9 +322,9 @@ export default function FixturesPage() {
                             ))}
                         </SelectContent>
                     </Select>
-                     <Button onClick={handleGenerateFixtures} disabled={!activeSeasonId || hasFixtures || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
+                     <Button onClick={handleGenerateFixtures} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
                         <RefreshCw className="mr-2 h-4 w-4" />
-                        Generate Fixture
+                        {hasFixtures ? 'Re-generate Fixtures' : 'Generate Fixtures'}
                     </Button>
                 </div>
             </div>
@@ -363,3 +368,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
