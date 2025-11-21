@@ -98,7 +98,7 @@ export const teams: Team[] = [
   { id: 't-bundesliga-1', name: 'Bayer Leverkusen', logoUrl: '' },
   { id: 't-bundesliga-2', name: 'VfB Stuttgart', logoUrl: '' },
   { id: 't-bundesliga-3', name: 'FC Bayern Munich', logoUrl: '' },
-  { id: 't-bundesliga-4', name: 'RB Leipzig', logoUrl: '' },
+  { id_ts: 't-bundesliga-4', name: 'RB Leipzig', logoUrl: '' },
   { id: 't-bundesliga-5', name: 'Borussia Dortmund', logoUrl: '' },
   { id: 't-bundesliga-6', name: 'Eintracht Frankfurt', logoUrl: '' },
   { id: 't-bundesliga-7', name: 'Hoffenheim', logoUrl: '' },
@@ -126,8 +126,20 @@ export const players: Player[] = teams.map((team, index) => ({
 }));
 
 // --- LEAGUE DATA ---
-// All league data is cleared
-export const leagueTable: LeagueEntry[] = [];
+// Initialize league table with the first 15 players
+export const leagueTable: LeagueEntry[] = players.slice(0, 15).map((player, index) => ({
+  rank: index + 1,
+  player: player,
+  played: 0,
+  win: 0,
+  draw: 0,
+  loss: 0,
+  goalsFor: 0,
+  goalsAgainst: 0,
+  goalDifference: 0,
+  points: 0,
+}));
+
 export const leagueWinner: LeagueEntry | null = null;
 
 
