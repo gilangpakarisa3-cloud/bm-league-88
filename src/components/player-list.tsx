@@ -50,6 +50,11 @@ export function PlayerList({ onEdit }: PlayerListProps) {
     [firestore]
   );
   const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+  
+  const sortedPlayers = useMemo(() => {
+    if (!players) return [];
+    return [...players].sort((a, b) => a.name.localeCompare(b.name));
+  }, [players]);
 
   const teamsById = useMemo(() => {
     if (!teams) return {};
@@ -111,7 +116,7 @@ export function PlayerList({ onEdit }: PlayerListProps) {
     );
   }
   
-  if (!players || players.length === 0) {
+  if (!sortedPlayers || sortedPlayers.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
         <h2 className="text-xl font-medium text-muted-foreground">No players found.</h2>
@@ -136,7 +141,7 @@ export function PlayerList({ onEdit }: PlayerListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {players.map((player) => {
+              {sortedPlayers.map((player) => {
                 const team = teamsById[player.teamId];
                 return (
                     <TableRow key={player.id}>
@@ -152,10 +157,10 @@ export function PlayerList({ onEdit }: PlayerListProps) {
                     <TableCell>
                         <div className="flex items-center gap-3">
                         <Avatar className="h-6 w-6">
-                            <AvatarImage src={team?.logoUrl} alt={player.teamName} />
-                            <AvatarFallback>{player.teamName?.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={team?.logoUrl} alt={team?.name} />
+                            <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <div className="text-sm sm:text-base text-muted-foreground">{player.teamName}</div>
+                        <div className="text-sm sm:text-base text-muted-foreground">{team?.name}</div>
                         </div>
                     </TableCell>
                     <TableCell className="text-right pr-4">
