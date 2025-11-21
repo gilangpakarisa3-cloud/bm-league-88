@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -25,6 +26,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ScoreForm } from '@/components/score-form';
+import { Label } from '@/components/ui/label';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -37,6 +39,8 @@ export default function FixturesPage() {
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
+  const [passwordProtectedMatch, setPasswordProtectedMatch] = useState<WithId<Match> | null>(null);
+  const [passwordInput, setPasswordInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- Firestore Data Hooks ---
@@ -237,6 +241,30 @@ export default function FixturesPage() {
 
     setEditingMatch(null);
   };
+
+  const handlePasswordCheck = () => {
+    if (passwordInput === 'Office88') {
+      if (passwordProtectedMatch) {
+        setEditingMatch(passwordProtectedMatch);
+      }
+      setPasswordProtectedMatch(null);
+      setPasswordInput('');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Incorrect Password',
+        description: 'You do not have permission to edit a completed match.',
+      });
+    }
+  };
+
+  const handleMatchClick = (match: WithId<Match>) => {
+    if (match.isCompleted) {
+      setPasswordProtectedMatch(match);
+    } else {
+      setEditingMatch(match);
+    }
+  };
   
   const matchesWithPlayers = useMemo(() => {
     if (!matches || !allPlayers) return [];
@@ -288,7 +316,7 @@ export default function FixturesPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
-                  <Button variant="outline" className="w-full" onClick={() => setEditingMatch(match)} disabled={activeSeason?.status !== 'In Progress'}>
+                  <Button variant="outline" className="w-full" onClick={() => handleMatchClick(match)} disabled={activeSeason?.status !== 'In Progress'}>
                     <Pencil className="mr-2 h-4 w-4" />
                     {match.isCompleted ? 'Edit Score' : 'Update Score'}
                   </Button>
@@ -353,6 +381,37 @@ export default function FixturesPage() {
             )}
         </div>
 
+        {/* Password Dialog */}
+        <Dialog open={!!passwordProtectedMatch} onOpenChange={(isOpen) => !isOpen && setPasswordProtectedMatch(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Admin Authentication Required</DialogTitle>
+              <DialogDescription>
+                You are trying to edit a completed match. Please enter the admin password to continue.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password-input" className="text-right">
+                  Password
+                </Label>
+                <Input
+                  id="password-input"
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="col-span-3"
+                  onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handlePasswordCheck}>Submit</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
         <Dialog open={!!editingMatch} onOpenChange={(isOpen) => !isOpen && setEditingMatch(null)}>
           <DialogContent>
             <DialogHeader>
@@ -368,5 +427,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    

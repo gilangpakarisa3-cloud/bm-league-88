@@ -117,15 +117,21 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
       .sort((a, b) => {
           const aIndex = roundOrder.indexOf(a.name);
           const bIndex = roundOrder.indexOf(b.name);
-          if (aIndex !== -1 && bIndex !== -1) return bIndex - aIndex; // Correctly sorts textual rounds
+          // If both are named rounds, sort by the pre-defined order (reversed for display)
+          if (aIndex !== -1 && bIndex !== -1) return bIndex - aIndex; 
           
-          // Fallback for numeric rounds (e.g., Round of 64)
+           // If only one is a named round, it should come later (be on the left).
+          if (aIndex !== -1) return 1;
+          if (bIndex !== -1) return -1;
+          
+          // Fallback for numeric rounds (e.g., Round of 64), sort descending
           const aNum = parseInt(a.name.replace('Round of ', ''), 10);
           const bNum = parseInt(b.name.replace('Round of ', ''), 10);
           if (!isNaN(aNum) && !isNaN(bNum)) return bNum - aNum;
 
-          return b.matches.length - a.matches.length; // Fallback sort by match count
-      });
+          // Final fallback sort by match count (more matches = earlier round)
+          return b.matches.length - a.matches.length; 
+      }).reverse(); // Reverse to have final on the right
 
   }, [matches, playersById]);
 
@@ -152,20 +158,26 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
     <ScrollArea className="w-full whitespace-nowrap rounded-lg border bg-card/50">
       <div className="flex p-4 sm:p-8 gap-8 sm:gap-16">
         {rounds.map((round, roundIndex) => (
-          <div key={round.name} className="flex flex-col justify-center">
+          <div key={round.name} className="flex flex-col justify-around">
             <h3 className="text-lg sm:text-xl font-bold text-center mb-6 text-primary">{round.name}</h3>
             <div
-              className="flex flex-col gap-8"
-              style={{
-                paddingTop: roundIndex > 0 ? `${(2 ** (roundIndex - 1)) * 4}rem` : 0,
-                paddingBottom: roundIndex > 0 ? `${(2 ** (roundIndex - 1)) * 4}rem` : 0,
-                gap: roundIndex > 0 ? `${(2 ** roundIndex) * 4}rem` : '2rem',
-              }}
+              className="flex flex-col gap-8 relative"
             >
-              {round.matches.map((match) => {
-                const isFinalMatch = round.name === 'Final';
+              {round.matches.map((match, matchIndex) => {
+                const isFinalMatch = roundIndex === rounds.length - 1;
+
+                const baseGap = 2; // in rem
+                const multiplier = 2 ** roundIndex;
+                const dynamicGap = (multiplier - 1) * 5.25 + baseGap; // 5.25rem is height of a match card
+
                 return (
-                  <div key={match.id} className="relative flex items-center">
+                  <div 
+                    key={match.id} 
+                    className="relative flex items-center"
+                    style={{
+                      marginTop: matchIndex > 0 ? `${dynamicGap}rem` : 0
+                    }}
+                  >
                     <MatchCard match={match} onUpdateMatch={onUpdateMatch} canUpdate={canUpdateMatches} />
                     {!isFinalMatch && (
                        <>
@@ -175,13 +187,16 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
                         {/* Vertical line connecting pairs */}
                         <div
                             className={cn("absolute w-px bg-border",
-                                match.matchNumber && match.matchNumber % 2 !== 0 ? 'top-1/2 h-full' : 'bottom-1/2 h-full'
+                                (match.matchNumber ?? 0) % 2 !== 0 ? 'top-1/2' : 'bottom-1/2'
                             )}
-                            style={{ left: `calc(100% + 2rem)` }}
+                            style={{ 
+                                left: `calc(100% + 2rem)`,
+                                height: `calc(50% + ${dynamicGap / 2}rem + 1px)`
+                             }}
                          />
                         
                         {/* Horizontal line from connector to next match */}
-                        {match.matchNumber && match.matchNumber % 2 !== 0 &&
+                        {(match.matchNumber ?? 0) % 2 !== 0 &&
                           <div
                               className="absolute top-1/2 h-px w-4 sm:w-8 bg-border"
                               style={{ left: `calc(100% + 2rem)` }}
@@ -200,5 +215,3 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
     </ScrollArea>
   );
 }
-
-    

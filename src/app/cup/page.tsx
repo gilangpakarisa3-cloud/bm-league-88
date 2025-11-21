@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -38,6 +39,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ScoreForm } from '@/components/score-form';
 import { ShareDialog } from '@/components/share-dialog';
+import { Label } from '@/components/ui/label';
 
 
 // For simplicity, we'll work with a single, hardcoded cup.
@@ -135,6 +137,8 @@ export default function CupPage() {
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
+  const [passwordProtectedMatch, setPasswordProtectedMatch] = useState<WithId<Match> | null>(null);
+  const [passwordInput, setPasswordInput] = useState('');
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
   
@@ -403,6 +407,30 @@ export default function CupPage() {
     setShareDialogOpen(true);
   };
 
+  const handlePasswordCheck = () => {
+    if (passwordInput === 'Office88') {
+      if (passwordProtectedMatch) {
+        setEditingMatch(passwordProtectedMatch);
+      }
+      setPasswordProtectedMatch(null);
+      setPasswordInput('');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Incorrect Password',
+        description: 'You do not have permission to edit a completed match.',
+      });
+    }
+  };
+
+  const handleMatchClick = (match: WithId<Match>) => {
+    if (match.isCompleted && match.player2Id !== 'BYE') {
+      setPasswordProtectedMatch(match);
+    } else {
+      setEditingMatch(match);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -470,7 +498,7 @@ export default function CupPage() {
           matches={matches || []} 
           players={allPlayers || []}
           isLoading={isLoadingMatches || isLoadingPlayers} 
-          onUpdateMatch={setEditingMatch}
+          onUpdateMatch={handleMatchClick}
           seasonStatus={activeSeason?.status}
         />
       </div>
@@ -526,6 +554,36 @@ export default function CupPage() {
           />
         </DialogContent>
       </Dialog>
+
+        {/* Password Dialog */}
+        <Dialog open={!!passwordProtectedMatch} onOpenChange={(isOpen) => !isOpen && setPasswordProtectedMatch(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Admin Authentication Required</DialogTitle>
+              <DialogDescription>
+                You are trying to edit a completed match. Please enter the admin password to continue.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password-input-cup" className="text-right">
+                  Password
+                </Label>
+                <Input
+                  id="password-input-cup"
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="col-span-3"
+                  onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handlePasswordCheck}>Submit</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       
        {/* Update Score Dialog */}
         <Dialog open={!!editingMatch} onOpenChange={(isOpen) => !isOpen && setEditingMatch(null)}>
