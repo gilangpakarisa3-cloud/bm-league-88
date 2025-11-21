@@ -20,12 +20,12 @@ export function Header() {
 
   return (
     <header className="bg-card/80 border-b border-border sticky top-0 z-50 backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 group">
-          <Flame className="h-7 w-7 text-primary group-hover:animate-pulse" />
-          <span className="font-headline font-bold text-lg hidden sm:inline tracking-tighter">Engineering EightyEight</span>
+      <div className="container mx-auto flex h-20 items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-3 group">
+          <Flame className="h-9 w-9 text-primary group-hover:animate-pulse" />
+          <span className="font-headline font-bold text-xl hidden sm:inline tracking-tighter">Engineering EightyEight</span>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex items-center gap-2 sm:gap-4">
           {navLinks.map((link) => {
             const isActive = pathname ? pathname.startsWith(link.href) : false;
             return (
@@ -34,7 +34,7 @@ export function Header() {
                 variant={isActive ? "default" : "ghost"}
                 asChild
                 className={cn(
-                  'transition-colors',
+                  'transition-colors text-base',
                   !isActive && 'text-muted-foreground hover:text-foreground'
                 )}
               >
