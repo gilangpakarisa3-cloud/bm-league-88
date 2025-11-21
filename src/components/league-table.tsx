@@ -7,12 +7,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { leagueTable } from "@/lib/data";
-import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
+import type { LeagueEntry } from "@/lib/types";
 
-export function LeagueTable() {
-  if (leagueTable.length === 0) {
+interface LeagueTableProps {
+  tableData: LeagueEntry[];
+}
+
+export function LeagueTable({ tableData }: LeagueTableProps) {
+  if (tableData.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
         <h2 className="text-xl font-medium text-muted-foreground">The league hasn't started yet.</h2>
@@ -40,7 +42,7 @@ export function LeagueTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leagueTable.map((entry) => (
+            {tableData.map((entry) => (
               <TableRow key={entry.rank}>
                 <TableCell className="text-center font-bold text-lg text-muted-foreground">{entry.rank}</TableCell>
                 <TableCell>
@@ -57,7 +59,7 @@ export function LeagueTable() {
                 <TableCell className="text-center text-red-400">{entry.loss}</TableCell>
                 <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
                 <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
-                <TableCell className="font-medium">
+                <TableCell className="text-center font-medium">
                   {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
                 </TableCell>
                 <TableCell className="text-center font-bold text-lg text-primary">{entry.points}</TableCell>

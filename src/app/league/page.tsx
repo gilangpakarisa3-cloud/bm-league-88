@@ -1,6 +1,7 @@
 
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
+import { leagueTable } from '@/lib/data';
 import { Trophy } from 'lucide-react';
 import Link from 'next/link';
 
@@ -19,7 +20,7 @@ export default function LeaguePage() {
                 </Link>
             </Button>
         </div>
-        <LeagueTable />
+        <LeagueTable tableData={leagueTable} />
       </div>
     </div>
   );
