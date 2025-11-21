@@ -44,8 +44,8 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-16 text-center font-bold text-accent">Rank</TableHead>
-              <TableHead className="min-w-[200px] font-bold text-accent">Player</TableHead>
+              <TableHead className="w-16 text-center font-bold text-primary">Rank</TableHead>
+              <TableHead className="min-w-[200px] text-center font-bold text-primary">Player</TableHead>
               <TableHead className="text-center font-bold text-accent">Played</TableHead>
               <TableHead className="text-center font-bold text-accent">W</TableHead>
               <TableHead className="text-center font-bold text-accent">D</TableHead>
@@ -53,7 +53,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
               <TableHead className="hidden md:table-cell text-center font-bold text-accent">GF</TableHead>
               <TableHead className="hidden md:table-cell text-center font-bold text-accent">GA</TableHead>
               <TableHead className="text-center font-bold text-accent">GD</TableHead>
-              <TableHead className="text-center font-bold text-accent">Pts</TableHead>
+              <TableHead className="text-center font-bold text-primary">Pts</TableHead>
               {canRemovePlayer && <TableHead className="text-right font-bold text-accent">Actions</TableHead>}
             </TableRow>
           </TableHeader>
