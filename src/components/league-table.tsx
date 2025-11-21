@@ -11,6 +11,7 @@ import type { LeagueEntry, Season, WithId } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LeagueTableProps {
   tableData: WithId<LeagueEntry>[];
@@ -34,6 +35,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
   }
   
   const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer;
+  const totalPlayers = tableData.length;
 
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
@@ -55,42 +57,59 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tableData.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell className="text-center font-bold text-lg text-muted-foreground">{entry.rank}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="font-medium text-sm sm:text-base">{entry.playerName}</div>
-                      <div className="text-xs sm:text-sm text-muted-foreground">{entry.teamName}</div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">{entry.played}</TableCell>
-                <TableCell className="text-center text-green-400">{entry.win}</TableCell>
-                <TableCell className="text-center text-yellow-400">{entry.draw}</TableCell>
-                <TableCell className="text-center text-red-400">{entry.loss}</TableCell>
-                <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
-                <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
-                <TableCell className="text-center font-medium">
-                  {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
-                </TableCell>
-                <TableCell className="text-center font-bold text-lg text-primary">{entry.points}</TableCell>
-                 {canRemovePlayer && (
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onRemovePlayer?.(entry)}
-                      title={`Remove ${entry.playerName}`}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                      <span className="sr-only">Remove Player</span>
-                    </Button>
+            {tableData.map((entry) => {
+              const isFirst = entry.rank === 1;
+              const isLastThree = entry.rank >= totalPlayers - 2 && totalPlayers > 3;
+              return (
+                <TableRow 
+                  key={entry.id}
+                  className={cn(
+                    isFirst && "bg-yellow-500/10 hover:bg-yellow-500/20 text-base",
+                    isLastThree && "bg-red-500/10 hover:bg-red-500/20"
+                  )}
+                >
+                  <TableCell className={cn(
+                    "text-center font-bold text-lg",
+                    isFirst ? "text-yellow-400 text-xl" : "text-muted-foreground"
+                    )}>
+                    {entry.rank}
                   </TableCell>
-                )}
-              </TableRow>
-            ))}
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className={cn("font-medium", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{entry.teamName}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">{entry.played}</TableCell>
+                  <TableCell className="text-center text-green-400">{entry.win}</TableCell>
+                  <TableCell className="text-center text-yellow-400">{entry.draw}</TableCell>
+                  <TableCell className="text-center text-red-400">{entry.loss}</TableCell>
+                  <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
+                  <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
+                  <TableCell className="text-center font-medium">
+                    {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
+                  </TableCell>
+                  <TableCell className={cn("text-center font-bold text-lg", isFirst ? "text-yellow-300" : "text-primary")}>
+                    {entry.points}
+                  </TableCell>
+                  {canRemovePlayer && (
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onRemovePlayer?.(entry)}
+                        title={`Remove ${entry.playerName}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <span className="sr-only">Remove Player</span>
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </div>
