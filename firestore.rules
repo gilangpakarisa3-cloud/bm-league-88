@@ -13,10 +13,9 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // PUBLIC COLLECTIONS: Teams, Players, Leagues, Seasons, Matches etc.
+    // PUBLIC COLLECTIONS: Teams, Players
     // Allow public read for all.
     // Allow writes only for signed-in users.
-    // This allows the app to be browsable by anyone, but actions are secured.
     match /teams/{teamId} {
       allow read: if true;
       allow write: if isSignedIn();
@@ -27,8 +26,16 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
-    // Nested Collections & Other top-level collections
+    // LEAGUES: Nested Collections
+    // Public read for all, writes for signed-in users.
     match /leagues/{leagueId}/{documents=**} {
+        allow read: if true;
+        allow write: if isSignedIn();
+    }
+    
+    // CUPS: Nested Collections
+    // Public read for all, writes for signed-in users.
+    match /cups/{cupId}/{documents=**} {
         allow read: if true;
         allow write: if isSignedIn();
     }

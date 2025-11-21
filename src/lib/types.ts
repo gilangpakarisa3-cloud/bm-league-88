@@ -19,6 +19,11 @@ export type League = {
   currentSeasonId?: string;
 }
 
+export type Cup = {
+  name: string;
+  currentSeasonId?: string;
+}
+
 export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
@@ -30,6 +35,7 @@ export type LeagueEntry = {
   playerId: string;
   teamId: string;
   playerName: string;
+
   teamName: string;
   played: number;
   win: number;
@@ -41,18 +47,31 @@ export type LeagueEntry = {
   points: number;
 };
 
+export type Match = {
+  seasonId: string;
+  player1Id: string;
+  player2Id: string;
+  player1Score?: number;
+  player2Score?: number;
+  matchDate: Timestamp;
+  isCompleted: boolean;
+  round?: string; // For cup matches
+  matchNumber?: number; // For cup matches
+}
+
 export type CupMatch = {
   id: string;
   matchNumber: number;
-  player1: Player | null;
-  player2: Player | null;
-  team1: Team | null;
-  team2: Team | null;
+  player1: WithId<Player> | null;
+  player2: WithId<Player> | null;
+  team1: WithId<Team> | null; // Kept for compatibility if needed, but player contains team info
+  team2: WithId<Team> | null; // Kept for compatibility if needed, but player contains team info
   score1: number | null;
   score2: number | null;
-  winner: Player | null;
-  date?: Date;
+  winner: WithId<Player> | null;
+  round: string;
 };
+
 
 export type CupRound = {
   name: string;

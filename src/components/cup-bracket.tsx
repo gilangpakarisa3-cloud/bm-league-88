@@ -1,12 +1,13 @@
+'use client';
 
-import { cupData } from '@/lib/data';
-import type { CupMatch, Team } from '@/lib/types';
-import Image from 'next/image';
+import type { Match, Player, WithId } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
+import { useMemo } from 'react';
+import { Skeleton } from './ui/skeleton';
 
-const MatchTeam = ({ team, score, isWinner }: { team: Team | null, score: number | null, isWinner: boolean }) => {
-    if (!team) {
+const MatchTeam = ({ player, score, isWinner }: { player: WithId<Player> | null, score: number | null, isWinner: boolean }) => {
+    if (!player) {
         return <div className="flex items-center justify-between p-2 h-10">
             <span className="text-sm text-muted-foreground">TBD</span>
         </div>
@@ -18,40 +19,100 @@ const MatchTeam = ({ team, score, isWinner }: { team: Team | null, score: number
             isWinner ? "font-bold text-foreground" : "text-muted-foreground"
         )}>
             <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm">{team.name}</span>
+                <span className="text-xs sm:text-sm">{player.name}</span>
             </div>
             {score !== null && <span className={cn("font-semibold text-sm", isWinner && 'text-primary')}>{score}</span>}
         </div>
     )
 }
 
-const MatchCard = ({ match }: { match: CupMatch }) => (
+interface MatchWithPlayers extends WithId<Match> {
+  player1: WithId<Player> | null;
+  player2: WithId<Player> | null;
+  winner: WithId<Player> | null;
+}
+
+const MatchCard = ({ match }: { match: MatchWithPlayers }) => (
     <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm">
-        <MatchTeam team={match.team1} score={match.score1} isWinner={match.winner?.id === match.team1?.id} />
+        <MatchTeam player={match.player1} score={match.player1Score ?? null} isWinner={match.winner?.id === match.player1?.id} />
         <div className="border-t">
-            <MatchTeam team={match.team2} score={match.score2} isWinner={match.winner?.id === match.team2?.id} />
+            <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={match.winner?.id === match.player2?.id} />
         </div>
     </div>
 );
 
-export function CupBracket() {
 
-  if (cupData.length === 0) {
+export function CupBracket({ matches, players, isLoading }: { matches: WithId<Match>[], players: WithId<Player>[], isLoading: boolean }) {
+
+  const playersById = useMemo(() => {
+    return players.reduce((acc, player) => {
+      acc[player.id] = player;
+      return acc;
+    }, {} as Record<string, WithId<Player>>);
+  }, [players]);
+
+  const rounds = useMemo(() => {
+    if (!matches || matches.length === 0) return [];
+    
+    const matchesWithPlayers: MatchWithPlayers[] = matches.map(match => {
+        const player1 = match.player1Id !== 'TBD' ? playersById[match.player1Id] || null : null;
+        const player2 = match.player2Id !== 'TBD' ? playersById[match.player2Id] || null : null;
+        let winner: WithId<Player> | null = null;
+        if (match.isCompleted && typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
+            if (match.player1Score > match.player2Score) winner = player1;
+            else if (match.player2Score > match.player1Score) winner = player2;
+        }
+        return {
+            ...match,
+            player1,
+            player2,
+            winner
+        }
+    });
+
+    const roundsMap: Record<string, MatchWithPlayers[]> = {};
+    matchesWithPlayers.forEach(match => {
+        if(match.round) {
+            if (!roundsMap[match.round]) {
+                roundsMap[match.round] = [];
+            }
+            roundsMap[match.round].push(match);
+        }
+    });
+
+    // Sort rounds logically (e.g., Round of 16, Quarter-finals, Semi-finals, Final)
+    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32'];
+    return Object.entries(roundsMap)
+      .map(([name, matches]) => ({ name, matches: matches.sort((a,b) => (a.matchNumber || 0) - (b.matchNumber || 0)) }))
+      .sort((a, b) => {
+          const aName = a.name.split(' ')[0] === 'Round' ? `Round of ${a.matches.length * 2}` : a.name;
+          const bName = b.name.split(' ')[0] === 'Round' ? `Round of ${b.matches.length * 2}` : b.name;
+          return roundOrder.indexOf(bName) - roundOrder.indexOf(aName);
+      });
+
+  }, [matches, playersById]);
+
+  if (isLoading) {
+    return (
+        <div className="w-full overflow-hidden rounded-lg border bg-card/50 p-8">
+            <Skeleton className="h-64 w-full" />
+        </div>
+    )
+  }
+
+  if (rounds.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
         <h2 className="text-xl font-medium text-muted-foreground">The cup hasn't started yet.</h2>
-        <p className="text-sm text-muted-foreground mt-2">Check back later for the tournament bracket.</p>
+        <p className="text-sm text-muted-foreground mt-2">Register players to generate the tournament bracket.</p>
       </div>
     );
   }
 
-  const finalRoundIndex = cupData.length - 1;
-  const numRounds = cupData.length;
-
   return (
     <ScrollArea className="w-full whitespace-nowrap rounded-lg border bg-card/50">
       <div className="flex p-4 sm:p-8 gap-4 sm:gap-8">
-        {cupData.map((round, roundIndex) => (
+        {rounds.map((round, roundIndex) => (
           <div key={round.name} className="flex flex-col justify-center">
             <h3 className="text-lg sm:text-xl font-bold text-center mb-6 text-primary">{round.name}</h3>
             <div
