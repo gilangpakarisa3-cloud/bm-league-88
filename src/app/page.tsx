@@ -52,7 +52,7 @@ function TopPlayersTable() {
         orderBy('points', 'desc'),
         orderBy('goalDifference', 'desc'),
         orderBy('goalsFor', 'desc'),
-        limit(5)
+        limit(3)
       );
     },
     [firestore, activeSeasonId]
@@ -125,7 +125,7 @@ function TopPlayersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {[...Array(5)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
                  <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-5"/></TableCell>
                     <TableCell>
