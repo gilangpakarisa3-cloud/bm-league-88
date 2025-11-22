@@ -5,10 +5,25 @@ import { Button } from '@/components/ui/button';
 import { leagueTable } from '@/lib/data';
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Shield, ArrowRight } from 'lucide-react';
+import { Trophy, Shield, ArrowRight, Info } from 'lucide-react';
 
 export default function Home() {
   const topPlayers = leagueTable.slice(0, 5);
+  
+  const rules = [
+    "Perbulan /Permusim Liga bayar Rp.10.000 ( Uang untuk beli Stick PS - Bukan Hadiah Liga )",
+    "Durasi Liga Sebulan ( 30 hari )",
+    "Start tgl 28 Finish tgl 28",
+    "Sistem Home - Away",
+    "Permusim hanya 1Team",
+    "Menang 3point",
+    "Seri 1point",
+    "Kalah 0 point",
+    "Jadwal pertandingan bisa di atur sendiri (Situasional)",
+  ];
+
+  const scheduleInfo = "⚽Pertandingan setiap hari mulai jam 18:00 - Selesai. Sabtu mulai jam 13:00 - Selesai, Minggu Situasional. Pemain Shift2 Lepas Seragam & PM dan SPK selesaikan dulu (Situasional)⚽";
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -45,7 +60,7 @@ export default function Home() {
         </div>
 
 
-        <section>
+        <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4 text-center">Top Players</h2>
           <Card>
             {topPlayers.length > 0 ? (
@@ -83,6 +98,27 @@ export default function Home() {
               </div>
             )}
           </Card>
+        </section>
+        
+        <section className="mt-12">
+            <div className="bg-card border rounded-lg overflow-hidden">
+                <div className="grid md:grid-cols-[200px_1fr]">
+                <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
+                    <Info className="w-10 h-10 text-accent"/>
+                    <h2 className="text-xl font-bold text-accent">Notice</h2>
+                </div>
+                <div className="p-6">
+                    <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5 mb-6">
+                        {rules.map((rule, index) => (
+                            <li key={index} className="italic">{rule}</li>
+                        ))}
+                    </ul>
+                    <div className="text-center bg-secondary/30 p-4 rounded-md text-sm text-accent-foreground/80">
+                        {scheduleInfo}
+                    </div>
+                </div>
+                </div>
+            </div>
         </section>
       </div>
     </div>
