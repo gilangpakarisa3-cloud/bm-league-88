@@ -44,15 +44,15 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
       <div className="w-full overflow-x-auto">
-        <Table className="min-w-[700px]">
+        <Table className="min-w-full sm:min-w-[700px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-16 text-center font-bold text-primary">{t('rank')}</TableHead>
+              <TableHead className="w-12 text-center font-bold text-primary">{t('rank')}</TableHead>
               <TableHead className="text-left font-bold text-primary">{t('player')}</TableHead>
               <TableHead className="text-center font-bold text-accent">{t('played')}</TableHead>
-              <TableHead className="text-center font-bold text-accent">{t('w')}</TableHead>
-              <TableHead className="text-center font-bold text-accent">{t('d')}</TableHead>
-              <TableHead className="text-center font-bold text-accent">{t('l')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center font-bold text-accent">{t('w')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center font-bold text-accent">{t('d')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center font-bold text-accent">{t('l')}</TableHead>
               <TableHead className="hidden md:table-cell text-center font-bold text-accent">{t('gf')}</TableHead>
               <TableHead className="hidden md:table-cell text-center font-bold text-accent">{t('ga')}</TableHead>
               <TableHead className="text-center font-bold text-accent">{t('gd')}</TableHead>
@@ -97,9 +97,9 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                     </div>
                   </TableCell>
                   <TableCell className="text-center">{entry.played}</TableCell>
-                  <TableCell className="text-center text-green-400">{entry.win}</TableCell>
-                  <TableCell className="text-center text-yellow-400">{entry.draw}</TableCell>
-                  <TableCell className="text-center text-red-400">{entry.loss}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-center text-green-400">{entry.win}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-center text-yellow-400">{entry.draw}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-center text-red-400">{entry.loss}</TableCell>
                   <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
                   <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
                   <TableCell className="text-center font-medium">
@@ -136,15 +136,15 @@ function LeagueTableSkeleton() {
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
       <div className="w-full overflow-x-auto">
-        <Table className="min-w-[700px]">
+        <Table className="min-w-full sm:min-w-[700px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-16 text-center">{t('rank')}</TableHead>
               <TableHead>{t('player')}</TableHead>
               <TableHead className="text-center">{t('played')}</TableHead>
-              <TableHead className="text-center">{t('w')}</TableHead>
-              <TableHead className="text-center">{t('d')}</TableHead>
-              <TableHead className="text-center">{t('l')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center">{t('w')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center">{t('d')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center">{t('l')}</TableHead>
               <TableHead className="hidden md:table-cell text-center">{t('gf')}</TableHead>
               <TableHead className="hidden md:table-cell text-center">{t('ga')}</TableHead>
               <TableHead className="text-center">{t('gd')}</TableHead>
@@ -165,9 +165,9 @@ function LeagueTableSkeleton() {
                     </div>
                 </TableCell>
                 <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
