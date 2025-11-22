@@ -91,22 +91,20 @@ function TopPlayersTable() {
 
   const sortedTable = useMemo(() => {
     if (!topPlayers) return [];
-
-    // Check if all players have 0 points. If so, sort alphabetically.
-    const allHaveZeroPoints = topPlayers.every(p => p.points === 0);
-
+    
     const processedPlayers = topPlayers.map(entry => ({
       ...entry,
       player: playersById[entry.playerId],
       team: teamsById[entry.teamId],
-      photoUrl: playersById[entry.playerId]?.photoUrl, // Make sure photoUrl is directly accessible
+      photoUrl: playersById[entry.playerId]?.photoUrl,
     }));
 
+    // If all players have 0 points (e.g., at the start of a season), sort alphabetically by name.
+    const allHaveZeroPoints = processedPlayers.every(p => p.points === 0);
     if (allHaveZeroPoints) {
       processedPlayers.sort((a, b) => a.playerName.localeCompare(b.playerName));
     }
     
-    // Add rank after sorting
     return processedPlayers.map((entry, index) => ({
       ...entry,
       rank: index + 1,
@@ -208,17 +206,17 @@ export default function Home() {
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          <div className="flex flex-col">
+          <div>
             <h2 className="text-3xl font-bold mb-4">{t('home_league_standings_title')}</h2>
             <Link href="/league" className="block group">
-              <Card className="hover:border-primary transition-colors duration-300 flex flex-col">
+              <Card className="hover:border-primary transition-colors duration-300">
                 <CardHeader>
                   <div className="flex flex-row items-center justify-between">
                       <CardTitle className="text-2xl">{t('home_league_standings_title')}</CardTitle>
                       <Trophy className="w-8 h-8 text-primary" />
                   </div>
                 </CardHeader>
-                <CardContent className="flex-grow">
+                <CardContent>
                   <CardDescription>{t('home_league_standings_desc')}</CardDescription>
                 </CardContent>
                 <CardContent>
@@ -230,7 +228,7 @@ export default function Home() {
               </Card>
             </Link>
           </div>
-          <div className="flex flex-col">
+          <div>
              <h2 className="text-3xl font-bold mb-4">{t('home_top_players')}</h2>
             <Card>
                 <TopPlayersTable />
