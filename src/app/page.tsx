@@ -206,6 +206,10 @@ export default function Home() {
           </p>
         </section>
 
+        <section className="mb-12">
+            <EditableNotice />
+        </section>
+
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           <div>
             <h2 className="text-3xl font-bold mb-4">{t('home_league_standings_title')}</h2>
@@ -237,10 +241,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mb-12">
-            <EditableNotice />
-        </section>
-        
       </div>
     </div>
   );
