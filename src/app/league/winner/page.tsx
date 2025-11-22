@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { WinnerDisplay } from '@/components/winner-display';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 import type { LeagueEntry, Season, WithId, Player } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -110,10 +110,13 @@ function LeagueWinnerPageContents() {
     ];
 
     const winnerTitle = isSeasonCompleted && season ? t('winner_of_season', { seasonName: season.name }) : t('current_league_leader');
+    const subtitle = isSeasonCompleted ? t('congrats_to_victor') : '';
+
 
     return (
         <WinnerDisplay
             title={winnerTitle}
+            subtitle={subtitle}
             winnerName={winner.playerName}
             teamName={winner.teamName}
             imageUrl={winnerImage}
