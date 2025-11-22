@@ -2,16 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from './ui/button';
-import { Pencil, Trash2, User } from 'lucide-react';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,6 +19,9 @@ import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { User, Pencil, Trash2 } from 'lucide-react';
 
 interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
@@ -89,38 +82,22 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
 
   if (isLoading) {
     return (
-      <div className="w-full overflow-hidden rounded-lg border bg-card">
-        <Table className="min-w-[600px]">
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="min-w-[200px]">{t('player')}</TableHead>
-              <TableHead>{t('team')}</TableHead>
-              <TableHead className="text-right pr-4">{t('actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[...Array(5)].map((_, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <Skeleton className="h-5 w-24" />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-6 w-6 rounded-full" />
-                    <Skeleton className="h-5 w-32" />
-                  </div>
-                </TableCell>
-                <TableCell className="text-right pr-4 flex justify-end gap-2">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {[...Array(8)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="items-center">
+              <Skeleton className="h-24 w-24 rounded-full" />
+            </CardHeader>
+            <CardContent className="text-center">
+              <Skeleton className="h-6 w-3/4 mx-auto mb-2" />
+              <Skeleton className="h-4 w-1/2 mx-auto" />
+            </CardContent>
+            {isAdmin && <CardFooter className="flex justify-center gap-2">
+              <Skeleton className="h-10 w-20" />
+              <Skeleton className="h-10 w-20" />
+            </CardFooter>}
+          </Card>
+        ))}
       </div>
     );
   }
@@ -139,57 +116,42 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
 
   return (
     <>
-      <div className="w-full overflow-hidden rounded-lg border bg-card">
-        <div className="w-full overflow-x-auto">
-          <Table className="min-w-[600px]">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="min-w-[200px]">{t('player')}</TableHead>
-                <TableHead>{t('team')}</TableHead>
-                {isAdmin && <TableHead className="text-right pr-4">{t('actions')}</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedPlayers.map((player) => {
-                const team = teamsById[player.teamId];
-                return (
-                    <TableRow key={player.id}>
-                    <TableCell>
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarImage src={player.photoUrl} alt={player.name} />
-                                <AvatarFallback><User /></AvatarFallback>
-                            </Avatar>
-                            <div className="font-medium text-sm sm:text-base">{player.name}</div>
-                        </div>
-                    </TableCell>
-                    <TableCell>
-                        <div className="flex items-center gap-3">
-                        <Avatar className="h-6 w-6">
-                            <AvatarImage src={team?.logoUrl} alt={team?.name} />
-                            <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="text-sm sm:text-base text-muted-foreground">{team?.name}</div>
-                        </div>
-                    </TableCell>
-                    {isAdmin && (
-                        <TableCell className="text-right pr-4">
-                            <Button variant="ghost" size="icon" onClick={() => onEdit(player)}>
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">{t('edit_player_title')}</span>
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(player)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">{t('delete_player')}</span>
-                            </Button>
-                        </TableCell>
-                    )}
-                    </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {sortedPlayers.map((player) => {
+          const team = teamsById[player.teamId];
+          return (
+            <Card key={player.id} className="flex flex-col text-center">
+              <CardHeader className="items-center pt-6">
+                  <Avatar className="h-24 w-24">
+                      <AvatarImage src={player.photoUrl} alt={player.name} />
+                      <AvatarFallback><User className="h-12 w-12" /></AvatarFallback>
+                  </Avatar>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="font-bold text-lg text-primary">{player.name}</p>
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-1">
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={team?.logoUrl} alt={team?.name} />
+                    <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span>{team?.name}</span>
+                </div>
+              </CardContent>
+              {isAdmin && (
+                <CardFooter className="flex justify-center gap-2 p-4">
+                  <Button variant="outline" size="sm" onClick={() => onEdit(player)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    {t('edit_player_title')}
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => confirmDelete(player)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t('delete')}
+                  </Button>
+                </CardFooter>
+              )}
+            </Card>
+          );
+        })}
       </div>
 
       <AlertDialog open={!!deletingPlayer} onOpenChange={(isOpen) => !isOpen && setDeletingPlayer(null)}>

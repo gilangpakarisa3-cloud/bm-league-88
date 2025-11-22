@@ -2,16 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from './ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -28,6 +18,10 @@ import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
+import { Card, CardContent, CardFooter } from './ui/card';
+import { Button } from './ui/button';
+import { Pencil, Trash2, Shield } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 
 interface TeamListProps {
@@ -74,28 +68,19 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
 
   if (isLoading) {
     return (
-      <div className="w-full overflow-hidden rounded-lg border bg-card">
-        <Table className="min-w-[600px]">
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="min-w-[200px]">{t('team_name')}</TableHead>
-              <TableHead className="text-right pr-4">{t('actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[...Array(5)].map((_, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <Skeleton className="h-5 w-32" />
-                </TableCell>
-                <TableCell className="text-right pr-4 flex justify-end gap-2">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {[...Array(10)].map((_, i) => (
+          <Card key={i}>
+            <CardContent className="flex flex-col items-center justify-center p-4">
+               <Skeleton className="h-16 w-16 rounded-full mb-3" />
+               <Skeleton className="h-5 w-3/4" />
+            </CardContent>
+             {isAdmin && <CardFooter className="flex justify-center gap-2 p-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-16" />
+            </CardFooter>}
+          </Card>
+        ))}
       </div>
     );
   }
@@ -113,38 +98,30 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
 
   return (
     <>
-        <div className="w-full overflow-hidden rounded-lg border bg-card">
-        <div className="w-full overflow-x-auto">
-            <Table className="min-w-[600px]">
-            <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                <TableHead className="min-w-[200px]">{t('team_name')}</TableHead>
-                {isAdmin && <TableHead className="text-right pr-4">{t('actions')}</TableHead>}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {sortedTeams.map((team: WithId<Team>) => (
-                <TableRow key={team.id}>
-                    <TableCell>
-                    <div className="font-medium text-sm sm:text-base">{team.name}</div>
-                    </TableCell>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {sortedTeams.map((team: WithId<Team>) => (
+                <Card key={team.id} className="flex flex-col text-center">
+                    <CardContent className="flex flex-col flex-grow items-center justify-center p-4">
+                        <Avatar className="h-16 w-16 mb-3">
+                            <AvatarImage src={team.logoUrl} alt={`${team.name} logo`} />
+                            <AvatarFallback><Shield /></AvatarFallback>
+                        </Avatar>
+                        <p className="font-semibold text-sm">{team.name}</p>
+                    </CardContent>
                     {isAdmin && (
-                        <TableCell className="text-right pr-4">
-                            <Button variant="ghost" size="icon" onClick={() => onEdit(team)}>
-                                <Pencil className="h-4 w-4" />
+                        <CardFooter className="flex justify-center gap-2 p-2 border-t mt-auto">
+                            <Button variant="ghost" size="sm" onClick={() => onEdit(team)}>
+                                <Pencil className="h-3.5 w-3.5" />
                                 <span className="sr-only">{t('edit_team_title')}</span>
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(team)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                            <Button variant="ghost" size="sm" onClick={() => confirmDelete(team)}>
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
                                 <span className="sr-only">{t('delete_team')}</span>
                             </Button>
-                        </TableCell>
+                        </CardFooter>
                     )}
-                </TableRow>
-                ))}
-            </TableBody>
-            </Table>
-        </div>
+                </Card>
+            ))}
         </div>
 
         <AlertDialog open={!!deletingTeam} onOpenChange={(isOpen) => !isOpen && setDeletingTeam(null)}>
