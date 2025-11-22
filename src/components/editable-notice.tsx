@@ -50,23 +50,17 @@ export function EditableNotice() {
   const { data: noticeData, isLoading } = useDoc<Notice>(noticeRef);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editableNotice, setEditableNotice] = useState<Notice | null>(null);
+  const [editableNotice, setEditableNotice] = useState<Notice>(noticeData ?? DEFAULT_NOTICE);
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
-    // When loading is finished, check the result
-    if (!isLoading) {
-      if (noticeData) {
-        // If data is loaded, update the editable state
-        setEditableNotice(noticeData);
-      } else if (firestore) {
-        // If no data and firestore is available, this means the doc doesn't exist.
-        // We create it with the default content.
+    if (noticeData) {
+      setEditableNotice(noticeData);
+    } else if (!isLoading && !noticeData && firestore) {
+        // Doc doesn't exist, create it once.
         const docRef = doc(firestore, 'notices', NOTICE_ID);
         setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
-        setEditableNotice(DEFAULT_NOTICE); // Also set the local state immediately
-      }
     }
   }, [noticeData, isLoading, firestore]);
   
@@ -86,7 +80,7 @@ export function EditableNotice() {
   };
   
   const handleSave = () => {
-    if (!firestore || !editableNotice) return;
+    if (!firestore) return;
     const docRef = doc(firestore, 'notices', NOTICE_ID);
     // Filter out any empty rules before saving
     const noticeToSave = {
@@ -102,24 +96,22 @@ export function EditableNotice() {
   };
 
   const handleRuleChange = (index: number, value: string) => {
-    if (!editableNotice) return;
     const newRules = [...editableNotice.rules];
     newRules[index] = value;
-    setEditableNotice(prev => prev ? ({ ...prev, rules: newRules }) : null);
+    setEditableNotice({ ...editableNotice, rules: newRules });
   };
 
   const handleAddRule = () => {
-    setEditableNotice(prev => prev ? ({ ...prev, rules: [...prev.rules, ''] }) : null);
+    setEditableNotice({ ...editableNotice, rules: [...editableNotice.rules, ''] });
   }
 
   const handleRemoveRule = (index: number) => {
-    if (!editableNotice) return;
     const newRules = editableNotice.rules.filter((_, i) => i !== index);
-    setEditableNotice(prev => prev ? ({ ...prev, rules: newRules }) : null);
+    setEditableNotice({ ...editableNotice, rules: newRules });
   }
 
   const handleScheduleChange = (value: string) => {
-    setEditableNotice(prev => prev ? ({ ...prev, schedule: value }) : null);
+    setEditableNotice({ ...editableNotice, schedule: value });
   };
 
   const handleCancel = () => {
@@ -128,9 +120,11 @@ export function EditableNotice() {
     setEditableNotice(noticeData ?? DEFAULT_NOTICE);
   }
 
-  if (isLoading || !editableNotice) {
+  if (isLoading) {
     return <NoticeSkeleton />;
   }
+
+  const displayData = isEditing ? editableNotice : (noticeData ?? DEFAULT_NOTICE);
 
   return (
     <>
@@ -160,7 +154,7 @@ export function EditableNotice() {
             {isEditing ? (
               <div className="space-y-4">
                   <div className="space-y-2">
-                      {editableNotice.rules.map((rule, index) => (
+                      {displayData.rules.map((rule, index) => (
                           <div key={index} className="flex items-center gap-2">
                               <Input
                                   type="text"
@@ -179,7 +173,7 @@ export function EditableNotice() {
                       </Button>
                   </div>
                 <Textarea
-                  value={editableNotice.schedule}
+                  value={displayData.schedule}
                   onChange={(e) => handleScheduleChange(e.target.value)}
                   className="text-center bg-muted/20"
                   rows={4}
@@ -189,8 +183,8 @@ export function EditableNotice() {
             ) : (
               <>
                 <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6 min-h-[50px]">
-                  {noticeData?.rules && noticeData.rules.length > 0 ? (
-                    noticeData.rules.map((rule, index) => (
+                  {displayData.rules && displayData.rules.length > 0 ? (
+                    displayData.rules.map((rule, index) => (
                       <li key={index}>{rule}</li>
                     ))
                   ) : (
@@ -198,7 +192,7 @@ export function EditableNotice() {
                   )}
                 </ul>
                 <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground min-h-[50px]">
-                  {noticeData?.schedule ? noticeData.schedule : <p className="italic">No schedule has been set.</p>}
+                  {displayData.schedule ? displayData.schedule : <p className="italic">No schedule has been set.</p>}
                 </div>
               </>
             )}
