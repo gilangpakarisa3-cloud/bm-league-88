@@ -29,7 +29,7 @@ const MatchTeam = ({ player, score, isWinner }: { player: WithId<Player> | null,
                 </Avatar>
                 <span className="text-xs sm:text-sm truncate">{player.name}</span>
             </div>
-            {score !== null && <span className={cn("font-semibold text-sm", isWinner && 'text-primary')}>{score}</span>}
+            {score !== null && score !== undefined && <span className={cn("font-semibold text-sm", isWinner && 'text-primary')}>{score}</span>}
         </div>
     )
 }
@@ -45,9 +45,9 @@ const MatchCard = ({ match, onUpdateMatch, canUpdate }: { match: MatchWithPlayer
 
     return (
         <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm relative group">
-            <MatchTeam player={match.player1} score={match.player1Score ?? null} isWinner={match.winner?.id === match.player1?.id} />
+            <MatchTeam player={match.player1} score={match.player1Score ?? null} isWinner={!!match.winner && match.winner.id === match.player1?.id} />
             <div className="border-t">
-                <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={match.winner?.id === match.player2?.id} />
+                <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={!!match.winner && match.winner.id === match.player2?.id} />
             </div>
             {canBeUpdated && (
                 <Button 
@@ -84,11 +84,9 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
         const player2 = playersById[match.player2Id] || null;
 
         let winner: WithId<Player> | null = null;
-        if (match.isCompleted) {
-             if (typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
-                if (match.player1Score > match.player2Score) winner = player1;
-                else if (match.player2Score > match.player1Score) winner = player2;
-            }
+        if (match.isCompleted && typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
+            if (match.player1Score > match.player2Score) winner = player1;
+            else if (match.player2Score > match.player1Score) winner = player2;
         }
 
         return {
@@ -116,11 +114,14 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
       .sort((a, b) => {
           const aIndex = roundOrder.indexOf(a.name);
           const bIndex = roundOrder.indexOf(b.name);
-          if (aIndex !== -1 && bIndex !== -1) return bIndex - aIndex; 
-          if (aIndex !== -1) return 1;
-          if (bIndex !== -1) return -1;
-          return a.matches.length - b.matches.length; // Fallback for custom round names
-      }).reverse(); // Reverse to have final on the right
+          // If both names are in our standard order, sort by it
+          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+          // If only one is, it comes before the other
+          if (aIndex !== -1) return -1;
+          if (bIndex !== -1) return 1;
+          // Otherwise, sort by the number of matches (smaller rounds first)
+          return a.matches.length - b.matches.length;
+      });
 
   }, [matches, playersById]);
 
@@ -142,6 +143,8 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
   }
 
   const canUpdateMatches = seasonStatus === 'In Progress';
+  const matchCardHeight = 6.5; // rem
+  const verticalGap = 2; // rem
 
   return (
     <ScrollArea className="w-full whitespace-nowrap rounded-lg border bg-card/50">
@@ -151,46 +154,49 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
             <h3 className="text-lg sm:text-xl font-bold text-center mb-6 text-primary">{round.name}</h3>
             <div
               className="flex flex-col gap-8 relative"
+              style={{ gap: `${verticalGap}rem` }}
             >
               {round.matches.map((match, matchIndex) => {
-                const isFinalMatch = round.name === 'Final';
-
-                const baseGap = 2; // in rem
-                const multiplier = 2 ** roundIndex;
-                const dynamicGap = (multiplier - 1) * 6.5 + baseGap; // 6.5rem is height of a match card
+                const isFinalRound = roundIndex === rounds.length - 1;
+                const dynamicMargin = (2 ** roundIndex - 1) * (matchCardHeight + verticalGap) / 2;
 
                 return (
                   <div 
                     key={match.id} 
                     className="relative flex items-center"
                     style={{
-                      marginTop: matchIndex > 0 ? `${dynamicGap}rem` : 0
+                      marginTop: matchIndex > 0 ? `${(2 ** (roundIndex + 1) - 1) * (matchCardHeight + verticalGap) - (matchCardHeight + verticalGap)}rem` : 0,
+                      // Apply margin to first element of each round except the first round
+                      ...(roundIndex > 0 && matchIndex === 0 && { marginTop: `${dynamicMargin}rem` }),
+                      // Double the gap for subsequent elements
+                      ...(roundIndex > 0 && matchIndex > 0 && { marginTop: `${dynamicMargin * 2 + verticalGap}rem` }),
                     }}
                   >
                     <MatchCard match={match} onUpdateMatch={onUpdateMatch} canUpdate={canUpdateMatches} />
-                    {!isFinalMatch && (
+                    {!isFinalRound && (
                        <>
                         {/* Horizontal line from match to connector */}
                         <div className="absolute left-full top-1/2 h-px w-4 sm:w-8 bg-border"></div>
                         
-                        {/* Vertical line connecting pairs */}
+                        {/* Vertical line connecting pairs of matches */}
                          {matchIndex % 2 === 0 && (
                             <div
-                                className="absolute w-px bg-border top-1/2"
+                                className="absolute w-px bg-border"
                                 style={{ 
                                     left: `calc(100% + 2rem)`,
-                                    height: `calc(${dynamicGap}rem + 2px)`
+                                    top: `50%`,
+                                    height: `calc(${dynamicMargin * 2 + verticalGap}rem + 2px)`,
                                 }}
                             />
                          )}
                         
-                        {/* Horizontal line from connector to next match */}
+                        {/* Horizontal line from connector to next round */}
                         {matchIndex % 2 === 0 &&
                           <div
                               className="absolute h-px w-4 sm:w-8 bg-border"
                               style={{ 
                                 left: `calc(100% + 2rem)`,
-                                top: `calc(50% + ${dynamicGap/2}rem + 1px)`
+                                top: `calc(50% + ${dynamicMargin + verticalGap/2}rem)`
                                }}
                           ></div>
                         }
@@ -207,5 +213,3 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
     </ScrollArea>
   );
 }
-
-    

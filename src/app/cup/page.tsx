@@ -69,65 +69,38 @@ const generateBracket = (players: WithId<Player>[]) => {
         64: 'Round of 64',
     };
 
-    const rounds: { name: string, matches: Omit<Match, 'seasonId' | 'matchDate'>[] }[] = [];
-    let playersForNextRound = [...players].sort(() => Math.random() - 0.5); // Shuffle players
+    const matches: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
+    const shuffledPlayers = [...players].sort(() => Math.random() - 0.5); // Shuffle players for random seeding
     let matchCounter = 1;
-    let roundSize = numPlayers;
+    let currentRoundSize = numPlayers;
+    let totalMatchesInPreviousRounds = 0;
 
-    // Build rounds from the first round up to the final
-    while (roundSize >= 2) {
-        const roundName = roundNames[roundSize] || `Round of ${roundSize}`;
-        const matchesInRound: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
+    // Generate matches round by round, starting from the first round
+    while (currentRoundSize >= 2) {
+        const roundName = roundNames[currentRoundSize] || `Round of ${currentRoundSize}`;
+        const numMatchesInRound = currentRoundSize / 2;
 
-        for (let i = 0; i < roundSize / 2; i++) {
-            matchesInRound.push({
-                player1Id: playersForNextRound[i * 2]?.id || 'TBD',
-                player2Id: playersForNextRound[i * 2 + 1]?.id || 'TBD',
-                isCompleted: false,
+        for (let i = 0; i < numMatchesInRound; i++) {
+            const match: Omit<Match, 'seasonId' | 'matchDate'> = {
                 round: roundName,
                 matchNumber: matchCounter++,
-            });
-        }
-        
-        rounds.push({ name: roundName, matches: matchesInRound });
-        
-        // Prepare for the next round
-        const nextRoundPlayers = [];
-        for (let i = 0; i < roundSize / 2; i++) {
-            nextRoundPlayers.push({ id: 'TBD' } as WithId<Player>); // Placeholder for winners
-        }
-        playersForNextRound = nextRoundPlayers;
-        roundSize /= 2;
-    }
-    
-    // Reverse the order of rounds to get Final -> First Round, then map match numbers correctly
-    const finalRounds = rounds.reverse();
-    let finalMatchCounter = 1;
-    const finalMatches: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
+                isCompleted: false,
+                player1Id: 'TBD',
+                player2Id: 'TBD',
+            };
 
-    finalRounds.forEach(round => {
-        round.matches.forEach(match => {
-            const newMatch = { ...match, matchNumber: finalMatchCounter++ };
-            if(round.name === roundNames[numPlayers]) { // First round of matches
-                // Players are already assigned
-            } else {
-                newMatch.player1Id = 'TBD';
-                newMatch.player2Id = 'TBD';
+            // Only the first round gets actual players assigned initially
+            if (currentRoundSize === numPlayers) {
+                match.player1Id = shuffledPlayers[i * 2].id;
+                match.player2Id = shuffledPlayers[i * 2 + 1].id;
             }
-            finalMatches.push(newMatch);
-        });
-    });
+            matches.push(match);
+        }
+        totalMatchesInPreviousRounds += numMatchesInRound;
+        currentRoundSize /= 2;
+    }
 
-    const firstRoundPlayerIds = new Set(rounds[rounds.length-1].matches.flatMap(m => [m.player1Id, m.player2Id]));
-    const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-
-    const firstRoundMatches = finalMatches.filter(m => m.round === roundNames[numPlayers]);
-    firstRoundMatches.forEach((match, index) => {
-        match.player1Id = shuffledPlayers[index * 2].id;
-        match.player2Id = shuffledPlayers[index * 2 + 1].id;
-    });
-
-    return finalMatches.sort((a,b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+    return matches.sort((a,b) => (a.matchNumber || 0) - (b.matchNumber || 0));
 };
 
 export default function CupPage() {
@@ -291,9 +264,7 @@ export default function CupPage() {
   const handleRegisterPlayers = async (selectedPlayerIds: string[]) => {
     if (!firestore || !activeSeasonId || !allPlayers) return;
     
-    // Prevent re-registering players who are already in.
-    const alreadyRegisteredIds = new Set((participants || []).map(p => p.id));
-    const newPlayersToRegister = allPlayers.filter(p => selectedPlayerIds.includes(p.id) && !alreadyRegisteredIds.has(p.id));
+    const newPlayersToRegister = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
 
     if (newPlayersToRegister.length === 0) {
         toast({ title: 'No new players to register.'});
@@ -358,22 +329,25 @@ export default function CupPage() {
   };
   
   const handleUpdateScore = async (matchId: string, scores: { score1: number; score2: number }) => {
-    if (!firestore || !activeSeasonId || !matches) return;
+    if (!firestore || !activeSeasonId || !matches || !participants) return;
   
     const matchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, matchId);
     const currentMatch = matches.find(m => m.id === matchId);
-    if (!currentMatch) return;
+    if (!currentMatch || currentMatch.round === 'Final') {
+      // Just update the score for the final match
+      updateDocumentNonBlocking(matchRef, {
+        player1Score: scores.score1,
+        player2Score: scores.score2,
+        isCompleted: true,
+      });
+      setEditingMatch(null);
+      return;
+    };
   
     const winnerId = scores.score1 > scores.score2 ? currentMatch.player1Id : currentMatch.player2Id;
-    
-    const roundOrder: { [key: string]: number } = {
-        'Final': 10,
-        'Semi-finals': 9,
-        'Quarter-finals': 8,
-        'Round of 16': 7,
-        'Round of 32': 6,
-        'Round of 64': 5,
-    };
+    const numPlayers = participants.length;
+    const totalMatches = numPlayers - 1;
+    const firstRoundMatches = numPlayers / 2;
     
     try {
       await runTransaction(firestore, async (transaction) => {
@@ -383,41 +357,24 @@ export default function CupPage() {
           player2Score: scores.score2,
           isCompleted: true,
         });
-  
-        // 2. Find and update the next match if this isn't the final
-        if (currentMatch.round !== 'Final') {
-          const currentMatchNumber = currentMatch.matchNumber || 0;
-          
-          // Find the next match this winner should advance to.
-          // This logic assumes matches are numbered sequentially.
-          const totalMatchesInFirstRound = (participants?.length || 0) / 2;
-          const totalMatches = (participants?.length || 0) - 1;
-          
-          let nextMatchNumber = 0;
-          if (currentMatchNumber <= totalMatchesInFirstRound) {
-            // First round
-            nextMatchNumber = totalMatchesInFirstRound + Math.ceil(currentMatchNumber / 2);
-          } else {
-             // Subsequent rounds
-             const matchesInPreviousRounds = (totalMatches - totalMatchesInFirstRound)
-             const offset = currentMatchNumber - totalMatchesInFirstRound;
-             nextMatchNumber = currentMatchNumber + Math.ceil(offset/2) + 1 // This is likely too simple. A more robust way is needed.
-          }
 
-          // A more deterministic way: find the match with the corresponding match number.
-          const matchIndexInRound = sortedMatches
-            .filter(m => m.round === currentMatch.round)
-            .findIndex(m => m.id === currentMatch.id);
-          
-          const matchesInNextRound = sortedMatches.filter(m => roundOrder[m.round || ''] === roundOrder[currentMatch.round || ''] + 1);
-          
-          const nextMatch = matchesInNextRound[Math.floor(matchIndexInRound / 2)];
+        // 2. Determine the next match for the winner
+        const currentMatchNumber = currentMatch.matchNumber || 0;
+        let nextMatchNumber: number;
 
-          if (nextMatch) {
-              const nextMatchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, nextMatch.id);
-              const slot = matchIndexInRound % 2 === 0 ? 'player1Id' : 'player2Id';
-              transaction.update(nextMatchRef, { [slot]: winnerId });
-          }
+        const allMatchesInThisRound = sortedMatches.filter(m => m.round === currentMatch.round);
+        const matchIndexInRound = allMatchesInThisRound.findIndex(m => m.id === currentMatch.id);
+
+        const totalMatchesInPreviousRounds = sortedMatches.findIndex(m => m.round === currentMatch.round);
+
+        nextMatchNumber = totalMatchesInPreviousRounds + allMatchesInThisRound.length + Math.floor(matchIndexInRound / 2);
+
+        const nextMatch = sortedMatches.find(m => m.matchNumber === nextMatchNumber + 1);
+
+        if (nextMatch) {
+            const nextMatchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, nextMatch.id);
+            const slot = matchIndexInRound % 2 === 0 ? 'player1Id' : 'player2Id';
+            transaction.update(nextMatchRef, { [slot]: winnerId });
         }
       });
   
@@ -613,10 +570,12 @@ export default function CupPage() {
                     </PopoverContent>
                 </Popover>
             </div>
+          </div>
+          <DialogFooter>
             <Button onClick={handleSeasonDialogSubmit} className="w-full">
               {editingSeason ? 'Save Changes' : 'Create Season'}
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
@@ -712,7 +671,3 @@ export default function CupPage() {
     </div>
   );
 }
-
-    
-
-    
