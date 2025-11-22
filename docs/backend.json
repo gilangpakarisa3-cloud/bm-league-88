@@ -222,6 +222,29 @@
           "type": "number"
         }
       }
+    },
+    "Notice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notice",
+      "type": "object",
+      "description": "Represents the editable content on the homepage notice board.",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of strings, where each string is a rule."
+        },
+        "schedule": {
+          "type": "string",
+          "description": "A string containing the schedule information."
+        }
+      },
+      "required": [
+        "rules",
+        "schedule"
+      ]
     }
   },
   "auth": {
@@ -300,7 +323,19 @@
           },
           "description": "Stores the league table for a given season of a league."
         }
+      },
+       {
+        "path": "/notices/main",
+        "definition": {
+          "entityName": "Notice",
+          "schema": {
+            "$ref": "#/backend/entities/Notice"
+          },
+          "description": "Stores the content for the homepage notice board. This is a singleton document."
+        }
       }
     ]
   }
 }
+
+    

@@ -6,25 +6,11 @@ import { leagueTable } from '@/lib/data';
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trophy, Shield, ArrowRight, Info } from 'lucide-react';
+import { EditableNotice } from '@/components/editable-notice';
 
 export default function Home() {
   const topPlayers = leagueTable.slice(0, 5);
   
-  const rules = [
-    "Perbulan /Permusim Liga bayar Rp.10.000 ( Uang untuk beli Stick PS - Bukan Hadiah Liga )",
-    "Durasi Liga Sebulan ( 30 hari )",
-    "Start tgl 28 Finish tgl 28",
-    "Sistem Home - Away",
-    "Permusim hanya 1Team",
-    "Menang 3point",
-    "Seri 1point",
-    "Kalah 0 point",
-    "Jadwal pertandingan bisa di atur sendiri (Situasional)",
-  ];
-
-  const scheduleInfo = "⚽Pertandingan setiap hari mulai jam 18:00 - Selesai. Sabtu mulai jam 13:00 - Selesai, Minggu Situasional. Pemain Shift2 Lepas Seragam & PM dan SPK selesaikan dulu (Situasional)⚽";
-
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -60,24 +46,7 @@ export default function Home() {
         </div>
 
         <section className="mb-12">
-            <div className="bg-card border rounded-lg overflow-hidden">
-                <div className="grid md:grid-cols-[200px_1fr]">
-                <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
-                    <Info className="w-10 h-10 text-primary"/>
-                    <h2 className="text-xl font-bold text-primary">Notice</h2>
-                </div>
-                <div className="p-6">
-                    <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6">
-                        {rules.map((rule, index) => (
-                            <li key={index}>{rule}</li>
-                        ))}
-                    </ul>
-                    <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground">
-                        {scheduleInfo}
-                    </div>
-                </div>
-                </div>
-            </div>
+            <EditableNotice />
         </section>
 
         <section className="mb-12">
@@ -124,3 +93,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

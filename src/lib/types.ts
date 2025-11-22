@@ -55,3 +55,10 @@ export type Match = {
   matchDate: Timestamp;
   isCompleted: boolean;
 }
+
+export type Notice = {
+  rules: string[];
+  schedule: string;
+};
+
+    

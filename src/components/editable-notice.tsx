@@ -1,0 +1,186 @@
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import type { Notice, WithId } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Pencil, Save, Info, X, Plus, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from './ui/skeleton';
+import { Input } from './ui/input';
+
+const NOTICE_ID = 'main';
+
+const DEFAULT_NOTICE: Notice = {
+  rules: [
+    "Perbulan /Permusim Liga bayar Rp.10.000 ( Uang untuk beli Stick PS - Bukan Hadiah Liga )",
+    "Durasi Liga Sebulan ( 30 hari )",
+    "Start tgl 28 Finish tgl 28",
+    "Sistem Home - Away",
+    "Permusim hanya 1Team",
+    "Menang 3point",
+    "Seri 1point",
+    "Kalah 0 point",
+    "Jadwal pertandingan bisa di atur sendiri (Situasional)",
+  ],
+  schedule: "⚽Pertandingan setiap hari mulai jam 18:00 - Selesai. Sabtu mulai jam 13:00 - Selesai, Minggu Situasional. Pemain Shift2 Lepas Seragam & PM dan SPK selesaikan dulu (Situasional)⚽"
+};
+
+export function EditableNotice() {
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const noticeRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'notices', NOTICE_ID) : null),
+    [firestore]
+  );
+  
+  const { data: noticeData, isLoading } = useDoc<Notice>(noticeRef);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableNotice, setEditableNotice] = useState<Notice>(DEFAULT_NOTICE);
+
+  useEffect(() => {
+    if (noticeData) {
+      setEditableNotice(noticeData);
+    } else if (!isLoading) {
+      // If doc doesn't exist, set it with default values
+      if (firestore) {
+         const docRef = doc(firestore, 'notices', NOTICE_ID);
+         setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: false });
+      }
+    }
+  }, [noticeData, isLoading, firestore]);
+  
+  const handleSave = () => {
+    if (!firestore) return;
+    const docRef = doc(firestore, 'notices', NOTICE_ID);
+    // Filter out any empty rules before saving
+    const noticeToSave = {
+        ...editableNotice,
+        rules: editableNotice.rules.filter(rule => rule.trim() !== '')
+    };
+    updateDocumentNonBlocking(docRef, noticeToSave);
+    setIsEditing(false);
+    toast({
+      title: "Notice Updated",
+      description: "The notice board has been saved.",
+    });
+  };
+
+  const handleRuleChange = (index: number, value: string) => {
+    const newRules = [...editableNotice.rules];
+    newRules[index] = value;
+    setEditableNotice(prev => ({ ...prev, rules: newRules }));
+  };
+
+  const handleAddRule = () => {
+    setEditableNotice(prev => ({ ...prev, rules: [...prev.rules, ''] }));
+  }
+
+  const handleRemoveRule = (index: number) => {
+    const newRules = editableNotice.rules.filter((_, i) => i !== index);
+    setEditableNotice(prev => ({ ...prev, rules: newRules }));
+  }
+
+  const handleScheduleChange = (value: string) => {
+    setEditableNotice(prev => ({ ...prev, schedule: value }));
+  };
+
+  if (isLoading) {
+    return <NoticeSkeleton />;
+  }
+
+  return (
+    <div className="bg-card border rounded-lg overflow-hidden relative">
+      <div className="absolute top-2 right-2">
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); if(noticeData) setEditableNotice(noticeData)}}>
+              <X className="mr-2 h-4 w-4" /> Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" /> Save
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+            <Pencil className="mr-2 h-4 w-4" /> Edit Notice
+          </Button>
+        )}
+      </div>
+      <div className="grid md:grid-cols-[200px_1fr]">
+        <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
+          <Info className="w-10 h-10 text-primary" />
+          <h2 className="text-xl font-bold text-primary">Notice</h2>
+        </div>
+        <div className="p-6">
+          {isEditing ? (
+            <div className="space-y-4">
+                 <div className="space-y-2">
+                    {editableNotice.rules.map((rule, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                            <Input
+                                type="text"
+                                value={rule}
+                                onChange={(e) => handleRuleChange(index, e.target.value)}
+                                className="flex-grow"
+                            />
+                             <Button variant="ghost" size="icon" onClick={() => handleRemoveRule(index)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </div>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={handleAddRule}>
+                        <Plus className="mr-2 h-4 w-4"/> Add Rule
+                    </Button>
+                </div>
+              <Textarea
+                value={editableNotice.schedule}
+                onChange={(e) => handleScheduleChange(e.target.value)}
+                className="text-center bg-muted/20"
+                rows={4}
+              />
+            </div>
+          ) : (
+            <>
+              <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6">
+                {editableNotice.rules.map((rule, index) => (
+                  <li key={index}>{rule}</li>
+                ))}
+              </ul>
+              <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground">
+                {editableNotice.schedule}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NoticeSkeleton() {
+  return (
+    <div className="bg-card border rounded-lg overflow-hidden">
+      <div className="grid md:grid-cols-[200px_1fr]">
+        <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
+          <Skeleton className="w-10 h-10 rounded-full" />
+          <Skeleton className="h-6 w-24" />
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
+          </div>
+          <Skeleton className="h-16 w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+    
