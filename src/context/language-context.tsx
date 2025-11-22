@@ -22,13 +22,25 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<Language>('id');
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    const browserLang = navigator.language.split('-')[0];
-    if (browserLang === 'en') {
-      setLanguage('en');
-    }
+    setIsMounted(true);
   }, []);
+  
+  useEffect(() => {
+    if (isMounted) {
+      const browserLang = navigator.language.split('-')[0];
+      const storedLang = localStorage.getItem('language') as Language;
+      if (storedLang && ['id', 'en'].includes(storedLang)) {
+        setLanguage(storedLang);
+      } else if (browserLang === 'en') {
+        setLanguage('en');
+      } else {
+        setLanguage('id');
+      }
+    }
+  }, [isMounted]);
 
   const t = (key: string, options?: Record<string, string | number>): string => {
     const keys = key.split('.');
@@ -84,9 +96,15 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
 
 
   useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
+    if (isMounted) {
+        localStorage.setItem('language', language);
+    }
+  }, [language, isMounted]);
 
+  if (!isMounted) {
+    return null;
+  }
+  
   return (
     <LanguageContext.Provider value={{ language, setLanguage, translations: translations[language], t, t_dynamic }}>
       {children}
