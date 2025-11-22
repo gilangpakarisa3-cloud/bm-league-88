@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -24,18 +25,8 @@ const NOTICE_ID = 'main';
 const ADMIN_PASSWORD = 'Office88';
 
 const DEFAULT_NOTICE: Notice = {
-  rules: [
-    "Perbulan /Permusim Liga bayar Rp.10.000 ( Uang untuk beli Stick PS - Bukan Hadiah Liga )",
-    "Durasi Liga Sebulan ( 30 hari )",
-    "Start tgl 28 Finish tgl 28",
-    "Sistem Home - Away",
-    "Permusim hanya 1Team",
-    "Menang 3point",
-    "Seri 1point",
-    "Kalah 0 point",
-    "Jadwal pertandingan bisa di atur sendiri (Situasional)",
-  ],
-  schedule: "⚽Pertandingan setiap hari mulai jam 18:00 - Selesai. Sabtu mulai jam 13:00 - Selesai, Minggu Situasional. Pemain Shift2 Lepas Seragam & PM dan SPK selesaikan dulu (Situasional)⚽"
+  rules: [],
+  schedule: ""
 };
 
 export function EditableNotice() {
@@ -55,20 +46,26 @@ export function EditableNotice() {
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
-    // If loading is finished, decide what to display.
-    if (!isLoading) {
-      if (noticeData) {
-        // If data exists, use it.
-        setEditableNotice(noticeData);
-      } else if (firestore) {
-        // If data does NOT exist and Firestore is available, it means
-        // the document is missing. Create it with default data.
-        const docRef = doc(firestore, 'notices', NOTICE_ID);
-        setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
-        setEditableNotice(DEFAULT_NOTICE);
-      }
+    // This effect now correctly handles the asynchronous nature of fetching data
+    // and ensures the default notice is only created when absolutely necessary.
+
+    if (isLoading) {
+      // If we are still loading, do nothing and wait for the data.
+      return;
     }
-     // This effect should only run when loading state changes or when new data arrives.
+
+    if (noticeData) {
+      // If data has been successfully loaded from Firestore, use it.
+      setEditableNotice(noticeData);
+    } else if (firestore) {
+      // If loading is finished and there is no data, it means the document
+      // does not exist in Firestore. We should create it now with the default content.
+      const docRef = doc(firestore, 'notices', NOTICE_ID);
+      // Use setDoc with merge:true to safely create the document without overwriting if it was created in a race condition.
+      setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
+      // Also, set the local state to the default so the UI updates instantly.
+      setEditableNotice(DEFAULT_NOTICE);
+    }
   }, [noticeData, isLoading, firestore]);
   
   const handlePasswordCheck = () => {
