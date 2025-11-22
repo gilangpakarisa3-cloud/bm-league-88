@@ -2,12 +2,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { Notice } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Pencil, Save, Info, X, Plus, Trash2, Lock, Unlock } from 'lucide-react';
+import { Pencil, Save, Info, X, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from './ui/skeleton';
 import { Input } from './ui/input';
@@ -20,6 +20,8 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { Label } from './ui/label';
+import { useTranslation } from '@/hooks/use-translation';
+
 
 const NOTICE_ID = 'main';
 const ADMIN_PASSWORD = 'Office88';
@@ -32,20 +34,21 @@ const DEFAULT_NOTICE: Notice = {
 export function EditableNotice() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const noticeRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'notices', NOTICE_ID) : null),
     [firestore]
   );
   
-  const { data: noticeData, isLoading } = useDoc<Notice>(noticeRef);
+  const { data: noticeData, isLoading, error } = useDoc<Notice>(noticeRef);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editableNotice, setEditableNotice] = useState<Notice>(noticeData ?? DEFAULT_NOTICE);
+  const [editableNotice, setEditableNotice] = useState<Notice>(DEFAULT_NOTICE);
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
-  useEffect(() => {
+   useEffect(() => {
     // This effect now ONLY syncs the local editing state
     // when the data from Firestore changes. It no longer writes to the DB.
     if (noticeData) {
@@ -65,7 +68,7 @@ export function EditableNotice() {
     } else {
         toast({
             variant: "destructive",
-            title: "Incorrect Password",
+            title: t('incorrect_password'),
         });
     }
   };
@@ -82,8 +85,8 @@ export function EditableNotice() {
     setDocumentNonBlocking(docRef, noticeToSave, { merge: true });
     setIsEditing(false);
     toast({
-      title: "Notice Updated",
-      description: "The notice board has been saved.",
+      title: t('notice_updated_title'),
+      description: t('notice_updated_desc'),
     });
   };
 
@@ -125,22 +128,22 @@ export function EditableNotice() {
           {isEditing ? (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleCancel}>
-                <X className="mr-2 h-4 w-4" /> Cancel
+                <X className="mr-2 h-4 w-4" /> {t('cancel')}
               </Button>
               <Button size="sm" onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" /> Save
+                <Save className="mr-2 h-4 w-4" /> {t('save')}
               </Button>
             </div>
           ) : (
             <Button variant="outline" size="sm" onClick={() => setPasswordPromptOpen(true)}>
-              <Pencil className="mr-2 h-4 w-4" /> Edit Notice
+              <Pencil className="mr-2 h-4 w-4" /> {t('edit_notice')}
             </Button>
           )}
         </div>
         <div className="grid md:grid-cols-[200px_1fr]">
           <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
             <Info className="w-10 h-10 text-primary" />
-            <h2 className="text-xl font-bold text-primary">Notice</h2>
+            <h2 className="text-xl font-bold text-primary">{t('notice')}</h2>
           </div>
           <div className="p-6">
             {isEditing ? (
@@ -153,7 +156,7 @@ export function EditableNotice() {
                                   value={rule}
                                   onChange={(e) => handleRuleChange(index, e.target.value)}
                                   className="flex-grow"
-                                  placeholder="Enter a rule..."
+                                  placeholder={t('enter_a_rule')}
                               />
                               <Button variant="ghost" size="icon" onClick={() => handleRemoveRule(index)}>
                                   <Trash2 className="h-4 w-4 text-destructive" />
@@ -161,7 +164,7 @@ export function EditableNotice() {
                           </div>
                       ))}
                       <Button variant="outline" size="sm" onClick={handleAddRule}>
-                          <Plus className="mr-2 h-4 w-4"/> Add Rule
+                          <Plus className="mr-2 h-4 w-4"/> {t('add_rule')}
                       </Button>
                   </div>
                 <Textarea
@@ -169,7 +172,7 @@ export function EditableNotice() {
                   onChange={(e) => handleScheduleChange(e.target.value)}
                   className="text-center bg-muted/20"
                   rows={4}
-                  placeholder="Enter schedule information..."
+                  placeholder={t('enter_schedule')}
                 />
               </div>
             ) : (
@@ -180,11 +183,11 @@ export function EditableNotice() {
                       <li key={index}>{rule}</li>
                     ))
                   ) : (
-                    <p className="text-muted-foreground italic list-none">No rules have been added.</p>
+                    <p className="text-muted-foreground italic list-none">{t('no_rules_added')}</p>
                   )}
                 </ul>
                 <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground min-h-[50px]">
-                  {displayData.schedule ? displayData.schedule : <p className="italic">No schedule has been set.</p>}
+                  {displayData.schedule ? displayData.schedule : <p className="italic">{t('no_schedule_set')}</p>}
                 </div>
               </>
             )}
@@ -194,13 +197,13 @@ export function EditableNotice() {
       <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Admin Authentication</DialogTitle>
-                <DialogDescription>Please enter the admin password to edit the notice.</DialogDescription>
+                <DialogTitle>{t('admin_auth')}</DialogTitle>
+                <DialogDescription>{t('enter_admin_password_notice')}</DialogDescription>
             </DialogHeader>
              <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="password-input" className="text-right">
-                  Password
+                  {t('password')}
                 </Label>
                 <Input
                   id="password-input"
@@ -213,7 +216,7 @@ export function EditableNotice() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handlePasswordCheck}>Submit</Button>
+              <Button onClick={handlePasswordCheck}>{t('submit')}</Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>

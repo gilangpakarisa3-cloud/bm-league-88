@@ -27,6 +27,7 @@ import type { Team, WithId } from '@/lib/types';
 import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/use-translation';
 
 
 interface TeamListProps {
@@ -40,6 +41,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [deletingTeam, setDeletingTeam] = useState<WithId<Team> | null>(null);
+  const { t } = useTranslation();
 
   const teamsCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'teams') : null),
@@ -57,8 +59,8 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
     const teamRef = doc(firestore, 'teams', deletingTeam.id);
     deleteDocumentNonBlocking(teamRef);
     toast({
-        title: 'Team Deleted',
-        description: `${deletingTeam.name} has been removed.`,
+        title: t('team_deleted_title'),
+        description: t('team_deleted_desc_list', { teamName: deletingTeam.name }),
     });
     setDeletingTeam(null);
   };
@@ -76,8 +78,8 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
         <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="min-w-[200px]">Team Name</TableHead>
-              <TableHead className="text-right pr-4">Actions</TableHead>
+              <TableHead className="min-w-[200px]">{t('team_name')}</TableHead>
+              <TableHead className="text-right pr-4">{t('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -101,9 +103,9 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
   if (!sortedTeams || sortedTeams.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
-        <h2 className="text-xl font-medium text-muted-foreground">No teams found.</h2>
+        <h2 className="text-xl font-medium text-muted-foreground">{t('no_teams_found_title')}</h2>
         <p className="text-sm text-muted-foreground mt-2">
-          Get started by adding a new team.
+          {t('no_teams_found_desc')}
         </p>
       </div>
     );
@@ -116,8 +118,8 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
             <Table className="min-w-[600px]">
             <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                <TableHead className="min-w-[200px]">Team Name</TableHead>
-                {isAdmin && <TableHead className="text-right pr-4">Actions</TableHead>}
+                <TableHead className="min-w-[200px]">{t('team_name')}</TableHead>
+                {isAdmin && <TableHead className="text-right pr-4">{t('actions')}</TableHead>}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,11 +132,11 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                         <TableCell className="text-right pr-4">
                             <Button variant="ghost" size="icon" onClick={() => onEdit(team)}>
                                 <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Edit Team</span>
+                                <span className="sr-only">{t('edit_team_title')}</span>
                             </Button>
                             <Button variant="ghost" size="icon" onClick={() => confirmDelete(team)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">Delete Team</span>
+                                <span className="sr-only">{t('delete_team')}</span>
                             </Button>
                         </TableCell>
                     )}
@@ -148,19 +150,18 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
         <AlertDialog open={!!deletingTeam} onOpenChange={(isOpen) => !isOpen && setDeletingTeam(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the team
-                    <span className="font-bold"> {deletingTeam?.name}</span>.
+                    {t('delete_team_confirm_desc', { teamName: deletingTeam?.name })}
                 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                     onClick={handleDelete}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                    Delete
+                    {t('delete')}
                 </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

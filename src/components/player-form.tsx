@@ -21,6 +21,7 @@ import { useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
 import React from 'react';
+import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -40,6 +41,7 @@ interface PlayerFormProps {
 export function PlayerForm({ player, onSave }: PlayerFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { t, t_dynamic } = useTranslation();
 
   const teamsCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'teams') : null),
@@ -67,6 +69,15 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       photoUrl: player?.photoUrl || '',
     },
   });
+
+  const formSchemaTranslated = z.object({
+    name: z.string().min(2, {
+      message: t('player_name_min_char'),
+    }),
+    teamId: z.string({ required_error: t('select_team_error') }),
+    photoUrl: z.string().url({ message: t('invalid_url_error') }).optional().or(z.literal('')),
+  });
+  form.resolver = zodResolver(formSchemaTranslated);
   
   React.useEffect(() => {
     if (player) {
@@ -112,8 +123,8 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     if (!selectedTeam) {
         toast({
             variant: "destructive",
-            title: "Error",
-            description: "Selected team not found.",
+            title: t('error'),
+            description: t('team_not_found_error'),
         });
         return;
     }
@@ -159,16 +170,16 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
 
         await batch.commit();
         toast({
-          title: `Player updated!`,
-          description: `${data.name}'s details have been synchronized across all competitions.`,
+          title: t('player_updated_title'),
+          description: t('player_updated_desc', { playerName: data.name }),
         });
 
       } catch (error) {
         console.error("Failed to update player and their entries: ", error);
         toast({
           variant: "destructive",
-          title: "Update Failed",
-          description: "Could not sync player updates to league/cup tables.",
+          title: t('update_failed_title'),
+          description: t('player_sync_error'),
         });
       }
 
@@ -179,8 +190,8 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       if (!playerId) {
         toast({
           variant: "destructive",
-          title: "Invalid Name",
-          description: "Player name cannot be converted to a valid ID. Please use alphanumeric characters.",
+          title: t('invalid_name_title'),
+          description: t('invalid_name_desc'),
         });
         return;
       }
@@ -189,8 +200,8 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       setDocumentNonBlocking(playerRef, playerData, { merge: false });
 
       toast({
-        title: `Player added!`,
-        description: `${data.name} has been successfully added.`,
+        title: t('player_added_title'),
+        description: t('player_added_desc', { playerName: data.name }),
       });
     }
 
@@ -205,7 +216,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Player Name</FormLabel>
+              <FormLabel>{t('player_name')}</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., Andi 'The Ace'" {...field} disabled={!!player} />
               </FormControl>
@@ -218,15 +229,15 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
           name="teamId"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Team</FormLabel>
+              <FormLabel>{t('team')}</FormLabel>
               <FormControl>
                 <Combobox
                   options={teamOptions}
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder="Select a team"
-                  searchPlaceholder="Search team..."
-                  emptyPlaceholder={isLoadingTeams ? "Loading teams..." : "No teams available."}
+                  placeholder={t('select_a_team')}
+                  searchPlaceholder={t('search_team')}
+                  emptyPlaceholder={isLoadingTeams ? t('loading_teams') : t('no_teams_available')}
                 />
               </FormControl>
               <FormMessage />
@@ -238,7 +249,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
           name="photoUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Photo URL</FormLabel>
+              <FormLabel>{t('photo_url')}</FormLabel>
               <FormControl>
                 <Input placeholder="https://example.com/player.jpg" {...field} />
               </FormControl>
@@ -248,7 +259,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         />
         <div className="flex justify-end gap-2">
           <Button type="submit" disabled={isLoadingTeams || isLoadingPlayers}>
-            {player ? 'Save Changes' : 'Create Player'}
+            {player ? t('save_changes') : t('create_player')}
           </Button>
         </div>
       </form>

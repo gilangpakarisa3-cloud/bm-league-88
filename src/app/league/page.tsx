@@ -42,6 +42,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/hooks/use-translation';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -51,6 +52,7 @@ const ADMIN_PASSWORD = 'Office88';
 export default function LeaguePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -167,9 +169,9 @@ export default function LeaguePage() {
         if (passwordPrompt.action) {
             passwordPrompt.action();
         }
-        toast({ title: 'Admin Mode Unlocked', description: 'You can now perform administrative actions.' });
+        toast({ title: t('admin_mode_unlocked_title'), description: t('admin_mode_unlocked_desc') });
     } else {
-        toast({ variant: 'destructive', title: 'Incorrect Password' });
+        toast({ variant: 'destructive', title: t('incorrect_password') });
     }
     setPasswordPrompt({ open: false });
     setPasswordInput('');
@@ -186,7 +188,7 @@ export default function LeaguePage() {
   // --- Event Handlers ---
   const handleSeasonDialogSubmit = () => {
     if (!firestore || !newSeasonName.trim()) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Season name cannot be empty.' });
+      toast({ variant: 'destructive', title: t('error'), description: t('season_name_empty') });
       return;
     }
 
@@ -200,7 +202,7 @@ export default function LeaguePage() {
       // Update existing season
       const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, editingSeason.id);
       updateDocumentNonBlocking(seasonRef, seasonData);
-      toast({ title: 'Success', description: `Season name updated to '${newSeasonName.trim()}'.` });
+      toast({ title: t('success'), description: t('season_updated_desc', { seasonName: newSeasonName.trim() }) });
     } else {
       // Create new season
       const seasonsRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons`);
@@ -209,7 +211,7 @@ export default function LeaguePage() {
         status: 'Not Started',
         createdAt: serverTimestamp(),
       });
-      toast({ title: 'Success', description: `Season '${newSeasonName.trim()}' created.` });
+      toast({ title: t('success'), description: t('season_created_desc', { seasonName: newSeasonName.trim() }) });
     }
     setShowCreateSeason(false);
     setNewSeasonName('');
@@ -254,11 +256,11 @@ export default function LeaguePage() {
         const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, deletingSeason.id);
         await deleteDoc(seasonRef);
 
-        toast({ title: 'Season Deleted', description: `'${deletingSeason.name}' and all its data have been removed.` });
+        toast({ title: t('season_deleted_title'), description: t('season_deleted_desc', { seasonName: deletingSeason.name }) });
 
     } catch (error) {
         console.error("Error deleting season: ", error);
-        toast({ variant: 'destructive', title: 'Deletion Failed', description: 'Could not delete the season and its data.' });
+        toast({ variant: 'destructive', title: t('deletion_failed_title'), description: t('season_deleted_error') });
     }
     
     setDeletingSeason(null);
@@ -271,8 +273,8 @@ export default function LeaguePage() {
     deleteDocumentNonBlocking(entryRef);
 
     toast({
-        title: 'Player Removed',
-        description: `${deletingEntry.playerName} has been removed from the season.`,
+        title: t('player_removed_title'),
+        description: t('player_removed_desc', { playerName: deletingEntry.playerName }),
     });
     setDeletingEntry(null);
   };
@@ -307,10 +309,10 @@ export default function LeaguePage() {
 
     try {
         await batch.commit();
-        toast({ title: 'Success', description: `${playersToRegister.length} players registered to the season.` });
+        toast({ title: t('success'), description: t('players_registered_desc', { count: playersToRegister.length }) });
     } catch (error) {
         console.error("Error registering players: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not register players.' });
+        toast({ variant: 'destructive', title: t('error'), description: t('register_players_error') });
     }
     
     setShowRegisterPlayers(false);
@@ -321,21 +323,21 @@ export default function LeaguePage() {
 
     const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeason.id);
     updateDocumentNonBlocking(seasonRef, { status });
-    toast({ title: 'Season Updated', description: `Season status changed to '${status}'.` });
+    toast({ title: t('season_updated_title'), description: t('season_status_updated_desc', { status }) });
   };
   
   const handleShareParticipants = () => {
     if (!activeSeason || !sortedTable || sortedTable.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'No participants to share',
-        description: 'Register players for this season first.',
+        title: t('no_participants_to_share_title'),
+        description: t('no_participants_to_share_desc'),
       });
       return;
     }
 
     const seasonName = activeSeason.name;
-    const header = `*Liga Tarkam Participants - ${seasonName}*\n\n`;
+    const header = `*${t('share_participants_header', { seasonName })}*\n\n`;
     
     const participantsList = sortedTable
       .map((p, index) => `${index + 1}. ${p.playerName} (${p.team?.name})`)
@@ -358,7 +360,7 @@ export default function LeaguePage() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div className="space-y-1">
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">League Standings</h1>
+            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('league_standings_page_title')}</h1>
             {activeSeason && (
               <>
                 <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>
@@ -369,7 +371,7 @@ export default function LeaguePage() {
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
              <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
                 <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Select a season" />
+                    <SelectValue placeholder={t('select_a_season')} />
                 </SelectTrigger>
                 <SelectContent>
                     {seasons?.map(season => (
@@ -382,21 +384,21 @@ export default function LeaguePage() {
                     <>
                         <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            New
+                            {t('new')}
                         </Button>
                         <Button onClick={handleOpenEditDialog} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
                             <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Edit Season</span>
+                            <span className="sr-only">{t('edit_season')}</span>
                         </Button>
                         <Button onClick={() => activeSeason && setDeletingSeason(activeSeason)} variant="destructive" size="icon" disabled={!activeSeason}>
                             <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete Season</span>
+                            <span className="sr-only">{t('delete_season')}</span>
                         </Button>
                     </>
                 ) : null}
                  <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
                     {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
-                    {isAdmin ? 'Lock Admin' : 'Unlock Admin'}
+                    {isAdmin ? t('lock_admin') : t('unlock_admin')}
                 </Button>
             </div>
           </div>
@@ -406,19 +408,19 @@ export default function LeaguePage() {
             <div className="mb-8 flex flex-wrap gap-2">
                 <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={activeSeason.status !== 'Not Started'}>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Register Players
+                    {t('register_players')}
                 </Button>
                 <Button 
                     onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
                     variant="outline" 
                     disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
-                    title={!hasFixtures ? "Fixtures must be generated before starting the season." : ""}>
+                    title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
                     <Play className="mr-2 h-4 w-4" />
-                    Start Season
+                    {t('start_season')}
                 </Button>
                 <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
                     <Flag className="mr-2 h-4 w-4" />
-                    Finish Season
+                    {t('finish_season')}
                 </Button>
                 
             </div>
@@ -427,12 +429,12 @@ export default function LeaguePage() {
         <div className="flex flex-wrap gap-2 mb-8">
             <Button onClick={handleShareParticipants} variant="outline" disabled={!leagueTable || leagueTable.length === 0}>
                 <Share2 className="mr-2 h-4 w-4" />
-                Share Participants
+                {t('share_participants')}
             </Button>
                 <Button asChild variant="outline">
                 <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
                     <Trophy className="mr-2 h-4 w-4" />
-                    View Champion
+                    {t('view_champion')}
                 </Link>
             </Button>
         </div>
@@ -451,13 +453,13 @@ export default function LeaguePage() {
       <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Admin Authentication</DialogTitle>
-                <DialogDescription>Please enter the admin password to unlock administrative actions.</DialogDescription>
+                <DialogTitle>{t('admin_auth')}</DialogTitle>
+                <DialogDescription>{t('admin_auth_desc')}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="password-input" className="text-right">
-                  Password
+                  {t('password')}
                 </Label>
                 <Input
                   id="password-input"
@@ -470,7 +472,7 @@ export default function LeaguePage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handlePasswordCheck}>Unlock</Button>
+              <Button onClick={handlePasswordCheck}>{t('unlock')}</Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -480,12 +482,12 @@ export default function LeaguePage() {
       <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingSeason ? 'Edit Season' : 'Create New Season'}</DialogTitle>
-            <DialogDescription>{editingSeason ? 'Update the details for this season.' : 'Enter the details for the new season.'}</DialogDescription>
+            <DialogTitle>{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle>
+            <DialogDescription>{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-                <Label htmlFor="season-name">Season Name</Label>
+                <Label htmlFor="season-name">{t('season_name')}</Label>
                 <Input 
                     id="season-name"
                     placeholder="e.g., 2024/25 Season"
@@ -494,7 +496,7 @@ export default function LeaguePage() {
                 />
             </div>
             <div className="space-y-2">
-                <Label>Date Range</Label>
+                <Label>{t('date_range')}</Label>
                 <Popover>
                     <PopoverTrigger asChild>
                     <Button
@@ -516,7 +518,7 @@ export default function LeaguePage() {
                             format(dateRange.from, "LLL dd, y")
                         )
                         ) : (
-                        <span>Pick a date range</span>
+                        <span>{t('pick_a_date_range')}</span>
                         )}
                     </Button>
                     </PopoverTrigger>
@@ -533,7 +535,7 @@ export default function LeaguePage() {
                 </Popover>
             </div>
             <Button onClick={handleSeasonDialogSubmit} className="w-full">
-                {editingSeason ? 'Save Changes' : 'Create Season'}
+                {editingSeason ? t('save_changes') : t('create_season')}
             </Button>
           </div>
         </DialogContent>
@@ -543,14 +545,14 @@ export default function LeaguePage() {
         <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the <strong>{deletingSeason?.name}</strong> season, including all its league table entries and matches.
+                        {t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteSeason} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteSeason} className="bg-destructive hover:bg-destructive/90">{t('delete')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -559,14 +561,14 @@ export default function LeaguePage() {
         <AlertDialog open={!!deletingEntry} onOpenChange={(isOpen) => !isOpen && setDeletingEntry(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Remove Player from Season?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('remove_player_from_season_title')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to remove <strong>{deletingEntry?.playerName}</strong> from this season? This cannot be undone.
+                        {t('remove_player_from_season_desc', { playerName: deletingEntry?.playerName })}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteEntry} className="bg-destructive hover:bg-destructive/90">Remove</AlertDialogAction>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteEntry} className="bg-destructive hover:bg-destructive/90">{t('remove')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -575,8 +577,8 @@ export default function LeaguePage() {
       <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Register Players</DialogTitle>
-            <DialogDescription>Select players to include in the '{activeSeason?.name}' season.</DialogDescription>
+            <DialogTitle>{t('register_players')}</DialogTitle>
+            <DialogDescription>{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription>
           </DialogHeader>
           <RegisterPlayersForm
             allPlayers={allPlayers || []}
@@ -591,7 +593,7 @@ export default function LeaguePage() {
        <ShareDialog
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
-          title="Share League Participants"
+          title={t('share_league_participants')}
           shareText={shareText}
         />
 

@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ScoreForm } from '@/components/score-form';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTranslation } from '@/hooks/use-translation';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -37,6 +38,7 @@ const ADMIN_PASSWORD = 'Office88';
 export default function FixturesPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
@@ -111,12 +113,12 @@ export default function FixturesPage() {
   
   const handleGenerateFixtures = async () => {
     if (!firestore || !activeSeasonId || !leagueTable || leagueTable.length < 2) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Cannot generate fixtures. A season must be selected with at least 2 registered players.' });
+      toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_min_players') });
       return;
     }
     
     if (activeSeason?.status !== 'Not Started') {
-       toast({ variant: 'destructive', title: 'Error', description: 'Fixtures can only be generated for a season that has not started yet.' });
+       toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_not_started') });
        return;
     }
 
@@ -149,10 +151,10 @@ export default function FixturesPage() {
     
     try {
       await batch.commit();
-      toast({ title: 'Fixtures Generated!', description: `Home and away fixtures have been created for ${activeSeason.name}.` });
+      toast({ title: t('fixtures_generated_title'), description: t('fixtures_generated_desc', { seasonName: activeSeason.name }) });
     } catch(e) {
       console.error(e);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not generate fixtures.' });
+      toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error') });
     }
   };
 
@@ -180,7 +182,7 @@ export default function FixturesPage() {
             ]);
 
             if (p1EntrySnap.empty || p2EntrySnap.empty) {
-                throw new Error("Could not find league entries for one or both players.");
+                throw new Error(t('update_score_error_no_entries'));
             }
             
             const p1EntryRef = p1EntrySnap.docs[0].ref;
@@ -248,11 +250,11 @@ export default function FixturesPage() {
             });
         });
         
-        toast({ title: 'Score Updated', description: 'The match score and league table have been updated.' });
+        toast({ title: t('score_updated_title'), description: t('score_updated_desc') });
 
     } catch (e) {
         console.error("Transaction failed: ", e);
-        toast({ variant: 'destructive', title: 'Update Failed', description: (e as Error).message || 'Could not update the score.' });
+        toast({ variant: 'destructive', title: t('update_failed_title'), description: (e as Error).message || t('update_score_error') });
     }
 
     setEditingMatch(null);
@@ -266,12 +268,12 @@ export default function FixturesPage() {
         setEditingMatch(passwordPrompt.match);
       }
        if (!isAdmin) setIsAdmin(true); // Persist admin state for the session
-      toast({ title: 'Admin Mode Unlocked', description: 'You can now perform administrative actions.' });
+      toast({ title: t('admin_mode_unlocked_title'), description: t('admin_mode_unlocked_desc') });
     } else {
       toast({
         variant: 'destructive',
-        title: 'Incorrect Password',
-        description: 'You do not have permission to perform this action.',
+        title: t('incorrect_password'),
+        description: t('admin_permission_denied'),
       });
     }
     setPasswordPrompt({ open: false });
@@ -315,7 +317,7 @@ export default function FixturesPage() {
         <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">{title} ({matchList.length})</h2>
         {matchList.length === 0 ? (
           <div className="border rounded-lg p-8 text-center bg-card">
-              <h2 className="text-xl font-medium text-muted-foreground">{searchTerm ? 'No matches found.' : 'No matches in this category.'}</h2>
+              <h2 className="text-xl font-medium text-muted-foreground">{searchTerm ? t('no_matches_found') : t('no_matches_in_category')}</h2>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -368,7 +370,7 @@ export default function FixturesPage() {
                         disabled={!isAdmin && activeSeason?.status !== 'In Progress'}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
-                        {match.isCompleted ? 'Edit Score' : 'Update Score'}
+                        {match.isCompleted ? t('edit_score') : t('update_score')}
                       </Button>
                     </CardFooter>
                   </Card>
@@ -387,13 +389,13 @@ export default function FixturesPage() {
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                  <div className="space-y-2">
-                    <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">League Fixtures</h1>
+                    <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('fixtures_page_title')}</h1>
                     {activeSeason && <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
                         <SelectTrigger className="w-full sm:w-[180px]">
-                            <SelectValue placeholder="Select a season" />
+                            <SelectValue placeholder={t('select_a_season')} />
                         </SelectTrigger>
                         <SelectContent>
                             {seasons?.map(season => (
@@ -403,11 +405,11 @@ export default function FixturesPage() {
                     </Select>
                      <Button onClick={() => withAdminCheck(handleGenerateFixtures)} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
                         <RefreshCw className="mr-2 h-4 w-4" />
-                        {hasFixtures ? 'Re-generate Fixtures' : 'Generate Fixtures'}
+                        {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
                     </Button>
                      <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
                         {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
-                        {isAdmin ? 'Lock Admin Mode' : 'Unlock Admin'}
+                        {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                     </Button>
                 </div>
             </div>
@@ -415,23 +417,23 @@ export default function FixturesPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search by player or team..."
+                placeholder={t('search_by_player_or_team')}
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             {isLoading ? (
-                <p>Loading fixtures...</p>
+                <p>{t('loading_fixtures')}</p>
             ) : hasFixtures ? (
                  <div className="space-y-12">
-                    <MatchList title="Remaining Matches" matchList={unplayedMatches} />
-                    <MatchList title="Completed Matches" matchList={playedMatches} />
+                    <MatchList title={t('remaining_matches')} matchList={unplayedMatches} />
+                    <MatchList title={t('completed_matches')} matchList={playedMatches} />
                 </div>
             ) : (
                 <div className="border rounded-lg p-8 text-center bg-card">
-                  <h2 className="text-xl font-medium text-muted-foreground">No Fixtures Generated</h2>
-                  <p className="text-muted-foreground mt-2">Register players for this season on the League page, then generate fixtures here.</p>
+                  <h2 className="text-xl font-medium text-muted-foreground">{t('no_fixtures_generated_title')}</h2>
+                  <p className="text-muted-foreground mt-2">{t('no_fixtures_generated_desc')}</p>
                 </div>
             )}
         </div>
@@ -440,15 +442,15 @@ export default function FixturesPage() {
         <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({open: false})}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Admin Authentication Required</DialogTitle>
+              <DialogTitle>{t('admin_auth_required_title')}</DialogTitle>
               <DialogDescription>
-                Please enter the admin password to continue.
+                {t('enter_admin_password_to_continue')}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="password-input" className="text-right">
-                  Password
+                  {t('password')}
                 </Label>
                 <Input
                   id="password-input"
@@ -461,7 +463,7 @@ export default function FixturesPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handlePasswordCheck}>Submit</Button>
+              <Button onClick={handlePasswordCheck}>{t('submit')}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -470,9 +472,12 @@ export default function FixturesPage() {
         <Dialog open={!!editingMatch} onOpenChange={(isOpen) => !isOpen && setEditingMatch(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Update Match Score</DialogTitle>
+              <DialogTitle>{t('update_match_score_title')}</DialogTitle>
               <DialogDescription>
-                Enter the final score for {editingMatch && playersById[editingMatch.player1Id]?.name} vs {editingMatch && playersById[editingMatch.player2Id]?.name}.
+                {t('update_match_score_desc', { 
+                  player1: editingMatch && playersById[editingMatch.player1Id]?.name, 
+                  player2: editingMatch && playersById[editingMatch.player2Id]?.name 
+                })}
               </DialogDescription>
             </DialogHeader>
             {editingMatch && <ScoreForm match={editingMatch} onSave={(scores) => handleUpdateScore(editingMatch.id, scores)} players={allPlayers || []} />}

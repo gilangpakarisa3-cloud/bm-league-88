@@ -11,6 +11,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslation } from '@/hooks/use-translation';
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
@@ -19,6 +20,7 @@ function LeagueWinnerPageContents() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const firestore = useFirestore();
+    const { t } = useTranslation();
 
     const seasonId = searchParams.get('seasonId');
     const [winner, setWinner] = useState<WithId<LeagueEntry> | null>(null);
@@ -61,15 +63,15 @@ function LeagueWinnerPageContents() {
     }, [firestore, seasonId, router]);
 
     if (isLoading) {
-        return <WinnerSkeleton title="League Champion" />;
+        return <WinnerSkeleton title={t('league_champion')} />;
     }
 
     if (!seasonId) {
         return (
              <div className="container mx-auto px-4 py-8 text-center">
-                <h1 className="text-3xl font-bold">No Season Selected</h1>
-                <p className="text-muted-foreground mt-2">Please select a season from the league page to view the champion.</p>
-                <Button onClick={() => router.push('/league')} className="mt-4">Back to League</Button>
+                <h1 className="text-3xl font-bold">{t('no_season_selected_title')}</h1>
+                <p className="text-muted-foreground mt-2">{t('no_season_selected_desc')}</p>
+                <Button onClick={() => router.push('/league')} className="mt-4">{t('back_to_league')}</Button>
             </div>
         )
     }
@@ -77,9 +79,9 @@ function LeagueWinnerPageContents() {
     if (!winner) {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
-                <h1 className="text-3xl font-bold">League Not Started</h1>
-                <p className="text-muted-foreground mt-2">There are no players registered for this season yet.</p>
-                <Button onClick={() => router.push('/league')} className="mt-4">Back to League</Button>
+                <h1 className="text-3xl font-bold">{t('league_not_started')}</h1>
+                <p className="text-muted-foreground mt-2">{t('no_players_in_season')}</p>
+                <Button onClick={() => router.push('/league')} className="mt-4">{t('back_to_league')}</Button>
             </div>
         );
     }
@@ -89,13 +91,13 @@ function LeagueWinnerPageContents() {
     const isSeasonCompleted = season?.status === 'Completed';
 
     const stats = [
-        { label: 'Points', value: winner.points },
-        { label: 'Wins', value: winner.win },
-        { label: 'Goal Difference', value: `+${winner.goalDifference}` },
-        { label: 'Goals For', value: winner.goalsFor },
+        { label: t('pts'), value: winner.points },
+        { label: t('w'), value: winner.win },
+        { label: t('gd'), value: `+${winner.goalDifference}` },
+        { label: t('gf'), value: winner.goalsFor },
     ];
 
-    const winnerTitle = isSeasonCompleted && season ? `Winner of ${season.name}` : "Current League Leader";
+    const winnerTitle = isSeasonCompleted && season ? t('winner_of_season', { seasonName: season.name }) : t('current_league_leader');
 
     return (
         <WinnerDisplay
@@ -132,8 +134,9 @@ const WinnerSkeleton = ({title}: {title: string}) => (
 );
 
 export default function LeagueWinnerPage() {
+    const { t } = useTranslation();
     return (
-        <Suspense fallback={<WinnerSkeleton title="League Champion"/>}>
+        <Suspense fallback={<WinnerSkeleton title={t('league_champion')}/>}>
             <LeagueWinnerPageContents />
         </Suspense>
     )

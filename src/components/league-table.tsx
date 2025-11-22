@@ -12,6 +12,7 @@ import { Button } from "./ui/button";
 import { Trash2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
@@ -22,6 +23,8 @@ interface LeagueTableProps {
 }
 
 export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seasonStatus, isAdmin }: LeagueTableProps) {
+  const { t } = useTranslation();
+  
   if (isLoading) {
     return <LeagueTableSkeleton />;
   }
@@ -29,8 +32,8 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
   if (tableData.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
-        <h2 className="text-xl font-medium text-muted-foreground">No players registered for this season.</h2>
-        <p className="text-sm text-muted-foreground mt-2">Use the "Register Players" button to add participants.</p>
+        <h2 className="text-xl font-medium text-muted-foreground">{t('no_players_registered_title')}</h2>
+        <p className="text-sm text-muted-foreground mt-2">{t('no_players_registered_desc')}</p>
       </div>
     );
   }
@@ -44,17 +47,17 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-16 text-center font-bold text-primary">Rank</TableHead>
-              <TableHead className="text-left font-bold text-primary">Player</TableHead>
-              <TableHead className="text-center font-bold text-accent">Played</TableHead>
-              <TableHead className="text-center font-bold text-accent">W</TableHead>
-              <TableHead className="text-center font-bold text-accent">D</TableHead>
-              <TableHead className="text-center font-bold text-accent">L</TableHead>
-              <TableHead className="hidden md:table-cell text-center font-bold text-accent">GF</TableHead>
-              <TableHead className="hidden md:table-cell text-center font-bold text-accent">GA</TableHead>
-              <TableHead className="text-center font-bold text-accent">GD</TableHead>
-              <TableHead className="text-center font-bold text-primary">Pts</TableHead>
-              {canRemovePlayer && <TableHead className="text-right font-bold text-accent">Actions</TableHead>}
+              <TableHead className="w-16 text-center font-bold text-primary">{t('rank')}</TableHead>
+              <TableHead className="text-left font-bold text-primary">{t('player')}</TableHead>
+              <TableHead className="text-center font-bold text-accent">{t('played')}</TableHead>
+              <TableHead className="text-center font-bold text-accent">{t('w')}</TableHead>
+              <TableHead className="text-center font-bold text-accent">{t('d')}</TableHead>
+              <TableHead className="text-center font-bold text-accent">{t('l')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-bold text-accent">{t('gf')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-bold text-accent">{t('ga')}</TableHead>
+              <TableHead className="text-center font-bold text-accent">{t('gd')}</TableHead>
+              <TableHead className="text-center font-bold text-primary">{t('pts')}</TableHead>
+              {canRemovePlayer && <TableHead className="text-right font-bold text-accent">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -111,10 +114,10 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                         variant="ghost"
                         size="icon"
                         onClick={() => onRemovePlayer?.(entry)}
-                        title={`Remove ${entry.playerName}`}
+                        title={`${t('remove')} ${entry.playerName}`}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
-                        <span className="sr-only">Remove Player</span>
+                        <span className="sr-only">{t('remove_player')}</span>
                       </Button>
                     </TableCell>
                   )}
@@ -129,22 +132,23 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
 }
 
 function LeagueTableSkeleton() {
+  const { t } = useTranslation();
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
       <div className="w-full overflow-x-auto">
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-16 text-center">Rank</TableHead>
-              <TableHead>Player</TableHead>
-              <TableHead className="text-center">Played</TableHead>
-              <TableHead className="text-center">W</TableHead>
-              <TableHead className="text-center">D</TableHead>
-              <TableHead className="text-center">L</TableHead>
-              <TableHead className="hidden md:table-cell text-center">GF</TableHead>
-              <TableHead className="hidden md:table-cell text-center">GA</TableHead>
-              <TableHead className="text-center">GD</TableHead>
-              <TableHead className="text-center font-bold">Pts</TableHead>
+              <TableHead className="w-16 text-center">{t('rank')}</TableHead>
+              <TableHead>{t('player')}</TableHead>
+              <TableHead className="text-center">{t('played')}</TableHead>
+              <TableHead className="text-center">{t('w')}</TableHead>
+              <TableHead className="text-center">{t('d')}</TableHead>
+              <TableHead className="text-center">{t('l')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center">{t('gf')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center">{t('ga')}</TableHead>
+              <TableHead className="text-center">{t('gd')}</TableHead>
+              <TableHead className="text-center font-bold">{t('pts')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -8,6 +8,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from './ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { User } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface RegisterPlayersFormProps {
   allPlayers: WithId<Player>[];
@@ -22,6 +23,7 @@ export function RegisterPlayersForm({
   onRegister,
   isLoading = false,
 }: RegisterPlayersFormProps) {
+  const { t } = useTranslation();
   const [selected, setSelected] = React.useState<Record<string, boolean>>({});
 
   const registeredPlayerIds = React.useMemo(() => 
@@ -68,7 +70,7 @@ export function RegisterPlayersForm({
   if (availablePlayers.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-8">
-        <p>All available players have been registered.</p>
+        <p>{t('all_players_registered')}</p>
       </div>
     );
   }
@@ -85,7 +87,7 @@ export function RegisterPlayersForm({
           htmlFor="select-all"
           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
-          Select All Players
+          {t('select_all_players')}
         </label>
       </div>
       <ScrollArea className="h-64 border rounded-md">
@@ -114,7 +116,7 @@ export function RegisterPlayersForm({
         </div>
       </ScrollArea>
       <Button onClick={handleSubmit} className="w-full">
-        Register Selected Players
+        {t('register_selected_players')}
       </Button>
     </div>
   );

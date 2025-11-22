@@ -1,4 +1,6 @@
 
+'use client';
+
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +9,11 @@ import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trophy, Shield, ArrowRight, Info } from 'lucide-react';
 import { EditableNotice } from '@/components/editable-notice';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function Home() {
   const topPlayers = leagueTable.slice(0, 5);
+  const { t } = useTranslation();
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -19,7 +23,7 @@ export default function Home() {
             Engineering EightyEight
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground">
-            Welcome to the official hub for the Liga Tarkam. Track league standings, cup progress, and celebrate the champions.
+            {t('home_welcome')}
           </p>
         </section>
 
@@ -29,14 +33,14 @@ export default function Home() {
                 <Card className="h-full hover:border-primary transition-colors duration-300">
                   <CardHeader>
                     <div className="flex flex-row items-center justify-between">
-                        <CardTitle className="text-2xl">League Standings</CardTitle>
+                        <CardTitle className="text-2xl">{t('home_league_standings_title')}</CardTitle>
                         <Trophy className="w-8 h-8 text-primary" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription>View the official player rankings, track points, and see who's dominating the season.</CardDescription>
+                    <CardDescription>{t('home_league_standings_desc')}</CardDescription>
                     <div className="flex items-center mt-4 font-semibold text-primary">
-                      Go to League
+                      {t('go_to_league')}
                       <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                     </div>
                   </CardContent>
@@ -50,16 +54,16 @@ export default function Home() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-3xl font-bold mb-4 text-center">Top Players</h2>
+          <h2 className="text-3xl font-bold mb-4 text-center">{t('home_top_players')}</h2>
           <Card>
             {topPlayers.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px] pl-4">#</TableHead>
-                    <TableHead>Player</TableHead>
-                    <TableHead className="text-right">Pts</TableHead>
-                    <TableHead className="hidden sm:table-cell text-right pr-4">GD</TableHead>
+                    <TableHead>{t('player')}</TableHead>
+                    <TableHead className="text-right">{t('pts')}</TableHead>
+                    <TableHead className="hidden sm:table-cell text-right pr-4">{t('gd')}</TableHead>
 
                   </TableRow>
                 </TableHeader>
@@ -83,7 +87,7 @@ export default function Home() {
               </Table>
             ) : (
               <div className="p-8 text-center text-muted-foreground">
-                No players in the league yet.
+                {t('no_players_yet')}
               </div>
             )}
           </Card>
@@ -93,5 +97,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

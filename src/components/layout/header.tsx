@@ -3,19 +3,29 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Flame } from 'lucide-react';
+import { Flame, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useLanguage } from '@/context/language-context';
+import { useTranslation } from '@/hooks/use-translation';
+
 
 export function Header() {
   const pathname = usePathname();
+  const { setLanguage } = useLanguage();
+  const { t } = useTranslation();
 
   const navLinks = [
-    { href: '/league', label: 'League' },
-    { href: '/fixtures', label: 'Fixtures' },
-    { href: '/players', label: 'Players' },
-    { href: '/teams', label: 'Teams' },
+    { href: '/league', label: t('header_league') },
+    { href: '/fixtures', label: t('header_fixtures') },
+    { href: '/players', label: t('header_players') },
+    { href: '/teams', label: t('header_teams') },
   ];
 
   return (
@@ -42,6 +52,22 @@ export function Header() {
               </Button>
             )
           })}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Languages className="h-5 w-5" />
+                <span className="sr-only">Change language</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setLanguage('id')}>
+                Bahasa Indonesia
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage('en')}>
+                English
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
       </div>
     </header>

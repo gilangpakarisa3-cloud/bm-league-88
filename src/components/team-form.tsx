@@ -19,6 +19,7 @@ import type { Team, WithId } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
 import { collection, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -36,9 +37,16 @@ interface TeamFormProps {
 export function TeamForm({ team, onSave }: TeamFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { t } = useTranslation();
+
+  const formSchemaTranslated = z.object({
+    name: z.string().min(2, {
+      message: t('team_name_min_char'),
+    }),
+  });
 
   const form = useForm<TeamFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchemaTranslated),
     defaultValues: {
       name: team?.name || '',
     },
@@ -60,8 +68,8 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
       const teamRef = doc(firestore, 'teams', team.id);
       updateDocumentNonBlocking(teamRef, teamData);
       toast({
-        title: `Team updated!`,
-        description: `${data.name} has been successfully saved.`,
+        title: t('team_updated_title'),
+        description: t('team_updated_desc', { teamName: data.name }),
       });
 
     } else {
@@ -70,8 +78,8 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
       if (!teamId) {
         toast({
           variant: "destructive",
-          title: "Invalid Name",
-          description: "Team name cannot be converted to a valid ID. Please use alphanumeric characters.",
+          title: t('invalid_name_title'),
+          description: t('invalid_name_desc_team'),
         });
         return;
       }
@@ -80,8 +88,8 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
       setDocumentNonBlocking(teamRef, teamData, { merge: false });
 
       toast({
-        title: `Team added!`,
-        description: `${data.name} has been successfully added.`,
+        title: t('team_added_title'),
+        description: t('team_added_desc', { teamName: data.name }),
       });
     }
 
@@ -96,7 +104,7 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Team Name</FormLabel>
+              <FormLabel>{t('team_name')}</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., The All-Stars" {...field} disabled={!!team} />
               </FormControl>
@@ -105,7 +113,7 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
           )}
         />
         <div className="flex justify-end gap-2">
-          <Button type="submit">{team ? 'Save Changes' : 'Create Team'}</Button>
+          <Button type="submit">{team ? t('save_changes') : t('create_team')}</Button>
         </div>
       </form>
     </Form>

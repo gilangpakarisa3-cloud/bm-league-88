@@ -28,6 +28,7 @@ import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
@@ -37,6 +38,7 @@ interface PlayerListProps {
 
 export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [deletingPlayer, setDeletingPlayer] = useState<WithId<Player> | null>(null);
   const firestore = useFirestore();
 
@@ -71,8 +73,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     const playerRef = doc(firestore, 'players', deletingPlayer.id);
     deleteDocumentNonBlocking(playerRef);
     toast({
-        title: 'Player Deleted',
-        description: `${deletingPlayer.name} has been removed. Note: This does not remove them from any active seasons.`,
+        title: t('player_deleted_title'),
+        description: t('player_deleted_list_desc', { playerName: deletingPlayer.name }),
     });
     setDeletingPlayer(null);
   };
@@ -91,9 +93,9 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
         <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="min-w-[200px]">Player</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead className="text-right pr-4">Actions</TableHead>
+              <TableHead className="min-w-[200px]">{t('player')}</TableHead>
+              <TableHead>{t('team')}</TableHead>
+              <TableHead className="text-right pr-4">{t('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -126,9 +128,9 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
   if (!sortedPlayers || sortedPlayers.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
-        <h2 className="text-xl font-medium text-muted-foreground">No players found.</h2>
+        <h2 className="text-xl font-medium text-muted-foreground">{t('no_players_found_title')}</h2>
         <p className="text-sm text-muted-foreground mt-2">
-          Get started by adding a new player.
+          {t('no_players_found_desc')}
         </p>
       </div>
     );
@@ -142,9 +144,9 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
           <Table className="min-w-[600px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="min-w-[200px]">Player</TableHead>
-                <TableHead>Team</TableHead>
-                {isAdmin && <TableHead className="text-right pr-4">Actions</TableHead>}
+                <TableHead className="min-w-[200px]">{t('player')}</TableHead>
+                <TableHead>{t('team')}</TableHead>
+                {isAdmin && <TableHead className="text-right pr-4">{t('actions')}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -174,11 +176,11 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                         <TableCell className="text-right pr-4">
                             <Button variant="ghost" size="icon" onClick={() => onEdit(player)}>
                             <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Edit Player</span>
+                            <span className="sr-only">{t('edit_player_title')}</span>
                             </Button>
                             <Button variant="ghost" size="icon" onClick={() => confirmDelete(player)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">Delete Player</span>
+                                <span className="sr-only">{t('delete_player')}</span>
                             </Button>
                         </TableCell>
                     )}
@@ -193,19 +195,18 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
       <AlertDialog open={!!deletingPlayer} onOpenChange={(isOpen) => !isOpen && setDeletingPlayer(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
             <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the player
-                <span className="font-bold"> {deletingPlayer?.name}</span> and remove them from the master player list. It will not remove them from any seasons they are already registered in.
+                {t('delete_player_confirm_desc', { playerName: deletingPlayer?.name })}
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-                Delete
+                {t('delete')}
             </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>

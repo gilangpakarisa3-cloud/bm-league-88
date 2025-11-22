@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import type { Match, Player, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "lucide-react";
+import { useTranslation } from "@/hooks/use-translation";
 
 const formSchema = z.object({
   score1: z.coerce.number().min(0, "Score must be positive."),
@@ -32,12 +33,18 @@ interface ScoreFormProps {
 }
 
 export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
+  const { t } = useTranslation();
 
   const player1 = players.find(p => p.id === match.player1Id);
   const player2 = players.find(p => p.id === match.player2Id);
   
+  const formSchemaTranslated = z.object({
+    score1: z.coerce.number().min(0, t('score_positive_error')),
+    score2: z.coerce.number().min(0, t('score_positive_error')),
+  });
+
   const form = useForm<ScoreFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchemaTranslated),
     defaultValues: {
       score1: match.player1Score ?? 0,
       score2: match.player2Score ?? 0,
@@ -88,7 +95,7 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
           />
         </div>
         <div className="flex justify-end gap-2">
-            <Button type="submit">Save Score</Button>
+            <Button type="submit">{t('save_score')}</Button>
         </div>
       </form>
     </Form>
