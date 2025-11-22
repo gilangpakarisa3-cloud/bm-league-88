@@ -160,7 +160,7 @@ export default function FixturesPage() {
   const handleUpdateScore = async (matchId: string, scores: { score1: number, score2: number }) => {
     if (!firestore || !activeSeasonId) return;
 
-    const matchRef = doc(firestore, `leagues/${LE1_ID}/seasons/${activeSeasonId}/matches`, matchId);
+    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
     const originalMatch = matches?.find(m => m.id === matchId);
     if (!originalMatch) return;
     

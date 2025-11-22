@@ -25,8 +25,18 @@ const NOTICE_ID = 'main';
 const ADMIN_PASSWORD = 'Office88';
 
 const DEFAULT_NOTICE: Notice = {
-  rules: [],
-  schedule: ""
+  rules: [
+    "Perbulan /Permusim Liga bayar Rp.10.000 ( Uang untuk beli Stick PS - Bukan Hadiah Liga )",
+    "Durasi Liga Sebulan ( 30 hari )",
+    "Start tgl 28 Finish tgl 28",
+    "Sistem Home - Away",
+    "Permusim hanya 1Team",
+    "Menang 3point",
+    "Seri 1point",
+    "Kalah 0 point",
+    "Jadwal pertandingan bisa di atur sendiri (Situasional)"
+  ],
+  schedule: "⚽Pertandingan setiap hari mulai jam 18:00 - Selesai. Sabtu mulai jam 13:00 - Selesai, Minggu Situasional. Pemain Shift2 Lepas Seragam & PM dan SPK selesaikan dulu (Situasional)⚽"
 };
 
 export function EditableNotice() {
@@ -41,46 +51,33 @@ export function EditableNotice() {
   const { data: noticeData, isLoading } = useDoc<Notice>(noticeRef);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editableNotice, setEditableNotice] = useState<Notice | null>(null);
+  const [editableNotice, setEditableNotice] = useState<Notice | null>(noticeData);
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // This effect now correctly handles the asynchronous nature of fetching data
-    // and ensures the default notice is only created when absolutely necessary.
-    if (isLoading) {
-      // If we are still loading, do nothing and wait for the data.
-      return;
+    // When loading is finished, check the result
+    if (!isLoading) {
+      if (noticeData) {
+        // If data is loaded, update the editable state
+        setEditableNotice(noticeData);
+      } else if (firestore) {
+        // If no data and firestore is available, this means the doc doesn't exist.
+        // We create it with the default content.
+        const docRef = doc(firestore, 'notices', NOTICE_ID);
+        setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
+        setEditableNotice(DEFAULT_NOTICE); // Also set the local state immediately
+      }
     }
-
-    if (!isInitialized) {
-        if (noticeData) {
-            // If data has been successfully loaded from Firestore, use it.
-            setEditableNotice(noticeData);
-        } else if (firestore) {
-            // If loading is finished and there is no data, it means the document
-            // does not exist in Firestore. We should create it now with the default content.
-            const docRef = doc(firestore, 'notices', NOTICE_ID);
-            // Use setDoc with merge:true to safely create the document without overwriting if it was created in a race condition.
-            setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
-            // Also, set the local state to the default so the UI updates instantly.
-            setEditableNotice(DEFAULT_NOTICE);
-        }
-        setIsInitialized(true);
-    }
-  }, [noticeData, isLoading, firestore, isInitialized]);
+  }, [noticeData, isLoading, firestore]);
   
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
         setIsEditing(true);
         setPasswordPromptOpen(false);
         setPasswordInput('');
-        if (noticeData) {
-            setEditableNotice(noticeData); // Ensure we're editing the latest saved data
-        } else {
-            setEditableNotice(DEFAULT_NOTICE);
-        }
+        // When entering edit mode, ensure we're editing the latest data
+        setEditableNotice(noticeData ?? DEFAULT_NOTICE);
     } else {
         toast({
             variant: "destructive",
@@ -129,14 +126,10 @@ export function EditableNotice() {
   const handleCancel = () => {
     setIsEditing(false);
     // Revert to the last saved data from Firestore
-    if (noticeData) {
-        setEditableNotice(noticeData);
-    } else {
-        setEditableNotice(DEFAULT_NOTICE);
-    }
+    setEditableNotice(noticeData ?? DEFAULT_NOTICE);
   }
 
-  if (!isInitialized || !editableNotice) {
+  if (isLoading || !editableNotice) {
     return <NoticeSkeleton />;
   }
 
