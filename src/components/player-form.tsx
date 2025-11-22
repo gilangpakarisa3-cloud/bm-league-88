@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Combobox } from './ui/combobox';
 import type { Player, Team, WithId, League, LeagueEntry } from '@/lib/types';
-import { useCollection, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
 import React from 'react';
@@ -175,8 +175,19 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
 
     } else {
       // --- Add New Player Flow ---
-      const playersRef = collection(firestore, 'players');
-      addDocumentNonBlocking(playersRef, playerData);
+      const playerId = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      if (!playerId) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Name",
+          description: "Player name cannot be converted to a valid ID. Please use alphanumeric characters.",
+        });
+        return;
+      }
+      
+      const playerRef = doc(firestore, 'players', playerId);
+      setDocumentNonBlocking(playerRef, playerData, { merge: false });
+
       toast({
         title: `Player added!`,
         description: `${data.name} has been successfully added.`,
@@ -196,7 +207,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
             <FormItem>
               <FormLabel>Player Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Andi 'The Ace'" {...field} />
+                <Input placeholder="e.g., Andi 'The Ace'" {...field} disabled={!!player} />
               </FormControl>
               <FormMessage />
             </FormItem>

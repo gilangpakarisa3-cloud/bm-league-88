@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Team, WithId } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
 import { collection, doc } from 'firebase/firestore';
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -47,8 +47,6 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
   const onSubmit = (data: TeamFormValues) => {
     if (!firestore) return;
     
-    // For now, we'll use a placeholder for the logo.
-    // In a real app, you might have an image upload or selection.
     const logoId = `team-logo-${data.name.toLowerCase().replace(/\s+/g, '-')}`;
     const logoUrl = `https://picsum.photos/seed/${logoId}/128/128`;
     
@@ -67,9 +65,20 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
       });
 
     } else {
-      // Add new team
-      const teamsRef = collection(firestore, 'teams');
-      addDocumentNonBlocking(teamsRef, teamData);
+      // Add new team with a human-readable ID
+      const teamId = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      if (!teamId) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Name",
+          description: "Team name cannot be converted to a valid ID. Please use alphanumeric characters.",
+        });
+        return;
+      }
+
+      const teamRef = doc(firestore, 'teams', teamId);
+      setDocumentNonBlocking(teamRef, teamData, { merge: false });
+
       toast({
         title: `Team added!`,
         description: `${data.name} has been successfully added.`,
@@ -89,7 +98,7 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
             <FormItem>
               <FormLabel>Team Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., The All-Stars" {...field} />
+                <Input placeholder="e.g., The All-Stars" {...field} disabled={!!team} />
               </FormControl>
               <FormMessage />
             </FormItem>
