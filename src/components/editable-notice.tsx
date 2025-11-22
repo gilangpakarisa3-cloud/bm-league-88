@@ -50,18 +50,24 @@ export function EditableNotice() {
   const { data: noticeData, isLoading } = useDoc<Notice>(noticeRef);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editableNotice, setEditableNotice] = useState<Notice>(DEFAULT_NOTICE);
+  const [editableNotice, setEditableNotice] = useState<Notice | null>(null);
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
-    if (noticeData) {
-      setEditableNotice(noticeData);
-    } else if (!isLoading) {
-      // If doc doesn't exist, set it with default values
-      if (firestore) {
-         const docRef = doc(firestore, 'notices', NOTICE_ID);
-         setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: false });
+    // If loading is finished...
+    if (!isLoading) {
+      // If data exists, set it as the editable notice
+      if (noticeData) {
+        setEditableNotice(noticeData);
+      } else {
+        // If no data, and we are not loading, then the document truly doesn't exist.
+        // Set state to default, and create the doc in firestore.
+        setEditableNotice(DEFAULT_NOTICE);
+        if (firestore) {
+          const docRef = doc(firestore, 'notices', NOTICE_ID);
+          setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: false });
+        }
       }
     }
   }, [noticeData, isLoading, firestore]);
@@ -80,7 +86,7 @@ export function EditableNotice() {
   };
   
   const handleSave = () => {
-    if (!firestore) return;
+    if (!firestore || !editableNotice) return;
     const docRef = doc(firestore, 'notices', NOTICE_ID);
     // Filter out any empty rules before saving
     const noticeToSave = {
@@ -96,25 +102,27 @@ export function EditableNotice() {
   };
 
   const handleRuleChange = (index: number, value: string) => {
+    if (!editableNotice) return;
     const newRules = [...editableNotice.rules];
     newRules[index] = value;
-    setEditableNotice(prev => ({ ...prev, rules: newRules }));
+    setEditableNotice(prev => prev ? ({ ...prev, rules: newRules }) : null);
   };
 
   const handleAddRule = () => {
-    setEditableNotice(prev => ({ ...prev, rules: [...prev.rules, ''] }));
+    setEditableNotice(prev => prev ? ({ ...prev, rules: [...prev.rules, ''] }) : null);
   }
 
   const handleRemoveRule = (index: number) => {
+    if (!editableNotice) return;
     const newRules = editableNotice.rules.filter((_, i) => i !== index);
-    setEditableNotice(prev => ({ ...prev, rules: newRules }));
+    setEditableNotice(prev => prev ? ({ ...prev, rules: newRules }) : null);
   }
 
   const handleScheduleChange = (value: string) => {
-    setEditableNotice(prev => ({ ...prev, schedule: value }));
+    setEditableNotice(prev => prev ? ({ ...prev, schedule: value }) : null);
   };
 
-  if (isLoading) {
+  if (isLoading || !editableNotice) {
     return <NoticeSkeleton />;
   }
 
