@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp } from 'firebase/firestore';
 import type { Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
@@ -118,15 +119,14 @@ const FixtureContent = memo(function FixtureContent({
     const playedMatches = matchesWithPlayers.filter(m => m.isCompleted);
     const hasFixtures = (matches || []).length > 0;
 
-    const MatchList = ({ title, matchList }: { title: string, matchList: (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[] }) => (
-        <div>
-           <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">{title} ({matchList.length})</h2>
+    const MatchList = ({ matchList }: { matchList: (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[] }) => (
+        <>
            {matchList.length === 0 ? (
-             <div className="border rounded-lg p-8 text-center bg-card">
+             <div className="border rounded-lg p-8 text-center bg-card mt-4">
                  <h2 className="text-xl font-medium text-muted-foreground">{searchTerm ? t('no_matches_found') : t('no_matches_in_category')}</h2>
              </div>
            ) : (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
                {matchList.map(match => {
                    const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
                    const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
@@ -191,7 +191,7 @@ const FixtureContent = memo(function FixtureContent({
                })}
              </div>
            )}
-        </div>
+        </>
      );
 
     const isLoading = isLoadingSeason || isLoadingMatches || isLoadingPlayers || isLoadingTeams;
@@ -211,10 +211,18 @@ const FixtureContent = memo(function FixtureContent({
             {isLoading ? (
                 <p>{t('loading_fixtures')}</p>
             ) : hasFixtures ? (
-                 <div className="space-y-12">
-                    <MatchList title={t('remaining_matches')} matchList={unplayedMatches} />
-                    <MatchList title={t('completed_matches')} matchList={playedMatches} />
-                </div>
+                <Tabs defaultValue="remaining">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="remaining">{t('remaining_matches')} ({unplayedMatches.length})</TabsTrigger>
+                        <TabsTrigger value="completed">{t('completed_matches')} ({playedMatches.length})</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="remaining">
+                        <MatchList matchList={unplayedMatches} />
+                    </TabsContent>
+                    <TabsContent value="completed">
+                        <MatchList matchList={playedMatches} />
+                    </TabsContent>
+                </Tabs>
             ) : (
                 <div className="border rounded-lg p-8 text-center bg-card">
                   <h2 className="text-xl font-medium text-muted-foreground">{t('no_fixtures_generated_title')}</h2>
