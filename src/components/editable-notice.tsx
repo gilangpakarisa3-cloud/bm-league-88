@@ -55,29 +55,21 @@ export function EditableNotice() {
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
-    // This effect now correctly handles the asynchronous nature of fetching data.
-    
-    // If we have finished loading and there is data, update our local state.
-    if (!isLoading && noticeData) {
+    // If loading is finished, decide what to display.
+    if (!isLoading) {
+      if (noticeData) {
+        // If data exists, use it.
         setEditableNotice(noticeData);
-        return;
-    }
-
-    // If we have finished loading, there is NO data, and firestore is available,
-    // it means the document does not exist. We should create it with the default values.
-    if (!isLoading && !noticeData && firestore) {
-        setEditableNotice(DEFAULT_NOTICE);
+      } else if (firestore) {
+        // If data does NOT exist and Firestore is available, it means
+        // the document is missing. Create it with default data.
         const docRef = doc(firestore, 'notices', NOTICE_ID);
-        // Use `set` with `merge: true` to safely create the document without overwriting
-        // if another client creates it at the same time. This is a create-only operation in this logic path.
         setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
-        return;
+        setEditableNotice(DEFAULT_NOTICE);
+      }
     }
-
-    // While loading, we do nothing and wait for the data to arrive.
-    // This prevents the component from thinking the data is missing and resetting it.
-
-}, [noticeData, isLoading, firestore]);
+     // This effect should only run when loading state changes or when new data arrives.
+  }, [noticeData, isLoading, firestore]);
   
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
