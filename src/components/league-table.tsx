@@ -52,13 +52,13 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                 <span className="hidden sm:inline">{t('rank')}</span>
               </TableHead>
               <TableHead className="text-left font-bold text-primary">{t('player')}</TableHead>
-              <TableHead className="text-center font-bold text-accent">{t('played')}</TableHead>
-              <TableHead className="hidden sm:table-cell text-center font-bold text-accent">{t('w')}</TableHead>
-              <TableHead className="hidden sm:table-cell text-center font-bold text-accent">{t('d')}</TableHead>
-              <TableHead className="hidden sm:table-cell text-center font-bold text-accent">{t('l')}</TableHead>
-              <TableHead className="hidden md:table-cell text-center font-bold text-accent">{t('gf')}</TableHead>
-              <TableHead className="hidden md:table-cell text-center font-bold text-accent">{t('ga')}</TableHead>
-              <TableHead className="text-center font-bold text-accent">{t('gd')}</TableHead>
+              <TableHead className="text-center font-bold text-primary">{t('played')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center font-bold text-green-400">{t('w')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center font-bold text-yellow-400">{t('d')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center font-bold text-red-400">{t('l')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gf')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('ga')}</TableHead>
+              <TableHead className="text-center font-bold text-primary">{t('gd')}</TableHead>
               <TableHead className="text-center font-bold text-primary">{t('pts')}</TableHead>
               {canRemovePlayer && <TableHead className="text-right font-bold text-accent">{t('actions')}</TableHead>}
             </TableRow>
@@ -77,7 +77,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                 >
                   <TableCell className={cn(
                     "text-center font-bold text-lg",
-                    isFirst ? "text-yellow-400 text-xl" : "text-accent"
+                    isFirst ? "text-yellow-400 text-xl" : "text-foreground"
                     )}>
                     {entry.rank}
                   </TableCell>
