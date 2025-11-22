@@ -306,7 +306,7 @@ function BottomPlayersTable() {
           </TableHeader>
           <TableBody>
               {bottomTable.map((entry) => (
-              <TableRow key={entry.id} className="bg-destructive/10">
+              <TableRow key={entry.id} className="bg-destructive/10 hover:bg-destructive/20">
                   <TableCell className="font-bold text-lg pl-4 text-destructive">{entry.rank}</TableCell>
                   <TableCell>
                   <div className="flex items-center gap-3">
@@ -369,3 +369,4 @@ export default function Home() {
     
 
     
+
