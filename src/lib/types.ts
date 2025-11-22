@@ -60,5 +60,3 @@ export type Notice = {
   rules: string[];
   schedule: string;
 };
-
-    

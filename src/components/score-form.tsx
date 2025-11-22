@@ -18,10 +18,14 @@ import type { Match, Player, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
+import { format } from "date-fns";
+
+const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 const formSchema = z.object({
   score1: z.coerce.number().min(0, "Score must be positive."),
   score2: z.coerce.number().min(0, "Score must be positive."),
+  time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
 });
 
 type ScoreFormValues = z.infer<typeof formSchema>;
@@ -41,6 +45,7 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
   const formSchemaTranslated = z.object({
     score1: z.coerce.number().min(0, t('score_positive_error')),
     score2: z.coerce.number().min(0, t('score_positive_error')),
+    time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
   });
 
   const form = useForm<ScoreFormValues>({
@@ -48,6 +53,7 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
     defaultValues: {
       score1: match.player1Score ?? 0,
       score2: match.player2Score ?? 0,
+      time: match.matchDate ? format(match.matchDate.toDate(), 'HH:mm') : '00:00',
     },
   });
 
@@ -94,6 +100,19 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
             )}
           />
         </div>
+         <FormField
+          control={form.control}
+          name="time"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Match Time (HH:MM)</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="flex justify-end gap-2">
             <Button type="submit">{t('save_score')}</Button>
         </div>

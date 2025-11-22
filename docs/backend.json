@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -159,8 +160,13 @@
         },
         "matchDate": {
           "type": "string",
-          "description": "The date and time of the match.",
+          "description": "The date of the match.",
           "format": "date-time"
+        },
+        "matchTime": {
+          "type": "string",
+          "description": "The time of the match.",
+          "format": "time"
         },
         "isCompleted": {
           "type": "boolean",
@@ -337,5 +343,3 @@
     ]
   }
 }
-
-    

@@ -20,15 +20,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch, query, getDocs, where, runTransaction } from 'firebase/firestore';
+import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp } from 'firebase/firestore';
 import type { Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ScoreForm } from '@/components/score-form';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -131,6 +133,11 @@ const FixtureContent = memo(function FixtureContent({
    
                    return (
                      <Card key={match.id} className="flex flex-col">
+                       <CardHeader className="p-4 pb-2">
+                           <p className="text-xs text-muted-foreground text-center font-medium">
+                               {match.matchDate ? format(match.matchDate.toDate(), 'eeee, d MMMM yyyy - HH:mm', { locale: id }) : 'Date not set'}
+                           </p>
+                       </CardHeader>
                        <CardContent className="flex-grow flex items-center justify-around p-4">
                          <div className="flex flex-col items-center gap-2 w-2/5 text-center">
                            <Avatar className="h-10 w-10">
@@ -225,7 +232,9 @@ const AdminControls = memo(function AdminControls({
   seasons,
   leagueTable,
   onSeasonChange,
-  onGenerateFixtures
+  onGenerateFixtures,
+  isAdmin,
+  setIsAdmin
 }: {
   activeSeasonId: string | null;
   activeSeason: WithId<Season> | null;
@@ -235,8 +244,9 @@ const AdminControls = memo(function AdminControls({
   leagueTable: WithId<LeagueEntry>[] | null;
   onSeasonChange: (id: string) => void;
   onGenerateFixtures: () => void;
+  isAdmin: boolean;
+  setIsAdmin: (isAdmin: boolean) => void;
 }) {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void }>({ open: false });
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();
@@ -331,7 +341,7 @@ export default function FixturesPage() {
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false); // This state will now be derived or passed down
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -406,7 +416,7 @@ export default function FixturesPage() {
                 player1Id: player1Entry.playerId,
                 player2Id: player2Entry.playerId,
                 isCompleted: false,
-                matchDate: activeSeason.createdAt, // Placeholder date, can be updated later
+                matchDate: activeSeason.startDate || activeSeason.createdAt, // Use start date if available
             };
             const matchRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`));
             batch.set(matchRef, matchData);
@@ -423,7 +433,7 @@ export default function FixturesPage() {
   }, [firestore, activeSeasonId, leagueTable, activeSeason, t, toast]);
 
 
-  const handleUpdateScore = async (matchId: string, scores: { score1: number, score2: number }) => {
+  const handleUpdateScore = async (matchId: string, scores: { score1: number, score2: number, time: string }) => {
     if (!firestore || !activeSeasonId) return;
 
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
@@ -432,6 +442,11 @@ export default function FixturesPage() {
     
     const wasCompleted = originalMatch.isCompleted;
     const oldScores = { p1: originalMatch.player1Score ?? 0, p2: originalMatch.player2Score ?? 0 };
+
+    const [hours, minutes] = scores.time.split(':').map(Number);
+    const newDate = originalMatch.matchDate.toDate();
+    newDate.setHours(hours, minutes);
+    const newTimestamp = Timestamp.fromDate(newDate);
 
     try {
         await runTransaction(firestore, async (transaction) => {
@@ -510,6 +525,7 @@ export default function FixturesPage() {
             transaction.update(matchRef, { 
                 player1Score: scores.score1, 
                 player2Score: scores.score2,
+                matchDate: newTimestamp,
                 isCompleted: true
             });
         });
@@ -525,17 +541,7 @@ export default function FixturesPage() {
   };
 
   const handleEditMatch = (match: WithId<Match>) => {
-    // This logic might need to be adjusted based on where Admin state is managed
-    // For now, assuming `withAdminCheck` lives in the parent and can trigger the dialog
-    // This is a simplified approach; a more robust solution might use context
-     const checkAndSet = () => setEditingMatch(match);
-     if (isAdmin) { // A local isAdmin state would be needed here, or passed from AdminControls
-       checkAndSet();
-     } else {
-       // Need a way to trigger password prompt from here
-       // This highlights the complexity of cross-component state management
-       toast({variant: 'destructive', title: 'Admin access required'});
-     }
+    setEditingMatch(match)
   };
 
   return (
@@ -556,13 +562,15 @@ export default function FixturesPage() {
                   leagueTable={leagueTable}
                   onSeasonChange={setActiveSeasonId}
                   onGenerateFixtures={handleGenerateFixtures}
+                  isAdmin={isAdmin}
+                  setIsAdmin={setIsAdmin}
                 />
             </div>
             
             <FixtureContent 
                 activeSeasonId={activeSeasonId}
-                onEditMatch={(match) => setEditingMatch(match)}
-                isAdmin={true} // Simplified for now
+                onEditMatch={handleEditMatch}
+                isAdmin={isAdmin}
             />
 
         </div>
@@ -587,5 +595,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
