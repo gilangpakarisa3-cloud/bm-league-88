@@ -47,11 +47,11 @@ export function VantaBackground() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0x64ffda,      // Electric Blue (Accent)
+        color: 0xccfd01,      // Vibrant Yellow (Primary Theme Color)
         backgroundColor: 0x172a45, // Very Dark Gray (Background)
-        points: 12.00,
-        maxDistance: 22.00,
-        spacing: 18.00
+        points: 10.00,
+        maxDistance: 20.00,
+        spacing: 15.00
       }))
     }
     // Cleanup function to destroy the effect when the component unmounts
