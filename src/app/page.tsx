@@ -14,6 +14,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 
 const LEAGUE_ID = 'main-league';
@@ -160,8 +161,8 @@ function TopPlayersTable() {
             </TableHeader>
             <TableBody>
                 {sortedTable.map((entry) => (
-                <TableRow key={entry.id}>
-                    <TableCell className="font-bold text-lg pl-4">{entry.rank}</TableCell>
+                <TableRow key={entry.id} className={cn(entry.rank === 1 && "bg-yellow-400/10 hover:bg-yellow-400/20")}>
+                    <TableCell className={cn("font-bold text-lg pl-4", entry.rank === 1 && "text-yellow-400")}>{entry.rank}</TableCell>
                     <TableCell>
                     <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
