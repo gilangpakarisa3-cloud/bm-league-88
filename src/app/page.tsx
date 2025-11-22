@@ -352,7 +352,7 @@ export default function Home() {
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="flex flex-col">
-             <h2 className="text-xl font-bold mb-4 text-primary flex items-center gap-2"><Trophy className="w-5 h-5"/>{t('home_top_players')}</h2>
+             <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2"><Trophy className="w-5 h-5"/>{t('home_top_players')}</h2>
             <Card className="border-2 border-primary shadow-lg shadow-primary/20">
                 <TopPlayersTable />
             </Card>
