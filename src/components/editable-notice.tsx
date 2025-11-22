@@ -44,35 +44,43 @@ export function EditableNotice() {
   const [editableNotice, setEditableNotice] = useState<Notice | null>(null);
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     // This effect now correctly handles the asynchronous nature of fetching data
     // and ensures the default notice is only created when absolutely necessary.
-
     if (isLoading) {
       // If we are still loading, do nothing and wait for the data.
       return;
     }
 
-    if (noticeData) {
-      // If data has been successfully loaded from Firestore, use it.
-      setEditableNotice(noticeData);
-    } else if (firestore) {
-      // If loading is finished and there is no data, it means the document
-      // does not exist in Firestore. We should create it now with the default content.
-      const docRef = doc(firestore, 'notices', NOTICE_ID);
-      // Use setDoc with merge:true to safely create the document without overwriting if it was created in a race condition.
-      setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
-      // Also, set the local state to the default so the UI updates instantly.
-      setEditableNotice(DEFAULT_NOTICE);
+    if (!isInitialized) {
+        if (noticeData) {
+            // If data has been successfully loaded from Firestore, use it.
+            setEditableNotice(noticeData);
+        } else if (firestore) {
+            // If loading is finished and there is no data, it means the document
+            // does not exist in Firestore. We should create it now with the default content.
+            const docRef = doc(firestore, 'notices', NOTICE_ID);
+            // Use setDoc with merge:true to safely create the document without overwriting if it was created in a race condition.
+            setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
+            // Also, set the local state to the default so the UI updates instantly.
+            setEditableNotice(DEFAULT_NOTICE);
+        }
+        setIsInitialized(true);
     }
-  }, [noticeData, isLoading, firestore]);
+  }, [noticeData, isLoading, firestore, isInitialized]);
   
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
         setIsEditing(true);
         setPasswordPromptOpen(false);
         setPasswordInput('');
+        if (noticeData) {
+            setEditableNotice(noticeData); // Ensure we're editing the latest saved data
+        } else {
+            setEditableNotice(DEFAULT_NOTICE);
+        }
     } else {
         toast({
             variant: "destructive",
@@ -118,7 +126,17 @@ export function EditableNotice() {
     setEditableNotice(prev => prev ? ({ ...prev, schedule: value }) : null);
   };
 
-  if (isLoading || !editableNotice) {
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Revert to the last saved data from Firestore
+    if (noticeData) {
+        setEditableNotice(noticeData);
+    } else {
+        setEditableNotice(DEFAULT_NOTICE);
+    }
+  }
+
+  if (!isInitialized || !editableNotice) {
     return <NoticeSkeleton />;
   }
 
@@ -128,7 +146,7 @@ export function EditableNotice() {
         <div className="absolute top-2 right-2">
           {isEditing ? (
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); if(noticeData) setEditableNotice(noticeData)}}>
+              <Button variant="outline" size="sm" onClick={handleCancel}>
                 <X className="mr-2 h-4 w-4" /> Cancel
               </Button>
               <Button size="sm" onClick={handleSave}>
@@ -157,6 +175,7 @@ export function EditableNotice() {
                                   value={rule}
                                   onChange={(e) => handleRuleChange(index, e.target.value)}
                                   className="flex-grow"
+                                  placeholder="Enter a rule..."
                               />
                               <Button variant="ghost" size="icon" onClick={() => handleRemoveRule(index)}>
                                   <Trash2 className="h-4 w-4 text-destructive" />
@@ -172,17 +191,22 @@ export function EditableNotice() {
                   onChange={(e) => handleScheduleChange(e.target.value)}
                   className="text-center bg-muted/20"
                   rows={4}
+                  placeholder="Enter schedule information..."
                 />
               </div>
             ) : (
               <>
-                <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6">
-                  {editableNotice.rules.map((rule, index) => (
-                    <li key={index}>{rule}</li>
-                  ))}
+                <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6 min-h-[50px]">
+                  {noticeData?.rules && noticeData.rules.length > 0 ? (
+                    noticeData.rules.map((rule, index) => (
+                      <li key={index}>{rule}</li>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground italic list-none">No rules have been added.</p>
+                  )}
                 </ul>
-                <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground">
-                  {editableNotice.schedule}
+                <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground min-h-[50px]">
+                  {noticeData?.schedule ? noticeData.schedule : <p className="italic">No schedule has been set.</p>}
                 </div>
               </>
             )}
