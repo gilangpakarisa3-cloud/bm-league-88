@@ -1,18 +1,27 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import type { Notice, WithId } from '@/lib/types';
+import { doc } from 'firebase/firestore';
+import type { Notice } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Pencil, Save, Info, X, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Save, Info, X, Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from './ui/skeleton';
 import { Input } from './ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { Label } from './ui/label';
 
 const NOTICE_ID = 'main';
+const ADMIN_PASSWORD = 'Office88';
 
 const DEFAULT_NOTICE: Notice = {
   rules: [
@@ -42,6 +51,8 @@ export function EditableNotice() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editableNotice, setEditableNotice] = useState<Notice>(DEFAULT_NOTICE);
+  const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
     if (noticeData) {
@@ -54,6 +65,19 @@ export function EditableNotice() {
       }
     }
   }, [noticeData, isLoading, firestore]);
+  
+  const handlePasswordCheck = () => {
+    if (passwordInput === ADMIN_PASSWORD) {
+        setIsEditing(true);
+        setPasswordPromptOpen(false);
+        setPasswordInput('');
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Incorrect Password",
+        });
+    }
+  };
   
   const handleSave = () => {
     if (!firestore) return;
@@ -95,71 +119,99 @@ export function EditableNotice() {
   }
 
   return (
-    <div className="bg-card border rounded-lg overflow-hidden relative">
-      <div className="absolute top-2 right-2">
-        {isEditing ? (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); if(noticeData) setEditableNotice(noticeData)}}>
-              <X className="mr-2 h-4 w-4" /> Cancel
-            </Button>
-            <Button size="sm" onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" /> Save
-            </Button>
-          </div>
-        ) : (
-          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-            <Pencil className="mr-2 h-4 w-4" /> Edit Notice
-          </Button>
-        )}
-      </div>
-      <div className="grid md:grid-cols-[200px_1fr]">
-        <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
-          <Info className="w-10 h-10 text-primary" />
-          <h2 className="text-xl font-bold text-primary">Notice</h2>
-        </div>
-        <div className="p-6">
+    <>
+      <div className="bg-card border rounded-lg overflow-hidden relative">
+        <div className="absolute top-2 right-2">
           {isEditing ? (
-            <div className="space-y-4">
-                 <div className="space-y-2">
-                    {editableNotice.rules.map((rule, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                            <Input
-                                type="text"
-                                value={rule}
-                                onChange={(e) => handleRuleChange(index, e.target.value)}
-                                className="flex-grow"
-                            />
-                             <Button variant="ghost" size="icon" onClick={() => handleRemoveRule(index)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                        </div>
-                    ))}
-                    <Button variant="outline" size="sm" onClick={handleAddRule}>
-                        <Plus className="mr-2 h-4 w-4"/> Add Rule
-                    </Button>
-                </div>
-              <Textarea
-                value={editableNotice.schedule}
-                onChange={(e) => handleScheduleChange(e.target.value)}
-                className="text-center bg-muted/20"
-                rows={4}
-              />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); if(noticeData) setEditableNotice(noticeData)}}>
+                <X className="mr-2 h-4 w-4" /> Cancel
+              </Button>
+              <Button size="sm" onClick={handleSave}>
+                <Save className="mr-2 h-4 w-4" /> Save
+              </Button>
             </div>
           ) : (
-            <>
-              <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6">
-                {editableNotice.rules.map((rule, index) => (
-                  <li key={index}>{rule}</li>
-                ))}
-              </ul>
-              <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground">
-                {editableNotice.schedule}
-              </div>
-            </>
+            <Button variant="outline" size="sm" onClick={() => setPasswordPromptOpen(true)}>
+              <Pencil className="mr-2 h-4 w-4" /> Edit Notice
+            </Button>
           )}
         </div>
+        <div className="grid md:grid-cols-[200px_1fr]">
+          <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
+            <Info className="w-10 h-10 text-primary" />
+            <h2 className="text-xl font-bold text-primary">Notice</h2>
+          </div>
+          <div className="p-6">
+            {isEditing ? (
+              <div className="space-y-4">
+                  <div className="space-y-2">
+                      {editableNotice.rules.map((rule, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                              <Input
+                                  type="text"
+                                  value={rule}
+                                  onChange={(e) => handleRuleChange(index, e.target.value)}
+                                  className="flex-grow"
+                              />
+                              <Button variant="ghost" size="icon" onClick={() => handleRemoveRule(index)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                          </div>
+                      ))}
+                      <Button variant="outline" size="sm" onClick={handleAddRule}>
+                          <Plus className="mr-2 h-4 w-4"/> Add Rule
+                      </Button>
+                  </div>
+                <Textarea
+                  value={editableNotice.schedule}
+                  onChange={(e) => handleScheduleChange(e.target.value)}
+                  className="text-center bg-muted/20"
+                  rows={4}
+                />
+              </div>
+            ) : (
+              <>
+                <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6">
+                  {editableNotice.rules.map((rule, index) => (
+                    <li key={index}>{rule}</li>
+                  ))}
+                </ul>
+                <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground">
+                  {editableNotice.schedule}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+      <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Admin Authentication</DialogTitle>
+                <DialogDescription>Please enter the admin password to edit the notice.</DialogDescription>
+            </DialogHeader>
+             <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password-input" className="text-right">
+                  Password
+                </Label>
+                <Input
+                  id="password-input"
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="col-span-3"
+                  onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handlePasswordCheck}>Submit</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -183,4 +235,3 @@ function NoticeSkeleton() {
     </div>
   );
 }
-    

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -32,9 +31,11 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
+  isAdmin: boolean;
+  withAdminCheck: (action: () => void) => void;
 }
 
-export function PlayerList({ onEdit }: PlayerListProps) {
+export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps) {
   const { toast } = useToast();
   const [deletingPlayer, setDeletingPlayer] = useState<WithId<Player> | null>(null);
   const firestore = useFirestore();
@@ -75,6 +76,12 @@ export function PlayerList({ onEdit }: PlayerListProps) {
     });
     setDeletingPlayer(null);
   };
+  
+  const confirmDelete = (player: WithId<Player>) => {
+    withAdminCheck(() => {
+        setDeletingPlayer(player)
+    });
+  }
 
   const isLoading = isLoadingPlayers || isLoadingTeams;
 
@@ -137,7 +144,7 @@ export function PlayerList({ onEdit }: PlayerListProps) {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="min-w-[200px]">Player</TableHead>
                 <TableHead>Team</TableHead>
-                <TableHead className="text-right pr-4">Actions</TableHead>
+                {isAdmin && <TableHead className="text-right pr-4">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,16 +170,18 @@ export function PlayerList({ onEdit }: PlayerListProps) {
                         <div className="text-sm sm:text-base text-muted-foreground">{team?.name}</div>
                         </div>
                     </TableCell>
-                    <TableCell className="text-right pr-4">
-                        <Button variant="ghost" size="icon" onClick={() => onEdit(player)}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit Player</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setDeletingPlayer(player)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                            <span className="sr-only">Delete Player</span>
-                        </Button>
-                    </TableCell>
+                    {isAdmin && (
+                        <TableCell className="text-right pr-4">
+                            <Button variant="ghost" size="icon" onClick={() => onEdit(player)}>
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit Player</span>
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(player)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <span className="sr-only">Delete Player</span>
+                            </Button>
+                        </TableCell>
+                    )}
                     </TableRow>
                 )
               })}

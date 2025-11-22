@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, RefreshCw, Search } from 'lucide-react';
+import { Pencil, RefreshCw, Search, Lock, Unlock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction } from 'firebase/firestore';
 import type { Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -32,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
+const ADMIN_PASSWORD = 'Office88';
 
 
 export default function FixturesPage() {
@@ -40,9 +40,10 @@ export default function FixturesPage() {
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
-  const [passwordProtectedMatch, setPasswordProtectedMatch] = useState<WithId<Match> | null>(null);
+  const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void, match?: WithId<Match>}>({ open: false });
   const [passwordInput, setPasswordInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -159,7 +160,7 @@ export default function FixturesPage() {
   const handleUpdateScore = async (matchId: string, scores: { score1: number, score2: number }) => {
     if (!firestore || !activeSeasonId) return;
 
-    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
+    const matchRef = doc(firestore, `leagues/${LE1_ID}/seasons/${activeSeasonId}/matches`, matchId);
     const originalMatch = matches?.find(m => m.id === matchId);
     if (!originalMatch) return;
     
@@ -258,26 +259,31 @@ export default function FixturesPage() {
   };
 
   const handlePasswordCheck = () => {
-    if (passwordInput === 'Office88') {
-      if (passwordProtectedMatch) {
-        setEditingMatch(passwordProtectedMatch);
+    if (passwordInput === ADMIN_PASSWORD) {
+      if (passwordPrompt.action) {
+        passwordPrompt.action();
+      } else if(passwordPrompt.match) {
+        setEditingMatch(passwordPrompt.match);
       }
-      setPasswordProtectedMatch(null);
-      setPasswordInput('');
+       if (!isAdmin) setIsAdmin(true); // Persist admin state for the session
+      toast({ title: 'Admin Mode Unlocked', description: 'You can now perform administrative actions.' });
     } else {
       toast({
         variant: 'destructive',
         title: 'Incorrect Password',
-        description: 'You do not have permission to edit a completed match.',
+        description: 'You do not have permission to perform this action.',
       });
     }
+    setPasswordPrompt({ open: false });
+    setPasswordInput('');
   };
 
-  const handleMatchClick = (match: WithId<Match>) => {
-    if (match.isCompleted) {
-      setPasswordProtectedMatch(match);
+  const withAdminCheck = (action: () => void, match?: WithId<Match>) => {
+    if (isAdmin) {
+       if (match) setEditingMatch(match)
+       else action();
     } else {
-      setEditingMatch(match);
+       setPasswordPrompt({ open: true, action: match ? undefined : action, match: match });
     }
   };
   
@@ -358,8 +364,8 @@ export default function FixturesPage() {
                        <Button
                         variant={match.isCompleted ? 'outline' : 'default'}
                         className="w-full"
-                        onClick={() => handleMatchClick(match)}
-                        disabled={activeSeason?.status !== 'In Progress'}
+                        onClick={() => withAdminCheck(() => {}, match)}
+                        disabled={!isAdmin && activeSeason?.status !== 'In Progress'}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
                         {match.isCompleted ? 'Edit Score' : 'Update Score'}
@@ -395,9 +401,13 @@ export default function FixturesPage() {
                             ))}
                         </SelectContent>
                     </Select>
-                     <Button onClick={handleGenerateFixtures} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
+                     <Button onClick={() => withAdminCheck(handleGenerateFixtures)} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
                         <RefreshCw className="mr-2 h-4 w-4" />
                         {hasFixtures ? 'Re-generate Fixtures' : 'Generate Fixtures'}
+                    </Button>
+                     <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
+                        {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+                        {isAdmin ? 'Lock Admin Mode' : 'Unlock Admin'}
                     </Button>
                 </div>
             </div>
@@ -427,12 +437,12 @@ export default function FixturesPage() {
         </div>
 
         {/* Password Dialog */}
-        <Dialog open={!!passwordProtectedMatch} onOpenChange={(isOpen) => !isOpen && setPasswordProtectedMatch(null)}>
+        <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({open: false})}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Admin Authentication Required</DialogTitle>
               <DialogDescription>
-                You are trying to edit a completed match. Please enter the admin password to continue.
+                Please enter the admin password to continue.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -472,8 +482,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
-
-    
-

@@ -1,15 +1,15 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, Copy, CalendarIcon } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -46,12 +46,16 @@ import { Label } from '@/components/ui/label';
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
+const ADMIN_PASSWORD = 'Office88';
 
 export default function LeaguePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void }>({ open: false });
+  const [passwordInput, setPasswordInput] = useState('');
   const [showCreateSeason, setShowCreateSeason] = useState(false);
   const [showRegisterPlayers, setShowRegisterPlayers] = useState(false);
   const [newSeasonName, setNewSeasonName] = useState('');
@@ -156,6 +160,28 @@ export default function LeaguePage() {
     }
   }, [seasons, activeSeasonId]);
 
+  // --- Password & Admin Logic ---
+  const handlePasswordCheck = () => {
+    if (passwordInput === ADMIN_PASSWORD) {
+        setIsAdmin(true);
+        if (passwordPrompt.action) {
+            passwordPrompt.action();
+        }
+        toast({ title: 'Admin Mode Unlocked', description: 'You can now perform administrative actions.' });
+    } else {
+        toast({ variant: 'destructive', title: 'Incorrect Password' });
+    }
+    setPasswordPrompt({ open: false });
+    setPasswordInput('');
+  };
+
+  const withAdminCheck = (action: () => void) => {
+    if (isAdmin) {
+        action();
+    } else {
+        setPasswordPrompt({ open: true, action });
+    }
+  };
 
   // --- Event Handlers ---
   const handleSeasonDialogSubmit = () => {
@@ -352,60 +378,103 @@ export default function LeaguePage() {
                 </SelectContent>
             </Select>
             <div className="flex gap-2">
-                <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New
-                </Button>
-                <Button onClick={handleOpenEditDialog} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit Season</span>
-                </Button>
-                <Button onClick={() => activeSeason && setDeletingSeason(activeSeason)} variant="destructive" size="icon" disabled={!activeSeason}>
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete Season</span>
+                {isAdmin ? (
+                    <>
+                        <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            New
+                        </Button>
+                        <Button onClick={handleOpenEditDialog} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit Season</span>
+                        </Button>
+                        <Button onClick={() => activeSeason && setDeletingSeason(activeSeason)} variant="destructive" size="icon" disabled={!activeSeason}>
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete Season</span>
+                        </Button>
+                    </>
+                ) : null}
+                 <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
+                    {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+                    {isAdmin ? 'Lock Admin' : 'Unlock Admin'}
                 </Button>
             </div>
           </div>
         </div>
 
-        {activeSeason && (
+        {activeSeason && isAdmin && (
             <div className="mb-8 flex flex-wrap gap-2">
-                <Button onClick={() => setShowRegisterPlayers(true)} disabled={activeSeason.status !== 'Not Started'}>
+                <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={activeSeason.status !== 'Not Started'}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Register Players
                 </Button>
                 <Button 
-                    onClick={() => handleUpdateSeasonStatus('In Progress')} 
+                    onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
                     variant="outline" 
                     disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
                     title={!hasFixtures ? "Fixtures must be generated before starting the season." : ""}>
                     <Play className="mr-2 h-4 w-4" />
                     Start Season
                 </Button>
-                <Button onClick={() => handleUpdateSeasonStatus('Completed')} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
+                <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
                     <Flag className="mr-2 h-4 w-4" />
                     Finish Season
                 </Button>
-                <Button onClick={handleShareParticipants} variant="outline" disabled={!leagueTable || leagueTable.length === 0}>
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share Participants
-                </Button>
-                 <Button asChild variant="outline">
-                    <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
-                        <Trophy className="mr-2 h-4 w-4" />
-                        View Champion
-                    </Link>
-                </Button>
+                
             </div>
         )}
+        
+        <div className="flex flex-wrap gap-2 mb-8">
+            <Button onClick={handleShareParticipants} variant="outline" disabled={!leagueTable || leagueTable.length === 0}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Share Participants
+            </Button>
+                <Button asChild variant="outline">
+                <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
+                    <Trophy className="mr-2 h-4 w-4" />
+                    View Champion
+                </Link>
+            </Button>
+        </div>
+
 
         <LeagueTable 
             tableData={sortedTable} 
             isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams}
-            onRemovePlayer={setDeletingEntry}
+            onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
             seasonStatus={activeSeason?.status}
+            isAdmin={isAdmin}
         />
       </div>
+      
+      {/* Password Dialog */}
+      <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Admin Authentication</DialogTitle>
+                <DialogDescription>Please enter the admin password to unlock administrative actions.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password-input" className="text-right">
+                  Password
+                </Label>
+                <Input
+                  id="password-input"
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="col-span-3"
+                  onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handlePasswordCheck}>Unlock</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Create/Edit Season Dialog */}
       <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}>

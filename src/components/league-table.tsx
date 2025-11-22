@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -19,9 +18,10 @@ interface LeagueTableProps {
   isLoading?: boolean;
   onRemovePlayer?: (entry: WithId<LeagueEntry>) => void;
   seasonStatus?: Season['status'];
+  isAdmin: boolean;
 }
 
-export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seasonStatus }: LeagueTableProps) {
+export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seasonStatus, isAdmin }: LeagueTableProps) {
   if (isLoading) {
     return <LeagueTableSkeleton />;
   }
@@ -35,7 +35,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
     );
   }
   
-  const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer;
+  const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
   const totalPlayers = tableData.length;
 
   return (
