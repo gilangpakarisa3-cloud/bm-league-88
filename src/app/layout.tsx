@@ -30,8 +30,8 @@ export default function RootLayout({
       <body className={cn('font-body antialiased')}>
         <LanguageProvider>
           <FirebaseClientProvider>
+            <VantaBackground />
             <div className="relative flex min-h-screen flex-col">
-              <VantaBackground />
               <Header />
               <main className="flex-1 z-10">
                 {children}

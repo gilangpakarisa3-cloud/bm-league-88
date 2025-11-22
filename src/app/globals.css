@@ -75,15 +75,12 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-color: transparent;
   }
   
-  /* Ensure the background is transparent so Vanta can be seen */
   main, footer, header {
       background-color: transparent;
   }
   
-  /* Add a subtle backdrop to cards for readability */
   .bg-card {
       background-color: hsla(var(--card), 0.9);
       backdrop-filter: blur(4px);
