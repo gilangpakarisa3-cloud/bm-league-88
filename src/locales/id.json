@@ -189,5 +189,7 @@
   "no_teams_found_title": "Tidak ada tim yang ditemukan.",
   "no_teams_found_desc": "Mulailah dengan menambahkan tim baru.",
   "delete_team": "Hapus Tim",
-  "delete_team_confirm_desc": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus tim <strong>{{teamName}}</strong> secara permanen."
+  "delete_team_confirm_desc": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus tim <strong>{{teamName}}</strong> secara permanen.",
+  "goal_difference_long": "Selisih Gol",
+  "goals_for_long": "Gol Masuk"
 }

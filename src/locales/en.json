@@ -189,5 +189,7 @@
   "no_teams_found_title": "No teams found.",
   "no_teams_found_desc": "Get started by adding a new team.",
   "delete_team": "Delete Team",
-  "delete_team_confirm_desc": "This action cannot be undone. This will permanently delete the team <strong>{{teamName}}</strong>."
+  "delete_team_confirm_desc": "This action cannot be undone. This will permanently delete the team <strong>{{teamName}}</strong>.",
+  "goal_difference_long": "Goal Difference",
+  "goals_for_long": "Goals For"
 }
