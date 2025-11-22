@@ -50,7 +50,7 @@ export function VantaBackground() {
         scaleMobile: 1.00,
         color: 0xCCFD01, // Vibrant Yellow (Primary Color)
         backgroundColor: 0x0A192F, // Primary Deep Blue
-        points: 6.00, // Reduced from 8
+        points: 6.00,
         maxDistance: 22.00,
         spacing: 16.00
       }))
@@ -64,7 +64,7 @@ export function VantaBackground() {
   return (
       <div 
         ref={vantaRef} 
-        className="fixed top-0 left-0 w-full h-full z-0"
+        className="fixed top-0 left-0 w-full h-full z-0 opacity-50"
       />
   )
 }
