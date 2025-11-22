@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -230,7 +231,7 @@ export default function Home() {
           </div>
           <div>
              <h2 className="text-3xl font-bold mb-4">{t('home_top_players')}</h2>
-            <Card>
+            <Card className="border-2 border-primary shadow-lg shadow-primary/20">
                 <TopPlayersTable />
             </Card>
           </div>
