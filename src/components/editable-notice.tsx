@@ -149,7 +149,7 @@ export function EditableNotice() {
           )}
         </div>
         <div className="grid md:grid-cols-[200px_1fr]">
-          <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
+          <div className="p-6 flex flex-col items-center justify-center text-center gap-2">
             <Info className="w-10 h-10 text-primary" />
             <h2 className="text-xl font-bold text-primary">{t('notice')}</h2>
           </div>
@@ -194,7 +194,7 @@ export function EditableNotice() {
                     <p className="text-muted-foreground italic list-none">{t('no_rules_added')}</p>
                   )}
                 </ul>
-                <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground min-h-[50px]">
+                <div className="text-center bg-muted/20 p-4 rounded-md text-sm text-foreground min-h-[50px]">
                   {displaySchedule ? displaySchedule : <p className="italic">{t('no_schedule_set')}</p>}
                 </div>
               </>
@@ -252,5 +252,7 @@ function NoticeSkeleton() {
     </div>
   );
 }
+
+    
 
     
