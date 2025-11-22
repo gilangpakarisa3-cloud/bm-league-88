@@ -5,6 +5,9 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase';
+import { VantaBackground } from '@/components/vanta-background';
+import Script from 'next/script';
+
 
 export const metadata: Metadata = {
   title: 'Engineering EightyEight Liga Tarkam',
@@ -25,7 +28,8 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <FirebaseClientProvider>
-          <div className="relative flex min-h-screen flex-col">
+          <VantaBackground />
+          <div className="relative flex min-h-screen flex-col bg-transparent">
             <Header />
             <main className="flex-1">
               {children}
@@ -34,6 +38,8 @@ export default function RootLayout({
           </div>
           <Toaster />
         </FirebaseClientProvider>
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" />
+        <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js" />
       </body>
     </html>
   );
