@@ -10,13 +10,7 @@ import { Button } from './ui/button';
 import { Pencil, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
-const MatchTeam = ({ player, score, isWinner, isBye }: { player: WithId<Player> | null, score: number | null, isWinner: boolean, isBye?: boolean }) => {
-    if (isBye) {
-        return <div className="flex items-center justify-between p-2 h-12">
-            <span className="text-sm font-semibold text-muted-foreground">BYE</span>
-        </div>
-    }
-
+const MatchTeam = ({ player, score, isWinner }: { player: WithId<Player> | null, score: number | null, isWinner: boolean }) => {
     if (!player || player.id === 'TBD') {
         return <div className="flex items-center justify-between p-2 h-12">
             <span className="text-sm text-muted-foreground">TBD</span>
@@ -47,14 +41,13 @@ interface MatchWithPlayers extends WithId<Match> {
 }
 
 const MatchCard = ({ match, onUpdateMatch, canUpdate }: { match: MatchWithPlayers, onUpdateMatch: (match: WithId<Match>) => void, canUpdate: boolean }) => {
-    const isByeMatch = match.player2Id === 'BYE';
-    const canBeUpdated = canUpdate && !isByeMatch && match.player1Id !== 'TBD' && match.player2Id !== 'TBD';
+    const canBeUpdated = canUpdate && match.player1Id !== 'TBD' && match.player2Id !== 'TBD';
 
     return (
         <div className="bg-card border rounded-md w-48 sm:w-64 shadow-sm relative group">
             <MatchTeam player={match.player1} score={match.player1Score ?? null} isWinner={match.winner?.id === match.player1?.id} />
             <div className="border-t">
-                <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={match.winner?.id === match.player2?.id} isBye={isByeMatch} />
+                <MatchTeam player={match.player2} score={match.player2Score ?? null} isWinner={match.winner?.id === match.player2?.id} />
             </div>
             {canBeUpdated && (
                 <Button 
@@ -92,9 +85,7 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
 
         let winner: WithId<Player> | null = null;
         if (match.isCompleted) {
-            if (match.player2Id === 'BYE') {
-                winner = player1;
-            } else if (typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
+             if (typeof match.player1Score === 'number' && typeof match.player2Score === 'number') {
                 if (match.player1Score > match.player2Score) winner = player1;
                 else if (match.player2Score > match.player1Score) winner = player2;
             }
@@ -118,7 +109,7 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
         }
     });
 
-    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32'];
+    const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32', 'Round of 64'];
     
     return Object.entries(roundsMap)
       .map(([name, matchesInRound]) => ({ name, matches: matchesInRound }))
@@ -145,7 +136,7 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
     return (
       <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
         <h2 className="text-xl font-medium text-muted-foreground">The cup hasn't started yet.</h2>
-        <p className="text-sm text-muted-foreground mt-2">Register players to generate the tournament bracket.</p>
+        <p className="text-sm text-muted-foreground mt-2">Register players to generate the tournament bracket. The number of players must be a power of two (4, 8, 16, etc.).</p>
       </div>
     );
   }
@@ -216,3 +207,5 @@ export function CupBracket({ matches, players, isLoading, onUpdateMatch, seasonS
     </ScrollArea>
   );
 }
+
+    

@@ -49,12 +49,16 @@ import { cn } from '@/lib/utils';
 // For simplicity, we'll work with a single, hardcoded cup.
 const CUP_ID = 'main-cup';
 
-const generateBracket = (players: WithId<Player>[]) => {
-    // 1. Initial setup
-    let playersList = [...players].sort(() => Math.random() - 0.5); // Shuffle for seeding
-    const numPlayers = playersList.length;
+const isPowerOfTwo = (n: number) => {
+    if (n < 2) return false;
+    return (n & (n - 1)) === 0;
+}
 
-    if (numPlayers < 2) return [];
+const generateBracket = (players: WithId<Player>[]) => {
+    const numPlayers = players.length;
+    if (!isPowerOfTwo(numPlayers) || numPlayers < 2) {
+        return [];
+    }
 
     const roundNames: { [key: number]: string } = {
         2: 'Final',
@@ -65,122 +69,65 @@ const generateBracket = (players: WithId<Player>[]) => {
         64: 'Round of 64',
     };
 
-    // 2. Determine bracket size
-    const bracketSize = Math.pow(2, Math.ceil(Math.log2(numPlayers)));
-    const byes = bracketSize - numPlayers;
-    
-    // 3. Create rounds
     const rounds: { name: string, matches: Omit<Match, 'seasonId' | 'matchDate'>[] }[] = [];
-    let currentRoundSize = bracketSize;
+    let playersForNextRound = [...players].sort(() => Math.random() - 0.5); // Shuffle players
     let matchCounter = 1;
+    let roundSize = numPlayers;
 
-    // Add a preliminary round if necessary (when not a power of 2)
-    if (byes > 0) {
-      const numPreliminaryMatches = numPlayers - byes;
-      const prelimMatches: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
-      for (let i = 0; i < numPreliminaryMatches; i++) {
-        prelimMatches.push({
-          player1Id: 'TBD',
-          player2Id: 'TBD',
-          isCompleted: false,
-          round: 'Preliminary Round',
-          matchNumber: matchCounter++,
-        });
-      }
-      if (prelimMatches.length > 0) {
-        rounds.push({ name: 'Preliminary Round', matches: prelimMatches });
-      }
-    }
-    
-    // Create main bracket rounds
-    while (currentRoundSize >= 2) {
-        const roundName = roundNames[currentRoundSize] || `Round of ${currentRoundSize}`;
-        const numMatchesInRound = currentRoundSize / 2;
+    // Build rounds from the first round up to the final
+    while (roundSize >= 2) {
+        const roundName = roundNames[roundSize] || `Round of ${roundSize}`;
         const matchesInRound: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
-        for (let i = 0; i < numMatchesInRound; i++) {
+
+        for (let i = 0; i < roundSize / 2; i++) {
             matchesInRound.push({
-                player1Id: 'TBD',
-                player2Id: 'TBD',
+                player1Id: playersForNextRound[i * 2]?.id || 'TBD',
+                player2Id: playersForNextRound[i * 2 + 1]?.id || 'TBD',
                 isCompleted: false,
                 round: roundName,
                 matchNumber: matchCounter++,
             });
         }
-        rounds.unshift({ name: roundName, matches: matchesInRound }); // unshift to build from final to first
-        currentRoundSize /= 2;
-    }
-
-
-    // 4. Assign players
-    const playersWithByes = playersList.slice(0, byes);
-    const playersInPrelim = playersList.slice(byes);
-
-    // Assign prelim players
-    const prelimRound = rounds.find(r => r.name === 'Preliminary Round');
-    if (prelimRound) {
-        for(let i = 0; i < prelimRound.matches.length; i++) {
-            prelimRound.matches[i].player1Id = playersInPrelim[i*2]?.id || 'TBD';
-            prelimRound.matches[i].player2Id = playersInPrelim[i*2+1]?.id || 'TBD';
+        
+        rounds.push({ name: roundName, matches: matchesInRound });
+        
+        // Prepare for the next round
+        const nextRoundPlayers = [];
+        for (let i = 0; i < roundSize / 2; i++) {
+            nextRoundPlayers.push({ id: 'TBD' } as WithId<Player>); // Placeholder for winners
         }
+        playersForNextRound = nextRoundPlayers;
+        roundSize /= 2;
     }
+    
+    // Reverse the order of rounds to get Final -> First Round, then map match numbers correctly
+    const finalRounds = rounds.reverse();
+    let finalMatchCounter = 1;
+    const finalMatches: Omit<Match, 'seasonId' | 'matchDate'>[] = [];
 
-    // Assign bye players to the first main round
-    const firstMainRound = rounds.find(r => r.name !== 'Preliminary Round');
-    if (firstMainRound) {
-        let byePlayerIndex = 0;
-        for (let i = 0; i < firstMainRound.matches.length && byePlayerIndex < playersWithByes.length; i++) {
-            if (firstMainRound.matches[i].player1Id === 'TBD') {
-                firstMainRound.matches[i].player1Id = playersWithByes[byePlayerIndex++]?.id || 'TBD';
-            } else if (firstMainRound.matches[i].player2Id === 'TBD') {
-                firstMainRound.matches[i].player2Id = playersWithByes[byePlayerIndex++]?.id || 'TBD';
+    finalRounds.forEach(round => {
+        round.matches.forEach(match => {
+            const newMatch = { ...match, matchNumber: finalMatchCounter++ };
+            if(round.name === roundNames[numPlayers]) { // First round of matches
+                // Players are already assigned
+            } else {
+                newMatch.player1Id = 'TBD';
+                newMatch.player2Id = 'TBD';
             }
-        }
-    }
-
-    // Flatten all matches into a single array
-    const allMatches = rounds.flatMap(r => r.matches);
-
-    // Auto-advance bye players
-    const byePlayerIds = new Set(playersWithByes.map(p => p.id));
-    const firstRoundMatches = allMatches.filter(m => m.round === firstMainRound?.name);
-
-    firstRoundMatches.forEach(match => {
-        const isP1Bye = byePlayerIds.has(match.player1Id);
-        const isP2Bye = byePlayerIds.has(match.player2Id);
-
-        if (isP1Bye && match.player2Id === 'TBD') {
-            match.player2Id = 'BYE';
-            match.isCompleted = true;
-        } else if (isP2Bye && match.player1Id === 'TBD') {
-            match.player1Id = 'BYE';
-            match.isCompleted = true;
-        }
+            finalMatches.push(newMatch);
+        });
     });
-    
-    // This is a simplified advancement, a more robust solution would trace winners up the bracket
-    // but for initial generation this places the byes correctly.
-    const advanceByeWinners = () => {
-        const mainRounds = rounds.filter(r => r.name !== 'Preliminary Round');
-        for (let i = 0; i < mainRounds.length - 1; i++) {
-            const currentRound = mainRounds[i];
-            const nextRound = mainRounds[i + 1];
 
-            currentRound.matches.forEach((match, matchIndex) => {
-                if (match.isCompleted && match.player2Id === 'BYE') {
-                    const winnerId = match.player1Id;
-                    const nextMatchIndex = Math.floor(matchIndex / 2);
-                    const slot = matchIndex % 2 === 0 ? 'player1Id' : 'player2Id';
-                    if (nextRound.matches[nextMatchIndex]) {
-                       (nextRound.matches[nextMatchIndex] as any)[slot] = winnerId;
-                    }
-                }
-            });
-        }
-    };
-    
-    advanceByeWinners();
+    const firstRoundPlayerIds = new Set(rounds[rounds.length-1].matches.flatMap(m => [m.player1Id, m.player2Id]));
+    const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
 
-    return allMatches.sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+    const firstRoundMatches = finalMatches.filter(m => m.round === roundNames[numPlayers]);
+    firstRoundMatches.forEach((match, index) => {
+        match.player1Id = shuffledPlayers[index * 2].id;
+        match.player2Id = shuffledPlayers[index * 2 + 1].id;
+    });
+
+    return finalMatches.sort((a,b) => (a.matchNumber || 0) - (b.matchNumber || 0));
 };
 
 export default function CupPage() {
@@ -229,15 +176,7 @@ export default function CupPage() {
     () => (firestore ? collection(firestore, 'players') : null),
     [firestore]
   );
-  const { data: allPlayersData, isLoading: isLoadingPlayers } = useCollection<Player>(allPlayersCollection);
-  
-  const allPlayers = useMemo(() => {
-    if (!allPlayersData) return [];
-    // Add a placeholder for BYE so we can look it up
-    const byePlayer: WithId<Player> = { id: 'BYE', name: 'BYE', teamId: '', teamName: '' };
-    return [...allPlayersData, byePlayer];
-  }, [allPlayersData]);
-
+  const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(allPlayersCollection);
 
   // --- Memoized Derived State ---
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
@@ -351,12 +290,10 @@ export default function CupPage() {
 
   const handleRegisterPlayers = async (selectedPlayerIds: string[]) => {
     if (!firestore || !activeSeasonId || !allPlayers) return;
-
-    const playersToRegister = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
     
     // Prevent re-registering players who are already in.
     const alreadyRegisteredIds = new Set((participants || []).map(p => p.id));
-    const newPlayersToRegister = playersToRegister.filter(p => !alreadyRegisteredIds.has(p.id));
+    const newPlayersToRegister = allPlayers.filter(p => selectedPlayerIds.includes(p.id) && !alreadyRegisteredIds.has(p.id));
 
     if (newPlayersToRegister.length === 0) {
         toast({ title: 'No new players to register.'});
@@ -369,6 +306,18 @@ export default function CupPage() {
       return;
     }
 
+    const allRegisteredPlayers = [...(participants || []), ...newPlayersToRegister];
+    const uniquePlayers = allRegisteredPlayers.filter((p, i, a) => a.findIndex(t => t.id === p.id) === i);
+
+    if (!isPowerOfTwo(uniquePlayers.length)) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid Number of Players',
+            description: `The total number of players must be a power of two (e.g., 4, 8, 16). You have ${uniquePlayers.length} players.`,
+        });
+        return;
+    }
+    
     const batch = writeBatch(firestore);
     
     // Register participants
@@ -382,10 +331,6 @@ export default function CupPage() {
     const existingMatchesQuery = query(collection(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`));
     const existingMatchesSnap = await getDocs(existingMatchesQuery);
     existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
-
-    // Then, generate new matches with all currently registered participants.
-    const allRegisteredPlayers = [...(participants || []), ...newPlayersToRegister];
-    const uniquePlayers = allRegisteredPlayers.filter((p, i, a) => a.findIndex(t => t.id === p.id) === i);
     
     const newMatches = generateBracket(uniquePlayers);
     newMatches.forEach(match => {
@@ -395,7 +340,7 @@ export default function CupPage() {
 
     try {
         await batch.commit();
-        toast({ title: 'Success', description: `${newPlayersToRegister.length} players registered and bracket (re)generated.` });
+        toast({ title: 'Success', description: `${newPlayersToRegister.length} players registered and bracket generated.` });
     } catch (error) {
         console.error("Error registering players/generating bracket: ", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not complete registration.' });
@@ -421,11 +366,14 @@ export default function CupPage() {
   
     const winnerId = scores.score1 > scores.score2 ? currentMatch.player1Id : currentMatch.player2Id;
     
-    // Create a deterministic order for rounds
-     const roundOrder = ['Final', 'Semi-finals', 'Quarter-finals', 'Round of 16', 'Round of 32', 'Round of 64', 'Preliminary Round'];
-    const roundsInBracket = [...new Set(sortedMatches.map(m => m.round || ''))]
-        .filter(Boolean)
-        .sort((a,b) => roundOrder.indexOf(b) - roundOrder.indexOf(a)).reverse();
+    const roundOrder: { [key: string]: number } = {
+        'Final': 10,
+        'Semi-finals': 9,
+        'Quarter-finals': 8,
+        'Round of 16': 7,
+        'Round of 32': 6,
+        'Round of 64': 5,
+    };
     
     try {
       await runTransaction(firestore, async (transaction) => {
@@ -438,48 +386,37 @@ export default function CupPage() {
   
         // 2. Find and update the next match if this isn't the final
         if (currentMatch.round !== 'Final') {
-          const currentRoundIndex = roundsInBracket.indexOf(currentMatch.round || '');
-          const nextRoundName = roundsInBracket[currentRoundIndex + 1];
+          const currentMatchNumber = currentMatch.matchNumber || 0;
+          
+          // Find the next match this winner should advance to.
+          // This logic assumes matches are numbered sequentially.
+          const totalMatchesInFirstRound = (participants?.length || 0) / 2;
+          const totalMatches = (participants?.length || 0) - 1;
+          
+          let nextMatchNumber = 0;
+          if (currentMatchNumber <= totalMatchesInFirstRound) {
+            // First round
+            nextMatchNumber = totalMatchesInFirstRound + Math.ceil(currentMatchNumber / 2);
+          } else {
+             // Subsequent rounds
+             const matchesInPreviousRounds = (totalMatches - totalMatchesInFirstRound)
+             const offset = currentMatchNumber - totalMatchesInFirstRound;
+             nextMatchNumber = currentMatchNumber + Math.ceil(offset/2) + 1 // This is likely too simple. A more robust way is needed.
+          }
 
-          if (nextRoundName) {
-              const currentRoundMatches = sortedMatches.filter(m => m.round === currentMatch.round);
-              const nextRoundMatches = sortedMatches.filter(m => m.round === nextRoundName);
+          // A more deterministic way: find the match with the corresponding match number.
+          const matchIndexInRound = sortedMatches
+            .filter(m => m.round === currentMatch.round)
+            .findIndex(m => m.id === currentMatch.id);
+          
+          const matchesInNextRound = sortedMatches.filter(m => roundOrder[m.round || ''] === roundOrder[currentMatch.round || ''] + 1);
+          
+          const nextMatch = matchesInNextRound[Math.floor(matchIndexInRound / 2)];
 
-              // Find the match this winner should advance to.
-              const matchIndexInCurrentRound = currentRoundMatches.findIndex(m => m.id === currentMatch.id);
-              
-              // Find the player who is advancing from the preliminary round
-              const prelimMatches = sortedMatches.filter(m => m.round === 'Preliminary Round');
-              const numByePlayers = (2 ** Math.ceil(Math.log2(participants?.length || 2))) - (participants?.length || 0);
-              
-              let nextMatchIndex;
-              // If we are in the preliminary round, the winner plays against a bye player
-              if (currentMatch.round === 'Preliminary Round') {
-                nextMatchIndex = numByePlayers + matchIndexInCurrentRound;
-              } else {
-                nextMatchIndex = Math.floor(matchIndexInCurrentRound / 2);
-              }
-
-              const nextMatch = nextRoundMatches[nextMatchIndex];
-
-              if (nextMatch) {
-                  const nextMatchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, nextMatch.id);
-                  let isPlayer1Slot = matchIndexInCurrentRound % 2 === 0;
-
-                  // If advancing from prelim, slot might be P2
-                  if(currentMatch.round !== 'Preliminary Round' && nextMatch.player1Id !== 'TBD' && nextMatch.player2Id === 'TBD') {
-                    isPlayer1Slot = false;
-                  } else if (currentMatch.round === 'Preliminary Round') {
-                    isPlayer1Slot = false; // prelim winners always go to p2 slot of first main round matches
-                  }
-
-
-                  if (isPlayer1Slot) {
-                      transaction.update(nextMatchRef, { player1Id: winnerId });
-                  } else {
-                      transaction.update(nextMatchRef, { player2Id: winnerId });
-                  }
-              }
+          if (nextMatch) {
+              const nextMatchRef = doc(firestore, `cups/${CUP_ID}/seasons/${activeSeasonId}/matches`, nextMatch.id);
+              const slot = matchIndexInRound % 2 === 0 ? 'player1Id' : 'player2Id';
+              transaction.update(nextMatchRef, { [slot]: winnerId });
           }
         }
       });
@@ -536,9 +473,9 @@ export default function CupPage() {
         toast({ title: 'Match Not Ready', description: 'This match is waiting for players to advance.'});
         return;
     }
-    if (match.isCompleted && match.player2Id !== 'BYE') {
+    if (match.isCompleted) {
       setPasswordProtectedMatch(match);
-    } else if (match.player2Id !== 'BYE') {
+    } else {
       setEditingMatch(match);
     }
   };
@@ -590,7 +527,7 @@ export default function CupPage() {
                     <UserPlus className="mr-2 h-4 w-4" />
                     Register Players
                 </Button>
-                <Button onClick={() => handleUpdateSeasonStatus('In Progress')} variant="outline" disabled={activeSeason.status !== 'Not Started' || (participants || []).length < 2}>
+                <Button onClick={() => handleUpdateSeasonStatus('In Progress')} variant="outline" disabled={activeSeason.status !== 'Not Started' || (participants || []).length < 2 || !isPowerOfTwo((participants || []).length)}>
                     <Play className="mr-2 h-4 w-4" />
                     Start Cup
                 </Button>
@@ -704,7 +641,7 @@ export default function CupPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Register Players for Cup</DialogTitle>
-            <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The bracket will be regenerated based on the final player list.</DialogDescription>
+            <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The number of players must be a power of two (4, 8, 16, etc.).</DialogDescription>
           </DialogHeader>
           <RegisterPlayersForm
             allPlayers={allPlayersData || []}
@@ -775,3 +712,5 @@ export default function CupPage() {
     </div>
   );
 }
+
+    
