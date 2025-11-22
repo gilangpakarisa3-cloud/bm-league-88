@@ -130,12 +130,14 @@ const FixtureContent = memo(function FixtureContent({
                {matchList.map(match => {
                    const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
                    const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
+                   
+                   const dateFormat = match.isCompleted ? 'eeee, d MMMM yyyy - HH:mm' : 'eeee, d MMMM yyyy';
    
                    return (
                      <Card key={match.id} className="flex flex-col">
                        <CardHeader className="p-4 pb-2">
                            <p className="text-xs text-muted-foreground text-center font-medium">
-                               {match.matchDate ? format(match.matchDate.toDate(), 'eeee, d MMMM yyyy - HH:mm', { locale: id }) : 'Date not set'}
+                               {match.matchDate ? format(match.matchDate.toDate(), dateFormat, { locale: id }) : 'Date not set'}
                            </p>
                        </CardHeader>
                        <CardContent className="flex-grow flex items-center justify-around p-4">
@@ -595,3 +597,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
