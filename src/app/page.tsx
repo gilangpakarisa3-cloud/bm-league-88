@@ -278,12 +278,21 @@ function BottomPlayersTable() {
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams || isLoadingPlayers;
   
   if (isLoading || bottomTable.length === 0) {
-    return null; // Don't render anything if loading or not enough players
+     return (
+       <div className="flex flex-col">
+          <h2 className="text-xl font-bold mb-4 text-destructive flex items-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
+          <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10">
+              <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
+                  {isLoading ? 'Loading...' : 'Not enough players to show bottom 3.'}
+              </div>
+          </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="mt-8">
-      <h2 className="text-xl font-bold mb-4 text-destructive">Pemain terancam piket Loker 1 Bulan</h2>
+    <div className="flex flex-col">
+      <h2 className="text-xl font-bold mb-4 text-destructive flex items-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
       <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10">
          <Table>
           <TableHeader>
@@ -342,38 +351,18 @@ export default function Home() {
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-3xl font-bold mb-4">{t('home_league_standings_title')}</h2>
-            <Link href="/league" className="block group">
-              <Card className="hover:border-primary transition-colors duration-300">
-                <CardHeader>
-                  <div className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-2xl">{t('home_league_standings_title')}</CardTitle>
-                      <Trophy className="w-8 h-8 text-primary" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{t('home_league_standings_desc')}</CardDescription>
-                </CardContent>
-                <CardContent>
-                  <div className="flex items-center font-semibold text-primary">
-                    {t('go_to_league')}
-                    <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-            <BottomPlayersTable />
-          </div>
-          <div>
-             <h2 className="text-3xl font-bold mb-4">{t('home_top_players')}</h2>
+          <div className="flex flex-col">
+             <h2 className="text-xl font-bold mb-4 text-primary flex items-center gap-2"><Trophy className="w-5 h-5"/>{t('home_top_players')}</h2>
             <Card className="border-2 border-primary shadow-lg shadow-primary/20">
                 <TopPlayersTable />
             </Card>
           </div>
+          <BottomPlayersTable />
         </section>
 
       </div>
     </div>
   );
 }
+
+    
