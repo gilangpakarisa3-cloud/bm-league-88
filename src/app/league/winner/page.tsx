@@ -95,9 +95,11 @@ function LeagueWinnerPageContents() {
         { label: 'Goals For', value: winner.goalsFor },
     ];
 
+    const winnerTitle = isSeasonCompleted && season ? `Winner of ${season.name}` : "Current League Leader";
+
     return (
         <WinnerDisplay
-            title={isSeasonCompleted ? "League Champion" : "Current League Leader"}
+            title={winnerTitle}
             winnerName={winner.playerName}
             teamName={winner.teamName}
             imageUrl={winnerImage}
