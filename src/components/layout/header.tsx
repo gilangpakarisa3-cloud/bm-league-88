@@ -6,13 +6,13 @@ import { usePathname } from 'next/navigation';
 import { Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 export function Header() {
   const pathname = usePathname();
 
   const navLinks = [
     { href: '/league', label: 'League' },
-    { href: '/cup', label: 'Cup' },
     { href: '/fixtures', label: 'Fixtures' },
     { href: '/players', label: 'Players' },
     { href: '/teams', label: 'Teams' },

@@ -22,7 +22,7 @@ export default function Home() {
           </p>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <section className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-12">
           <Link href="/league" className="block group">
             <Card className="h-full hover:border-primary transition-colors duration-300">
               <CardHeader>
@@ -35,23 +35,6 @@ export default function Home() {
                 <CardDescription>View the official player rankings, track points, and see who's dominating the season.</CardDescription>
                 <div className="flex items-center mt-4 font-semibold text-primary">
                   Go to League
-                  <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/cup" className="block group">
-            <Card className="h-full hover:border-primary transition-colors duration-300">
-              <CardHeader>
-                <div className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-2xl">Cup Tournament</CardTitle>
-                    <Shield className="w-8 h-8 text-primary" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>Follow the knockout stages, check match results, and see the path to the final.</CardDescription>
-                <div className="flex items-center mt-4 font-semibold text-primary">
-                  Go to Cup
                   <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                 </div>
               </CardContent>

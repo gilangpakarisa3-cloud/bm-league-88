@@ -20,11 +20,6 @@ export type League = {
   currentSeasonId?: string;
 }
 
-export type Cup = {
-  name: string;
-  currentSeasonId?: string;
-}
-
 export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
@@ -59,25 +54,4 @@ export type Match = {
   player2Score?: number;
   matchDate: Timestamp;
   isCompleted: boolean;
-  round?: string; // For cup matches
-  matchNumber?: number; // For cup matches
 }
-
-export type CupMatch = {
-  id: string;
-  matchNumber: number;
-  player1: WithId<Player> | null;
-  player2: WithId<Player> | null;
-  team1: WithId<Team> | null;
-  team2: WithId<Team> | null;
-  score1: number | null;
-  score2: number | null;
-  winner: WithId<Player> | null;
-  round: string;
-};
-
-
-export type CupRound = {
-  name: string;
-  matches: CupMatch[];
-};

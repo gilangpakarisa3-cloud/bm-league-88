@@ -90,21 +90,6 @@
         "name"
       ]
     },
-    "Cup": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Cup",
-      "type": "object",
-      "description": "Represents a cup competition.",
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The name of the cup."
-        }
-      },
-      "required": [
-        "name"
-      ]
-    },
     "Season": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Season",
@@ -180,14 +165,6 @@
         "isCompleted": {
           "type": "boolean",
           "description": "Flag indicating if the match has been played."
-        },
-        "round": {
-          "type": "string",
-          "description": "For cup matches, the name of the round (e.g., 'Round of 16')."
-        },
-        "matchNumber": {
-          "type": "number",
-          "description": "For cup matches, the number of the match within the bracket."
         }
       },
       "required": [
@@ -322,46 +299,6 @@
             "$ref": "#/backend/entities/LeagueEntry"
           },
           "description": "Stores the league table for a given season of a league."
-        }
-      },
-      {
-        "path": "/cups/{cupId}",
-        "definition": {
-          "entityName": "Cup",
-          "schema": {
-            "$ref": "#/backend/entities/Cup"
-          },
-          "description": "Stores information about different cups."
-        }
-      },
-      {
-        "path": "/cups/{cupId}/seasons/{seasonId}",
-        "definition": {
-          "entityName": "Season",
-          "schema": {
-            "$ref": "#/backend/entities/Season"
-          },
-          "description": "Stores season information for a specific cup."
-        }
-      },
-      {
-        "path": "/cups/{cupId}/seasons/{seasonId}/matches/{matchId}",
-        "definition": {
-          "entityName": "Match",
-          "schema": {
-            "$ref": "#/backend/entities/Match"
-          },
-          "description": "Stores all matches for a given season of a cup."
-        }
-      },
-      {
-        "path": "/cups/{cupId}/seasons/{seasonId}/cupParticipants/{playerId}",
-        "definition": {
-          "entityName": "Player",
-          "schema": {
-            "$ref": "#/backend/entities/Player"
-          },
-          "description": "Stores the players participating in a given season of a cup."
         }
       }
     ]

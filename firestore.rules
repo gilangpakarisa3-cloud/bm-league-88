@@ -36,12 +36,5 @@ service cloud.firestore {
         allow read: if true;
         allow write: if isSignedIn();
     }
-    
-    // CUPS: Nested Collections
-    // Public read for all, writes for signed-in users.
-    match /cups/{cupId}/{documents=**} {
-        allow read: if true;
-        allow write: if isSignedIn();
-    }
   }
 }

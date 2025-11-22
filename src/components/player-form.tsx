@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Combobox } from './ui/combobox';
-import type { Player, Team, WithId, League, LeagueEntry, Cup } from '@/lib/types';
+import type { Player, Team, WithId, League, LeagueEntry } from '@/lib/types';
 import { useCollection, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
@@ -58,12 +58,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     [firestore]
   );
   const { data: leagues } = useCollection<League>(leaguesCollection);
-
-  const cupsCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'cups') : null),
-    [firestore]
-  );
-  const { data: cups } = useCollection<Cup>(cupsCollection);
 
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(formSchema),
@@ -161,20 +155,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                     });
                 }
             }
-        }
-        
-        // 3. Find and update all cup participant entries for this player
-        if (cups) {
-          for (const cp of cups) {
-              const seasonsRef = collection(firestore, `cups/${cp.id}/seasons`);
-              const seasonsSnap = await getDocs(seasonsRef);
-              for (const seasonDoc of seasonsSnap.docs) {
-                  const participantsRef = doc(firestore, `cups/${cp.id}/seasons/${seasonDoc.id}/cupParticipants`, player.id);
-                  // Since we store a copy of the player object, we update it directly.
-                  // The doc ref is based on player.id so we dont need a query.
-                  batch.update(participantsRef, playerData);
-              }
-          }
         }
 
         await batch.commit();
