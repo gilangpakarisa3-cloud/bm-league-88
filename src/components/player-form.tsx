@@ -91,12 +91,24 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
   }, [player, form]);
 
   const teamOptions = React.useMemo(() => {
-    if (!teams) return [];
-    return teams.map(team => ({
+    if (!teams || !players) return [];
+
+    // Get a set of all team IDs that are already assigned to players.
+    const assignedTeamIds = new Set(
+      players
+        // If we are editing a player, we must exclude their *current* team from the "assigned" list,
+        // so that their own team remains selectable in the dropdown.
+        .filter(p => p.id !== player?.id)
+        .map(p => p.teamId)
+    );
+
+    return teams
+      .filter(team => !assignedTeamIds.has(team.id)) // Filter out teams that are already taken
+      .map(team => ({
         value: team.id,
         label: team.name,
-    }));
-  }, [teams]);
+      }));
+  }, [teams, players, player]);
 
 
   const onSubmit = async (data: PlayerFormValues) => {
@@ -143,7 +155,8 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                         batch.update(entryRef, { 
                             playerName: playerData.name,
                             teamName: playerData.teamName,
-                            teamId: playerData.teamId
+                            teamId: playerData.teamId,
+                            photoUrl: playerData.photoUrl
                         });
                     });
                 }
@@ -222,7 +235,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                   onChange={field.onChange}
                   placeholder="Select a team"
                   searchPlaceholder="Search team..."
-                  emptyPlaceholder={isLoadingTeams ? "Loading teams..." : "No teams found."}
+                  emptyPlaceholder={isLoadingTeams ? "Loading teams..." : "No teams available."}
                 />
               </FormControl>
               <FormMessage />
@@ -251,5 +264,4 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     </Form>
   );
 }
-
     

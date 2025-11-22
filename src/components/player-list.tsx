@@ -71,7 +71,7 @@ export function PlayerList({ onEdit }: PlayerListProps) {
     deleteDocumentNonBlocking(playerRef);
     toast({
         title: 'Player Deleted',
-        description: `${deletingPlayer.name} has been removed.`,
+        description: `${deletingPlayer.name} has been removed. Note: This does not remove them from any active seasons.`,
     });
     setDeletingPlayer(null);
   };
@@ -187,7 +187,7 @@ export function PlayerList({ onEdit }: PlayerListProps) {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the player
-                <span className="font-bold"> {deletingPlayer?.name}</span>.
+                <span className="font-bold"> {deletingPlayer?.name}</span> and remove them from the master player list. It will not remove them from any seasons they are already registered in.
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
