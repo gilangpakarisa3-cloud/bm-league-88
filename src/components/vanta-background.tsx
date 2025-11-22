@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -47,8 +48,8 @@ export function VantaBackground() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0xccfd01,      // Primary theme color
-        backgroundColor: 0x172a45, // Background theme color
+        color: 0xccfd01,      // Theme's primary yellow
+        backgroundColor: 0x172a45, // Theme's background blue
         points: 10.00,
         maxDistance: 20.00,
         spacing: 15.00
