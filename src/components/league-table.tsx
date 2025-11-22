@@ -47,7 +47,10 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
         <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-12 text-center font-bold text-primary">{t('rank')}</TableHead>
+              <TableHead className="w-12 text-center font-bold text-primary">
+                <span className="sm:hidden">#</span>
+                <span className="hidden sm:inline">{t('rank')}</span>
+              </TableHead>
               <TableHead className="text-left font-bold text-primary">{t('player')}</TableHead>
               <TableHead className="text-center font-bold text-accent">{t('played')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center font-bold text-accent">{t('w')}</TableHead>
