@@ -63,15 +63,13 @@ export function EditableNotice() {
     // If loading is finished and we have data, use it.
     if (noticeData) {
         setEditableNotice(noticeData);
-    } else {
+    } else if (firestore) {
         // If loading is finished and there's no data, the doc doesn't exist.
         // Set state to default and create the doc in Firestore.
         setEditableNotice(DEFAULT_NOTICE);
-        if (firestore) {
-            const docRef = doc(firestore, 'notices', NOTICE_ID);
-            // Use merge: true to avoid overwriting if another client creates it simultaneously.
-            setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
-        }
+        const docRef = doc(firestore, 'notices', NOTICE_ID);
+        // Use merge: true to avoid overwriting if another client creates it simultaneously.
+        setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
     }
 }, [noticeData, isLoading, firestore]);
   
