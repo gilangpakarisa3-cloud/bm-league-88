@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -34,6 +35,193 @@ import { useTranslation } from '@/hooks/use-translation';
 const LEAGUE_ID = 'main-league';
 const ADMIN_PASSWORD = 'Office88';
 
+function FixtureContent({
+    activeSeasonId,
+    onGenerateFixtures,
+    onUpdateScore,
+    onEditMatch,
+    isAdmin,
+}: {
+    activeSeasonId: string | null;
+    onGenerateFixtures: () => void;
+    onUpdateScore: (matchId: string, scores: { score1: number, score2: number }) => void;
+    onEditMatch: (match: WithId<Match>) => void;
+    isAdmin: boolean;
+}) {
+    const firestore = useFirestore();
+    const { t } = useTranslation();
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    // --- Firestore Data Hooks ---
+    const activeSeasonRef = useMemoFirebase(
+      () => firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null,
+      [firestore, activeSeasonId]
+    );
+    const {data: activeSeason, isLoading: isLoadingSeason} = useCollection<Season>(activeSeasonRef as any);
+
+    const matchesCollection = useMemoFirebase(
+        () =>
+        firestore && activeSeasonId
+            ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`)
+            : null,
+        [firestore, activeSeasonId]
+    );
+    const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
+    
+    const playersCollection = useMemoFirebase(
+        () => (firestore ? collection(firestore, 'players') : null),
+        [firestore]
+    );
+    const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+    
+    const teamsCollection = useMemoFirebase(
+        () => (firestore ? collection(firestore, 'teams') : null),
+        [firestore]
+    );
+    const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
+    // --- Memoized Derived State ---
+    const playersById = useMemo(() => {
+        if (!allPlayers) return {};
+        return allPlayers.reduce((acc, player) => {
+        acc[player.id] = player;
+        return acc;
+        }, {} as Record<string, WithId<Player>>);
+    }, [allPlayers]);
+    
+    const teamsById = useMemo(() => {
+        if (!allTeams) return {};
+        return allTeams.reduce((acc, team) => {
+        acc[team.id] = team;
+        return acc;
+        }, {} as Record<string, WithId<Team>>);
+    }, [allTeams]);
+    
+    const matchesWithPlayers = useMemo(() => {
+        if (!matches || !allPlayers) return [];
+        return matches
+        .map(match => ({
+            ...match,
+            player1: playersById[match.player1Id] || null,
+            player2: playersById[match.player2Id] || null,
+        }))
+        .filter(m => {
+            if (!searchTerm) return true;
+            const term = searchTerm.toLowerCase();
+            const p1Name = m.player1?.name.toLowerCase() || '';
+            const p2Name = m.player2?.name.toLowerCase() || '';
+            const p1Team = m.player1?.teamName.toLowerCase() || '';
+            const p2Team = m.player2?.teamName.toLowerCase() || '';
+            return p1Name.includes(term) || p2Name.includes(term) || p1Team.includes(term) || p2Team.includes(term);
+        });
+    }, [matches, allPlayers, playersById, searchTerm]);
+
+    const unplayedMatches = matchesWithPlayers.filter(m => !m.isCompleted);
+    const playedMatches = matchesWithPlayers.filter(m => m.isCompleted);
+    const hasFixtures = (matches || []).length > 0;
+    const currentSeason = Array.isArray(activeSeason) && activeSeason.length > 0 ? activeSeason[0] : null;
+
+
+    const MatchList = ({ title, matchList }: { title: string, matchList: (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[] }) => (
+        <div>
+           <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">{title} ({matchList.length})</h2>
+           {matchList.length === 0 ? (
+             <div className="border rounded-lg p-8 text-center bg-card">
+                 <h2 className="text-xl font-medium text-muted-foreground">{searchTerm ? t('no_matches_found') : t('no_matches_in_category')}</h2>
+             </div>
+           ) : (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {matchList.map(match => {
+                   const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
+                   const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
+   
+                   return (
+                     <Card key={match.id} className="flex flex-col">
+                       <CardContent className="flex-grow flex items-center justify-around p-4">
+                         <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                           <Avatar className="h-10 w-10">
+                               <AvatarImage src={match.player1?.photoUrl} alt={match.player1?.name} />
+                               <AvatarFallback>{match.player1?.name.charAt(0)}</AvatarFallback>
+                           </Avatar>
+                           <span className="font-semibold text-sm truncate w-full">{match.player1?.name}</span>
+                           <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                               <Avatar className="h-4 w-4">
+                                   <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
+                                   <AvatarFallback>{team1?.name.charAt(0)}</AvatarFallback>
+                               </Avatar>
+                               {team1?.name}
+                           </span>
+                           {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player1Score}</span>}
+                         </div>
+                         <div className="text-2xl font-bold text-muted-foreground w-1/5 text-center">
+                           {match.isCompleted ? '-' : 'VS'}
+                         </div>
+                         <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                           <Avatar className="h-10 w-10">
+                               <AvatarImage src={match.player2?.photoUrl} alt={match.player2?.name} />
+                               <AvatarFallback>{match.player2?.name.charAt(0)}</AvatarFallback>
+                           </Avatar>
+                           <span className="font-semibold text-sm truncate w-full">{match.player2?.name}</span>
+                           <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                              <Avatar className="h-4 w-4">
+                                   <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
+                                   <AvatarFallback>{team2?.name.charAt(0)}</AvatarFallback>
+                               </Avatar>
+                               {team2?.name}
+                           </span>
+                           {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player2Score}</span>}
+                         </div>
+                       </CardContent>
+                       <CardFooter className="p-4 pt-0">
+                          <Button
+                           variant={match.isCompleted ? 'outline' : 'default'}
+                           className="w-full"
+                           onClick={() => onEditMatch(match)}
+                           disabled={!isAdmin && currentSeason?.status !== 'In Progress'}
+                         >
+                           <Pencil className="mr-2 h-4 w-4" />
+                           {match.isCompleted ? t('edit_score') : t('update_score')}
+                         </Button>
+                       </CardFooter>
+                     </Card>
+                   )
+               })}
+             </div>
+           )}
+        </div>
+     );
+
+    const isLoading = isLoadingSeason || isLoadingMatches || isLoadingPlayers || isLoadingTeams;
+
+    return (
+        <>
+            <div className="mb-8 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t('search_by_player_or_team')}
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            {isLoading ? (
+                <p>{t('loading_fixtures')}</p>
+            ) : hasFixtures ? (
+                 <div className="space-y-12">
+                    <MatchList title={t('remaining_matches')} matchList={unplayedMatches} />
+                    <MatchList title={t('completed_matches')} matchList={playedMatches} />
+                </div>
+            ) : (
+                <div className="border rounded-lg p-8 text-center bg-card">
+                  <h2 className="text-xl font-medium text-muted-foreground">{t('no_fixtures_generated_title')}</h2>
+                  <p className="text-muted-foreground mt-2">{t('no_fixtures_generated_desc')}</p>
+                </div>
+            )}
+        </>
+    );
+}
+
 
 export default function FixturesPage() {
   const firestore = useFirestore();
@@ -44,7 +232,6 @@ export default function FixturesPage() {
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
   const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void, match?: WithId<Match>}>({ open: false });
   const [passwordInput, setPasswordInput] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   
   // --- Firestore Data Hooks ---
@@ -61,7 +248,7 @@ export default function FixturesPage() {
         : null,
     [firestore, activeSeasonId]
   );
-  const { data: leagueTable, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableCollection);
+  const { data: leagueTable } = useCollection<LeagueEntry>(leagueTableCollection);
   
   const matchesCollection = useMemoFirebase(
     () =>
@@ -70,38 +257,17 @@ export default function FixturesPage() {
         : null,
     [firestore, activeSeasonId]
   );
-  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
-  
-  const playersCollection = useMemoFirebase(
+  const { data: matches } = useCollection<Match>(matchesCollection);
+   const playersCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'players') : null),
     [firestore]
   );
-  const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+  const { data: allPlayers } = useCollection<Player>(playersCollection);
   
-  const teamsCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'teams') : null),
-    [firestore]
-  );
-  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
-
   // --- Memoized Derived State ---
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
+  const hasFixtures = (matches || []).length > 0;
 
-  const playersById = useMemo(() => {
-    if (!allPlayers) return {};
-    return allPlayers.reduce((acc, player) => {
-      acc[player.id] = player;
-      return acc;
-    }, {} as Record<string, WithId<Player>>);
-  }, [allPlayers]);
-  
-  const teamsById = useMemo(() => {
-    if (!allTeams) return {};
-    return allTeams.reduce((acc, team) => {
-      acc[team.id] = team;
-      return acc;
-    }, {} as Record<string, WithId<Team>>);
-  }, [allTeams]);
   
   // --- Effects ---
   useEffect(() => {
@@ -289,99 +455,9 @@ export default function FixturesPage() {
     }
   };
   
-  const matchesWithPlayers = useMemo(() => {
-    if (!matches || !allPlayers) return [];
-    return matches
-      .map(match => ({
-        ...match,
-        player1: playersById[match.player1Id] || null,
-        player2: playersById[match.player2Id] || null,
-      }))
-      .filter(m => {
-        if (!searchTerm) return true;
-        const term = searchTerm.toLowerCase();
-        const p1Name = m.player1?.name.toLowerCase() || '';
-        const p2Name = m.player2?.name.toLowerCase() || '';
-        const p1Team = m.player1?.teamName.toLowerCase() || '';
-        const p2Team = m.player2?.teamName.toLowerCase() || '';
-        return p1Name.includes(term) || p2Name.includes(term) || p1Team.includes(term) || p2Team.includes(term);
-      });
-  }, [matches, allPlayers, playersById, searchTerm]);
-
-  const unplayedMatches = matchesWithPlayers.filter(m => !m.isCompleted);
-  const playedMatches = matchesWithPlayers.filter(m => m.isCompleted);
-  const hasFixtures = (matches || []).length > 0;
-
-  const MatchList = ({ title, matchList }: { title: string, matchList: (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[] }) => (
-     <div>
-        <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">{title} ({matchList.length})</h2>
-        {matchList.length === 0 ? (
-          <div className="border rounded-lg p-8 text-center bg-card">
-              <h2 className="text-xl font-medium text-muted-foreground">{searchTerm ? t('no_matches_found') : t('no_matches_in_category')}</h2>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {matchList.map(match => {
-                const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
-                const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
-
-                return (
-                  <Card key={match.id} className="flex flex-col">
-                    <CardContent className="flex-grow flex items-center justify-around p-4">
-                      <div className="flex flex-col items-center gap-2 w-2/5 text-center">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={match.player1?.photoUrl} alt={match.player1?.name} />
-                            <AvatarFallback>{match.player1?.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span className="font-semibold text-sm truncate w-full">{match.player1?.name}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                            <Avatar className="h-4 w-4">
-                                <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
-                                <AvatarFallback>{team1?.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            {team1?.name}
-                        </span>
-                        {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player1Score}</span>}
-                      </div>
-                      <div className="text-2xl font-bold text-muted-foreground w-1/5 text-center">
-                        {match.isCompleted ? '-' : 'VS'}
-                      </div>
-                      <div className="flex flex-col items-center gap-2 w-2/5 text-center">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={match.player2?.photoUrl} alt={match.player2?.name} />
-                            <AvatarFallback>{match.player2?.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span className="font-semibold text-sm truncate w-full">{match.player2?.name}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                           <Avatar className="h-4 w-4">
-                                <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
-                                <AvatarFallback>{team2?.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            {team2?.name}
-                        </span>
-                        {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player2Score}</span>}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0">
-                       <Button
-                        variant={match.isCompleted ? 'outline' : 'default'}
-                        className="w-full"
-                        onClick={() => withAdminCheck(() => {}, match)}
-                        disabled={!isAdmin && activeSeason?.status !== 'In Progress'}
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        {match.isCompleted ? t('edit_score') : t('update_score')}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                )
-            })}
-          </div>
-        )}
-     </div>
-  );
-
-  const isLoading = isLoadingSeasons || isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams;
+  const handleEditMatch = (match: WithId<Match>) => {
+    withAdminCheck(() => {}, match);
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -413,29 +489,15 @@ export default function FixturesPage() {
                     </Button>
                 </div>
             </div>
-            <div className="mb-8 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={t('search_by_player_or_team')}
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            {isLoading ? (
-                <p>{t('loading_fixtures')}</p>
-            ) : hasFixtures ? (
-                 <div className="space-y-12">
-                    <MatchList title={t('remaining_matches')} matchList={unplayedMatches} />
-                    <MatchList title={t('completed_matches')} matchList={playedMatches} />
-                </div>
-            ) : (
-                <div className="border rounded-lg p-8 text-center bg-card">
-                  <h2 className="text-xl font-medium text-muted-foreground">{t('no_fixtures_generated_title')}</h2>
-                  <p className="text-muted-foreground mt-2">{t('no_fixtures_generated_desc')}</p>
-                </div>
-            )}
+            
+            <FixtureContent 
+                activeSeasonId={activeSeasonId}
+                onGenerateFixtures={handleGenerateFixtures}
+                onUpdateScore={handleUpdateScore}
+                onEditMatch={handleEditMatch}
+                isAdmin={isAdmin}
+            />
+
         </div>
 
         {/* Password Dialog */}
@@ -473,12 +535,14 @@ export default function FixturesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t('update_match_score_title')}</DialogTitle>
-              <DialogDescription>
-                {t('update_match_score_desc', { 
-                  player1: editingMatch && playersById[editingMatch.player1Id]?.name, 
-                  player2: editingMatch && playersById[editingMatch.player2Id]?.name 
-                })}
-              </DialogDescription>
+              {editingMatch && allPlayers && (
+                 <DialogDescription>
+                    {t('update_match_score_desc', { 
+                        player1: allPlayers.find(p => p.id === editingMatch.player1Id)?.name, 
+                        player2: allPlayers.find(p => p.id === editingMatch.player2Id)?.name 
+                    })}
+                </DialogDescription>
+              )}
             </DialogHeader>
             {editingMatch && <ScoreForm match={editingMatch} onSave={(scores) => handleUpdateScore(editingMatch.id, scores)} players={allPlayers || []} />}
           </DialogContent>
@@ -487,3 +551,6 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+
+    
