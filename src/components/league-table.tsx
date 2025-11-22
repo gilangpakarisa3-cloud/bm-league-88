@@ -44,7 +44,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
       <div className="w-full overflow-x-auto">
-        <Table className="min-w-full sm:min-w-[700px]">
+        <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-12 text-center font-bold text-primary">{t('rank')}</TableHead>
@@ -136,7 +136,7 @@ function LeagueTableSkeleton() {
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-card">
       <div className="w-full overflow-x-auto">
-        <Table className="min-w-full sm:min-w-[700px]">
+        <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-16 text-center">{t('rank')}</TableHead>
