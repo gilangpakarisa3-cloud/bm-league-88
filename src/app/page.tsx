@@ -14,7 +14,7 @@ export default function Home() {
     <div className="container mx-auto px-4 py-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <section className="text-center mb-12">
-          <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight">
+          <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-primary">
             Engineering EightyEight
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
@@ -70,6 +70,7 @@ export default function Home() {
                     <TableHead>Player</TableHead>
                     <TableHead className="text-right">Pts</TableHead>
                     <TableHead className="hidden sm:table-cell text-right pr-4">GD</TableHead>
+
                   </TableRow>
                 </TableHeader>
                 <TableBody>
