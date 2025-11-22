@@ -644,7 +644,7 @@ export default function CupPage() {
             <DialogDescription>Select players to include in the '{activeSeason?.name}' cup. The number of players must be a power of two (4, 8, 16, etc.).</DialogDescription>
           </DialogHeader>
           <RegisterPlayersForm
-            allPlayers={allPlayersData || []}
+            allPlayers={allPlayers || []}
             registeredPlayers={participants || []}
             onRegister={handleRegisterPlayers}
             isLoading={isLoadingPlayers}
@@ -712,5 +712,7 @@ export default function CupPage() {
     </div>
   );
 }
+
+    
 
     
