@@ -182,9 +182,9 @@ const FixtureContent = memo(function FixtureContent({
                            onClick={() => onEditMatch(match)}
                            disabled={
                               match.isCompleted
-                                ? !isAdmin // Admins can always edit completed scores
-                                : !isAdmin || activeSeason?.status !== 'In Progress' // Only admins can update scores for a season 'In Progress'
-                            }
+                                ? !isAdmin // Only admins can edit completed scores
+                                : activeSeason?.status !== 'In Progress' // Anyone can update scores for a season 'In Progress'
+                           }
                          >
                            <Pencil className="mr-2 h-4 w-4" />
                            {match.isCompleted ? t('edit_score') : t('update_score')}
@@ -609,3 +609,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
