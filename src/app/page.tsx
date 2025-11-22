@@ -72,7 +72,7 @@ export default function Home() {
                             <li key={index} className="italic">{rule}</li>
                         ))}
                     </ul>
-                    <div className="text-center bg-secondary/30 p-4 rounded-md text-sm text-accent-foreground/80">
+                    <div className="text-center bg-secondary/30 p-4 rounded-md text-sm text-primary">
                         {scheduleInfo}
                     </div>
                 </div>
