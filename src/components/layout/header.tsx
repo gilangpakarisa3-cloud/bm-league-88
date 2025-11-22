@@ -33,7 +33,7 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 group">
           <Flame className="h-7 w-7 text-primary group-hover:animate-pulse" />
-          <span className="font-headline font-bold text-2xl hidden sm:inline tracking-tighter">Engineering EightyEight</span>
+          <span className="font-headline font-bold text-2xl hidden sm:inline tracking-tighter">BM League 88</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           {navLinks.map((link) => {
