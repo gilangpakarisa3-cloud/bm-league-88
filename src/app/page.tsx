@@ -59,11 +59,25 @@ function TopPlayersTable() {
 
   const { data: topPlayers, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableQuery);
   
+  const playersCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'players') : null),
+    [firestore]
+  );
+  const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+  
   const teamsCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'teams') : null),
     [firestore]
   );
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
+  const playersById = useMemo(() => {
+    if (!allPlayers) return {};
+    return allPlayers.reduce((acc, player) => {
+      acc[player.id] = player;
+      return acc;
+    }, {} as Record<string, WithId<Player>>);
+  }, [allPlayers]);
 
 
   const teamsById = useMemo(() => {
@@ -83,7 +97,9 @@ function TopPlayersTable() {
 
     const processedPlayers = topPlayers.map(entry => ({
       ...entry,
+      player: playersById[entry.playerId],
       team: teamsById[entry.teamId],
+      photoUrl: playersById[entry.playerId]?.photoUrl, // Make sure photoUrl is directly accessible
     }));
 
     if (allHaveZeroPoints) {
@@ -95,9 +111,9 @@ function TopPlayersTable() {
       ...entry,
       rank: index + 1,
     }));
-  }, [topPlayers, teamsById]);
+  }, [topPlayers, teamsById, playersById]);
 
-  const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams;
+  const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams || isLoadingPlayers;
   
   if (isLoading) {
     return (
