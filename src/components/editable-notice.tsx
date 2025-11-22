@@ -27,8 +27,7 @@ const ADMIN_PASSWORD = 'Office88';
 const DEFAULT_NOTICE: Notice = {
   rules: [
     "Perbulan /Permusim Liga bayar Rp.10.000 ( Uang untuk beli Stick PS - Bukan Hadiah Liga )",
-    "Durasi Liga Sebulan ( 30 hari )",
-    "Start tgl 28 Finish tgl 28",
+    "Durasi Liga Sebulan ( 30 hari ) Start tanggal 28 Finish tanggal 28",
     "Sistem Home - Away",
     "Permusim hanya 1Team",
     "Menang 3point",
@@ -51,7 +50,7 @@ export function EditableNotice() {
   const { data: noticeData, isLoading } = useDoc<Notice>(noticeRef);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editableNotice, setEditableNotice] = useState<Notice | null>(noticeData);
+  const [editableNotice, setEditableNotice] = useState<Notice | null>(null);
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
