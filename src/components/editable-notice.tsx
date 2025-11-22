@@ -25,17 +25,8 @@ const NOTICE_ID = 'main';
 const ADMIN_PASSWORD = 'Office88';
 
 const DEFAULT_NOTICE: Notice = {
-  rules: [
-    "Perbulan /Permusim Liga bayar Rp.10.000 ( Uang untuk beli Stick PS - Bukan Hadiah Liga )",
-    "Durasi Liga Sebulan ( 30 hari ) Start tanggal 28 Finish tanggal 28",
-    "Sistem Home - Away",
-    "Permusim hanya 1Team",
-    "Menang 3point",
-    "Seri 1point",
-    "Kalah 0 point",
-    "Jadwal pertandingan bisa di atur sendiri (Situasional)"
-  ],
-  schedule: "⚽Pertandingan setiap hari mulai jam 18:00 - Selesai. Sabtu mulai jam 13:00 - Selesai, Minggu Situasional. Pemain Shift2 Lepas Seragam & PM dan SPK selesaikan dulu (Situasional)⚽"
+  rules: [],
+  schedule: ""
 };
 
 export function EditableNotice() {
@@ -55,14 +46,14 @@ export function EditableNotice() {
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
+    // This effect now ONLY syncs the local editing state
+    // when the data from Firestore changes. It no longer writes to the DB.
     if (noticeData) {
       setEditableNotice(noticeData);
-    } else if (!isLoading && !noticeData && firestore) {
-        // Doc doesn't exist, create it once.
-        const docRef = doc(firestore, 'notices', NOTICE_ID);
-        setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
+    } else {
+      setEditableNotice(DEFAULT_NOTICE);
     }
-  }, [noticeData, isLoading, firestore]);
+  }, [noticeData]);
   
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
@@ -87,7 +78,8 @@ export function EditableNotice() {
         ...editableNotice,
         rules: editableNotice.rules.filter(rule => rule.trim() !== '')
     };
-    updateDocumentNonBlocking(docRef, noticeToSave);
+    // Use setDoc with merge:true to either create or update the document safely.
+    setDocumentNonBlocking(docRef, noticeToSave, { merge: true });
     setIsEditing(false);
     toast({
       title: "Notice Updated",
