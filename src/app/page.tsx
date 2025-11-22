@@ -31,20 +31,33 @@ function TopPlayersTable() {
   
   useEffect(() => {
     if (seasons && seasons.length > 0) {
-      const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-      setActiveSeasonId(sortedSeasons[0].id);
+      const inProgressOrCompleted = seasons.filter(s => s.status !== 'Not Started');
+      if (inProgressOrCompleted.length > 0) {
+        const sortedSeasons = [...inProgressOrCompleted].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        setActiveSeasonId(sortedSeasons[0].id);
+      } else {
+        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        setActiveSeasonId(sortedSeasons[0].id);
+      }
     }
   }, [seasons]);
 
-  const leagueTableCollection = useMemoFirebase(
-    () =>
-      firestore && activeSeasonId
-        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
-        : null,
+  const leagueTableQuery = useMemoFirebase(
+    () => {
+      if (!firestore || !activeSeasonId) return null;
+      const tableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
+      return query(
+        tableRef,
+        orderBy('points', 'desc'),
+        orderBy('goalDifference', 'desc'),
+        orderBy('goalsFor', 'desc'),
+        limit(5)
+      );
+    },
     [firestore, activeSeasonId]
   );
 
-  const { data: leagueTable, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableCollection);
+  const { data: topPlayers, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableQuery);
   
   const teamsCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'teams') : null),
@@ -63,25 +76,15 @@ function TopPlayersTable() {
 
 
   const sortedTable = useMemo(() => {
-    if (!leagueTable) return [];
+    if (!topPlayers) return [];
     
-    const enrichedTable = leagueTable.map(entry => ({
-        ...entry,
-        team: teamsById[entry.teamId],
+    return topPlayers.map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+      team: teamsById[entry.teamId],
     }));
+  }, [topPlayers, teamsById]);
 
-    if (seasons?.find(s => s.id === activeSeasonId)?.status === 'Not Started') {
-        return [...enrichedTable].sort((a, b) => a.playerName.localeCompare(b.playerName)).map((entry, index) => ({...entry, rank: index + 1}));
-    }
-    return [...enrichedTable].sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-        return a.playerName.localeCompare(b.playerName);
-    }).map((entry, index) => ({...entry, rank: index + 1}));
-  }, [leagueTable, seasons, activeSeasonId, teamsById]);
-
-  const topPlayers = sortedTable.slice(0, 5);
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams;
   
   if (isLoading) {
@@ -119,7 +122,7 @@ function TopPlayersTable() {
 
   return (
       <>
-        {topPlayers.length > 0 ? (
+        {sortedTable.length > 0 ? (
             <Table>
             <TableHeader>
                 <TableRow>
@@ -130,7 +133,7 @@ function TopPlayersTable() {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {topPlayers.map((entry) => (
+                {sortedTable.map((entry) => (
                 <TableRow key={entry.id}>
                     <TableCell className="font-bold text-lg pl-4">{entry.rank}</TableCell>
                     <TableCell>
@@ -179,8 +182,8 @@ export default function Home() {
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           <div className="flex flex-col">
             <h2 className="text-3xl font-bold mb-4">{t('home_league_standings_title')}</h2>
-            <Link href="/league" className="block group h-full">
-              <Card className="h-full hover:border-primary transition-colors duration-300 flex flex-col">
+            <Link href="/league" className="block group">
+              <Card className="hover:border-primary transition-colors duration-300 flex flex-col">
                 <CardHeader>
                   <div className="flex flex-row items-center justify-between">
                       <CardTitle className="text-2xl">{t('home_league_standings_title')}</CardTitle>
@@ -201,7 +204,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col">
              <h2 className="text-3xl font-bold mb-4">{t('home_top_players')}</h2>
-            <Card className="h-full">
+            <Card>
                 <TopPlayersTable />
             </Card>
           </div>
