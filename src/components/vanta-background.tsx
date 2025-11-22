@@ -48,7 +48,7 @@ export function VantaBackground() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0xffa700, // Muted vibrant yellow
+        color: 0xCCFD01, // Vibrant Yellow (Primary Color)
         backgroundColor: 0x0A192F, // Primary Deep Blue
         points: 6.00, // Reduced from 8
         maxDistance: 22.00,
