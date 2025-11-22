@@ -123,7 +123,7 @@ export function EditableNotice() {
 
   return (
     <>
-      <div className="bg-card border rounded-lg overflow-hidden relative">
+      <div className="bg-card border-2 border-primary shadow-lg shadow-primary/20 rounded-lg overflow-hidden relative">
         <div className="absolute top-2 right-2">
           {isEditing ? (
             <div className="flex gap-2">
