@@ -136,7 +136,7 @@ function LeagueTableSkeleton() {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-16 text-center">Rank</TableHead>
-              <TableHead className="min-w-[200px]">Player</TableHead>
+              <TableHead>Player</TableHead>
               <TableHead className="text-center">Played</TableHead>
               <TableHead className="text-center">W</TableHead>
               <TableHead className="text-center">D</TableHead>

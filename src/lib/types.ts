@@ -40,6 +40,7 @@ export type LeagueEntry = {
   teamId: string;
   playerName: string;
   teamName: string;
+  photoUrl?: string;
   played: number;
   win: number;
   draw: number;
