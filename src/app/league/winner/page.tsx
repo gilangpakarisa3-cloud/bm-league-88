@@ -5,8 +5,8 @@ import { Suspense, useEffect, useState } from 'react';
 import { WinnerDisplay } from '@/components/winner-display';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import type { LeagueEntry, Season, WithId } from '@/lib/types';
+import { collection, doc, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import type { LeagueEntry, Season, WithId, Player } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,7 @@ function LeagueWinnerPageContents() {
 
     const seasonId = searchParams.get('seasonId');
     const [winner, setWinner] = useState<WithId<LeagueEntry> | null>(null);
+    const [winnerPlayer, setWinnerPlayer] = useState<WithId<Player> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const seasonRef = useMemoFirebase(
@@ -52,7 +53,18 @@ function LeagueWinnerPageContents() {
             
             if (!winnerSnapshot.empty) {
                 const winnerDoc = winnerSnapshot.docs[0];
-                setWinner({ id: winnerDoc.id, ...winnerDoc.data() } as WithId<LeagueEntry>);
+                const winnerData = { id: winnerDoc.id, ...winnerDoc.data() } as WithId<LeagueEntry>;
+                setWinner(winnerData);
+
+                // Now, fetch the full player document to get the most up-to-date photoUrl
+                const playerRef = doc(firestore, 'players', winnerData.playerId);
+                const playerSnap = await getDocs(query(collection(firestore, 'players'), where('__name__', '==', winnerData.playerId)));
+                
+                if (!playerSnap.empty) {
+                  const winnerPlayerDoc = playerSnap.docs[0];
+                  setWinnerPlayer({ id: winnerPlayerDoc.id, ...winnerPlayerDoc.data() } as WithId<Player>);
+                }
+
             }
             setIsLoading(false);
         };
@@ -86,7 +98,7 @@ function LeagueWinnerPageContents() {
         );
     }
     
-    const winnerImage = winner.photoUrl || PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
+    const winnerImage = winnerPlayer?.photoUrl || winner.photoUrl || PlaceHolderImages.find(img => img.id === 'winner-profile')?.imageUrl || '';
 
     const isSeasonCompleted = season?.status === 'Completed';
 
