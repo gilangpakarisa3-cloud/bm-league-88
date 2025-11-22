@@ -31,7 +31,7 @@ export default function RootLayout({
         <LanguageProvider>
           <FirebaseClientProvider>
             <VantaBackground />
-            <div className="relative flex min-h-screen flex-col bg-transparent">
+            <div className="relative flex min-h-screen flex-col bg-background">
               <Header />
               <main className="flex-1">
                 {children}
