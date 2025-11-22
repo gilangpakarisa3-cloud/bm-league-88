@@ -63,8 +63,8 @@ export default function Home() {
             <div className="bg-card border rounded-lg overflow-hidden">
                 <div className="grid md:grid-cols-[200px_1fr]">
                 <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
-                    <Info className="w-10 h-10 text-accent"/>
-                    <h2 className="text-xl font-bold text-accent">Notice</h2>
+                    <Info className="w-10 h-10 text-primary"/>
+                    <h2 className="text-xl font-bold text-primary">Notice</h2>
                 </div>
                 <div className="p-6">
                     <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5 mb-6">
