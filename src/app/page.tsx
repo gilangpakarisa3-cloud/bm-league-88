@@ -280,7 +280,7 @@ function BottomPlayersTable() {
   if (isLoading || bottomTable.length === 0) {
      return (
        <div className="flex flex-col">
-          <h2 className="text-xl font-bold mb-4 text-destructive flex items-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
+          <h2 className="text-xl font-bold mb-4 text-destructive flex items-center justify-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
           <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10">
               <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
                   {isLoading ? 'Loading...' : 'Not enough players to show bottom 3.'}
@@ -292,7 +292,7 @@ function BottomPlayersTable() {
 
   return (
     <div className="flex flex-col">
-      <h2 className="text-xl font-bold mb-4 text-destructive flex items-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
+      <h2 className="text-xl font-bold mb-4 text-destructive flex items-center justify-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
       <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10">
          <Table>
           <TableHeader>
@@ -364,5 +364,7 @@ export default function Home() {
     </div>
   );
 }
+
+    
 
     
