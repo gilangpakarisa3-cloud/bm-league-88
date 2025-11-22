@@ -53,7 +53,7 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
     defaultValues: {
       score1: match.player1Score ?? 0,
       score2: match.player2Score ?? 0,
-      time: match.matchDate ? format(match.matchDate.toDate(), 'HH:mm') : '00:00',
+      time: match.isCompleted ? format(match.matchDate.toDate(), 'HH:mm') : format(new Date(), 'HH:mm'),
     },
   });
 
