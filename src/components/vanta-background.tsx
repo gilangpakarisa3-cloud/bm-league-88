@@ -48,11 +48,11 @@ export function VantaBackground() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0x64ffda,      // Theme's accent
-        backgroundColor: 0x172a45, // Theme's background blue
-        points: 10.00,
-        maxDistance: 20.00,
-        spacing: 15.00
+        color: 0x1a947d, // Muted accent
+        backgroundColor: 0x0A192F, // Primary Deep Blue
+        points: 8.00,
+        maxDistance: 22.00,
+        spacing: 16.00
       }))
     }
     // Cleanup function to destroy the effect when the component unmounts
@@ -64,7 +64,7 @@ export function VantaBackground() {
   return (
       <div 
         ref={vantaRef} 
-        className="absolute top-0 left-0 w-full h-full z-0"
+        className="fixed top-0 left-0 w-full h-full z-0"
       />
   )
 }
