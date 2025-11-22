@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -42,22 +41,11 @@ function TopPlayersTable() {
     }
   }, [seasons]);
 
-  const activeSeason = useMemo(() => seasons?.find(s => s.id === activeSeasonId), [seasons, activeSeasonId]);
-
   const leagueTableQuery = useMemoFirebase(
     () => {
       if (!firestore || !activeSeasonId) return null;
       const tableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
       
-      // If season is not started, sort by name. Otherwise, sort by performance.
-      if (activeSeason?.status === 'Not Started') {
-        return query(
-            tableRef,
-            orderBy('playerName', 'asc'),
-            limit(5)
-        );
-      }
-
       return query(
         tableRef,
         orderBy('points', 'desc'),
@@ -66,7 +54,7 @@ function TopPlayersTable() {
         limit(5)
       );
     },
-    [firestore, activeSeasonId, activeSeason]
+    [firestore, activeSeasonId]
   );
 
   const { data: topPlayers, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableQuery);
@@ -89,12 +77,23 @@ function TopPlayersTable() {
 
   const sortedTable = useMemo(() => {
     if (!topPlayers) return [];
+
+    // Check if all players have 0 points. If so, sort alphabetically.
+    const allHaveZeroPoints = topPlayers.every(p => p.points === 0);
+
+    const processedPlayers = topPlayers.map(entry => ({
+      ...entry,
+      team: teamsById[entry.teamId],
+    }));
+
+    if (allHaveZeroPoints) {
+      processedPlayers.sort((a, b) => a.playerName.localeCompare(b.playerName));
+    }
     
-    // The query already handles the sorting logic, so we just add the rank
-    return topPlayers.map((entry, index) => ({
+    // Add rank after sorting
+    return processedPlayers.map((entry, index) => ({
       ...entry,
       rank: index + 1,
-      team: teamsById[entry.teamId],
     }));
   }, [topPlayers, teamsById]);
 
