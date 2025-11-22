@@ -30,13 +30,11 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     if (isMounted) {
-      const browserLang = navigator.language.split('-')[0];
       const storedLang = localStorage.getItem('language') as Language;
       if (storedLang && ['id', 'en'].includes(storedLang)) {
         setLanguage(storedLang);
-      } else if (browserLang === 'en') {
-        setLanguage('en');
       } else {
+        // Default to Indonesian if no stored language preference
         setLanguage('id');
       }
     }
