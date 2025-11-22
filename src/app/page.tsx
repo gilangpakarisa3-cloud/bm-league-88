@@ -67,9 +67,9 @@ export default function Home() {
                     <h2 className="text-xl font-bold text-primary">Notice</h2>
                 </div>
                 <div className="p-6">
-                    <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5 mb-6">
+                    <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6">
                         {rules.map((rule, index) => (
-                            <li key={index} className="italic">{rule}</li>
+                            <li key={index}>{rule}</li>
                         ))}
                     </ul>
                     <div className="text-center bg-secondary/30 p-4 rounded-md text-sm text-primary">
