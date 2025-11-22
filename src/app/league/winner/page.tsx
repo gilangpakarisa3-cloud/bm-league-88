@@ -104,7 +104,7 @@ function LeagueWinnerPageContents() {
 
     const stats = [
         { label: t('pts'), value: winner.points },
-        { label: t('w'), value: winner.win },
+        { label: t('win_long', {defaultValue: 'Wins'}), value: winner.win },
         { label: t('gd'), value: `+${winner.goalDifference}` },
         { label: t('gf'), value: winner.goalsFor },
     ];
