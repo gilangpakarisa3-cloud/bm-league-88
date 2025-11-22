@@ -20,7 +20,7 @@ export default function Home() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <section className="text-center mb-12">
           <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-primary">
-            BM League 88
+            BM League EightyEight
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground">
             {t('home_welcome')}
