@@ -47,8 +47,8 @@ export function VantaBackground() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0xccfd01,      // Vibrant Yellow (Primary Theme Color)
-        backgroundColor: 0x172a45, // Very Dark Gray (Background)
+        color: 0xccfd01,      // Primary theme color
+        backgroundColor: 0x172a45, // Background theme color
         points: 10.00,
         maxDistance: 20.00,
         spacing: 15.00
