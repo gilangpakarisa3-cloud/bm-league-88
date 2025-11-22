@@ -17,7 +17,7 @@ export default function Home() {
           <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-primary">
             Engineering EightyEight
           </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground">
             Welcome to the official hub for the Liga Tarkam. Track league standings, cup progress, and celebrate the champions.
           </p>
         </section>
