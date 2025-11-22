@@ -543,8 +543,6 @@ export default function FixturesPage() {
                 isCompleted: true
             });
         });
-        
-        toast({ title: t('score_updated_title'), description: t('score_updated_desc') });
 
     } catch (e) {
         console.error("Transaction failed: ", e);
@@ -609,5 +607,7 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
 
     
