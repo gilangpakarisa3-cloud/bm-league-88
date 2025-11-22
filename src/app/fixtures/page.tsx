@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction } from 'firebase/firestore';
 import type { Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -57,7 +57,7 @@ function FixtureContent({
       () => firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null,
       [firestore, activeSeasonId]
     );
-    const {data: activeSeason, isLoading: isLoadingSeason} = useCollection<Season>(activeSeasonRef as any);
+    const {data: activeSeason, isLoading: isLoadingSeason} = useDoc<Season>(activeSeasonRef);
 
     const matchesCollection = useMemoFirebase(
         () =>
@@ -119,8 +119,6 @@ function FixtureContent({
     const unplayedMatches = matchesWithPlayers.filter(m => !m.isCompleted);
     const playedMatches = matchesWithPlayers.filter(m => m.isCompleted);
     const hasFixtures = (matches || []).length > 0;
-    const currentSeason = Array.isArray(activeSeason) && activeSeason.length > 0 ? activeSeason[0] : null;
-
 
     const MatchList = ({ title, matchList }: { title: string, matchList: (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[] }) => (
         <div>
@@ -177,7 +175,7 @@ function FixtureContent({
                            variant={match.isCompleted ? 'outline' : 'default'}
                            className="w-full"
                            onClick={() => onEditMatch(match)}
-                           disabled={!isAdmin && currentSeason?.status !== 'In Progress'}
+                           disabled={!isAdmin && activeSeason?.status !== 'In Progress'}
                          >
                            <Pencil className="mr-2 h-4 w-4" />
                            {match.isCompleted ? t('edit_score') : t('update_score')}
@@ -551,6 +549,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-
-    
