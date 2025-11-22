@@ -42,10 +42,22 @@ function TopPlayersTable() {
     }
   }, [seasons]);
 
+  const activeSeason = useMemo(() => seasons?.find(s => s.id === activeSeasonId), [seasons, activeSeasonId]);
+
   const leagueTableQuery = useMemoFirebase(
     () => {
       if (!firestore || !activeSeasonId) return null;
       const tableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
+      
+      // If season is not started, sort by name. Otherwise, sort by performance.
+      if (activeSeason?.status === 'Not Started') {
+        return query(
+            tableRef,
+            orderBy('playerName', 'asc'),
+            limit(5)
+        );
+      }
+
       return query(
         tableRef,
         orderBy('points', 'desc'),
@@ -54,7 +66,7 @@ function TopPlayersTable() {
         limit(5)
       );
     },
-    [firestore, activeSeasonId]
+    [firestore, activeSeasonId, activeSeason]
   );
 
   const { data: topPlayers, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableQuery);
@@ -78,6 +90,7 @@ function TopPlayersTable() {
   const sortedTable = useMemo(() => {
     if (!topPlayers) return [];
     
+    // The query already handles the sorting logic, so we just add the rank
     return topPlayers.map((entry, index) => ({
       ...entry,
       rank: index + 1,
