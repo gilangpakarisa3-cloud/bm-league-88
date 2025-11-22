@@ -36,7 +36,7 @@ function TopPlayersTable() {
         setActiveSeasonId(sortedSeasons[0].id);
       } else {
         const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-        setActiveSeasonId(sortedSeasons[0].id);
+        setActiveSeasonId(sortedSeasons.length > 0 ? sortedSeasons[0].id : null);
       }
     }
   }, [seasons]);
