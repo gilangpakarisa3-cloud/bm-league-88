@@ -41,20 +41,22 @@ export function EditableNotice() {
     [firestore]
   );
   
-  const { data: noticeData, isLoading, error } = useDoc<Notice>(noticeRef);
+  const { data: noticeData, isLoading } = useDoc<Notice>(noticeRef);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editableNotice, setEditableNotice] = useState<Notice>(DEFAULT_NOTICE);
+  const [editableRules, setEditableRules] = useState<string[]>([]);
+  const [editableSchedule, setEditableSchedule] = useState<string>('');
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
    useEffect(() => {
-    // This effect now ONLY syncs the local editing state
-    // when the data from Firestore changes. It no longer writes to the DB.
+    // Sync local state only when Firestore data changes or when editing is cancelled.
     if (noticeData) {
-      setEditableNotice(noticeData);
+      setEditableRules(noticeData.rules);
+      setEditableSchedule(noticeData.schedule);
     } else {
-      setEditableNotice(DEFAULT_NOTICE);
+      setEditableRules(DEFAULT_NOTICE.rules);
+      setEditableSchedule(DEFAULT_NOTICE.schedule);
     }
   }, [noticeData]);
   
@@ -64,7 +66,10 @@ export function EditableNotice() {
         setPasswordPromptOpen(false);
         setPasswordInput('');
         // When entering edit mode, ensure we're editing the latest data
-        setEditableNotice(noticeData ?? DEFAULT_NOTICE);
+        if (noticeData) {
+          setEditableRules(noticeData.rules);
+          setEditableSchedule(noticeData.schedule);
+        }
     } else {
         toast({
             variant: "destructive",
@@ -76,12 +81,12 @@ export function EditableNotice() {
   const handleSave = () => {
     if (!firestore) return;
     const docRef = doc(firestore, 'notices', NOTICE_ID);
-    // Filter out any empty rules before saving
-    const noticeToSave = {
-        ...editableNotice,
-        rules: editableNotice.rules.filter(rule => rule.trim() !== '')
+    
+    const noticeToSave: Notice = {
+        rules: editableRules.filter(rule => rule.trim() !== ''),
+        schedule: editableSchedule,
     };
-    // Use setDoc with merge:true to either create or update the document safely.
+    
     setDocumentNonBlocking(docRef, noticeToSave, { merge: true });
     setIsEditing(false);
     toast({
@@ -91,35 +96,38 @@ export function EditableNotice() {
   };
 
   const handleRuleChange = (index: number, value: string) => {
-    const newRules = [...editableNotice.rules];
+    const newRules = [...editableRules];
     newRules[index] = value;
-    setEditableNotice({ ...editableNotice, rules: newRules });
+    setEditableRules(newRules);
   };
 
   const handleAddRule = () => {
-    setEditableNotice({ ...editableNotice, rules: [...editableNotice.rules, ''] });
+    setEditableRules([...editableRules, '']);
   }
 
   const handleRemoveRule = (index: number) => {
-    const newRules = editableNotice.rules.filter((_, i) => i !== index);
-    setEditableNotice({ ...editableNotice, rules: newRules });
+    const newRules = editableRules.filter((_, i) => i !== index);
+    setEditableRules(newRules);
   }
-
-  const handleScheduleChange = (value: string) => {
-    setEditableNotice({ ...editableNotice, schedule: value });
-  };
 
   const handleCancel = () => {
     setIsEditing(false);
     // Revert to the last saved data from Firestore
-    setEditableNotice(noticeData ?? DEFAULT_NOTICE);
+    if (noticeData) {
+        setEditableRules(noticeData.rules);
+        setEditableSchedule(noticeData.schedule);
+    } else {
+        setEditableRules(DEFAULT_NOTICE.rules);
+        setEditableSchedule(DEFAULT_NOTICE.schedule);
+    }
   }
 
   if (isLoading) {
     return <NoticeSkeleton />;
   }
 
-  const displayData = isEditing ? editableNotice : (noticeData ?? DEFAULT_NOTICE);
+  const displayRules = isEditing ? editableRules : (noticeData?.rules ?? []);
+  const displaySchedule = isEditing ? editableSchedule : (noticeData?.schedule ?? '');
 
   return (
     <>
@@ -149,7 +157,7 @@ export function EditableNotice() {
             {isEditing ? (
               <div className="space-y-4">
                   <div className="space-y-2">
-                      {displayData.rules.map((rule, index) => (
+                      {displayRules.map((rule, index) => (
                           <div key={index} className="flex items-center gap-2">
                               <Input
                                   type="text"
@@ -168,8 +176,8 @@ export function EditableNotice() {
                       </Button>
                   </div>
                 <Textarea
-                  value={displayData.schedule}
-                  onChange={(e) => handleScheduleChange(e.target.value)}
+                  value={displaySchedule}
+                  onChange={(e) => setEditableSchedule(e.target.value)}
                   className="text-center bg-muted/20"
                   rows={4}
                   placeholder={t('enter_schedule')}
@@ -178,8 +186,8 @@ export function EditableNotice() {
             ) : (
               <>
                 <ul className="space-y-2 text-sm text-foreground list-disc pl-5 mb-6 min-h-[50px]">
-                  {displayData.rules && displayData.rules.length > 0 ? (
-                    displayData.rules.map((rule, index) => (
+                  {displayRules.length > 0 ? (
+                    displayRules.map((rule, index) => (
                       <li key={index}>{rule}</li>
                     ))
                   ) : (
@@ -187,7 +195,7 @@ export function EditableNotice() {
                   )}
                 </ul>
                 <div className="text-center bg-primary p-4 rounded-md text-sm text-primary-foreground min-h-[50px]">
-                  {displayData.schedule ? displayData.schedule : <p className="italic">{t('no_schedule_set')}</p>}
+                  {displaySchedule ? displaySchedule : <p className="italic">{t('no_schedule_set')}</p>}
                 </div>
               </>
             )}
@@ -244,3 +252,5 @@ function NoticeSkeleton() {
     </div>
   );
 }
+
+    
