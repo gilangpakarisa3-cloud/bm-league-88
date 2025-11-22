@@ -194,7 +194,7 @@ export function EditableNotice() {
                     <p className="text-muted-foreground italic list-none">{t('no_rules_added')}</p>
                   )}
                 </ul>
-                <div className="text-center bg-muted/20 p-4 rounded-md text-sm text-foreground min-h-[50px]">
+                <div className="text-center bg-primary/80 text-primary-foreground p-4 rounded-md text-sm font-semibold min-h-[50px]">
                   {displaySchedule ? displaySchedule : <p className="italic">{t('no_schedule_set')}</p>}
                 </div>
               </>
@@ -236,7 +236,7 @@ function NoticeSkeleton() {
   return (
     <div className="bg-card border rounded-lg overflow-hidden">
       <div className="grid md:grid-cols-[200px_1fr]">
-        <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
+        <div className="p-6 flex flex-col items-center justify-center text-center gap-2">
           <Skeleton className="w-10 h-10 rounded-full" />
           <Skeleton className="h-6 w-24" />
         </div>
