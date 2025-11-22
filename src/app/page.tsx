@@ -59,6 +59,26 @@ export default function Home() {
             </section>
         </div>
 
+        <section className="mb-12">
+            <div className="bg-card border rounded-lg overflow-hidden">
+                <div className="grid md:grid-cols-[200px_1fr]">
+                <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
+                    <Info className="w-10 h-10 text-accent"/>
+                    <h2 className="text-xl font-bold text-accent">Notice</h2>
+                </div>
+                <div className="p-6">
+                    <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5 mb-6">
+                        {rules.map((rule, index) => (
+                            <li key={index} className="italic">{rule}</li>
+                        ))}
+                    </ul>
+                    <div className="text-center bg-secondary/30 p-4 rounded-md text-sm text-accent-foreground/80">
+                        {scheduleInfo}
+                    </div>
+                </div>
+                </div>
+            </div>
+        </section>
 
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4 text-center">Top Players</h2>
@@ -100,26 +120,6 @@ export default function Home() {
           </Card>
         </section>
         
-        <section className="mt-12">
-            <div className="bg-card border rounded-lg overflow-hidden">
-                <div className="grid md:grid-cols-[200px_1fr]">
-                <div className="p-6 bg-secondary/30 flex flex-col items-center justify-center text-center gap-2">
-                    <Info className="w-10 h-10 text-accent"/>
-                    <h2 className="text-xl font-bold text-accent">Notice</h2>
-                </div>
-                <div className="p-6">
-                    <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5 mb-6">
-                        {rules.map((rule, index) => (
-                            <li key={index} className="italic">{rule}</li>
-                        ))}
-                    </ul>
-                    <div className="text-center bg-secondary/30 p-4 rounded-md text-sm text-accent-foreground/80">
-                        {scheduleInfo}
-                    </div>
-                </div>
-                </div>
-            </div>
-        </section>
       </div>
     </div>
   );
