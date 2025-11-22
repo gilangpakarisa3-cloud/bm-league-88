@@ -55,22 +55,25 @@ export function EditableNotice() {
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
-    // If loading is finished...
-    if (!isLoading) {
-      // If data exists, set it as the editable notice
-      if (noticeData) {
+    // Wait until loading is complete before doing anything.
+    if (isLoading) {
+        return;
+    }
+
+    // If loading is finished and we have data, use it.
+    if (noticeData) {
         setEditableNotice(noticeData);
-      } else {
-        // If no data, and we are not loading, then the document truly doesn't exist.
-        // Set state to default, and create the doc in firestore.
+    } else {
+        // If loading is finished and there's no data, the doc doesn't exist.
+        // Set state to default and create the doc in Firestore.
         setEditableNotice(DEFAULT_NOTICE);
         if (firestore) {
-          const docRef = doc(firestore, 'notices', NOTICE_ID);
-          setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: false });
+            const docRef = doc(firestore, 'notices', NOTICE_ID);
+            // Use merge: true to avoid overwriting if another client creates it simultaneously.
+            setDocumentNonBlocking(docRef, DEFAULT_NOTICE, { merge: true });
         }
-      }
     }
-  }, [noticeData, isLoading, firestore]);
+}, [noticeData, isLoading, firestore]);
   
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
