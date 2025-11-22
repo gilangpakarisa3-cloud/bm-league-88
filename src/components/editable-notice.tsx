@@ -194,7 +194,7 @@ export function EditableNotice() {
                     <p className="text-muted-foreground italic list-none">{t('no_rules_added')}</p>
                   )}
                 </ul>
-                <div className="text-center bg-primary/80 text-primary-foreground p-4 rounded-md text-sm font-semibold min-h-[50px]">
+                <div className="text-center bg-primary text-primary-foreground p-4 rounded-md text-sm font-semibold min-h-[50px]">
                   {displaySchedule ? displaySchedule : <p className="italic">{t('no_schedule_set')}</p>}
                 </div>
               </>
@@ -252,7 +252,7 @@ function NoticeSkeleton() {
     </div>
   );
 }
-
     
 
     
+
