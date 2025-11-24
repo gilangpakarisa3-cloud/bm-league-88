@@ -31,7 +31,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
   
   if (tableData.length === 0) {
     return (
-      <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
+      <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card p-8 text-center shadow-lg shadow-primary/20">
         <h2 className="text-xl font-medium text-muted-foreground">{t('no_players_registered_title')}</h2>
         <p className="text-sm text-muted-foreground mt-2">{t('no_players_registered_desc')}</p>
       </div>
@@ -42,7 +42,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
   const totalPlayers = tableData.length;
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border bg-card">
+    <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20">
       <div className="w-full overflow-x-auto">
         <Table className="min-w-full">
           <TableHeader>
@@ -137,7 +137,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
 function LeagueTableSkeleton() {
   const { t } = useTranslation();
   return (
-    <div className="w-full overflow-hidden rounded-lg border bg-card">
+    <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20">
       <div className="w-full overflow-x-auto">
         <Table className="min-w-full">
           <TableHeader>
