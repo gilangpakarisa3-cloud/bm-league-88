@@ -128,9 +128,9 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                 )}
             </div>
              {stats.unbeaten.length > 0 && (
-                <Card>
+                <Card className="bg-card/50 border-2 border-primary">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
+                        <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
                             <ShieldCheck className="text-primary"/>
                             Tak Terkalahkan
                         </CardTitle>
