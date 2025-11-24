@@ -47,6 +47,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
         <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-4 p-0"></TableHead>
               <TableHead className="w-12 text-center font-bold text-primary">
                 <span className="sm:hidden">#</span>
                 <span className="hidden sm:inline">{t('rank')}</span>
@@ -75,6 +76,8 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                     isLastThree && "bg-red-500/10 hover:bg-red-500/20"
                   )}
                 >
+                  <TableCell className={cn("p-0 w-1", isLastThree ? 'bg-destructive' : 'bg-transparent')}>
+                  </TableCell>
                   <TableCell className={cn(
                     "text-center font-bold text-lg",
                     isFirst ? "text-yellow-400 text-xl" : "text-foreground"
@@ -142,6 +145,7 @@ function LeagueTableSkeleton() {
         <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-4 p-0"></TableHead>
               <TableHead className="w-16 text-center">{t('rank')}</TableHead>
               <TableHead>{t('player')}</TableHead>
               <TableHead className="text-center">{t('played')}</TableHead>
@@ -157,6 +161,7 @@ function LeagueTableSkeleton() {
           <TableBody>
             {[...Array(5)].map((_, i) => (
               <TableRow key={i}>
+                <TableCell className="w-4 p-0"></TableCell>
                 <TableCell><Skeleton className="h-6 w-6 mx-auto" /></TableCell>
                 <TableCell>
                     <div className="flex items-center gap-3">
