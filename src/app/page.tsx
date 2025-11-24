@@ -243,7 +243,8 @@ export default function Home() {
             <EditableNotice />
         </section>
         
-        <section className="mb-12">
+        <section className="mb-12 space-y-4">
+            <h2 className="text-xl font-bold text-primary text-center">Participants</h2>
             <PlayerMarquee />
         </section>
 
@@ -253,5 +254,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
