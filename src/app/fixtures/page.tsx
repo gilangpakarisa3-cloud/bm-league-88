@@ -57,26 +57,23 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
 
     const displayTime = match.isCompleted ? format(match.matchDate.toDate(), 'HH:mm') : t('unplayed_abbv', { defaultValue: 'TBD' });
 
+    const PlayerInfo = ({ player, team }: { player: WithId<Player> | null, team: WithId<Team> | null }) => (
+        <div className="flex items-center gap-2 text-sm font-semibold truncate">
+            <Avatar className="h-5 w-5">
+                <AvatarImage src={team?.logoUrl} alt={team?.name} />
+                <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="truncate">{player?.name}</span>
+        </div>
+    );
+
     return (
-        <div className="flex items-center justify-between p-3 transition-colors rounded-md hover:bg-muted/50">
-            <div className="w-2/5 space-y-1">
-                <div className="flex items-center gap-2 text-sm font-semibold truncate">
-                    <Avatar className="h-5 w-5">
-                        <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
-                        <AvatarFallback>{team1?.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="truncate">{match.player1?.name}</span>
-                </div>
-                 <div className="flex items-center gap-2 text-sm font-semibold truncate">
-                    <Avatar className="h-5 w-5">
-                        <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
-                        <AvatarFallback>{team2?.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="truncate">{match.player2?.name}</span>
-                </div>
+        <div className="flex items-center p-3 transition-colors rounded-md hover:bg-muted/50">
+            <div className="flex-1 min-w-0">
+                <PlayerInfo player={match.player1} team={team1} />
             </div>
             
-            <div className="flex items-center justify-center gap-2 w-1/5 text-center">
+            <div className="flex-none px-4 text-center">
                  {match.isCompleted ? (
                     <span className="text-lg font-bold text-primary">{match.player1Score} - {match.player2Score}</span>
                 ) : (
@@ -84,7 +81,11 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
                 )}
             </div>
 
-            <div className="w-2/5 text-right">
+            <div className="flex-1 min-w-0">
+                 <PlayerInfo player={match.player2} team={team2} />
+            </div>
+            
+            <div className="flex-none pl-4">
                  <Button
                     variant="outline"
                     size="sm"
@@ -100,7 +101,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
                     {displayTime}
                 </Button>
             </div>
-
         </div>
     );
 });
