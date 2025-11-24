@@ -479,21 +479,16 @@ export default function FixturesPage() {
     if (!firestore || !activeSeasonId) return;
 
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
-    const originalMatch = matches?.find(m => m.id === matchId);
-    if (!originalMatch) return;
     
-    const wasCompleted = originalMatch.isCompleted;
-    const oldScores = { p1: originalMatch.player1Score ?? 0, p2: originalMatch.player2Score ?? 0 };
-
-    const [hours, minutes] = scores.time.split(':').map(Number);
-    const newDate = originalMatch.matchDate.toDate();
-    newDate.setHours(hours, minutes);
-    const newTimestamp = Timestamp.fromDate(newDate);
-
     try {
         await runTransaction(firestore, async (transaction) => {
+            const originalMatchDoc = await transaction.get(matchRef);
+            if (!originalMatchDoc.exists()) {
+                throw new Error("Match document not found!");
+            }
+            const originalMatch = originalMatchDoc.data() as Match;
+
             const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
-            
             const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player1Id));
             const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player2Id));
             
@@ -512,57 +507,64 @@ export default function FixturesPage() {
             const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry;
             const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry;
             
-            const newP1 = { ...p1EntryData };
-            const newP2 = { ...p2EntryData };
+            const newP1Stats = { ...p1EntryData };
+            const newP2Stats = { ...p2EntryData };
 
             // 1. Revert old stats if match was already completed
-            if (wasCompleted) {
-                newP1.played -= 1;
-                newP2.played -= 1;
-                newP1.goalsFor -= oldScores.p1;
-                newP1.goalsAgainst -= oldScores.p2;
-                newP2.goalsFor -= oldScores.p2;
-                newP2.goalsAgainst -= oldScores.p1;
+            if (originalMatch.isCompleted) {
+                const oldScores = { p1: originalMatch.player1Score ?? 0, p2: originalMatch.player2Score ?? 0 };
+                newP1Stats.played -= 1;
+                newP2Stats.played -= 1;
+                newP1Stats.goalsFor -= oldScores.p1;
+                newP1Stats.goalsAgainst -= oldScores.p2;
+                newP2Stats.goalsFor -= oldScores.p2;
+                newP2Stats.goalsAgainst -= oldScores.p1;
                 
                 if (oldScores.p1 > oldScores.p2) { // P1 won
-                    newP1.win -= 1;
-                    newP1.points -= 3;
-                    newP2.loss -= 1;
+                    newP1Stats.win -= 1;
+                    newP1Stats.points -= 3;
+                    newP2Stats.loss -= 1;
                 } else if (oldScores.p2 > oldScores.p1) { // P2 won
-                    newP2.win -= 1;
-                    newP2.points -= 3;
-                    newP1.loss -= 1;
+                    newP2Stats.win -= 1;
+                    newP2Stats.points -= 3;
+                    newP1Stats.loss -= 1;
                 } else { // Draw
-                    newP1.draw -= 1; newP1.points -= 1;
-                    newP2.draw -= 1; newP2.points -= 1;
+                    newP1Stats.draw -= 1; newP1Stats.points -= 1;
+                    newP2Stats.draw -= 1; newP2Stats.points -= 1;
                 }
             }
             
             // 2. Apply new stats
-            newP1.played += 1;
-            newP2.played += 1;
-            newP1.goalsFor += scores.score1;
-            newP1.goalsAgainst += scores.score2;
-            newP2.goalsFor += scores.score2;
-            newP2.goalsAgainst += scores.score1;
+            newP1Stats.played += 1;
+            newP2Stats.played += 1;
+            newP1Stats.goalsFor += scores.score1;
+            newP1Stats.goalsAgainst += scores.score2;
+            newP2Stats.goalsFor += scores.score2;
+            newP2Stats.goalsAgainst += scores.score1;
             
             if (scores.score1 > scores.score2) { // P1 wins
-                newP1.win += 1; newP1.points += 3;
-                newP2.loss += 1;
+                newP1Stats.win += 1; newP1Stats.points += 3;
+                newP2Stats.loss += 1;
             } else if (scores.score2 > scores.score1) { // P2 wins
-                newP2.win += 1; newP2.points += 3;
-                newP1.loss += 1;
+                newP2Stats.win += 1; newP2Stats.points += 3;
+                newP1Stats.loss += 1;
             } else { // Draw
-                newP1.draw += 1; newP1.points += 1;
-                newP2.draw += 1; newP2.points += 1;
+                newP1Stats.draw += 1; newP1Stats.points += 1;
+                newP2Stats.draw += 1; newP2Stats.points += 1;
             }
             
-            newP1.goalDifference = newP1.goalsFor - newP1.goalsAgainst;
-            newP2.goalDifference = newP2.goalsFor - newP2.goalsAgainst;
+            newP1Stats.goalDifference = newP1Stats.goalsFor - newP1Stats.goalsAgainst;
+            newP2Stats.goalDifference = newP2Stats.goalsFor - newP2Stats.goalsAgainst;
 
-            // 3. Update documents in transaction
-            transaction.update(p1EntryRef, newP1);
-            transaction.update(p2EntryRef, newP2);
+            // 3. Set the new, correct state in the transaction, overwriting old data.
+            transaction.set(p1EntryRef, newP1Stats);
+            transaction.set(p2EntryRef, newP2Stats);
+
+            const [hours, minutes] = scores.time.split(':').map(Number);
+            const newDate = originalMatch.matchDate.toDate();
+            newDate.setHours(hours, minutes);
+            const newTimestamp = Timestamp.fromDate(newDate);
+
             transaction.update(matchRef, { 
                 player1Score: scores.score1, 
                 player2Score: scores.score2,
@@ -570,6 +572,7 @@ export default function FixturesPage() {
                 isCompleted: true
             });
         });
+        toast({ title: t('score_updated_title'), description: t('score_updated_desc') });
 
     } catch (e) {
         console.error("Transaction failed: ", e);
