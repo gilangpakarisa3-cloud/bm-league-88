@@ -161,11 +161,23 @@ const FixtureContent = memo(function FixtureContent({
                 player2: playersById[match.player2Id] || null,
             }))
             .filter(m => {
-                if (!searchTerm) return true;
-                const term = searchTerm.toLowerCase();
+                if (!searchTerm.trim()) return true;
+                
+                const searchTerms = searchTerm.toLowerCase().split(' ').filter(Boolean);
                 const p1Name = m.player1?.name.toLowerCase() || '';
                 const p2Name = m.player2?.name.toLowerCase() || '';
-                return p1Name.includes(term) || p2Name.includes(term);
+
+                if (searchTerms.length > 1) {
+                    // Search for matches between two specific players
+                    const term1 = searchTerms[0];
+                    const term2 = searchTerms[1];
+                    return (p1Name.includes(term1) && p2Name.includes(term2)) ||
+                           (p1Name.includes(term2) && p2Name.includes(term1));
+                } else {
+                    // Original search for a single player
+                    const term = searchTerms[0];
+                    return p1Name.includes(term) || p2Name.includes(term);
+                }
             });
 
         const upcoming = filteredMatches.filter(m => !m.isCompleted);
@@ -768,5 +780,5 @@ export default function FixturesPage() {
     </div>
   );
 }
-
+    
     
