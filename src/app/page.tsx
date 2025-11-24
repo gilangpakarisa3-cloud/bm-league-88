@@ -117,7 +117,7 @@ function LeaderboardSection() {
             <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
             <Trophy className="w-5 h-5"/>{t('home_top_players')}
             </h2>
-            <Card className="border-2 border-primary shadow-lg shadow-primary/20">
+            <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden">
             {isLoading ? (
                 <LeaderboardSkeleton />
             ) : topPlayers.length > 0 ? (
@@ -132,7 +132,7 @@ function LeaderboardSection() {
 
         <div className="flex flex-col">
           <h2 className="text-xl font-bold mb-4 text-destructive flex items-center justify-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
-          <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10">
+          <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10 overflow-hidden">
               {isLoading ? (
                   <LeaderboardSkeleton isBottom />
               ) : bottomPlayers.length > 0 ? (
@@ -153,7 +153,8 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
   return (
      <Table>
       <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
+          <TableHead className="w-4 p-0"></TableHead>
           <TableHead className="w-[50px] pl-4">#</TableHead>
           <TableHead>{t('player')}</TableHead>
           <TableHead className="text-right">{t('pts')}</TableHead>
@@ -161,30 +162,37 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
           </TableRow>
       </TableHeader>
       <TableBody>
-          {players.map((entry) => (
-          <TableRow key={entry.id} className={cn(
-              !isBottom && entry.rank === 1 && "bg-yellow-400/10 hover:bg-yellow-400/20",
-              isBottom && "bg-destructive/10 hover:bg-destructive/20"
-            )}>
-              <TableCell className={cn("font-bold text-lg pl-4", 
-                !isBottom && entry.rank === 1 ? "text-yellow-400" : (isBottom ? "text-destructive" : "text-foreground")
-              )}>{entry.rank}</TableCell>
-              <TableCell>
-              <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                      <AvatarImage src={entry.photoUrl} alt={entry.playerName} />
-                      <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
-                  </Avatar>
-                  <div>
-                  <div className="font-medium">{entry.playerName}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">{entry.team?.name}</div>
+          {players.map((entry) => {
+            const isFirst = entry.rank === 1 && !isBottom;
+            return (
+              <TableRow key={entry.id} className={cn(
+                  isFirst && "bg-yellow-400/10 hover:bg-yellow-400/20",
+                  isBottom && "bg-destructive/10 hover:bg-destructive/20"
+                )}>
+                  <TableCell className={cn("p-0 w-1", 
+                    isFirst ? 'bg-yellow-400' :
+                    isBottom ? 'bg-destructive' : 'bg-transparent'
+                  )}></TableCell>
+                  <TableCell className={cn("font-bold text-lg pl-4", 
+                    isFirst ? "text-yellow-400" : (isBottom ? "text-destructive" : "text-foreground")
+                  )}>{entry.rank}</TableCell>
+                  <TableCell>
+                  <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                          <AvatarImage src={entry.photoUrl} alt={entry.playerName} />
+                          <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                      </Avatar>
+                      <div>
+                      <div className="font-medium">{entry.playerName}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">{entry.team?.name}</div>
+                      </div>
                   </div>
-              </div>
-              </TableCell>
-              <TableCell className="text-right font-semibold">{entry.points}</TableCell>
-              <TableCell className="hidden sm:table-cell text-right pr-4">{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
-          </TableRow>
-          ))}
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">{entry.points}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-right pr-4">{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
+              </TableRow>
+            )
+          })}
       </TableBody>
       </Table>
   )
@@ -196,6 +204,7 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-4 p-0"></TableHead>
           <TableHead className="w-[50px] pl-4">#</TableHead>
           <TableHead>{t('player')}</TableHead>
           <TableHead className="text-right">{t('pts')}</TableHead>
@@ -205,6 +214,7 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
       <TableBody>
         {[...Array(3)].map((_, i) => (
              <TableRow key={i} className={cn(isBottom && "bg-destructive/10")}>
+                <TableCell className="w-4 p-0"></TableCell>
                 <TableCell><Skeleton className="h-5 w-5"/></TableCell>
                 <TableCell>
                     <div className="flex items-center gap-3">
@@ -254,3 +264,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
