@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -32,24 +31,31 @@ interface PasswordManagerProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const baseFormSchema = z.object({
+    oldPassword: z.string().min(1),
+    newPassword: z.string().min(6),
+    confirmPassword: z.string(),
+});
+
 export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
   const { toast } = useToast();
   const { password: currentPassword, updatePassword } = usePassword();
   const { t } = useTranslation();
 
-  const formSchema = z.object({
-      oldPassword: z.string().min(1, { message: t('current_password_required', { defaultValue: "Current password is required."}) }),
-      newPassword: z.string().min(6, { message: t('password_min_length', { defaultValue: "Password must be at least 6 characters."}) }),
-      confirmPassword: z.string(),
-    })
-    .refine(data => data.newPassword === data.confirmPassword, {
-      message: t('passwords_do_not_match', { defaultValue: "Passwords don't match"}),
+  const formSchema = useMemo(() => {
+    return baseFormSchema.extend({
+        oldPassword: z.string().min(1, { message: t('current_password_required') }),
+        newPassword: z.string().min(6, { message: t('password_min_length') }),
+    }).refine(data => data.newPassword === data.confirmPassword, {
+      message: t('passwords_do_not_match'),
       path: ['confirmPassword'],
     })
     .refine(data => data.oldPassword === currentPassword, {
-        message: t('incorrect_current_password', { defaultValue: "Incorrect current password" }),
+        message: t('incorrect_current_password'),
         path: ['oldPassword'],
     });
+  }, [currentPassword, t]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,8 +70,8 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
     const success = updatePassword(values.newPassword);
     if (success) {
       toast({
-        title: t('password_updated_title', { defaultValue: "Password Updated" }),
-        description: t('password_updated_desc', { defaultValue: "Your admin password has been changed successfully." }),
+        title: t('password_updated_title'),
+        description: t('password_updated_desc'),
       });
       form.reset();
       onOpenChange(false);
@@ -73,7 +79,7 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
         toast({
             variant: 'destructive',
             title: t('error'),
-            description: t('password_update_error', { defaultValue: "Failed to update password." }),
+            description: t('password_update_error'),
         })
     }
   };
@@ -82,9 +88,9 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('manage_admin_password', { defaultValue: "Manage Admin Password" })}</DialogTitle>
+          <DialogTitle>{t('manage_admin_password')}</DialogTitle>
           <DialogDescription>
-            {t('manage_admin_password_desc', { defaultValue: "Change your admin password here. This will be stored locally in your browser." })}
+            {t('manage_admin_password_desc')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -94,7 +100,7 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
               name="oldPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('current_password', { defaultValue: "Current Password" })}</FormLabel>
+                  <FormLabel>{t('current_password')}</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
@@ -107,7 +113,7 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('new_password', { defaultValue: "New Password" })}</FormLabel>
+                  <FormLabel>{t('new_password')}</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
@@ -120,7 +126,7 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('confirm_new_password', { defaultValue: "Confirm New Password" })}</FormLabel>
+                  <FormLabel>{t('confirm_new_password')}</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
