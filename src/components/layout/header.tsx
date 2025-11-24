@@ -44,7 +44,7 @@ export function Header() {
                 variant={isActive ? "default" : "ghost"}
                 asChild
                 className={cn(
-                  'transition-colors text-sm',
+                  'transition-colors text-sm font-bold',
                   !isActive && 'text-muted-foreground hover:text-foreground'
                 )}
               >
