@@ -187,7 +187,6 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
 
     return (
         <div className="space-y-4">
-            {stats.topContenders.length > 0 && <ChampionChanceCard topContenders={stats.topContenders} />}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
                 {stats.bestAttacker && (
                     <StatCard 
@@ -286,6 +285,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                     </CardContent>
                 </Card>
             )}
+            {stats.topContenders.length > 0 && <ChampionChanceCard topContenders={stats.topContenders} />}
         </div>
     );
 }
