@@ -106,7 +106,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
                 {stats.bestAttacker && (
                     <StatCard 
-                        icon={<Flame className="h-4 w-4 text-muted-foreground" />}
+                        icon={<Flame className="h-5 w-5 text-primary" />}
                         title="Penyerang Terbaik"
                         value={stats.bestAttacker.goalsFor}
                         player={stats.bestAttacker}
@@ -114,7 +114,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                 )}
                 {stats.worstDefender && (
                      <StatCard 
-                        icon={<ShieldAlert className="h-4 w-4 text-muted-foreground" />}
+                        icon={<ShieldAlert className="h-5 w-5 text-primary" />}
                         title="Pertahanan Terburuk"
                         value={stats.worstDefender.goalsAgainst}
                         player={stats.worstDefender}
@@ -122,7 +122,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                 )}
                  {stats.mostWins && stats.mostWins.win > 0 && (
                      <StatCard 
-                        icon={<Award className="h-4 w-4 text-muted-foreground" />}
+                        icon={<Award className="h-5 w-5 text-primary" />}
                         title="Raja Kemenangan"
                         value={stats.mostWins.win}
                         player={stats.mostWins}
