@@ -36,7 +36,7 @@ import { id } from 'date-fns/locale';
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
-const ADMIN_PASSWORD = 'Office88';
+const ADMIN_PASSWORD = '123123';
 
 const MatchCard = memo(function MatchCard({
     match,

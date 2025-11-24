@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -47,7 +48,7 @@ import { useTranslation } from '@/hooks/use-translation';
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
-const ADMIN_PASSWORD = 'Office88';
+const ADMIN_PASSWORD = '123123';
 
 export default function LeaguePage() {
   const firestore = useFirestore();

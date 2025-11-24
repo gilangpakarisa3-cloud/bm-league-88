@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -19,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 
-const ADMIN_PASSWORD = 'Office88';
+const ADMIN_PASSWORD = '123123';
 
 export default function PlayersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);

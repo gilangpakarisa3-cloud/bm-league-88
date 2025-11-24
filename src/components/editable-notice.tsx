@@ -24,7 +24,7 @@ import { useTranslation } from '@/hooks/use-translation';
 
 
 const NOTICE_ID = 'main';
-const ADMIN_PASSWORD = 'Office88';
+const ADMIN_PASSWORD = '123123';
 
 const DEFAULT_NOTICE: Notice = {
   rules: [],
