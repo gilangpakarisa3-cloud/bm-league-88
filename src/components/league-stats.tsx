@@ -16,23 +16,25 @@ interface LeagueStatsProps {
 const StatCard = ({ icon, title, value, player }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}}) => (
     <Card className="bg-card/50 border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-bold text-foreground">{title}</CardTitle>
-            {icon}
+            <div className="flex items-center gap-2">
+                {icon}
+                <CardTitle className="text-base font-bold text-foreground">{title}</CardTitle>
+            </div>
+            {player && (
+                 <div className="text-2xl font-bold text-primary">{value}</div>
+            )}
         </CardHeader>
         <CardContent>
              {player && (
-                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
-                            <AvatarFallback><User /></AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <p className="text-sm font-semibold text-foreground truncate">{player.playerName}</p>
-                            <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
-                        </div>
+                 <div className="flex items-center gap-3 pt-2">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                        <AvatarFallback><User /></AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="text-sm font-semibold text-foreground truncate">{player.playerName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
                     </div>
-                    <div className="text-2xl font-bold text-primary">{value}</div>
                 </div>
             )}
         </CardContent>
@@ -131,9 +133,9 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             </div>
              {stats.unbeaten.length > 0 && (
                 <Card className="bg-card/50 border-2 border-primary">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
-                            <ShieldCheck className="text-primary"/>
+                    <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+                        <ShieldCheck className="text-primary h-5 w-5"/>
+                        <CardTitle className="text-base font-bold text-foreground">
                             Tak Terkalahkan
                         </CardTitle>
                     </CardHeader>
