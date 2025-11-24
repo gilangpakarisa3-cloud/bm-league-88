@@ -385,12 +385,12 @@ export default function LeaguePage() {
                 </SelectContent>
             </Select>
             <div className="flex gap-2">
-                <Button onClick={() => withAdminCheck(handleOpenCreateDialog)} className="w-full sm:w-auto">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {t('new')}
-                </Button>
                 {isAdmin && (
                   <>
+                    <Button onClick={() => withAdminCheck(handleOpenCreateDialog)} className="w-full sm:w-auto">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        {t('new')}
+                    </Button>
                     <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
                         <Pencil className="h-4 w-4" />
                         <span className="sr-only">{t('edit_season')}</span>
@@ -410,35 +410,29 @@ export default function LeaguePage() {
         </div>
 
         <div className="mb-8 flex flex-wrap gap-2">
-            {activeSeason && (
+            {activeSeason && isAdmin && (
                 <>
                     <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={activeSeason.status !== 'Not Started'}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         {t('register_players')}
                     </Button>
-                     {isAdmin && (
-                        <>
-                           <Button 
-                                onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
-                                variant="outline" 
-                                disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
-                                title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
-                                <Play className="mr-2 h-4 w-4" />
-                                {t('start_season')}
-                            </Button>
-                            <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
-                                <Flag className="mr-2 h-4 w-4" />
-                                {t('finish_season')}
-                            </Button>
-                        </>
-                    )}
+                    <Button 
+                        onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
+                        variant="outline" 
+                        disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
+                        title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
+                        <Play className="mr-2 h-4 w-4" />
+                        {t('start_season')}
+                    </Button>
+                    <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
+                        <Flag className="mr-2 h-4 w-4" />
+                        {t('finish_season')}
+                    </Button>
+                    <Button onClick={() => setShowPasswordManager(true)} variant="outline">
+                        <KeyRound className="mr-2 h-4 w-4" />
+                        {t('manage_password', { defaultValue: 'Manage Password' })}
+                    </Button>
                 </>
-            )}
-            {isAdmin && (
-                <Button onClick={() => setShowPasswordManager(true)} variant="outline">
-                    <KeyRound className="mr-2 h-4 w-4" />
-                    {t('manage_password', { defaultValue: 'Manage Password' })}
-                </Button>
             )}
         </div>
         
