@@ -48,6 +48,11 @@ const StatCardSkeleton = () => (
     </Card>
 );
 
+interface LeagueStatsProps {
+  tableData: (WithId<LeagueEntry> & { player?: WithId<Player>; team?: WithId<Team> })[];
+  isLoading?: boolean;
+}
+
 export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
     const stats = useMemo(() => {
         if (!tableData || tableData.length === 0) {
@@ -136,7 +141,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         <CardTitle className="text-base font-bold text-foreground">
                             Raja Kemenangan
                         </CardTitle>
-                        <span className="ml-auto text-2xl font-bold text-yellow-400">{stats.mostWins[0].win}</span>
+                        <span className="ml-auto text-2xl font-bold text-yellow-400">{stats.mostWins[0].win} <span className="text-sm">kali</span></span>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.mostWins.map(player => (
@@ -187,7 +192,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         <CardTitle className="text-base font-bold text-foreground">
                             Raja Seri
                         </CardTitle>
-                        <span className="ml-auto text-2xl font-bold text-blue-400">{stats.mostDraws[0].draw}</span>
+                        <span className="ml-auto text-2xl font-bold text-sky-400">{stats.mostDraws[0].draw} <span className="text-sm">kali</span></span>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.mostDraws.map(player => (
@@ -208,5 +213,3 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
         </div>
     );
 }
-
-    
