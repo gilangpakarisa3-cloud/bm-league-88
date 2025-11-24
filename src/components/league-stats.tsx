@@ -9,11 +9,6 @@ import { Award, ShieldAlert, ShieldCheck, Flame, User, Swords, Handshake } from 
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 
-interface LeagueStatsProps {
-    tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
-    isLoading: boolean;
-}
-
 const StatCard = ({ icon, title, value, player, valueClassName }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}, valueClassName?: string }) => (
     <Card className="bg-card/50 border-2 border-primary">
         <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
@@ -24,7 +19,7 @@ const StatCard = ({ icon, title, value, player, valueClassName }: { icon: React.
              {player && (
                  <div className="flex items-center justify-between gap-3 pt-2">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-10 w-10">
                           <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
                           <AvatarFallback><User /></AvatarFallback>
                       </Avatar>
@@ -119,7 +114,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                     <StatCard 
                         icon={<Flame className="h-5 w-5 text-primary" />}
                         title="Penyerang Terbaik"
-                        value={stats.bestAttacker.goalsFor}
+                        value={`${stats.bestAttacker.goalsFor} Gol`}
                         player={stats.bestAttacker}
                         valueClassName="text-primary"
                     />
@@ -128,7 +123,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                      <StatCard 
                         icon={<ShieldAlert className="h-5 w-5 text-primary" />}
                         title="Pertahanan Terburuk"
-                        value={stats.worstDefender.goalsAgainst}
+                        value={`${stats.worstDefender.goalsAgainst} Gol`}
                         player={stats.worstDefender}
                         valueClassName="text-destructive"
                     />
