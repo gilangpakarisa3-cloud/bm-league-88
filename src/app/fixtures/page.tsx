@@ -54,18 +54,9 @@ const MatchCard = memo(function MatchCard({
     const { t } = useTranslation();
     const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000); // Update every second
-
-        return () => clearInterval(timer); // Cleanup on unmount
-    }, []);
     
+    const displayDate = match.matchDate.toDate();
     const dateFormat = match.isCompleted ? 'eeee, d MMMM yyyy - HH:mm' : 'eeee, d MMMM yyyy';
-    const displayDate = match.isCompleted ? match.matchDate.toDate() : currentTime;
 
 
     return (
@@ -510,12 +501,13 @@ export default function FixturesPage() {
             const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry;
             const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry;
             
-            // --- Calculate changes ---
             const newP1 = { ...p1EntryData };
             const newP2 = { ...p2EntryData };
 
             // 1. Revert old stats if match was already completed
             if (wasCompleted) {
+                newP1.played -= 1;
+                newP2.played -= 1;
                 newP1.goalsFor -= oldScores.p1;
                 newP1.goalsAgainst -= oldScores.p2;
                 newP2.goalsFor -= oldScores.p2;
@@ -533,13 +525,11 @@ export default function FixturesPage() {
                     newP1.draw -= 1; newP1.points -= 1;
                     newP2.draw -= 1; newP2.points -= 1;
                 }
-            } else {
-                 // If it's a new result, increment played count
-                 newP1.played += 1;
-                 newP2.played += 1;
             }
             
             // 2. Apply new stats
+            newP1.played += 1;
+            newP2.played += 1;
             newP1.goalsFor += scores.score1;
             newP1.goalsAgainst += scores.score2;
             newP2.goalsFor += scores.score2;
