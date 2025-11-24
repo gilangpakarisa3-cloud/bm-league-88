@@ -163,7 +163,7 @@ export default function LeaguePage() {
     }
     // if the active season is deleted, reset the active season
     if (seasons && activeSeasonId && !seasons.find(s => s.id === activeSeasonId)) {
-        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons.length > 0 ? sortedSeasons[0].id : null);
     }
   }, [seasons, activeSeasonId]);
@@ -388,7 +388,7 @@ export default function LeaguePage() {
             <div className="flex gap-2">
                 {isAdmin && (
                   <>
-                    <Button onClick={() => withAdminCheck(handleOpenCreateDialog)} className="w-full sm:w-auto">
+                    <Button onClick={() => withAdminCheck(handleOpenCreateDialog)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         {t('new')}
                     </Button>
@@ -413,19 +413,19 @@ export default function LeaguePage() {
         <div className="mb-8 flex flex-wrap gap-2">
             {isAdmin && (
                 <>
-                    <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={activeSeason.status !== 'Not Started'}>
+                    <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         {t('register_players')}
                     </Button>
                     <Button 
                         onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
                         variant="outline" 
-                        disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
+                        disabled={!activeSeason || activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
                         title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
                         <Play className="mr-2 h-4 w-4" />
                         {t('start_season')}
                     </Button>
-                    <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
+                    <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
                         <Flag className="mr-2 h-4 w-4" />
                         {t('finish_season')}
                     </Button>
@@ -450,7 +450,7 @@ export default function LeaguePage() {
             </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
                 <LeagueTable 
                     tableData={sortedTable} 
