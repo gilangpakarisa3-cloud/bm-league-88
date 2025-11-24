@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -94,7 +95,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                         <AvatarFallback><User /></AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className={cn("font-medium", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</div>
+                        <div className={cn("font-bold", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</div>
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                             <Avatar className="h-4 w-4">
                                 <AvatarImage src={entry.team?.logoUrl} alt={entry.team?.name} />
