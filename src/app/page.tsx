@@ -35,10 +35,10 @@ function LeaderboardSection() {
     if (seasons && seasons.length > 0) {
       const inProgressOrCompleted = seasons.filter(s => s.status !== 'Not Started');
       if (inProgressOrCompleted.length > 0) {
-        const sortedSeasons = [...inProgressOrCompleted].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        const sortedSeasons = [...inProgressOrCompleted].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons[0].id);
       } else {
-        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons.length > 0 ? sortedSeasons[0].id : null);
       }
     }
@@ -154,7 +154,7 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
      <Table>
       <TableHeader>
           <TableRow className="hover:bg-transparent">
-          <TableHead className="w-4 p-0"></TableHead>
+          <TableHead className="w-1 p-0"></TableHead>
           <TableHead className="w-[50px] pl-4">#</TableHead>
           <TableHead>{t('player')}</TableHead>
           <TableHead className="text-right">{t('pts')}</TableHead>
@@ -174,7 +174,7 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
                     isBottom ? 'bg-destructive' : 'bg-transparent'
                   )}></TableCell>
                   <TableCell className={cn("font-bold text-lg pl-4", 
-                    isFirst ? "text-yellow-400" : (isBottom ? "text-destructive" : "text-foreground")
+                    isFirst ? "text-yellow-400 text-xl" : (isBottom ? "text-destructive" : "text-foreground")
                   )}>{entry.rank}</TableCell>
                   <TableCell>
                   <div className="flex items-center gap-3">
@@ -204,7 +204,7 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-4 p-0"></TableHead>
+          <TableHead className="w-1 p-0"></TableHead>
           <TableHead className="w-[50px] pl-4">#</TableHead>
           <TableHead>{t('player')}</TableHead>
           <TableHead className="text-right">{t('pts')}</TableHead>
@@ -214,7 +214,7 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
       <TableBody>
         {[...Array(3)].map((_, i) => (
              <TableRow key={i} className={cn(isBottom && "bg-destructive/10")}>
-                <TableCell className="w-4 p-0"></TableCell>
+                <TableCell className="w-1 p-0"></TableCell>
                 <TableCell><Skeleton className="h-5 w-5"/></TableCell>
                 <TableCell>
                     <div className="flex items-center gap-3">
@@ -264,5 +264,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
