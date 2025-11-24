@@ -25,8 +25,8 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
                 <p className="text-base sm:text-lg text-muted-foreground">{subtitle}</p>
             </div>
             
-            <Card className="w-full max-w-sm overflow-hidden shadow-lg shadow-primary/10 border-2 border-primary/50">
-                <div className="bg-gradient-to-br from-card to-secondary p-6 sm:p-8 text-center relative">
+            <Card className="w-full max-w-sm overflow-hidden shadow-lg shadow-primary/10 border-2 border-primary">
+                <div className="bg-primary/10 p-6 sm:p-8 text-center relative">
                      <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-4">
                         <Avatar className="w-full h-full border-4 border-primary/80 shadow-2xl">
                             <AvatarImage src={imageUrl ?? undefined} alt={`Portrait of ${winnerName}`} />
@@ -39,7 +39,7 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-2xl sm:text-3xl font-bold">{winnerName}</h2>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-primary">{winnerName}</h2>
                         <p className="text-lg sm:text-xl text-muted-foreground font-medium">{teamName}</p>
                     </div>
                 </div>
@@ -50,7 +50,7 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
                         {stats.map((stat, index) => (
                             <div key={index} className="flex justify-between items-center text-sm bg-secondary p-3 rounded-md">
                                 <span className="text-muted-foreground">{stat.label}</span>
-                                <span className="font-semibold text-base sm:text-lg">{stat.value}</span>
+                                <span className="font-semibold text-base sm:text-lg text-primary">{stat.value}</span>
                             </div>
                         ))}
                     </div>
