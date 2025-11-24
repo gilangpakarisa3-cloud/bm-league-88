@@ -7,34 +7,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { Award, ShieldAlert, ShieldCheck, Flame, User, Swords } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface LeagueStatsProps {
     tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
     isLoading: boolean;
 }
 
-const StatCard = ({ icon, title, value, player }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}}) => (
+const StatCard = ({ icon, title, value, player, valueClassName }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}, valueClassName?: string }) => (
     <Card className="bg-card/50 border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
                 {icon}
                 <CardTitle className="text-base font-bold text-foreground">{title}</CardTitle>
             </div>
-            {player && (
-                 <div className="text-2xl font-bold text-primary">{value}</div>
-            )}
         </CardHeader>
         <CardContent>
              {player && (
-                 <div className="flex items-center gap-3 pt-2">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
-                        <AvatarFallback><User /></AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="text-sm font-semibold text-foreground truncate">{player.playerName}</p>
-                        <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
+                 <div className="flex items-center justify-between gap-3 pt-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                          <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                          <AvatarFallback><User /></AvatarFallback>
+                      </Avatar>
+                      <div>
+                          <p className="text-sm font-semibold text-foreground truncate">{player.playerName}</p>
+                          <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
+                      </div>
                     </div>
+                     <div className={cn("text-2xl font-bold", valueClassName)}>{value}</div>
                 </div>
             )}
         </CardContent>
@@ -112,6 +113,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         title="Penyerang Terbaik"
                         value={stats.bestAttacker.goalsFor}
                         player={stats.bestAttacker}
+                        valueClassName="text-primary"
                     />
                 )}
                 {stats.worstDefender && (
@@ -120,6 +122,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         title="Pertahanan Terburuk"
                         value={stats.worstDefender.goalsAgainst}
                         player={stats.worstDefender}
+                        valueClassName="text-destructive"
                     />
                 )}
                  {stats.mostWins && stats.mostWins.win > 0 && (
@@ -128,6 +131,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         title="Raja Kemenangan"
                         value={stats.mostWins.win}
                         player={stats.mostWins}
+                        valueClassName="text-yellow-400"
                     />
                 )}
             </div>
