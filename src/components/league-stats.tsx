@@ -10,11 +10,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 import { Progress } from "./ui/progress";
 
-const StatCard = ({ icon, title, value, valueLabel, player, valueClassName }: { icon: React.ReactNode, title: string, value: string | number, valueLabel?: string, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}, valueClassName?: string }) => (
+const StatCard = ({ icon, title, description, value, valueLabel, player, valueClassName }: { icon: React.ReactNode, title: string, description: string, value: string | number, valueLabel?: string, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}, valueClassName?: string }) => (
     <Card className="bg-card/50 border-2 border-primary">
-        <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-            {icon}
-            <CardTitle className="text-base font-bold text-foreground">{title}</CardTitle>
+        <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+                 {icon}
+                <CardTitle className="text-base font-bold text-foreground">{title}</CardTitle>
+            </div>
+             <CardDescription className="text-xs pt-1">
+                {description}
+            </CardDescription>
         </CardHeader>
         <CardContent>
              {player && (
@@ -184,6 +189,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
     }
     
     const showUnbeaten = stats.unbeaten.length > 0;
+    const anyMatchPlayed = tableData.some(p => p.played > 0);
+
 
     return (
         <div className="space-y-4">
@@ -192,6 +199,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                     <StatCard 
                         icon={<Flame className="h-5 w-5 text-primary" />}
                         title="Penyerang Terbaik"
+                        description="Pemain dengan jumlah gol terbanyak."
                         value={stats.bestAttacker.goalsFor}
                         valueLabel="Gol"
                         player={stats.bestAttacker}
@@ -202,6 +210,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                      <StatCard 
                         icon={<ShieldAlert className="h-5 w-5 text-primary" />}
                         title="Pertahanan Terburuk"
+                        description="Pemain dengan jumlah kebobolan terbanyak."
                         value={stats.worstDefender.goalsAgainst}
                         valueLabel="Gol"
                         player={stats.worstDefender}
@@ -211,24 +220,29 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             </div>
              {stats.mostWins.length > 0 && (
                 <Card className="bg-card/50 border-2 border-primary">
-                    <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-                        <Award className="text-primary h-5 w-5"/>
-                        <CardTitle className="text-base font-bold text-foreground">
-                            Raja Kemenangan
-                        </CardTitle>
-                        <span className="ml-auto text-2xl font-bold text-yellow-400">{stats.mostWins[0].win} <span className="text-sm">kali</span></span>
+                    <CardHeader className="pb-2">
+                        <div className="flex items-center gap-2">
+                             <Award className="text-primary h-5 w-5"/>
+                            <CardTitle className="text-base font-bold text-foreground">
+                                Raja Kemenangan
+                            </CardTitle>
+                        </div>
+                        <CardDescription className="text-xs pt-1">Pemain dengan jumlah kemenangan terbanyak.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.mostWins.map(player => (
-                             <div key={player.id} className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
-                                    <AvatarFallback><User /></AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="text-sm font-semibold">{player.playerName}</p>
-                                    <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                             <div key={player.id} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                        <AvatarFallback><User /></AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="text-sm font-semibold">{player.playerName}</p>
+                                        <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                                    </div>
                                 </div>
+                                <span className="text-2xl font-bold text-yellow-400">{player.win} <span className="text-sm">kali</span></span>
                             </div>
                         ))}
                     </CardContent>
@@ -237,11 +251,14 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
              
              {showUnbeaten && (
                 <Card className="bg-card/50 border-2 border-primary">
-                    <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-                        <ShieldCheck className="text-primary h-5 w-5"/>
+                    <CardHeader className="pb-2">
+                       <div className="flex items-center gap-2">
+                         <ShieldCheck className="text-primary h-5 w-5"/>
                         <CardTitle className="text-base font-bold text-foreground">
                             Tak Terkalahkan
                         </CardTitle>
+                       </div>
+                       <CardDescription className="text-xs pt-1">Pemain yang belum pernah kalah di musim ini.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.unbeaten.map(player => (
@@ -262,30 +279,37 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
 
             {!showUnbeaten && stats.mostDraws.length > 0 && (
                  <Card className="bg-card/50 border-2 border-primary">
-                    <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-                        <Handshake className="text-primary h-5 w-5"/>
-                        <CardTitle className="text-base font-bold text-foreground">
-                            Raja Seri
-                        </CardTitle>
-                        <span className="ml-auto text-2xl font-bold text-sky-400">{stats.mostDraws[0].draw} <span className="text-sm">kali</span></span>
+                     <CardHeader className="pb-2">
+                        <div className="flex items-center gap-2">
+                            <Handshake className="text-primary h-5 w-5"/>
+                            <CardTitle className="text-base font-bold text-foreground">
+                                Raja Seri
+                            </CardTitle>
+                        </div>
+                        <CardDescription className="text-xs pt-1">Pemain dengan jumlah seri terbanyak.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.mostDraws.map(player => (
-                             <div key={player.id} className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
-                                    <AvatarFallback><User /></AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="text-sm font-semibold">{player.playerName}</p>
-                                    <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                             <div key={player.id} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                        <AvatarFallback><User /></AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="text-sm font-semibold">{player.playerName}</p>
+                                        <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                                    </div>
                                 </div>
+                                <span className="text-2xl font-bold text-sky-400">{player.draw} <span className="text-sm">kali</span></span>
                             </div>
                         ))}
                     </CardContent>
                 </Card>
             )}
-            {stats.topContenders.length > 0 && <ChampionChanceCard topContenders={stats.topContenders} />}
+             {anyMatchPlayed && stats.topContenders.length > 0 && <ChampionChanceCard topContenders={stats.topContenders} />}
         </div>
     );
 }
+
+    
