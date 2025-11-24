@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import type { LeagueEntry, Player, Team, WithId } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import { Award, ShieldAlert, ShieldCheck, Flame, User, Swords } from "lucide-react";
+import { Award, ShieldAlert, ShieldCheck, Flame, User, Swords, Handshake } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -60,7 +60,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                 bestAttacker: null,
                 worstDefender: null,
                 mostWins: [],
-                unbeaten: []
+                unbeaten: [],
+                mostDraws: [],
             };
         }
 
@@ -70,7 +71,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                 bestAttacker: null,
                 worstDefender: null,
                 mostWins: [],
-                unbeaten: []
+                unbeaten: [],
+                mostDraws: [],
             };
         }
 
@@ -78,11 +80,14 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
         const worstDefender = [...playersWhoPlayed].sort((a, b) => b.goalsAgainst - a.goalsAgainst)[0];
         
         const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
-        const mostWins = playersWhoPlayed.filter(p => p.win === maxWins);
+        const mostWins = playersWhoPlayed.filter(p => p.win === maxWins && maxWins > 0);
 
         const unbeaten = playersWhoPlayed.filter(p => p.loss === 0);
 
-        return { bestAttacker, worstDefender, mostWins, unbeaten };
+        const maxDraws = Math.max(...playersWhoPlayed.map(p => p.draw));
+        const mostDraws = playersWhoPlayed.filter(p => p.draw === maxDraws && maxDraws > 0);
+
+        return { bestAttacker, worstDefender, mostWins, unbeaten, mostDraws };
     }, [tableData]);
 
     if (isLoading) {
@@ -104,6 +109,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             </Card>
         );
     }
+    
+    const showUnbeaten = stats.unbeaten.length > 0;
 
     return (
         <div className="space-y-4">
@@ -127,7 +134,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                     />
                 )}
             </div>
-             {stats.mostWins.length > 0 && stats.mostWins[0].win > 0 && (
+             {stats.mostWins.length > 0 && (
                 <Card className="bg-card/50 border-2 border-primary">
                     <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
                         <Award className="text-primary h-5 w-5"/>
@@ -152,7 +159,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                     </CardContent>
                 </Card>
             )}
-             {stats.unbeaten.length > 0 && (
+             
+             {showUnbeaten && (
                 <Card className="bg-card/50 border-2 border-primary">
                     <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
                         <ShieldCheck className="text-primary h-5 w-5"/>
@@ -176,6 +184,34 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                     </CardContent>
                 </Card>
             )}
+
+            {!showUnbeaten && stats.mostDraws.length > 0 && (
+                 <Card className="bg-card/50 border-2 border-primary">
+                    <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
+                        <Handshake className="text-primary h-5 w-5"/>
+                        <CardTitle className="text-base font-bold text-foreground">
+                            Raja Seri
+                        </CardTitle>
+                        <span className="ml-auto text-2xl font-bold text-blue-400">{stats.mostDraws[0].draw}</span>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-4">
+                        {stats.mostDraws.map(player => (
+                             <div key={player.id} className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                    <AvatarFallback><User /></AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="text-sm font-semibold">{player.playerName}</p>
+                                    <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }
+
+    
