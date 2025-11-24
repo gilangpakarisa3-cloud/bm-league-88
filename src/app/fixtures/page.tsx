@@ -36,7 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
 import { format } from 'date-fns';
-import { usePassword } from '@/hooks/use-password';
+import { useSharedPassword } from '@/context/password-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 
@@ -285,7 +285,7 @@ const AdminControls = memo(function AdminControls({
   isAdmin: boolean;
   setIsAdmin: (isAdmin: boolean) => void;
 }) {
-  const { password: ADMIN_PASSWORD } = usePassword();
+  const { password: ADMIN_PASSWORD } = useSharedPassword();
   const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void }>({ open: false });
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();

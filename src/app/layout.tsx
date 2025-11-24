@@ -8,6 +8,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { VantaBackground } from '@/components/vanta-background';
 import Script from 'next/script';
 import { LanguageProvider } from '@/context/language-context';
+import { PasswordProvider } from '@/context/password-context';
 
 
 export const metadata: Metadata = {
@@ -29,17 +30,19 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <LanguageProvider>
-          <FirebaseClientProvider>
-            <VantaBackground />
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1 z-10">
-                {children}
-              </main>
-              <Footer />
-            </div>
-            <Toaster />
-          </FirebaseClientProvider>
+          <PasswordProvider>
+            <FirebaseClientProvider>
+              <VantaBackground />
+              <div className="relative flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1 z-10">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <Toaster />
+            </FirebaseClientProvider>
+          </PasswordProvider>
         </LanguageProvider>
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" />
         <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js" />

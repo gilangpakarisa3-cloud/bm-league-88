@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
-import { usePassword } from '@/hooks/use-password';
+import { useSharedPassword } from '@/context/password-context';
 
 
 export default function PlayersPage() {
@@ -30,7 +30,7 @@ export default function PlayersPage() {
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { password: ADMIN_PASSWORD } = usePassword();
+  const { password: ADMIN_PASSWORD } = useSharedPassword();
   
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {

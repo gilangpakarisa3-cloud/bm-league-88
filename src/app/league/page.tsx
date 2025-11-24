@@ -44,7 +44,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
-import { usePassword } from '@/hooks/use-password';
+import { useSharedPassword } from '@/context/password-context';
 import { PasswordManager } from '@/components/password-manager';
 
 
@@ -56,7 +56,7 @@ export default function LeaguePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = usePassword();
+  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);

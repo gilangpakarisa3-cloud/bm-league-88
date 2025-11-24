@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { usePassword } from '@/hooks/use-password';
+import { useSharedPassword } from '@/context/password-context';
 import { useTranslation } from '@/hooks/use-translation';
 
 interface PasswordManagerProps {
@@ -39,7 +39,7 @@ const baseFormSchema = z.object({
 
 export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
   const { toast } = useToast();
-  const { password: currentPassword, updatePassword } = usePassword();
+  const { password: currentPassword, updatePassword } = useSharedPassword();
   const { t } = useTranslation();
 
   const formSchema = useMemo(() => {
