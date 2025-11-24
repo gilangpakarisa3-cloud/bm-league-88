@@ -38,6 +38,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { format } from 'date-fns';
 import { useSharedPassword } from '@/context/password-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -57,23 +58,25 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
 
     const displayTime = match.isCompleted ? format(match.matchDate.toDate(), 'HH:mm') : t('unplayed_abbv', { defaultValue: 'TBD' });
 
-    const PlayerInfo = ({ player, team }: { player: WithId<Player> | null, team: WithId<Team> | null }) => (
-        <div className="flex items-center gap-2 text-sm font-semibold truncate">
+    const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
+        <div className={cn("flex items-center gap-2 text-sm font-semibold truncate", {
+            'justify-start': alignment === 'left',
+            'justify-end': alignment === 'right',
+        })}>
+             {alignment === 'right' && <span className="truncate">{player?.name}</span>}
             <Avatar className="h-5 w-5">
                 <AvatarImage src={team?.logoUrl} alt={team?.name} />
                 <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
-            <span className="truncate">{player?.name}</span>
+            {alignment === 'left' && <span className="truncate">{player?.name}</span>}
         </div>
     );
 
     return (
-        <div className="flex items-center p-3 transition-colors rounded-md hover:bg-muted/50">
-            <div className="flex-1 min-w-0">
-                <PlayerInfo player={match.player1} team={team1} />
-            </div>
+        <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-4 p-3 transition-colors rounded-md hover:bg-muted/50">
+            <PlayerInfo player={match.player1} team={team1} alignment="right" />
             
-            <div className="flex-none px-4 text-center">
+            <div className="flex-none text-center">
                  {match.isCompleted ? (
                     <span className="text-lg font-bold text-primary">{match.player1Score} - {match.player2Score}</span>
                 ) : (
@@ -81,11 +84,9 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
                 )}
             </div>
 
-            <div className="flex-1 min-w-0">
-                 <PlayerInfo player={match.player2} team={team2} />
-            </div>
+            <PlayerInfo player={match.player2} team={team2} alignment="left" />
             
-            <div className="flex-none pl-4">
+            <div className="flex-none">
                  <Button
                     variant="outline"
                     size="sm"
@@ -767,3 +768,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
