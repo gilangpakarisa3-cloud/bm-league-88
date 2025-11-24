@@ -76,7 +76,10 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                     isLastThree && "bg-red-500/10 hover:bg-red-500/20"
                   )}
                 >
-                  <TableCell className={cn("p-0 w-1", isLastThree ? 'bg-destructive' : 'bg-transparent')}>
+                  <TableCell className={cn("p-0 w-1", 
+                    isFirst ? 'bg-yellow-400' :
+                    isLastThree ? 'bg-destructive' : 'bg-transparent'
+                  )}>
                   </TableCell>
                   <TableCell className={cn(
                     "text-center font-bold text-lg",
