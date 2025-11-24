@@ -450,7 +450,7 @@ export default function LeaguePage() {
             </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2">
                 <LeagueTable 
                     tableData={sortedTable} 
@@ -460,7 +460,8 @@ export default function LeaguePage() {
                     isAdmin={isAdmin}
                 />
             </div>
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-4">
+                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
             </div>
         </div>
