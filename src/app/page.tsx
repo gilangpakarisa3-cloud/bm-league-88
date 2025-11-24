@@ -15,6 +15,7 @@ import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { PlayerMarquee } from '@/components/player-marquee';
 
 
 const LEAGUE_ID = 'main-league';
@@ -240,6 +241,10 @@ export default function Home() {
 
         <section className="mb-12">
             <EditableNotice />
+        </section>
+        
+        <section className="mb-12">
+            <PlayerMarquee />
         </section>
 
         <LeaderboardSection />
