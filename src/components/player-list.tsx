@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -137,16 +138,18 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                   <span>{team?.name}</span>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-center gap-2 p-4">
-                <Button variant="outline" size="sm" onClick={() => onEdit(player)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  {t('edit_player_title')}
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => confirmDelete(player)}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {t('delete')}
-                </Button>
-              </CardFooter>
+              {isAdmin && (
+                <CardFooter className="flex justify-center gap-2 p-4">
+                  <Button variant="outline" size="sm" onClick={() => onEdit(player)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    {t('edit_player_title')}
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => confirmDelete(player)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t('delete')}
+                  </Button>
+                </CardFooter>
+              )}
             </Card>
           );
         })}
