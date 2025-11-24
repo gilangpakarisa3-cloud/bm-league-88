@@ -14,9 +14,9 @@ interface LeagueStatsProps {
 }
 
 const StatCard = ({ icon, title, value, player, team }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { team?: WithId<Team>}, team?: string }) => (
-    <Card className="bg-card/50">
+    <Card className="bg-card/50 border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+            <CardTitle className="text-sm font-bold text-foreground">{title}</CardTitle>
             {icon}
         </CardHeader>
         <CardContent>
