@@ -35,7 +35,7 @@ function LeaderboardSection() {
     if (seasons && seasons.length > 0) {
       const inProgressOrCompleted = seasons.filter(s => s.status !== 'Not Started');
       if (inProgressOrCompleted.length > 0) {
-        const sortedSeasons = [...inProgressOrCompleted].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
+        const sortedSeasons = [...inProgressOrCompleted].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons[0].id);
       } else {
         const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
@@ -183,7 +183,7 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
                           <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div>
-                      <div className="font-medium">{entry.playerName}</div>
+                      <div className="font-bold">{entry.playerName}</div>
                       <div className="text-xs sm:text-sm text-muted-foreground">{entry.team?.name}</div>
                       </div>
                   </div>
@@ -264,3 +264,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
