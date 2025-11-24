@@ -13,16 +13,26 @@ interface LeagueStatsProps {
     isLoading: boolean;
 }
 
-const StatCard = ({ icon, title, value, player, team }: { icon: React.ReactNode, title: string, value: string | number, player?: string, team?: string }) => (
+const StatCard = ({ icon, title, value, player, team }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { team?: WithId<Team>}, team?: string }) => (
     <Card className="bg-card/50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
             {icon}
         </CardHeader>
         <CardContent>
-            <div className="text-2xl font-bold text-primary">{value}</div>
-            <p className="text-xs text-muted-foreground">{player}</p>
-            <p className="text-xs text-muted-foreground">{team}</p>
+            <div className="text-2xl font-bold text-primary mb-2">{value}</div>
+            {player && (
+                 <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8 border border-border">
+                        <AvatarImage src={player.team?.logoUrl} alt={player.teamName} />
+                        <AvatarFallback><User /></AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="text-sm font-semibold text-foreground">{player.playerName}</p>
+                        <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                    </div>
+                </div>
+            )}
         </CardContent>
     </Card>
 );
@@ -97,8 +107,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         icon={<Flame className="h-4 w-4 text-muted-foreground" />}
                         title="Penyerang Terbaik"
                         value={stats.bestAttacker.goalsFor}
-                        player={stats.bestAttacker.playerName}
-                        team={stats.bestAttacker.teamName}
+                        player={stats.bestAttacker}
                     />
                 )}
                 {stats.worstDefender && (
@@ -106,8 +115,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         icon={<ShieldAlert className="h-4 w-4 text-muted-foreground" />}
                         title="Pertahanan Terburuk"
                         value={stats.worstDefender.goalsAgainst}
-                        player={stats.worstDefender.playerName}
-                        team={stats.worstDefender.teamName}
+                        player={stats.worstDefender}
                     />
                 )}
                  {stats.mostWins && stats.mostWins.win > 0 && (
@@ -115,8 +123,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         icon={<Award className="h-4 w-4 text-muted-foreground" />}
                         title="Raja Kemenangan"
                         value={stats.mostWins.win}
-                        player={stats.mostWins.playerName}
-                        team={stats.mostWins.teamName}
+                        player={stats.mostWins}
                     />
                 )}
             </div>
