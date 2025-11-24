@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { Progress } from "./ui/progress";
 
 const StatCard = ({ icon, title, description, value, valueLabel, player, valueClassName }: { icon: React.ReactNode, title: string, description: string, value: string | number, valueLabel?: string, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}, valueClassName?: string }) => (
-    <Card className="bg-card/50 border-2 border-primary">
+    <Card className="bg-card border-2 border-primary">
         <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
                  {icon}
@@ -63,35 +63,35 @@ const ChampionChanceCard = ({ topContenders }: { topContenders: (WithId<LeagueEn
     const colors = ["bg-yellow-400", "bg-gray-400", "bg-yellow-600"];
 
     return (
-        <Card className="bg-card/50 border-2 border-primary">
-            <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                    <PercentSquare className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-base font-bold text-foreground">
-                        Peluang Juara
-                    </CardTitle>
-                </div>
-                 <CardDescription className="text-xs pt-1">
+        <Card className="bg-card border-2 border-primary">
+            <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
+                <PercentSquare className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base font-bold text-foreground">
+                    Peluang Juara
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                 <CardDescription className="text-xs pt-1 mb-4">
                     Berdasarkan poin, sisa laga & selisih gol.
                 </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-                {topContenders.map((player, index) => (
-                    <div key={player.id}>
-                        <div className="flex items-center gap-3 mb-1">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
-                                <AvatarFallback><User /></AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <p className="text-sm font-semibold">{player.playerName}</p>
-                                <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                <div className="space-y-4 pt-4">
+                    {topContenders.map((player, index) => (
+                        <div key={player.id}>
+                            <div className="flex items-center gap-3 mb-1">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                    <AvatarFallback><User /></AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="text-sm font-semibold">{player.playerName}</p>
+                                    <p className="text-xs text-muted-foreground">{player.teamName}</p>
+                                </div>
+                                <span className="ml-auto text-lg font-bold text-primary">{player.chance.toFixed(1)}%</span>
                             </div>
-                            <span className="ml-auto text-lg font-bold text-primary">{player.chance.toFixed(1)}%</span>
+                            <Progress value={player.chance} className={cn("h-2", colors[index] || "bg-primary")} />
                         </div>
-                        <Progress value={player.chance} className={cn("h-2", colors[index] || "bg-primary")} />
-                    </div>
-                ))}
+                    ))}
+                </div>
             </CardContent>
         </Card>
     );
@@ -219,7 +219,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                 )}
             </div>
              {stats.mostWins.length > 0 && (
-                <Card className="bg-card/50 border-2 border-primary">
+                <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
                              <Award className="text-primary h-5 w-5"/>
@@ -250,7 +250,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             )}
              
              {showUnbeaten && (
-                <Card className="bg-card/50 border-2 border-primary">
+                <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                        <div className="flex items-center gap-2">
                          <ShieldCheck className="text-primary h-5 w-5"/>
@@ -278,7 +278,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             )}
 
             {!showUnbeaten && stats.mostDraws.length > 0 && (
-                 <Card className="bg-card/50 border-2 border-primary">
+                 <Card className="bg-card border-2 border-primary">
                      <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
                             <Handshake className="text-primary h-5 w-5"/>
@@ -311,5 +311,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
         </div>
     );
 }
+
+    
 
     
