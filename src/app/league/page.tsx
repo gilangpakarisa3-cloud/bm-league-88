@@ -389,14 +389,18 @@ export default function LeaguePage() {
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t('new')}
                 </Button>
-                <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">{t('edit_season')}</span>
-                </Button>
-                <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="icon" disabled={!activeSeason}>
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">{t('delete_season')}</span>
-                </Button>
+                {isAdmin && (
+                  <>
+                    <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">{t('edit_season')}</span>
+                    </Button>
+                    <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="icon" disabled={!activeSeason}>
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">{t('delete_season')}</span>
+                    </Button>
+                  </>
+                )}
                  <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
                     {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
                     {isAdmin ? t('lock_admin') : t('unlock_admin')}
