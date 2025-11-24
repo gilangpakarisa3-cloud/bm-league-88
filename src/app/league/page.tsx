@@ -46,6 +46,7 @@ import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
 import { useSharedPassword } from '@/context/password-context';
 import { PasswordManager } from '@/components/password-manager';
+import { LeagueStats } from '@/components/league-stats';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -410,7 +411,7 @@ export default function LeaguePage() {
         </div>
 
         <div className="mb-8 flex flex-wrap gap-2">
-            {activeSeason && isAdmin && (
+            {isAdmin && (
                 <>
                     <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={activeSeason.status !== 'Not Started'}>
                         <UserPlus className="mr-2 h-4 w-4" />
@@ -449,14 +450,20 @@ export default function LeaguePage() {
             </Button>
         </div>
 
-
-        <LeagueTable 
-            tableData={sortedTable} 
-            isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded}
-            onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
-            seasonStatus={activeSeason?.status}
-            isAdmin={isAdmin}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2">
+                <LeagueTable 
+                    tableData={sortedTable} 
+                    isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded}
+                    onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
+                    seasonStatus={activeSeason?.status}
+                    isAdmin={isAdmin}
+                />
+            </div>
+            <div className="lg:col-span-1">
+                <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
+            </div>
+        </div>
       </div>
       
       {/* Password Dialog */}
