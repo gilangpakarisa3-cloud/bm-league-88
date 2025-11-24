@@ -22,7 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp } from 'firebase/firestore';
-import type { Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
+import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -38,26 +38,107 @@ import { id } from 'date-fns/locale';
 const LEAGUE_ID = 'main-league';
 const ADMIN_PASSWORD = 'Office88';
 
+const MatchCard = memo(function MatchCard({
+    match,
+    onEditMatch,
+    isAdmin,
+    activeSeason,
+    teamsById,
+}: {
+    match: WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null };
+    onEditMatch: (match: WithId<Match>) => void;
+    isAdmin: boolean;
+    activeSeason: WithId<Season> | null;
+    teamsById: Record<string, WithId<Team>>;
+}) {
+    const { t } = useTranslation();
+    const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
+    const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
+    
+    const dateFormat = match.isCompleted ? 'eeee, d MMMM yyyy - HH:mm' : 'eeee, d MMMM yyyy';
+
+    return (
+        <Card className="flex flex-col">
+            <CardHeader className="p-4 pb-2">
+                <p className="text-xs text-muted-foreground text-center font-medium">
+                    {match.matchDate ? format(match.matchDate.toDate(), dateFormat, { locale: id }) : 'Date not set'}
+                </p>
+            </CardHeader>
+            <CardContent className="flex-grow flex items-center justify-around p-4">
+                <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={match.player1?.photoUrl} alt={match.player1?.name} />
+                        <AvatarFallback>{match.player1?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold text-sm truncate w-full">{match.player1?.name}</span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        {team1 && <Avatar className="h-4 w-4">
+                            <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
+                            <AvatarFallback>{team1?.name.charAt(0)}</AvatarFallback>
+                        </Avatar>}
+                        {team1?.name}
+                    </span>
+                    {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player1Score}</span>}
+                </div>
+                <div className="text-2xl font-bold text-muted-foreground w-1/5 text-center">
+                    {match.isCompleted ? '-' : 'VS'}
+                </div>
+                <div className="flex flex-col items-center gap-2 w-2/5 text-center">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={match.player2?.photoUrl} alt={match.player2?.name} />
+                        <AvatarFallback>{match.player2?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold text-sm truncate w-full">{match.player2?.name}</span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        {team2 && <Avatar className="h-4 w-4">
+                            <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
+                            <AvatarFallback>{team2?.name.charAt(0)}</AvatarFallback>
+                        </Avatar>}
+                        {team2?.name}
+                    </span>
+                    {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player2Score}</span>}
+                </div>
+            </CardContent>
+            <CardFooter className="p-4 pt-0">
+                <Button
+                    variant={match.isCompleted ? 'outline' : 'default'}
+                    className="w-full"
+                    onClick={() => onEditMatch(match)}
+                    disabled={
+                        match.isCompleted
+                            ? !isAdmin // Only admins can edit completed scores
+                            : activeSeason?.status !== 'In Progress' // Anyone can update scores for a season 'In Progress'
+                    }
+                >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    {match.isCompleted ? t('edit_score') : t('update_score')}
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+});
+
+
 const FixtureContent = memo(function FixtureContent({
     activeSeasonId,
     onEditMatch,
     isAdmin,
+    allPlayers,
+    allTeams,
+    activeSeason
 }: {
     activeSeasonId: string | null;
     onEditMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
+    allPlayers: WithId<Player>[] | null;
+    allTeams: WithId<Team>[] | null;
+    activeSeason: WithId<Season> | null;
 }) {
     const firestore = useFirestore();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     
     // --- Firestore Data Hooks ---
-    const activeSeasonRef = useMemoFirebase(
-      () => firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null,
-      [firestore, activeSeasonId]
-    );
-    const {data: activeSeason, isLoading: isLoadingSeason} = useDoc<Season>(activeSeasonRef);
-
     const matchesCollection = useMemoFirebase(
         () =>
         firestore && activeSeasonId
@@ -67,18 +148,6 @@ const FixtureContent = memo(function FixtureContent({
     );
     const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
     
-    const playersCollection = useMemoFirebase(
-        () => (firestore ? collection(firestore, 'players') : null),
-        [firestore]
-    );
-    const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
-    
-    const teamsCollection = useMemoFirebase(
-        () => (firestore ? collection(firestore, 'teams') : null),
-        [firestore]
-    );
-    const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
-
     // --- Memoized Derived State ---
     const playersById = useMemo(() => {
         if (!allPlayers) return {};
@@ -127,78 +196,20 @@ const FixtureContent = memo(function FixtureContent({
              </div>
            ) : (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-               {matchList.map(match => {
-                   const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
-                   const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
-                   
-                   const dateFormat = match.isCompleted ? 'eeee, d MMMM yyyy - HH:mm' : 'eeee, d MMMM yyyy';
-   
-                   return (
-                     <Card key={match.id} className="flex flex-col">
-                       <CardHeader className="p-4 pb-2">
-                           <p className="text-xs text-muted-foreground text-center font-medium">
-                               {match.matchDate ? format(match.matchDate.toDate(), dateFormat, { locale: id }) : 'Date not set'}
-                           </p>
-                       </CardHeader>
-                       <CardContent className="flex-grow flex items-center justify-around p-4">
-                         <div className="flex flex-col items-center gap-2 w-2/5 text-center">
-                           <Avatar className="h-10 w-10">
-                               <AvatarImage src={match.player1?.photoUrl} alt={match.player1?.name} />
-                               <AvatarFallback>{match.player1?.name.charAt(0)}</AvatarFallback>
-                           </Avatar>
-                           <span className="font-semibold text-sm truncate w-full">{match.player1?.name}</span>
-                           <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                               {team1 && <Avatar className="h-4 w-4">
-                                   <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
-                                   <AvatarFallback>{team1?.name.charAt(0)}</AvatarFallback>
-                               </Avatar>}
-                               {team1?.name}
-                           </span>
-                           {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player1Score}</span>}
-                         </div>
-                         <div className="text-2xl font-bold text-muted-foreground w-1/5 text-center">
-                           {match.isCompleted ? '-' : 'VS'}
-                         </div>
-                         <div className="flex flex-col items-center gap-2 w-2/5 text-center">
-                           <Avatar className="h-10 w-10">
-                               <AvatarImage src={match.player2?.photoUrl} alt={match.player2?.name} />
-                               <AvatarFallback>{match.player2?.name.charAt(0)}</AvatarFallback>
-                           </Avatar>
-                           <span className="font-semibold text-sm truncate w-full">{match.player2?.name}</span>
-                           <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                              {team2 && <Avatar className="h-4 w-4">
-                                   <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
-                                   <AvatarFallback>{team2?.name.charAt(0)}</AvatarFallback>
-                               </Avatar>}
-                               {team2?.name}
-                           </span>
-                           {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player2Score}</span>}
-                         </div>
-                       </CardContent>
-                       <CardFooter className="p-4 pt-0">
-                          <Button
-                           variant={match.isCompleted ? 'outline' : 'default'}
-                           className="w-full"
-                           onClick={() => onEditMatch(match)}
-                           disabled={
-                              match.isCompleted
-                                ? !isAdmin // Only admins can edit completed scores
-                                : activeSeason?.status !== 'In Progress' // Anyone can update scores for a season 'In Progress'
-                           }
-                         >
-                           <Pencil className="mr-2 h-4 w-4" />
-                           {match.isCompleted ? t('edit_score') : t('update_score')}
-                         </Button>
-                       </CardFooter>
-                     </Card>
-                   )
-               })}
+               {matchList.map(match => (
+                   <MatchCard
+                        key={match.id}
+                        match={match}
+                        onEditMatch={onEditMatch}
+                        isAdmin={isAdmin}
+                        activeSeason={activeSeason}
+                        teamsById={teamsById}
+                    />
+               ))}
              </div>
            )}
         </>
      );
-
-    const isLoading = isLoadingSeason || isLoadingMatches || isLoadingPlayers || isLoadingTeams;
 
     return (
         <>
@@ -212,7 +223,7 @@ const FixtureContent = memo(function FixtureContent({
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {isLoading ? (
+            {isLoadingMatches ? (
                 <p>{t('loading_fixtures')}</p>
             ) : hasFixtures ? (
                 <Tabs defaultValue="remaining">
@@ -381,11 +392,18 @@ export default function FixturesPage() {
     [firestore, activeSeasonId]
   );
   const { data: matches } = useCollection<Match>(matchesCollection);
+
    const playersCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'players') : null),
     [firestore]
   );
-  const { data: allPlayers } = useCollection<Player>(playersCollection);
+  const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+  
+   const teamsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'teams') : null),
+    [firestore]
+  );
+  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
   
   // --- Memoized Derived State ---
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
@@ -556,6 +574,8 @@ export default function FixturesPage() {
     setEditingMatch(match)
   };
 
+  const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams;
+
   return (
     <div className="container mx-auto px-4 py-8">
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-12">
@@ -579,11 +599,18 @@ export default function FixturesPage() {
                 />
             </div>
             
-            <FixtureContent 
-                activeSeasonId={activeSeasonId}
-                onEditMatch={handleEditMatch}
-                isAdmin={isAdmin}
-            />
+            {isLoading ? (
+                <p>{t('loading_fixtures')}</p>
+            ) : (
+                <FixtureContent 
+                    activeSeasonId={activeSeasonId}
+                    onEditMatch={handleEditMatch}
+                    isAdmin={isAdmin}
+                    allPlayers={allPlayers}
+                    allTeams={allTeams}
+                    activeSeason={activeSeason}
+                />
+            )}
 
         </div>
 
@@ -607,7 +634,5 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
 
     

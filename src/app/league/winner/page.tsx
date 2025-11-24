@@ -57,12 +57,14 @@ function LeagueWinnerPageContents() {
                 setWinner(winnerData);
 
                 // Now, fetch the full player document to get the most up-to-date photoUrl
-                const playerRef = doc(firestore, 'players', winnerData.playerId);
-                const playerSnap = await getDocs(query(collection(firestore, 'players'), where('__name__', '==', winnerData.playerId)));
-                
-                if (!playerSnap.empty) {
-                  const winnerPlayerDoc = playerSnap.docs[0];
-                  setWinnerPlayer({ id: winnerPlayerDoc.id, ...winnerPlayerDoc.data() } as WithId<Player>);
+                if (winnerData.playerId) {
+                    const playerRef = doc(firestore, 'players', winnerData.playerId);
+                    const playerSnap = await getDocs(query(collection(firestore, 'players'), where('__name__', '==', winnerData.playerId), limit(1)));
+                    
+                    if (!playerSnap.empty) {
+                      const winnerPlayerDoc = playerSnap.docs[0];
+                      setWinnerPlayer({ id: winnerPlayerDoc.id, ...winnerPlayerDoc.data() } as WithId<Player>);
+                    }
                 }
 
             }
@@ -105,7 +107,7 @@ function LeagueWinnerPageContents() {
     const stats = [
         { label: t('pts'), value: winner.points },
         { label: t('win_long', {defaultValue: 'Wins'}), value: winner.win },
-        { label: t('goal_difference_long', {defaultValue: 'Goal Difference'}), value: `+${winner.goalDifference}` },
+        { label: t('goal_difference_long', {defaultValue: 'Goal Difference'}), value: `${winner.goalDifference > 0 ? '+' : ''}${winner.goalDifference}` },
         { label: t('goals_for_long', {defaultValue: 'Goals For'}), value: winner.goalsFor },
     ];
 
@@ -156,3 +158,5 @@ export default function LeagueWinnerPage() {
         </Suspense>
     )
 }
+
+    
