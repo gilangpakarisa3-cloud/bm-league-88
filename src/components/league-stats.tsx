@@ -129,7 +129,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             </div>
              {stats.mostWins.length > 0 && stats.mostWins[0].win > 0 && (
                 <Card className="bg-card/50 border-2 border-primary">
-                    <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+                    <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
                         <Award className="text-primary h-5 w-5"/>
                         <CardTitle className="text-base font-bold text-foreground">
                             Raja Kemenangan
@@ -154,7 +154,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
             )}
              {stats.unbeaten.length > 0 && (
                 <Card className="bg-card/50 border-2 border-primary">
-                    <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+                    <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
                         <ShieldCheck className="text-primary h-5 w-5"/>
                         <CardTitle className="text-base font-bold text-foreground">
                             Tak Terkalahkan
