@@ -9,7 +9,7 @@ import { Award, ShieldAlert, ShieldCheck, Flame, User, Swords, Handshake } from 
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 
-const StatCard = ({ icon, title, value, player, valueClassName }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}, valueClassName?: string }) => (
+const StatCard = ({ icon, title, value, valueLabel, player, valueClassName }: { icon: React.ReactNode, title: string, value: string | number, valueLabel?: string, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}, valueClassName?: string }) => (
     <Card className="bg-card/50 border-2 border-primary">
         <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
             {icon}
@@ -28,7 +28,10 @@ const StatCard = ({ icon, title, value, player, valueClassName }: { icon: React.
                           <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
                       </div>
                     </div>
-                     <div className={cn("text-2xl font-bold", valueClassName)}>{value}</div>
+                     <div className={cn("text-2xl font-bold", valueClassName)}>
+                        {value}
+                        {valueLabel && <span className="text-sm"> {valueLabel}</span>}
+                     </div>
                 </div>
             )}
         </CardContent>
@@ -119,7 +122,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                     <StatCard 
                         icon={<Flame className="h-5 w-5 text-primary" />}
                         title="Penyerang Terbaik"
-                        value={`${stats.bestAttacker.goalsFor} Gol`}
+                        value={stats.bestAttacker.goalsFor}
+                        valueLabel="Gol"
                         player={stats.bestAttacker}
                         valueClassName="text-primary"
                     />
@@ -128,7 +132,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                      <StatCard 
                         icon={<ShieldAlert className="h-5 w-5 text-primary" />}
                         title="Pertahanan Terburuk"
-                        value={`${stats.worstDefender.goalsAgainst} Gol`}
+                        value={stats.worstDefender.goalsAgainst}
+                        valueLabel="Gol"
                         player={stats.worstDefender}
                         valueClassName="text-destructive"
                     />
