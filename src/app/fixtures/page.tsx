@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, RefreshCw, Search, Lock, Unlock } from 'lucide-react';
+import { Pencil, RefreshCw, Search, Lock, Unlock, Calculator } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
 import { format } from 'date-fns';
 import { usePassword } from '@/hooks/use-password';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -268,6 +269,7 @@ const AdminControls = memo(function AdminControls({
   leagueTable,
   onSeasonChange,
   onGenerateFixtures,
+  onRecalculate,
   isAdmin,
   setIsAdmin
 }: {
@@ -279,6 +281,7 @@ const AdminControls = memo(function AdminControls({
   leagueTable: WithId<LeagueEntry>[] | null;
   onSeasonChange: (id: string) => void;
   onGenerateFixtures: () => void;
+  onRecalculate: () => void;
   isAdmin: boolean;
   setIsAdmin: (isAdmin: boolean) => void;
 }) {
@@ -287,6 +290,7 @@ const AdminControls = memo(function AdminControls({
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();
   const { t } = useTranslation();
+  const [showRecalculateConfirm, setShowRecalculateConfirm] = useState(false);
 
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
@@ -314,6 +318,12 @@ const AdminControls = memo(function AdminControls({
     }
   }, [isAdmin]);
 
+  const handleRecalculateClick = () => {
+    withAdminCheck(() => {
+        setShowRecalculateConfirm(true);
+    });
+  }
+
   return (
     <>
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -327,14 +337,22 @@ const AdminControls = memo(function AdminControls({
             ))}
           </SelectContent>
         </Select>
-        <Button onClick={() => withAdminCheck(onGenerateFixtures)} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
-          <RefreshCw className="mr-2 h-4 w-4" />
-          {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
-        </Button>
-        <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline">
-          {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
-          {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
-        </Button>
+        <div className="flex gap-2">
+            <Button onClick={() => withAdminCheck(onGenerateFixtures)} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
+            </Button>
+            {isAdmin && (
+                 <Button onClick={handleRecalculateClick} variant="destructive" disabled={!activeSeasonId}>
+                    <Calculator className="mr-2 h-4 w-4" />
+                    Hitung Ulang
+                </Button>
+            )}
+            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline">
+              {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+              {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+            </Button>
+        </div>
       </div>
 
       <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}>
@@ -365,6 +383,20 @@ const AdminControls = memo(function AdminControls({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={showRecalculateConfirm} onOpenChange={setShowRecalculateConfirm}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Tindakan ini akan menghitung ulang semua statistik (main, menang, kalah, seri, gol, poin) untuk semua pemain di musim <strong>{activeSeason?.name}</strong> berdasarkan data pertandingan yang sudah selesai. Gunakan ini untuk memperbaiki data yang tidak konsisten.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={() => { onRecalculate(); setShowRecalculateConfirm(false); }} className="bg-destructive hover:bg-destructive/90">Ya, Hitung Ulang</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 });
@@ -582,6 +614,91 @@ export default function FixturesPage() {
     setEditingMatch(null);
   };
 
+  const handleRecalculateStats = useCallback(async () => {
+    if (!firestore || !activeSeasonId || !leagueTable) {
+        toast({ variant: 'destructive', title: "Gagal", description: "Musim atau tabel liga tidak ditemukan." });
+        return;
+    }
+
+    toast({ title: "Memulai Perhitungan Ulang...", description: "Harap tunggu sebentar." });
+
+    const batch = writeBatch(firestore);
+
+    // 1. Get all completed matches for the season
+    const matchesQuery = query(
+        collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`),
+        where('isCompleted', '==', true)
+    );
+    const matchesSnap = await getDocs(matchesQuery);
+    const completedMatches = matchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
+
+    // 2. Create a fresh stats map
+    const playerStatsMap: { [playerId: string]: Omit<LeagueEntry, 'id' | 'rank' | 'playerId' | 'teamId' | 'playerName' | 'teamName' | 'photoUrl'> } = {};
+    
+    leagueTable.forEach(entry => {
+        playerStatsMap[entry.playerId] = {
+            played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0
+        };
+    });
+
+    // 3. Recalculate stats from completed matches
+    completedMatches.forEach(match => {
+        const p1Id = match.player1Id;
+        const p2Id = match.player2Id;
+        const score1 = match.player1Score ?? 0;
+        const score2 = match.player2Score ?? 0;
+
+        if (playerStatsMap[p1Id] && playerStatsMap[p2Id]) {
+            const p1Stats = playerStatsMap[p1Id];
+            const p2Stats = playerStatsMap[p2Id];
+
+            p1Stats.played += 1;
+            p2Stats.played += 1;
+            p1Stats.goalsFor += score1;
+            p1Stats.goalsAgainst += score2;
+            p2Stats.goalsFor += score2;
+            p2Stats.goalsAgainst += score1;
+
+            if (score1 > score2) { // P1 wins
+                p1Stats.win += 1;
+                p1Stats.points += 3;
+                p2Stats.loss += 1;
+            } else if (score2 > score1) { // P2 wins
+                p2Stats.win += 1;
+                p2Stats.points += 3;
+                p1Stats.loss += 1;
+            } else { // Draw
+                p1Stats.draw += 1;
+                p1Stats.points += 1;
+                p2Stats.draw += 1;
+                p2Stats.points += 1;
+            }
+        }
+    });
+
+    // 4. Update the leagueTable documents in a batch
+    leagueTable.forEach(entry => {
+        const stats = playerStatsMap[entry.playerId];
+        if (stats) {
+            const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, entry.id);
+            const finalStats = {
+                ...stats,
+                goalDifference: stats.goalsFor - stats.goalsAgainst,
+            };
+            batch.update(entryRef, finalStats);
+        }
+    });
+    
+    try {
+        await batch.commit();
+        toast({ title: "Sukses!", description: "Statistik tabel liga telah dihitung ulang dan diperbarui." });
+    } catch(e) {
+        console.error("Failed to recalculate stats: ", e);
+        toast({ variant: 'destructive', title: "Gagal", description: "Terjadi kesalahan saat menyimpan statistik baru." });
+    }
+  }, [firestore, activeSeasonId, leagueTable, toast]);
+
+
   const handleEditMatch = (match: WithId<Match>) => {
     setEditingMatch(match)
   };
@@ -606,6 +723,7 @@ export default function FixturesPage() {
                   leagueTable={leagueTable}
                   onSeasonChange={setActiveSeasonId}
                   onGenerateFixtures={handleGenerateFixtures}
+                  onRecalculate={handleRecalculateStats}
                   isAdmin={isAdmin}
                   setIsAdmin={setIsAdmin}
                 />
@@ -646,3 +764,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
