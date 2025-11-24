@@ -59,12 +59,21 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
 
     return (
         <div className="flex items-center justify-between p-3 transition-colors rounded-md hover:bg-muted/50">
-            <div className="flex items-center gap-3 text-sm font-semibold w-2/5 truncate">
-                <Avatar className="h-6 w-6">
-                    <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
-                    <AvatarFallback>{team1?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="truncate">{match.player1?.name}</span>
+            <div className="w-2/5 space-y-1">
+                <div className="flex items-center gap-2 text-sm font-semibold truncate">
+                    <Avatar className="h-5 w-5">
+                        <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
+                        <AvatarFallback>{team1?.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="truncate">{match.player1?.name}</span>
+                </div>
+                 <div className="flex items-center gap-2 text-sm font-semibold truncate">
+                    <Avatar className="h-5 w-5">
+                        <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
+                        <AvatarFallback>{team2?.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="truncate">{match.player2?.name}</span>
+                </div>
             </div>
             
             <div className="flex items-center justify-center gap-2 w-1/5 text-center">
@@ -75,15 +84,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
                 )}
             </div>
 
-            <div className="flex items-center gap-3 text-sm font-semibold w-2/5 justify-end truncate">
-                <span className="truncate text-right">{match.player2?.name}</span>
-                <Avatar className="h-6 w-6">
-                    <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
-                    <AvatarFallback>{team2?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-            </div>
-            
-            <div className="w-24 text-center">
+            <div className="w-2/5 text-right">
                  <Button
                     variant="outline"
                     size="sm"
@@ -170,7 +171,7 @@ const FixtureContent = memo(function FixtureContent({
         const completed = filteredMatches.filter(m => m.isCompleted);
 
         return { upcomingMatches: upcoming, completedMatches: completed.reverse() }; // Show most recent completed first
-    }, [matches, playersById, teamsById, searchTerm]);
+    }, [matches, playersById, searchTerm]);
 
 
     if (isLoadingMatches) {
@@ -766,7 +767,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
-
-    
