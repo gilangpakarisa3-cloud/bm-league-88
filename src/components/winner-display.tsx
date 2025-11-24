@@ -26,7 +26,7 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
             </div>
             
             <Card className="w-full max-w-sm overflow-hidden shadow-lg shadow-primary/10 border-2 border-primary">
-                <div className="bg-primary/10 p-6 sm:p-8 text-center relative">
+                <div className="bg-card p-6 sm:p-8 text-center relative">
                      <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-4">
                         <Avatar className="w-full h-full border-4 border-primary/80 shadow-2xl">
                             <AvatarImage src={imageUrl ?? undefined} alt={`Portrait of ${winnerName}`} />
