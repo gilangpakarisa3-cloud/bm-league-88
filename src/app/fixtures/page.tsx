@@ -70,7 +70,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
                  {match.isCompleted ? (
                     <span className="text-lg font-bold text-primary">{match.player1Score} - {match.player2Score}</span>
                 ) : (
-                    <span className="text-xs font-bold text-muted-foreground">VS</span>
+                    <span className="text-xs font-bold text-primary">VS</span>
                 )}
             </div>
 
@@ -84,7 +84,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
             
             <div className="w-24 text-center">
                  <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="text-xs"
                     onClick={() => onEditMatch(match)}
