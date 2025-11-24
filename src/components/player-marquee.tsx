@@ -82,7 +82,9 @@ export function PlayerMarquee() {
   const animationDuration = `${participants.length * 5}s`;
 
   return (
-    <div className="relative w-full overflow-hidden bg-card border-y border-border py-3 group">
+    <div 
+        className="relative w-full overflow-hidden bg-card border-y border-primary py-3 group"
+      >
       <div 
         className="flex gap-10 animate-marquee group-hover:[animation-play-state:paused]"
         style={{ animationDuration }}
