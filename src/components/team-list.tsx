@@ -75,10 +75,10 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                <Skeleton className="h-16 w-16 rounded-full mb-3" />
                <Skeleton className="h-5 w-3/4" />
             </CardContent>
-             {isAdmin && <CardFooter className="flex justify-center gap-2 p-2">
+             <CardFooter className="flex justify-center gap-2 p-2">
                 <Skeleton className="h-8 w-16" />
                 <Skeleton className="h-8 w-16" />
-            </CardFooter>}
+            </CardFooter>
           </Card>
         ))}
       </div>
@@ -108,18 +108,16 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                         </Avatar>
                         <p className="font-semibold text-sm">{team.name}</p>
                     </CardContent>
-                    {isAdmin && (
-                        <CardFooter className="flex justify-center gap-2 p-2 border-t mt-auto">
-                            <Button variant="ghost" size="sm" onClick={() => onEdit(team)}>
-                                <Pencil className="h-3.5 w-3.5" />
-                                <span className="sr-only">{t('edit_team_title')}</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => confirmDelete(team)}>
-                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                <span className="sr-only">{t('delete_team')}</span>
-                            </Button>
-                        </CardFooter>
-                    )}
+                    <CardFooter className="flex justify-center gap-2 p-2 border-t mt-auto">
+                        <Button variant="ghost" size="sm" onClick={() => onEdit(team)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                            <span className="sr-only">{t('edit_team_title')}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => confirmDelete(team)}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            <span className="sr-only">{t('delete_team')}</span>
+                        </Button>
+                    </CardFooter>
                 </Card>
             ))}
         </div>

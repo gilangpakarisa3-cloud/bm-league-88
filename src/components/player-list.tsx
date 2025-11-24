@@ -92,10 +92,10 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
               <Skeleton className="h-6 w-3/4 mx-auto mb-2" />
               <Skeleton className="h-4 w-1/2 mx-auto" />
             </CardContent>
-            {isAdmin && <CardFooter className="flex justify-center gap-2">
+            <CardFooter className="flex justify-center gap-2">
               <Skeleton className="h-10 w-20" />
               <Skeleton className="h-10 w-20" />
-            </CardFooter>}
+            </CardFooter>
           </Card>
         ))}
       </div>
@@ -137,18 +137,16 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                   <span>{team?.name}</span>
                 </div>
               </CardContent>
-              {isAdmin && (
-                <CardFooter className="flex justify-center gap-2 p-4">
-                  <Button variant="outline" size="sm" onClick={() => onEdit(player)}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    {t('edit_player_title')}
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => confirmDelete(player)}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {t('delete')}
-                  </Button>
-                </CardFooter>
-              )}
+              <CardFooter className="flex justify-center gap-2 p-4">
+                <Button variant="outline" size="sm" onClick={() => onEdit(player)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {t('edit_player_title')}
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => confirmDelete(player)}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t('delete')}
+                </Button>
+              </CardFooter>
             </Card>
           );
         })}
