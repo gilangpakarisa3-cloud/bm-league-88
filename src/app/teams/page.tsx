@@ -82,10 +82,12 @@ export default function TeamsPage() {
             {t('teams_page_title')}
             </h1>
             <div className="flex gap-2">
-                <Button onClick={handleAdd}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {t('add_new_team')}
-                </Button>
+                {isAdmin && (
+                  <Button onClick={handleAdd}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      {t('add_new_team')}
+                  </Button>
+                )}
                  <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
                     {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
                     {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
