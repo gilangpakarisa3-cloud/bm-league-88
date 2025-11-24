@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, RefreshCw, Search, Lock, Unlock, ChevronLeft, ChevronRight, Dot } from 'lucide-react';
+import { Pencil, RefreshCw, Search, Lock, Unlock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -25,20 +25,18 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
-import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ScoreForm } from '@/components/score-form';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
-import { format, isToday, isSameDay, addDays, subDays } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { usePassword } from '@/hooks/use-password';
-import { cn } from '@/lib/utils';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -124,7 +122,6 @@ const FixtureContent = memo(function FixtureContent({
     const firestore = useFirestore();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
-    const [focusedDate, setFocusedDate] = useState(new Date());
     
     // --- Firestore Data Hooks ---
     const matchesCollection = useMemoFirebase(
@@ -151,8 +148,8 @@ const FixtureContent = memo(function FixtureContent({
         }, {} as Record<string, WithId<Team>>);
     }, [allTeams]);
     
-    const matchesByDate = useMemo(() => {
-        if (!matches) return {};
+    const { upcomingMatches, completedMatches } = useMemo(() => {
+        if (!matches) return { upcomingMatches: [], completedMatches: [] };
         
         const filteredMatches = matches
             .map(match => ({
@@ -168,45 +165,11 @@ const FixtureContent = memo(function FixtureContent({
                 return p1Name.includes(term) || p2Name.includes(term);
             });
 
-        return filteredMatches.reduce((acc, match) => {
-            const dateStr = format(match.matchDate.toDate(), 'yyyy-MM-dd');
-            if (!acc[dateStr]) {
-                acc[dateStr] = [];
-            }
-            acc[dateStr].push(match);
-            return acc;
-        }, {} as Record<string, (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[]>);
+        const upcoming = filteredMatches.filter(m => !m.isCompleted);
+        const completed = filteredMatches.filter(m => m.isCompleted);
 
+        return { upcomingMatches: upcoming, completedMatches: completed.reverse() }; // Show most recent completed first
     }, [matches, playersById, teamsById, searchTerm]);
-
-    const sortedDates = useMemo(() => Object.keys(matchesByDate).sort(), [matchesByDate]);
-
-    const focusedDateKey = format(focusedDate, 'yyyy-MM-dd');
-
-    const changeDate = (direction: 'prev' | 'next' | 'today') => {
-        if (direction === 'today') {
-            setFocusedDate(new Date());
-            return;
-        }
-
-        const currentDateIndex = sortedDates.indexOf(focusedDateKey);
-
-        if (direction === 'next') {
-            if (currentDateIndex < sortedDates.length - 1) {
-                setFocusedDate(new Date(sortedDates[currentDateIndex + 1]));
-            } else {
-                // if at the end, go to first
-                if (sortedDates.length > 0) setFocusedDate(new Date(sortedDates[0]));
-            }
-        } else { // prev
-            if (currentDateIndex > 0) {
-                setFocusedDate(new Date(sortedDates[currentDateIndex - 1]));
-            } else {
-                 // if at the beginning, go to last
-                if (sortedDates.length > 0) setFocusedDate(new Date(sortedDates[sortedDates.length - 1]));
-            }
-        }
-    };
 
 
     if (isLoadingMatches) {
@@ -224,59 +187,79 @@ const FixtureContent = memo(function FixtureContent({
     
     return (
         <>
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="relative flex-grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        type="text"
-                        placeholder={t('search_by_player_or_team')}
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="flex items-center justify-center gap-2 p-2 bg-card rounded-md border">
-                    <Button variant="ghost" size="icon" onClick={() => changeDate('prev')} disabled={sortedDates.length <= 1}><ChevronLeft /></Button>
-                    <Button variant="ghost" className="w-40" onClick={() => changeDate('today')}>
-                        {isToday(focusedDate) ? t('today', { defaultValue: 'Today'}) : format(focusedDate, 'd LLL yyyy')}
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => changeDate('next')} disabled={sortedDates.length <= 1}><ChevronRight /></Button>
-                </div>
+            <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    type="text"
+                    placeholder={t('search_by_player_or_team')}
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </div>
 
-            {sortedDates.length > 0 ? (
-                <div className="space-y-2">
-                    {sortedDates.map(dateStr => (
-                         <Card key={dateStr} className={cn(
-                             "transition-all",
-                             dateStr !== focusedDateKey && "opacity-50 blur-sm scale-95"
-                         )}>
-                            <CardHeader className="p-3">
-                                <h3 className="font-semibold text-center text-primary">
-                                    {format(new Date(dateStr), 'eeee, d MMMM yyyy', { locale: id })}
-                                </h3>
-                            </CardHeader>
-                            <CardContent className="p-2 pt-0">
-                                <div className="divide-y">
-                                    {matchesByDate[dateStr].map(match => (
-                                        <MatchRow
-                                            key={match.id}
-                                            match={match}
-                                            onEditMatch={onEditMatch}
-                                            isAdmin={isAdmin}
-                                            activeSeason={activeSeason}
-                                            teamsById={teamsById}
-                                        />
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                <div className="border rounded-lg p-8 text-center bg-card">
+            {(upcomingMatches.length === 0 && completedMatches.length === 0 && searchTerm) ? (
+                 <div className="border rounded-lg p-8 text-center bg-card">
                     <h2 className="text-xl font-medium text-muted-foreground">{t('no_matches_found')}</h2>
                 </div>
+            ) : (
+                <Accordion type="multiple" defaultValue={['upcoming', 'completed']} className="w-full space-y-4">
+                    <AccordionItem value="upcoming" className="border-none">
+                        <Card>
+                            <CardHeader className="p-0">
+                                <AccordionTrigger className="p-4 text-lg font-bold text-primary">Sisa Pertandingan ({upcomingMatches.length})</AccordionTrigger>
+                            </CardHeader>
+                            <AccordionContent>
+                                <div className="p-2 pt-0">
+                                    {upcomingMatches.length > 0 ? (
+                                        <div className="divide-y">
+                                            {upcomingMatches.map(match => (
+                                                <MatchRow
+                                                    key={match.id}
+                                                    match={match}
+                                                    onEditMatch={onEditMatch}
+                                                    isAdmin={isAdmin}
+                                                    activeSeason={activeSeason}
+                                                    teamsById={teamsById}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
+                                    )}
+                                </div>
+                            </AccordionContent>
+                        </Card>
+                    </AccordionItem>
+
+                    <AccordionItem value="completed" className="border-none">
+                         <Card>
+                            <CardHeader className="p-0">
+                                <AccordionTrigger className="p-4 text-lg font-bold text-primary">Pertandingan Selesai ({completedMatches.length})</AccordionTrigger>
+                            </CardHeader>
+                            <AccordionContent>
+                                 <div className="p-2 pt-0">
+                                    {completedMatches.length > 0 ? (
+                                        <div className="divide-y">
+                                            {completedMatches.map(match => (
+                                                <MatchRow
+                                                    key={match.id}
+                                                    match={match}
+                                                    onEditMatch={onEditMatch}
+                                                    isAdmin={isAdmin}
+                                                    activeSeason={activeSeason}
+                                                    teamsById={teamsById}
+                                                />
+                                            ))}
+                                        </div>
+                                     ) : (
+                                        <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
+                                    )}
+                                </div>
+                            </AccordionContent>
+                        </Card>
+                    </AccordionItem>
+                </Accordion>
             )}
         </>
     );
@@ -667,7 +650,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
-
-    
