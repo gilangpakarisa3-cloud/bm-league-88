@@ -106,7 +106,7 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
             <FormItem>
               <FormLabel>{t('team_name')}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., The All-Stars" {...field} disabled={!!team} />
+                <Input placeholder="e.g., The All-Stars" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -218,7 +218,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
             <FormItem>
               <FormLabel>{t('player_name')}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Andi 'The Ace'" {...field} disabled={!!player} />
+                <Input placeholder="e.g., Andi 'The Ace'" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
