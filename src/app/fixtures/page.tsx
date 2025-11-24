@@ -338,15 +338,17 @@ const AdminControls = memo(function AdminControls({
           </SelectContent>
         </Select>
         <div className="flex gap-2">
-            <Button onClick={() => withAdminCheck(onGenerateFixtures)} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
-            </Button>
             {isAdmin && (
-                 <Button onClick={handleRecalculateClick} variant="destructive" disabled={!activeSeasonId}>
-                    <Calculator className="mr-2 h-4 w-4" />
-                    Hitung Ulang
-                </Button>
+                <>
+                    <Button onClick={() => withAdminCheck(onGenerateFixtures)} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
+                    </Button>
+                    <Button onClick={handleRecalculateClick} variant="destructive" disabled={!activeSeasonId}>
+                        <Calculator className="mr-2 h-4 w-4" />
+                        Hitung Ulang
+                    </Button>
+                </>
             )}
             <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline">
               {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
@@ -764,5 +766,7 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
 
     
