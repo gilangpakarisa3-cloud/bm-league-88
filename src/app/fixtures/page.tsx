@@ -20,11 +20,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion"
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
@@ -203,63 +203,56 @@ const FixtureContent = memo(function FixtureContent({
                     <h2 className="text-xl font-medium text-muted-foreground">{t('no_matches_found')}</h2>
                 </div>
             ) : (
-                <Accordion type="multiple" defaultValue={['upcoming', 'completed']} className="w-full space-y-4">
-                    <AccordionItem value="upcoming" className="border-none">
+                <Tabs defaultValue="upcoming" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="upcoming">Sisa Pertandingan ({upcomingMatches.length})</TabsTrigger>
+                        <TabsTrigger value="completed">Pertandingan Selesai ({completedMatches.length})</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="upcoming">
                         <Card>
-                            <CardHeader className="p-0">
-                                <AccordionTrigger className="p-4 text-lg font-bold text-primary">Sisa Pertandingan ({upcomingMatches.length})</AccordionTrigger>
-                            </CardHeader>
-                            <AccordionContent>
-                                <div className="p-2 pt-0">
-                                    {upcomingMatches.length > 0 ? (
-                                        <div className="divide-y">
-                                            {upcomingMatches.map(match => (
-                                                <MatchRow
-                                                    key={match.id}
-                                                    match={match}
-                                                    onEditMatch={onEditMatch}
-                                                    isAdmin={isAdmin}
-                                                    activeSeason={activeSeason}
-                                                    teamsById={teamsById}
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
-                                    )}
-                                </div>
-                            </AccordionContent>
+                            <CardContent className="p-2">
+                               {upcomingMatches.length > 0 ? (
+                                    <div className="divide-y">
+                                        {upcomingMatches.map(match => (
+                                            <MatchRow
+                                                key={match.id}
+                                                match={match}
+                                                onEditMatch={onEditMatch}
+                                                isAdmin={isAdmin}
+                                                activeSeason={activeSeason}
+                                                teamsById={teamsById}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
+                                )}
+                            </CardContent>
                         </Card>
-                    </AccordionItem>
-
-                    <AccordionItem value="completed" className="border-none">
-                         <Card>
-                            <CardHeader className="p-0">
-                                <AccordionTrigger className="p-4 text-lg font-bold text-primary">Pertandingan Selesai ({completedMatches.length})</AccordionTrigger>
-                            </CardHeader>
-                            <AccordionContent>
-                                 <div className="p-2 pt-0">
-                                    {completedMatches.length > 0 ? (
-                                        <div className="divide-y">
-                                            {completedMatches.map(match => (
-                                                <MatchRow
-                                                    key={match.id}
-                                                    match={match}
-                                                    onEditMatch={onEditMatch}
-                                                    isAdmin={isAdmin}
-                                                    activeSeason={activeSeason}
-                                                    teamsById={teamsById}
-                                                />
-                                            ))}
-                                        </div>
-                                     ) : (
-                                        <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
-                                    )}
-                                </div>
-                            </AccordionContent>
+                    </TabsContent>
+                    <TabsContent value="completed">
+                        <Card>
+                             <CardContent className="p-2">
+                                {completedMatches.length > 0 ? (
+                                    <div className="divide-y">
+                                        {completedMatches.map(match => (
+                                            <MatchRow
+                                                key={match.id}
+                                                match={match}
+                                                onEditMatch={onEditMatch}
+                                                isAdmin={isAdmin}
+                                                activeSeason={activeSeason}
+                                                teamsById={teamsById}
+                                            />
+                                        ))}
+                                    </div>
+                                 ) : (
+                                    <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
+                                )}
+                            </CardContent>
                         </Card>
-                    </AccordionItem>
-                </Accordion>
+                    </TabsContent>
+                </Tabs>
             )}
         </>
     );
