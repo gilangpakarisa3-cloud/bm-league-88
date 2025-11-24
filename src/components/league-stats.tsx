@@ -3,7 +3,7 @@
 
 import { useMemo } from "react";
 import type { LeagueEntry, Player, Team, WithId } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { Award, ShieldAlert, ShieldCheck, Flame, User, Swords, Handshake, PercentSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -59,11 +59,16 @@ const ChampionChanceCard = ({ topContenders }: { topContenders: (WithId<LeagueEn
 
     return (
         <Card className="bg-card/50 border-2 border-primary">
-            <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-                <PercentSquare className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base font-bold text-foreground">
-                    Peluang Juara
-                </CardTitle>
+            <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                    <PercentSquare className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base font-bold text-foreground">
+                        Peluang Juara
+                    </CardTitle>
+                </div>
+                 <CardDescription className="text-xs pt-1">
+                    Berdasarkan poin, sisa laga & selisih gol.
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
                 {topContenders.map((player, index) => (
@@ -130,23 +135,29 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
         
         // --- Champion Chance Logic ---
         const totalMatchesPerPlayer = (tableData.length - 1) * 2;
-        
-        const contenders = tableData.map(player => {
-            const matchesLeft = totalMatchesPerPlayer - player.played;
-            const potentialPoints = matchesLeft * 3;
-            // Simple scoring: current points + potential points + goal difference as tie-breaker
-            const chanceScore = player.points + potentialPoints + (player.goalDifference * 0.1);
-            return { ...player, chanceScore };
-        });
+        let topContenders: (WithId<LeagueEntry> & { chance: number })[] = [];
 
-        const totalChanceScore = contenders.reduce((sum, player) => sum + Math.max(0, player.chanceScore), 0);
+        // Only calculate chance if at least one match has been played
+        const anyMatchPlayed = tableData.some(p => p.played > 0);
 
-        const contendersWithChance = contenders.map(player => ({
-            ...player,
-            chance: totalChanceScore > 0 ? (Math.max(0, player.chanceScore) / totalChanceScore) * 100 : 0,
-        })).sort((a, b) => b.chance - a.chance);
+        if (anyMatchPlayed) {
+            const contenders = tableData.map(player => {
+                const matchesLeft = totalMatchesPerPlayer - player.played;
+                const potentialPoints = matchesLeft * 3;
+                // Simple scoring: current points + potential points + goal difference as tie-breaker
+                const chanceScore = player.points + potentialPoints + (player.goalDifference * 0.1);
+                return { ...player, chanceScore };
+            });
 
-        const topContenders = contendersWithChance.slice(0, 3);
+            const totalChanceScore = contenders.reduce((sum, player) => sum + Math.max(0, player.chanceScore), 0);
+
+            const contendersWithChance = contenders.map(player => ({
+                ...player,
+                chance: totalChanceScore > 0 ? (Math.max(0, player.chanceScore) / totalChanceScore) * 100 : 0,
+            })).sort((a, b) => b.chance - a.chance);
+
+            topContenders = contendersWithChance.slice(0, 3);
+        }
 
 
         return { bestAttacker, worstDefender, mostWins, unbeaten, mostDraws, topContenders };
