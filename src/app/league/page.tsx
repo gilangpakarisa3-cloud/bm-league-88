@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -44,16 +44,19 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
+import { usePassword } from '@/hooks/use-password';
+import { PasswordManager } from '@/components/password-manager';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
-const ADMIN_PASSWORD = '123123';
+
 
 export default function LeaguePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = usePassword();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -68,6 +71,7 @@ export default function LeaguePage() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({ from: undefined, to: undefined });
+  const [showPasswordManager, setShowPasswordManager] = useState(false);
 
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -381,15 +385,15 @@ export default function LeaguePage() {
                 </SelectContent>
             </Select>
             <div className="flex gap-2">
-                <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+                <Button onClick={() => withAdminCheck(handleOpenCreateDialog)} className="w-full sm:w-auto">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t('new')}
                 </Button>
-                <Button onClick={handleOpenEditDialog} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
+                <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">{t('edit_season')}</span>
                 </Button>
-                <Button onClick={() => activeSeason && setDeletingSeason(activeSeason)} variant="destructive" size="icon" disabled={!activeSeason}>
+                <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="icon" disabled={!activeSeason}>
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">{t('delete_season')}</span>
                 </Button>
@@ -401,27 +405,32 @@ export default function LeaguePage() {
           </div>
         </div>
 
-        {activeSeason && (
-            <div className="mb-8 flex flex-wrap gap-2">
-                <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={activeSeason.status !== 'Not Started'}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    {t('register_players')}
-                </Button>
-                <Button 
-                    onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
-                    variant="outline" 
-                    disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
-                    title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
-                    <Play className="mr-2 h-4 w-4" />
-                    {t('start_season')}
-                </Button>
-                <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
-                    <Flag className="mr-2 h-4 w-4" />
-                    {t('finish_season')}
-                </Button>
-                
-            </div>
-        )}
+        <div className="mb-8 flex flex-wrap gap-2">
+            {activeSeason && (
+                <>
+                    <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={activeSeason.status !== 'Not Started'}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        {t('register_players')}
+                    </Button>
+                    <Button 
+                        onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
+                        variant="outline" 
+                        disabled={activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
+                        title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
+                        <Play className="mr-2 h-4 w-4" />
+                        {t('start_season')}
+                    </Button>
+                    <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={activeSeason.status !== 'In Progress'}>
+                        <Flag className="mr-2 h-4 w-4" />
+                        {t('finish_season')}
+                    </Button>
+                </>
+            )}
+             <Button onClick={() => withAdminCheck(() => setShowPasswordManager(true))} variant="outline" disabled={!isAdmin}>
+                <KeyRound className="mr-2 h-4 w-4" />
+                {t('manage_password', { defaultValue: 'Manage Password' })}
+            </Button>
+        </div>
         
         <div className="flex flex-wrap gap-2 mb-8">
             <Button onClick={handleShareParticipants} variant="outline" disabled={!leagueTable || leagueTable.length === 0}>
@@ -439,7 +448,7 @@ export default function LeaguePage() {
 
         <LeagueTable 
             tableData={sortedTable} 
-            isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams}
+            isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded}
             onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
             seasonStatus={activeSeason?.status}
             isAdmin={isAdmin}
@@ -593,6 +602,9 @@ export default function LeaguePage() {
           title={t('share_league_participants')}
           shareText={shareText}
         />
+      
+      {/* Password Manager Dialog */}
+      <PasswordManager open={showPasswordManager} onOpenChange={setShowPasswordManager} />
 
     </div>
   );

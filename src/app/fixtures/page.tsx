@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, RefreshCw, Search, Lock, Unlock } from 'lucide-react';
+import { Pencil, RefreshCw, Search, Lock, Unlock, ChevronLeft, ChevronRight, Dot } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
@@ -30,21 +35,17 @@ import { ScoreForm } from '@/components/score-form';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
-import { format } from 'date-fns';
+import { format, isToday, isSameDay, addDays, subDays } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { usePassword } from '@/hooks/use-password';
+import { cn } from '@/lib/utils';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
-const ADMIN_PASSWORD = '123123';
 
-const MatchCard = memo(function MatchCard({
-    match,
-    onEditMatch,
-    isAdmin,
-    activeSeason,
-    teamsById,
-}: {
+
+const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSeason, teamsById }: {
     match: WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null };
     onEditMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
@@ -54,57 +55,40 @@ const MatchCard = memo(function MatchCard({
     const { t } = useTranslation();
     const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
-    
-    const displayDate = match.matchDate.toDate();
-    const dateFormat = match.isCompleted ? 'eeee, d MMMM yyyy - HH:mm' : 'eeee, d MMMM yyyy';
 
+    const displayTime = match.isCompleted ? format(match.matchDate.toDate(), 'HH:mm') : t('unplayed_abbv', { defaultValue: 'TBD' });
 
     return (
-        <Card className="flex flex-col">
-            <CardHeader className="p-4 pb-2">
-                <p className="text-xs text-muted-foreground text-center font-medium">
-                    {format(displayDate, dateFormat, { locale: id })}
-                </p>
-            </CardHeader>
-            <CardContent className="flex-grow flex items-center justify-around p-4">
-                <div className="flex flex-col items-center gap-2 w-2/5 text-center">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={match.player1?.photoUrl} alt={match.player1?.name} />
-                        <AvatarFallback>{match.player1?.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-semibold text-sm truncate w-full">{match.player1?.name}</span>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        {team1 && <Avatar className="h-4 w-4">
-                            <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
-                            <AvatarFallback>{team1?.name.charAt(0)}</AvatarFallback>
-                        </Avatar>}
-                        {team1?.name}
-                    </span>
-                    {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player1Score}</span>}
-                </div>
-                <div className="text-2xl font-bold text-muted-foreground w-1/5 text-center">
-                    {match.isCompleted ? '-' : 'VS'}
-                </div>
-                <div className="flex flex-col items-center gap-2 w-2/5 text-center">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={match.player2?.photoUrl} alt={match.player2?.name} />
-                        <AvatarFallback>{match.player2?.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-semibold text-sm truncate w-full">{match.player2?.name}</span>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        {team2 && <Avatar className="h-4 w-4">
-                            <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
-                            <AvatarFallback>{team2?.name.charAt(0)}</AvatarFallback>
-                        </Avatar>}
-                        {team2?.name}
-                    </span>
-                    {match.isCompleted && <span className="text-2xl font-bold text-primary">{match.player2Score}</span>}
-                </div>
-            </CardContent>
-            <CardFooter className="p-4 pt-0">
-                <Button
-                    variant={match.isCompleted ? 'outline' : 'default'}
-                    className="w-full"
+        <div className="flex items-center justify-between p-3 transition-colors rounded-md hover:bg-muted/50">
+            <div className="flex items-center gap-3 text-sm font-semibold w-2/5 truncate">
+                <Avatar className="h-6 w-6">
+                    <AvatarImage src={team1?.logoUrl} alt={team1?.name} />
+                    <AvatarFallback>{team1?.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="truncate">{match.player1?.name}</span>
+            </div>
+            
+            <div className="flex items-center justify-center gap-2 w-1/5 text-center">
+                 {match.isCompleted ? (
+                    <span className="text-lg font-bold text-primary">{match.player1Score} - {match.player2Score}</span>
+                ) : (
+                    <span className="text-xs font-bold text-muted-foreground">VS</span>
+                )}
+            </div>
+
+            <div className="flex items-center gap-3 text-sm font-semibold w-2/5 justify-end truncate">
+                <span className="truncate text-right">{match.player2?.name}</span>
+                <Avatar className="h-6 w-6">
+                    <AvatarImage src={team2?.logoUrl} alt={team2?.name} />
+                    <AvatarFallback>{team2?.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+            </div>
+            
+            <div className="w-24 text-center">
+                 <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs"
                     onClick={() => onEditMatch(match)}
                     disabled={
                         match.isCompleted
@@ -112,11 +96,12 @@ const MatchCard = memo(function MatchCard({
                             : activeSeason?.status !== 'In Progress' // Anyone can update scores for a season 'In Progress'
                     }
                 >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    {match.isCompleted ? t('edit_score') : t('update_score')}
+                    <Pencil className="mr-1 h-3 w-3" />
+                    {displayTime}
                 </Button>
-            </CardFooter>
-        </Card>
+            </div>
+
+        </div>
     );
 });
 
@@ -139,6 +124,7 @@ const FixtureContent = memo(function FixtureContent({
     const firestore = useFirestore();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
+    const [focusedDate, setFocusedDate] = useState(new Date());
     
     // --- Firestore Data Hooks ---
     const matchesCollection = useMemoFirebase(
@@ -165,83 +151,131 @@ const FixtureContent = memo(function FixtureContent({
         }, {} as Record<string, WithId<Team>>);
     }, [allTeams]);
     
-    const matchesWithPlayers = useMemo(() => {
-        if (!matches) return [];
-        return matches
-        .map(match => ({
-            ...match,
-            player1: playersById[match.player1Id] || null,
-            player2: playersById[match.player2Id] || null,
-        }))
-        .filter(m => {
-            if (!searchTerm) return true;
-            const term = searchTerm.toLowerCase();
-            const p1Name = m.player1?.name.toLowerCase() || '';
-            const p2Name = m.player2?.name.toLowerCase() || '';
-            const p1Team = m.player1 ? (teamsById[m.player1.teamId]?.name.toLowerCase() || '') : '';
-            const p2Team = m.player2 ? (teamsById[m.player2.teamId]?.name.toLowerCase() || '') : '';
-            return p1Name.includes(term) || p2Name.includes(term) || p1Team.includes(term) || p2Team.includes(term);
-        });
+    const matchesByDate = useMemo(() => {
+        if (!matches) return {};
+        
+        const filteredMatches = matches
+            .map(match => ({
+                ...match,
+                player1: playersById[match.player1Id] || null,
+                player2: playersById[match.player2Id] || null,
+            }))
+            .filter(m => {
+                if (!searchTerm) return true;
+                const term = searchTerm.toLowerCase();
+                const p1Name = m.player1?.name.toLowerCase() || '';
+                const p2Name = m.player2?.name.toLowerCase() || '';
+                return p1Name.includes(term) || p2Name.includes(term);
+            });
+
+        return filteredMatches.reduce((acc, match) => {
+            const dateStr = format(match.matchDate.toDate(), 'yyyy-MM-dd');
+            if (!acc[dateStr]) {
+                acc[dateStr] = [];
+            }
+            acc[dateStr].push(match);
+            return acc;
+        }, {} as Record<string, (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[]>);
+
     }, [matches, playersById, teamsById, searchTerm]);
 
-    const unplayedMatches = matchesWithPlayers.filter(m => !m.isCompleted);
-    const playedMatches = matchesWithPlayers.filter(m => m.isCompleted);
-    const hasFixtures = (matches || []).length > 0;
+    const sortedDates = useMemo(() => Object.keys(matchesByDate).sort(), [matchesByDate]);
 
-    const MatchList = ({ matchList }: { matchList: (WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null })[] }) => (
-        <>
-           {matchList.length === 0 ? (
-             <div className="border rounded-lg p-8 text-center bg-card mt-4">
-                 <h2 className="text-xl font-medium text-muted-foreground">{searchTerm ? t('no_matches_found') : t('no_matches_in_category')}</h2>
-             </div>
-           ) : (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-               {matchList.map(match => (
-                   <MatchCard
-                        key={match.id}
-                        match={match}
-                        onEditMatch={onEditMatch}
-                        isAdmin={isAdmin}
-                        activeSeason={activeSeason}
-                        teamsById={teamsById}
-                    />
-               ))}
-             </div>
-           )}
-        </>
-     );
+    const focusedDateKey = format(focusedDate, 'yyyy-MM-dd');
 
+    const changeDate = (direction: 'prev' | 'next' | 'today') => {
+        if (direction === 'today') {
+            setFocusedDate(new Date());
+            return;
+        }
+
+        const currentDateIndex = sortedDates.indexOf(focusedDateKey);
+
+        if (direction === 'next') {
+            if (currentDateIndex < sortedDates.length - 1) {
+                setFocusedDate(new Date(sortedDates[currentDateIndex + 1]));
+            } else {
+                // if at the end, go to first
+                if (sortedDates.length > 0) setFocusedDate(new Date(sortedDates[0]));
+            }
+        } else { // prev
+            if (currentDateIndex > 0) {
+                setFocusedDate(new Date(sortedDates[currentDateIndex - 1]));
+            } else {
+                 // if at the beginning, go to last
+                if (sortedDates.length > 0) setFocusedDate(new Date(sortedDates[sortedDates.length - 1]));
+            }
+        }
+    };
+
+
+    if (isLoadingMatches) {
+        return <p>{t('loading_fixtures')}</p>;
+    }
+
+    if (!matches || matches.length === 0) {
+        return (
+            <div className="border rounded-lg p-8 text-center bg-card">
+              <h2 className="text-xl font-medium text-muted-foreground">{t('no_fixtures_generated_title')}</h2>
+              <p className="text-muted-foreground mt-2">{t('no_fixtures_generated_desc')}</p>
+            </div>
+        );
+    }
+    
     return (
         <>
-            <div className="mb-8 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={t('search_by_player_or_team')}
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-grow">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder={t('search_by_player_or_team')}
+                        className="pl-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex items-center justify-center gap-2 p-2 bg-card rounded-md border">
+                    <Button variant="ghost" size="icon" onClick={() => changeDate('prev')} disabled={sortedDates.length <= 1}><ChevronLeft /></Button>
+                    <Button variant="ghost" className="w-40" onClick={() => changeDate('today')}>
+                        {isToday(focusedDate) ? t('today', { defaultValue: 'Today'}) : format(focusedDate, 'd LLL yyyy')}
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => changeDate('next')} disabled={sortedDates.length <= 1}><ChevronRight /></Button>
+                </div>
             </div>
-            {isLoadingMatches ? (
-                <p>{t('loading_fixtures')}</p>
-            ) : hasFixtures ? (
-                <Tabs defaultValue="remaining">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="remaining">{t('remaining_matches')} ({unplayedMatches.length})</TabsTrigger>
-                        <TabsTrigger value="completed">{t('completed_matches')} ({playedMatches.length})</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="remaining">
-                        <MatchList matchList={unplayedMatches} />
-                    </TabsContent>
-                    <TabsContent value="completed">
-                        <MatchList matchList={playedMatches} />
-                    </TabsContent>
-                </Tabs>
+
+            {sortedDates.length > 0 ? (
+                <div className="space-y-2">
+                    {sortedDates.map(dateStr => (
+                         <Card key={dateStr} className={cn(
+                             "transition-all",
+                             dateStr !== focusedDateKey && "opacity-50 blur-sm scale-95"
+                         )}>
+                            <CardHeader className="p-3">
+                                <h3 className="font-semibold text-center text-primary">
+                                    {format(new Date(dateStr), 'eeee, d MMMM yyyy', { locale: id })}
+                                </h3>
+                            </CardHeader>
+                            <CardContent className="p-2 pt-0">
+                                <div className="divide-y">
+                                    {matchesByDate[dateStr].map(match => (
+                                        <MatchRow
+                                            key={match.id}
+                                            match={match}
+                                            onEditMatch={onEditMatch}
+                                            isAdmin={isAdmin}
+                                            activeSeason={activeSeason}
+                                            teamsById={teamsById}
+                                        />
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             ) : (
                 <div className="border rounded-lg p-8 text-center bg-card">
-                  <h2 className="text-xl font-medium text-muted-foreground">{t('no_fixtures_generated_title')}</h2>
-                  <p className="text-muted-foreground mt-2">{t('no_fixtures_generated_desc')}</p>
+                    <h2 className="text-xl font-medium text-muted-foreground">{t('no_matches_found')}</h2>
                 </div>
             )}
         </>
@@ -272,6 +306,7 @@ const AdminControls = memo(function AdminControls({
   isAdmin: boolean;
   setIsAdmin: (isAdmin: boolean) => void;
 }) {
+  const { password: ADMIN_PASSWORD } = usePassword();
   const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void }>({ open: false });
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();

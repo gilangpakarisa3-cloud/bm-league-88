@@ -21,10 +21,11 @@ import {
 } from './ui/dialog';
 import { Label } from './ui/label';
 import { useTranslation } from '@/hooks/use-translation';
+import { usePassword } from '@/hooks/use-password';
 
 
 const NOTICE_ID = 'main';
-const ADMIN_PASSWORD = '123123';
+
 
 const DEFAULT_NOTICE: Notice = {
   rules: [],
@@ -35,6 +36,7 @@ export function EditableNotice() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { password: ADMIN_PASSWORD } = usePassword();
 
   const noticeRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'notices', NOTICE_ID) : null),
@@ -255,4 +257,3 @@ function NoticeSkeleton() {
     
 
     
-
