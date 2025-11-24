@@ -13,7 +13,7 @@ interface LeagueStatsProps {
     isLoading: boolean;
 }
 
-const StatCard = ({ icon, title, value, player }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { team?: WithId<Team>}}) => (
+const StatCard = ({ icon, title, value, player }: { icon: React.ReactNode, title: string, value: string | number, player?: WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>}}) => (
     <Card className="bg-card/50 border-2 border-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-base font-bold text-foreground">{title}</CardTitle>
@@ -22,7 +22,16 @@ const StatCard = ({ icon, title, value, player }: { icon: React.ReactNode, title
         <CardContent>
              {player && (
                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-sm font-semibold text-foreground truncate">{player.playerName}</p>
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                            <AvatarFallback><User /></AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="text-sm font-semibold text-foreground truncate">{player.playerName}</p>
+                            <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
+                        </div>
+                    </div>
                     <div className="text-2xl font-bold text-primary">{value}</div>
                 </div>
             )}
