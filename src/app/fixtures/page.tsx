@@ -54,14 +54,25 @@ const MatchCard = memo(function MatchCard({
     const { t } = useTranslation();
     const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000); // Update every second
+
+        return () => clearInterval(timer); // Cleanup on unmount
+    }, []);
     
     const dateFormat = match.isCompleted ? 'eeee, d MMMM yyyy - HH:mm' : 'eeee, d MMMM yyyy';
+    const displayDate = match.isCompleted ? match.matchDate.toDate() : currentTime;
+
 
     return (
         <Card className="flex flex-col">
             <CardHeader className="p-4 pb-2">
                 <p className="text-xs text-muted-foreground text-center font-medium">
-                    {match.matchDate ? format(match.matchDate.toDate(), dateFormat, { locale: id }) : 'Date not set'}
+                    {format(displayDate, dateFormat, { locale: id })}
                 </p>
             </CardHeader>
             <CardContent className="flex-grow flex items-center justify-around p-4">
@@ -130,8 +141,8 @@ const FixtureContent = memo(function FixtureContent({
     activeSeasonId: string | null;
     onEditMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
-    allPlayers: WithId<Player>[] | null;
-    allTeams: WithId<Team>[] | null;
+    allPlayers: WithId<Player>[];
+    allTeams: WithId<Team>[];
     activeSeason: WithId<Season> | null;
 }) {
     const firestore = useFirestore();
@@ -142,7 +153,7 @@ const FixtureContent = memo(function FixtureContent({
     const matchesCollection = useMemoFirebase(
         () =>
         firestore && activeSeasonId
-            ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`)
+            ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`), orderBy('matchDate', 'asc'))
             : null,
         [firestore, activeSeasonId]
     );
@@ -150,7 +161,6 @@ const FixtureContent = memo(function FixtureContent({
     
     // --- Memoized Derived State ---
     const playersById = useMemo(() => {
-        if (!allPlayers) return {};
         return allPlayers.reduce((acc, player) => {
         acc[player.id] = player;
         return acc;
@@ -158,7 +168,6 @@ const FixtureContent = memo(function FixtureContent({
     }, [allPlayers]);
     
     const teamsById = useMemo(() => {
-        if (!allTeams) return {};
         return allTeams.reduce((acc, team) => {
         acc[team.id] = team;
         return acc;
@@ -166,7 +175,7 @@ const FixtureContent = memo(function FixtureContent({
     }, [allTeams]);
     
     const matchesWithPlayers = useMemo(() => {
-        if (!matches || !allPlayers) return [];
+        if (!matches) return [];
         return matches
         .map(match => ({
             ...match,
@@ -182,7 +191,7 @@ const FixtureContent = memo(function FixtureContent({
             const p2Team = m.player2 ? (teamsById[m.player2.teamId]?.name.toLowerCase() || '') : '';
             return p1Name.includes(term) || p2Name.includes(term) || p1Team.includes(term) || p2Team.includes(term);
         });
-    }, [matches, allPlayers, playersById, teamsById, searchTerm]);
+    }, [matches, playersById, teamsById, searchTerm]);
 
     const unplayedMatches = matchesWithPlayers.filter(m => !m.isCompleted);
     const playedMatches = matchesWithPlayers.filter(m => m.isCompleted);
@@ -370,7 +379,7 @@ export default function FixturesPage() {
   
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, `leagues/${LEAGUE_ID}/seasons`) : null),
+    () => (firestore ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc')) : null),
     [firestore]
   );
   const { data: seasons, isLoading: isLoadingSeasons } = useCollection<Season>(seasonsCollection);
@@ -412,8 +421,7 @@ export default function FixturesPage() {
   // --- Effects ---
   useEffect(() => {
     if (seasons && !activeSeasonId && seasons.length > 0) {
-      const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-      setActiveSeasonId(sortedSeasons[0].id);
+      setActiveSeasonId(seasons[0].id);
     }
   }, [seasons, activeSeasonId]);
   
@@ -606,8 +614,8 @@ export default function FixturesPage() {
                     activeSeasonId={activeSeasonId}
                     onEditMatch={handleEditMatch}
                     isAdmin={isAdmin}
-                    allPlayers={allPlayers}
-                    allTeams={allTeams}
+                    allPlayers={allPlayers || []}
+                    allTeams={allTeams || []}
                     activeSeason={activeSeason}
                 />
             )}
