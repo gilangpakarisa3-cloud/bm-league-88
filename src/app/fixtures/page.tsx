@@ -40,6 +40,7 @@ import { useSharedPassword } from '@/context/password-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
+import { Progress } from '@/components/ui/progress';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -153,8 +154,8 @@ const FixtureContent = memo(function FixtureContent({
         }, {} as Record<string, WithId<Team>>);
     }, [allTeams]);
     
-    const { upcomingMatches, completedMatches } = useMemo(() => {
-        if (!matches) return { upcomingMatches: [], completedMatches: [] };
+    const { upcomingMatches, completedMatches, progressPercentage } = useMemo(() => {
+        if (!matches) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0 };
         
         const filteredMatches = matches
             .map(match => ({
@@ -186,8 +187,11 @@ const FixtureContent = memo(function FixtureContent({
         const completed = filteredMatches
             .filter(m => m.isCompleted)
             .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+            
+        const totalMatches = filteredMatches.length;
+        const progress = totalMatches > 0 ? (completed.length / totalMatches) * 100 : 0;
 
-        return { upcomingMatches: upcoming, completedMatches: completed };
+        return { upcomingMatches: upcoming, completedMatches: completed, progressPercentage: progress };
     }, [matches, playersById, searchTerm]);
 
 
@@ -216,6 +220,14 @@ const FixtureContent = memo(function FixtureContent({
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+            
+             <div className="my-6">
+                <Progress value={progressPercentage} className="h-3" />
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                    {completedMatches.length} dari {matches.length} pertandingan selesai ({progressPercentage.toFixed(0)}%)
+                </p>
+            </div>
+
 
             {(upcomingMatches.length === 0 && completedMatches.length === 0 && searchTerm) ? (
                  <div className="border rounded-lg p-8 text-center bg-card">
@@ -796,3 +808,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
