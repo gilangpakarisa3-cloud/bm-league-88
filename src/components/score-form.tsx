@@ -61,13 +61,17 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
 
   useEffect(() => {
     if (match) {
-      const matchDate = match.matchDate.toDate();
-      form.reset({
-        score1: match.player1Score ?? 0,
-        score2: match.player2Score ?? 0,
-        time: format(matchDate, 'HH:mm'),
-        date: matchDate,
-      });
+        // If the match is NOT completed, use the current date and time.
+        // Otherwise, use the existing match date and time.
+        const isNewScore = !match.isCompleted;
+        const dateToUse = isNewScore ? new Date() : match.matchDate.toDate();
+
+        form.reset({
+            score1: match.player1Score ?? 0,
+            score2: match.player2Score ?? 0,
+            time: format(dateToUse, 'HH:mm'),
+            date: dateToUse,
+        });
     }
   }, [match, form]);
 
