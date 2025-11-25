@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -462,52 +461,51 @@ export default function LeaguePage() {
         </div>
 
         <div className="mb-8 space-y-4">
-          <div className="flex flex-wrap gap-2 items-center justify-between">
-              <div className="flex flex-wrap gap-2">
-                  {isAdmin && (
-                      <>
-                          <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
-                              <UserPlus className="mr-2 h-4 w-4" />
-                              {t('register_players')}
-                          </Button>
-                          <Button 
-                              onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
-                              variant="outline" 
-                              disabled={!activeSeason || activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
-                              title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
-                              <Play className="mr-2 h-4 w-4" />
-                              {t('start_season')}
-                          </Button>
-                          <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
-                              <Flag className="mr-2 h-4 w-4" />
-                              {t('finish_season')}
-                          </Button>
-                          <Button onClick={() => setShowPasswordManager(true)} variant="outline">
-                              <KeyRound className="mr-2 h-4 w-4" />
-                              {t('manage_password', { defaultValue: 'Manage Password' })}
-                          </Button>
-                      </>
-                  )}
-                  <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
-                      {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
-                      {isAdmin ? t('lock_admin') : t('unlock_admin')}
-                  </Button>
-                  <div className="flex gap-2">
-                      <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
-                          <Share2 className="mr-2 h-4 w-4" />
-                          {t('share_participants')}
-                      </Button>
-                      <Button asChild variant="outline" size="sm">
-                          <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
-                              <Trophy className="mr-2 h-4 w-4" />
-                              {t('view_champion')}
-                          </Link>
-                      </Button>
-                  </div>
-              </div>
-          </div>
-          <LiveClock />
+            <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex-1 min-w-[200px]"><LiveClock /></div>
+                <div className="flex flex-wrap gap-2 justify-end">
+                    {isAdmin && (
+                        <>
+                            <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                {t('register_players')}
+                            </Button>
+                            <Button 
+                                onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
+                                variant="outline" 
+                                disabled={!activeSeason || activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
+                                title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
+                                <Play className="mr-2 h-4 w-4" />
+                                {t('start_season')}
+                            </Button>
+                            <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
+                                <Flag className="mr-2 h-4 w-4" />
+                                {t('finish_season')}
+                            </Button>
+                            <Button onClick={() => setShowPasswordManager(true)} variant="outline">
+                                <KeyRound className="mr-2 h-4 w-4" />
+                                {t('manage_password', { defaultValue: 'Manage Password' })}
+                            </Button>
+                        </>
+                    )}
+                    <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
+                        {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+                        {isAdmin ? t('lock_admin') : t('unlock_admin')}
+                    </Button>
+                    <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        {t('share_participants')}
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
+                            <Trophy className="mr-2 h-4 w-4" />
+                            {t('view_champion')}
+                        </Link>
+                    </Button>
+                </div>
+            </div>
         </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <div className="lg:col-span-3">
@@ -683,6 +681,7 @@ export default function LeaguePage() {
         player={selectedPlayerForStats}
         matches={matches || []}
         allPlayers={allPlayers || []}
+        allTeams={allTeams || []}
         open={!!selectedPlayerForStats}
         onOpenChange={() => setSelectedPlayerForStats(null)}
       />

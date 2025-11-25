@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import type { WithId, LeagueEntry, Match, Player } from '@/lib/types';
+import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
 import { User, Swords, Shield } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
@@ -16,11 +15,12 @@ interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
   matches: WithId<Match>[];
   allPlayers: WithId<Player>[];
+  allTeams: WithId<Team>[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function PlayerPerformanceDialog({ player, matches, allPlayers, open, onOpenChange }: PlayerPerformanceDialogProps) {
+export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, open, onOpenChange }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
   
   const playersById = useMemo(() => {
@@ -29,6 +29,13 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, open, onO
       return acc;
     }, {} as Record<string, WithId<Player>>);
   }, [allPlayers]);
+
+  const teamsById = useMemo(() => {
+    return allTeams.reduce((acc, t) => {
+        acc[t.id] = t;
+        return acc;
+    }, {} as Record<string, WithId<Team>>);
+  }, [allTeams]);
 
   const last5Matches = useMemo(() => {
     if (!player) return [];
@@ -42,6 +49,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, open, onO
         const opponentScore = isPlayer1 ? m.player2Score! : m.player1Score!;
         const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
         const opponent = playersById[opponentId];
+        const opponentTeam = opponent ? teamsById[opponent.teamId] : null;
         
         let result: 'W' | 'D' | 'L';
         if (playerScore > opponentScore) result = 'W';
@@ -51,12 +59,13 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, open, onO
         return {
           ...m,
           opponent,
+          opponentTeam,
           playerScore,
           opponentScore,
           result,
         };
       });
-  }, [player, matches, playersById]);
+  }, [player, matches, playersById, teamsById]);
 
   if (!player) return null;
 
@@ -86,9 +95,15 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, open, onO
                 <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                   <div className="flex items-center gap-3">
                      <ResultBadge result={match.result} />
-                     <div>
-                        <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                        <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                     <div className='flex items-center gap-2'>
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
+                            <AvatarFallback><Shield /></AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
+                            <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                        </div>
                      </div>
                   </div>
                   <p className="text-lg font-bold">
@@ -120,5 +135,3 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
-
-    
