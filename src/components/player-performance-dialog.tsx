@@ -5,22 +5,24 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Swords, Shield } from 'lucide-react';
+import { User, Swords, Shield, Percent } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import { Progress } from './ui/progress';
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
   matches: WithId<Match>[];
   allPlayers: WithId<Player>[];
   allTeams: WithId<Team>[];
+  totalPlayersInSeason: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, open, onOpenChange }: PlayerPerformanceDialogProps) {
+export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
   
   const playersById = useMemo(() => {
@@ -37,9 +39,10 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     }, {} as Record<string, WithId<Team>>);
   }, [allTeams]);
 
-  const last5Matches = useMemo(() => {
-    if (!player) return [];
-    return matches
+  const performanceStats = useMemo(() => {
+    if (!player) return null;
+
+    const last5Matches = matches
       .filter(m => (m.player1Id === player.playerId || m.player2Id === player.playerId) && m.isCompleted)
       .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
       .slice(0, 5)
@@ -65,17 +68,30 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
           result,
         };
       });
-  }, [player, matches, playersById, teamsById]);
 
-  if (!player) return null;
+    const winRate = player.played > 0 ? (player.win / player.played) * 100 : 0;
+    const totalMatches = totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) * 2 : 0;
+    const seasonProgress = totalMatches > 0 ? (player.played / totalMatches) * 100 : 0;
+
+    return {
+        last5Matches,
+        winRate,
+        seasonProgress,
+        totalMatches
+    }
+
+  }, [player, matches, playersById, teamsById, totalPlayersInSeason]);
+
+  if (!player || !performanceStats) return null;
 
   const playerDetails = playersById[player.playerId];
+  const { last5Matches, winRate, seasonProgress, totalMatches } = performanceStats;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="flex items-center gap-4 mb-2">
+          <div className="flex items-center gap-4 mb-4">
             <Avatar className="h-16 w-16 border-2 border-primary">
               <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
               <AvatarFallback><User className="h-8 w-8" /></AvatarFallback>
@@ -87,36 +103,48 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
           </div>
         </DialogHeader>
 
-        <div className="py-4">
-          <h3 className="mb-4 text-lg font-semibold">{t('last_5_matches', {defaultValue: '5 Pertandingan Terakhir'})}</h3>
-          {last5Matches.length > 0 ? (
-            <div className="space-y-3">
-              {last5Matches.map(match => (
-                <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                     <ResultBadge result={match.result} />
-                     <div className='flex items-center gap-2'>
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
-                            <AvatarFallback><Shield /></AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                            <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
-                        </div>
-                     </div>
-                  </div>
-                  <p className="text-lg font-bold">
-                    <span className={cn(match.result === 'W' && 'text-green-400', match.result === 'L' && 'text-red-400')}>{match.playerScore}</span>
-                    <span className="mx-2 text-muted-foreground">-</span>
-                    <span className={cn(match.result === 'L' && 'text-green-400', match.result === 'W' && 'text-red-400')}>{match.opponentScore}</span>
-                  </p>
-                </div>
-              ))}
+        <div className="py-2 space-y-6">
+            <div>
+                <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
+                <Progress value={seasonProgress} className="h-3" />
+                <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
             </div>
-          ) : (
-            <p className="text-center text-muted-foreground py-4">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
-          )}
+             <div className="flex items-center gap-2 bg-muted/50 p-3 rounded-lg">
+                <Percent className="w-5 h-5 text-primary"/>
+                <p className="text-sm font-semibold">Rasio Kemenangan</p>
+                <p className="ml-auto text-xl font-bold text-primary">{winRate.toFixed(0)}%</p>
+            </div>
+          <div>
+            <h3 className="mb-4 text-lg font-semibold">{t('last_5_matches', {defaultValue: '5 Pertandingan Terakhir'})}</h3>
+            {last5Matches.length > 0 ? (
+                <div className="space-y-3">
+                {last5Matches.map(match => (
+                    <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                        <ResultBadge result={match.result} />
+                        <div className='flex items-center gap-2'>
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
+                                <AvatarFallback><Shield /></AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
+                                <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p className="text-lg font-bold">
+                        <span className={cn(match.result === 'W' && 'text-green-400', match.result === 'L' && 'text-red-400')}>{match.playerScore}</span>
+                        <span className="mx-2 text-muted-foreground">-</span>
+                        <span className={cn(match.result === 'L' && 'text-green-400', match.result === 'W' && 'text-red-400')}>{match.opponentScore}</span>
+                    </p>
+                    </div>
+                ))}
+                </div>
+            ) : (
+                <p className="text-center text-muted-foreground py-4">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
