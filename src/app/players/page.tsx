@@ -76,10 +76,13 @@ export default function PlayersPage() {
   return (
     <div className="container mx-auto px-4 py-8">
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div className="text-center mb-4">
             <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">
             {t('players_page_title')}
             </h1>
+        </div>
+
+        <div className="flex justify-end mb-8">
              <div className="flex gap-2">
                 {isAdmin && (
                     <Button onClick={handleAdd}>
@@ -93,6 +96,7 @@ export default function PlayersPage() {
                 </Button>
             </div>
         </div>
+
         <PlayerList onEdit={handleEdit} isAdmin={isAdmin} withAdminCheck={withAdminCheck} />
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
