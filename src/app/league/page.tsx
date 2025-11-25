@@ -438,22 +438,23 @@ export default function LeaguePage() {
             )}
         </div>
         
-        <div className="flex flex-wrap gap-2 mb-8">
-            <Button onClick={handleShareParticipants} variant="outline" disabled={!leagueTable || leagueTable.length === 0}>
-                <Share2 className="mr-2 h-4 w-4" />
-                {t('share_participants')}
-            </Button>
-                <Button asChild variant="outline">
-                <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
-                    <Trophy className="mr-2 h-4 w-4" />
-                    {t('view_champion')}
-                </Link>
-            </Button>
+        <div className="flex flex-wrap gap-x-4 gap-y-2 mb-8 items-center">
+             <div className="flex-grow">
+                <LiveClock />
+            </div>
+            <div className="flex gap-2">
+                <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    {t('share_participants')}
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                    <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
+                        <Trophy className="mr-2 h-4 w-4" />
+                        {t('view_champion')}
+                    </Link>
+                </Button>
+            </div>
         </div>
-
-        <section className="mb-12">
-            <LiveClock />
-        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <div className="lg:col-span-3">

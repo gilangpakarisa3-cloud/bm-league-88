@@ -57,9 +57,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
     const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
 
-    const displayDate = match.isCompleted
-        ? format(match.matchDate.toDate(), 'd MMM, HH:mm')
-        : format(match.matchDate.toDate(), 'd MMM');
+    const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
 
 
     const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
@@ -737,7 +735,7 @@ export default function FixturesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-12">
+       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
         <div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                  <div className="space-y-2">
@@ -759,9 +757,9 @@ export default function FixturesPage() {
                 />
             </div>
 
-            <section className="mb-12">
+            <div className="mb-8">
                 <LiveClock />
-            </section>
+            </div>
             
             {isLoading ? (
                 <p>{t('loading_fixtures')}</p>
@@ -798,13 +796,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-    
-    
-
-    
-
-    
-
-    
-
-    

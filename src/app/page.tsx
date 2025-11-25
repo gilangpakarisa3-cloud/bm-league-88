@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -38,7 +39,7 @@ function LeaderboardSection() {
         const sortedSeasons = [...inProgressOrCompleted].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons[0].id);
       } else {
-        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
+        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons.length > 0 ? sortedSeasons[0].id : null);
       }
     }
@@ -240,7 +241,7 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <section className="text-center mb-12">
+        <section className="text-center mb-8">
           <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-primary">
             BM League EightyEight
           </h1>
