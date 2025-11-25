@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -16,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { PlayerMarquee } from '@/components/player-marquee';
+import { LiveClock } from '@/components/live-clock';
 
 
 const LEAGUE_ID = 'main-league';
@@ -250,6 +250,10 @@ export default function Home() {
         </section>
 
         <section className="mb-12">
+          <LiveClock />
+        </section>
+
+        <section className="mb-12">
             <EditableNotice />
         </section>
         
@@ -264,5 +268,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
