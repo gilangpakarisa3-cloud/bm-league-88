@@ -10,10 +10,12 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User } from "lucide-react";
+import { Trash2, User, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
+import { Badge } from "./ui/badge";
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
@@ -71,6 +73,8 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
               const isFirst = entry.rank === 1;
               const isUCLZone = entry.rank >= 2 && entry.rank <= 4;
               const isLastThree = entry.rank >= totalPlayers - 2 && totalPlayers > 3;
+              const isUnbeaten = entry.played > 0 && entry.loss === 0;
+
               return (
                 <TableRow 
                   key={entry.id}
@@ -102,7 +106,23 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                         <AvatarFallback><User /></AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className={cn("font-bold group-hover:text-primary transition-colors", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</div>
+                        <div className="flex items-center gap-2">
+                           <span className={cn("font-bold group-hover:text-primary transition-colors", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</span>
+                            {isUnbeaten && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                             <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-400 px-1.5 py-0.5">
+                                                <ShieldCheck className="w-3 h-3"/>
+                                            </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Tak Terkalahkan</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                        </div>
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                             <Avatar className="h-4 w-4">
                                 <AvatarImage src={entry.team?.logoUrl} alt={entry.team?.name} />
