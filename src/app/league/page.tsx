@@ -365,7 +365,7 @@ export default function LeaguePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="space-y-1">
             <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('league_standings_page_title')}</h1>
             {activeSeason && (
@@ -387,62 +387,76 @@ export default function LeaguePage() {
                 </SelectContent>
             </Select>
             <div className="flex gap-2">
-                {isAdmin && (
-                  <>
-                    <Button onClick={() => withAdminCheck(handleOpenCreateDialog)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        {t('new')}
-                    </Button>
-                    <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">{t('edit_season')}</span>
-                    </Button>
-                    <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="icon" disabled={!activeSeason}>
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">{t('delete_season')}</span>
-                    </Button>
-                  </>
-                )}
-                 <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
-                    {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
-                    {isAdmin ? t('lock_admin') : t('unlock_admin')}
-                </Button>
+              {isAdmin && (
+                <>
+                  <Button onClick={() => withAdminCheck(handleOpenCreateDialog)}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      {t('new')}
+                  </Button>
+                  <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
+                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">{t('edit_season')}</span>
+                  </Button>
+                  <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="icon" disabled={!activeSeason}>
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">{t('delete_season')}</span>
+                  </Button>
+                </>
+              )}
+               <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
+                  {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+                  {isAdmin ? t('lock_admin') : t('unlock_admin')}
+              </Button>
             </div>
           </div>
         </div>
 
-        <div className="mb-8 flex flex-wrap gap-2">
-            {isAdmin && (
-                <>
-                    <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        {t('register_players')}
-                    </Button>
-                    <Button 
-                        onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
-                        variant="outline" 
-                        disabled={!activeSeason || activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
-                        title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
-                        <Play className="mr-2 h-4 w-4" />
-                        {t('start_season')}
-                    </Button>
-                    <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
-                        <Flag className="mr-2 h-4 w-4" />
-                        {t('finish_season')}
-                    </Button>
-                    <Button onClick={() => setShowPasswordManager(true)} variant="outline">
-                        <KeyRound className="mr-2 h-4 w-4" />
-                        {t('manage_password', { defaultValue: 'Manage Password' })}
-                    </Button>
-                </>
-            )}
+        <div className="mb-8 flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-between">
+            <div className="flex flex-wrap gap-2">
+                {isAdmin && (
+                    <>
+                        <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started'}>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            {t('register_players')}
+                        </Button>
+                        <Button 
+                            onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
+                            variant="outline" 
+                            disabled={!activeSeason || activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
+                            title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
+                            <Play className="mr-2 h-4 w-4" />
+                            {t('start_season')}
+                        </Button>
+                        <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
+                            <Flag className="mr-2 h-4 w-4" />
+                            {t('finish_season')}
+                        </Button>
+                        <Button onClick={() => setShowPasswordManager(true)} variant="outline">
+                            <KeyRound className="mr-2 h-4 w-4" />
+                            {t('manage_password', { defaultValue: 'Manage Password' })}
+                        </Button>
+                    </>
+                )}
+                 {!isAdmin && (
+                    <div className="flex gap-2">
+                        <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            {t('share_participants')}
+                        </Button>
+                        <Button asChild variant="outline" size="sm">
+                            <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
+                                <Trophy className="mr-2 h-4 w-4" />
+                                {t('view_champion')}
+                            </Link>
+                        </Button>
+                    </div>
+                )}
+            </div>
+            <LiveClock />
         </div>
         
-        <div className="flex flex-wrap gap-x-4 gap-y-2 mb-8 items-center">
-             <div className="flex-grow">
-                <LiveClock />
-            </div>
-            <div className="flex gap-2">
+        {isAdmin && (
+             <div className="flex gap-2 mb-8">
                 <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
                     <Share2 className="mr-2 h-4 w-4" />
                     {t('share_participants')}
@@ -454,7 +468,7 @@ export default function LeaguePage() {
                     </Link>
                 </Button>
             </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <div className="lg:col-span-3">
