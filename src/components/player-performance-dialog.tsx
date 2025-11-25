@@ -92,12 +92,12 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader className="items-center text-center">
-            <Avatar className="h-20 w-20 border-4 border-primary">
+        <DialogHeader>
+            <Avatar className="h-20 w-20 border-4 border-primary mx-auto">
               <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
               <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
             </Avatar>
-            <div className="space-y-1 pt-2">
+            <div className="space-y-1 pt-2 text-center">
               <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
               <DialogDescription className="flex items-center justify-center gap-2">
                 <Avatar className="h-5 w-5">
