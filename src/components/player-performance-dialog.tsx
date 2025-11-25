@@ -145,9 +145,13 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                             </div>
                         </div>
                         <p className="text-lg font-bold">
-                            <span className={cn(match.result === 'W' && 'text-green-400', match.result === 'L' && 'text-red-400')}>{match.playerScore}</span>
+                            <span className={cn({
+                                'text-primary': match.result === 'W',
+                                'text-destructive': match.result === 'L',
+                                'text-foreground': match.result === 'D'
+                            })}>{match.playerScore}</span>
                             <span className="mx-2 text-muted-foreground">-</span>
-                            <span className={cn(match.result === 'L' && 'text-green-400', match.result === 'W' && 'text-red-400')}>{match.opponentScore}</span>
+                            <span className="text-foreground">{match.opponentScore}</span>
                         </p>
                         </div>
                     ))}
@@ -174,3 +178,4 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
+
