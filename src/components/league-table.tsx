@@ -112,7 +112,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger>
-                                             <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-400 px-1.5 py-0.5">
+                                             <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0.5">
                                                 <ShieldCheck className="w-3 h-3"/>
                                             </Badge>
                                         </TooltipTrigger>
