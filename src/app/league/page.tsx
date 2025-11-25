@@ -47,6 +47,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { useSharedPassword } from '@/context/password-context';
 import { PasswordManager } from '@/components/password-manager';
 import { LeagueStats } from '@/components/league-stats';
+import { LiveClock } from '@/components/live-clock';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -449,6 +450,10 @@ export default function LeaguePage() {
                 </Link>
             </Button>
         </div>
+
+        <section className="mb-12">
+            <LiveClock />
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <div className="lg:col-span-3">
