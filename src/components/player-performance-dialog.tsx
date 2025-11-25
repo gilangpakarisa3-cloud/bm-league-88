@@ -192,9 +192,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                         <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary">
                           <div className="flex items-center gap-2">
                               <ResultBadge result={match.result} />
-                              <Badge variant="outline" className="h-8 w-8 flex items-center justify-center p-0">
-                                {match.isPlayer1 ? <Home className="w-4 h-4"/> : <Route className="w-4 h-4"/>}
-                              </Badge>
+                              <HomeAwayBadge isHome={match.isPlayer1} />
                               <div className='flex items-center gap-2'>
                                   <Avatar className="h-8 w-8">
                                       <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
@@ -246,4 +244,12 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     const { text, className } = resultConfig[result];
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
+};
+
+const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
+    const config = isHome 
+        ? { text: 'H', className: 'bg-sky-500/20 text-sky-400 border-sky-500/50' } 
+        : { text: 'A', className: 'bg-amber-500/20 text-amber-400 border-amber-500/50' };
+
+    return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2", config.className)}>{config.text}</Badge>
 };
