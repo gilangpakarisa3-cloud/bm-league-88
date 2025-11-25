@@ -167,13 +167,10 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     const resultConfig = {
         W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
-        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
+        D: { text: 'D', className: 'bg-yellow-400/20 text-yellow-400 border-yellow-500/50' },
         L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
     };
     const { text, className } = resultConfig[result];
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
-
-
-
