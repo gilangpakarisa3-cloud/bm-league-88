@@ -92,8 +92,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader className="text-center">
-            <Avatar className="h-20 w-20 border-4 border-primary mx-auto">
+        <DialogHeader className="flex flex-col items-center text-center">
+            <Avatar className="h-20 w-20 border-4 border-primary">
               <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
               <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
             </Avatar>
@@ -174,4 +174,5 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
+
 
