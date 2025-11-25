@@ -59,11 +59,11 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
               <TableHead className="hidden sm:table-cell text-center font-bold text-green-400">{t('w')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center font-bold text-yellow-400">{t('d')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center font-bold text-red-400">{t('l')}</TableHead>
-              <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gf')}</TableHead>
-              <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('ga')}</TableHead>
-              <TableHead className="text-center font-bold text-primary">{t('gd')}</TableHead>
+              <TableHead className="hidden lg:table-cell text-center font-bold text-primary">{t('gf')}</TableHead>
+              <TableHead className="hidden lg:table-cell text-center font-bold text-primary">{t('ga')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gd')}</TableHead>
               <TableHead className="text-center font-bold text-primary">{t('pts')}</TableHead>
-              {canRemovePlayer && <TableHead className="text-right font-bold text-accent">{t('actions')}</TableHead>}
+              {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-bold text-accent">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -114,16 +114,16 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                   <TableCell className="hidden sm:table-cell text-center text-green-400">{entry.win}</TableCell>
                   <TableCell className="hidden sm:table-cell text-center text-yellow-400">{entry.draw}</TableCell>
                   <TableCell className="hidden sm:table-cell text-center text-red-400">{entry.loss}</TableCell>
-                  <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
-                  <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
-                  <TableCell className="text-center font-medium">
+                  <TableCell className="hidden lg:table-cell text-center">{entry.goalsFor}</TableCell>
+                  <TableCell className="hidden lg:table-cell text-center">{entry.goalsAgainst}</TableCell>
+                  <TableCell className="hidden md:table-cell text-center font-medium">
                     {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
                   </TableCell>
                   <TableCell className={cn("text-center font-bold text-lg", isFirst ? "text-yellow-300" : "text-primary")}>
                     {entry.points}
                   </TableCell>
                   {canRemovePlayer && (
-                    <TableCell className="text-right">
+                    <TableCell className="hidden sm:table-cell text-right">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -160,9 +160,9 @@ function LeagueTableSkeleton() {
               <TableHead className="hidden sm:table-cell text-center">{t('w')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center">{t('d')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center">{t('l')}</TableHead>
-              <TableHead className="hidden md:table-cell text-center">{t('gf')}</TableHead>
-              <TableHead className="hidden md:table-cell text-center">{t('ga')}</TableHead>
-              <TableHead className="text-center">{t('gd')}</TableHead>
+              <TableHead className="hidden lg:table-cell text-center">{t('gf')}</TableHead>
+              <TableHead className="hidden lg:table-cell text-center">{t('ga')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center">{t('gd')}</TableHead>
               <TableHead className="text-center font-bold">{t('pts')}</TableHead>
             </TableRow>
           </TableHeader>
@@ -184,9 +184,9 @@ function LeagueTableSkeleton() {
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
-                <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
               </TableRow>
             ))}
@@ -196,5 +196,3 @@ function LeagueTableSkeleton() {
     </div>
   );
 }
-
-    
