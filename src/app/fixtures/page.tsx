@@ -39,6 +39,7 @@ import { format } from 'date-fns';
 import { useSharedPassword } from '@/context/password-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { LiveClock } from '@/components/live-clock';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -57,7 +58,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
 
     // Apply GMT+7 offset to all dates
-    const gmt7Date = new Date(match.matchDate.toDate().getTime());
+    const gmt7Date = new Date(match.matchDate.toDate().getTime() + 7 * 60 * 60 * 1000);
 
     const displayDate = match.isCompleted 
         ? format(gmt7Date, 'd MMM, HH:mm') 
@@ -514,7 +515,7 @@ export default function FixturesPage() {
                 player1Id: player1Entry.playerId,
                 player2Id: player2Entry.playerId,
                 isCompleted: false,
-                matchDate: activeSeason.startDate || activeSeason.createdAt, // Use start date if available
+                matchDate: Timestamp.now(), // Default to current time, user can edit
             };
             const matchRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`));
             batch.set(matchRef, matchData);
@@ -618,7 +619,9 @@ export default function FixturesPage() {
 
             const [hours, minutes] = values.time.split(':').map(Number);
             const newDate = new Date(values.date);
-            newDate.setHours(hours, minutes, 0, 0); // Set hours and minutes on the new date
+            // We need to subtract the GMT+7 offset before storing to keep it consistent
+            // The display layer will add the offset back
+            newDate.setUTCHours(hours, minutes, 0, 0); 
             const newTimestamp = Timestamp.fromDate(newDate);
 
             transaction.update(matchRef, { 
@@ -752,6 +755,10 @@ export default function FixturesPage() {
                   setIsAdmin={setIsAdmin}
                 />
             </div>
+
+            <section className="mb-12">
+                <LiveClock />
+            </section>
             
             {isLoading ? (
                 <p>{t('loading_fixtures')}</p>
