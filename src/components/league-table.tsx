@@ -50,36 +50,39 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-4 p-0"></TableHead>
-              <TableHead className="w-12 text-center font-bold text-primary">
-                <span className="sm:hidden">#</span>
-                <span className="hidden sm:inline">{t('rank')}</span>
-              </TableHead>
+              <TableHead className="w-12 text-center font-bold text-primary sm:hidden">#</TableHead>
+              <TableHead className="w-12 text-center font-bold text-primary hidden sm:table-cell">{t('rank')}</TableHead>
               <TableHead className="text-left font-bold text-primary">{t('player')}</TableHead>
-              <TableHead className="text-center font-bold text-primary">{t('played')}</TableHead>
+              <TableHead className="text-center font-bold text-primary sm:hidden">{t('played')}</TableHead>
+              <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('played')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center font-bold text-green-400">{t('w')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center font-bold text-yellow-400">{t('d')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center font-bold text-red-400">{t('l')}</TableHead>
               <TableHead className="hidden lg:table-cell text-center font-bold text-primary">{t('gf')}</TableHead>
               <TableHead className="hidden lg:table-cell text-center font-bold text-primary">{t('ga')}</TableHead>
               <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gd')}</TableHead>
-              <TableHead className="text-center font-bold text-primary">{t('pts')}</TableHead>
+              <TableHead className="text-center font-bold text-primary sm:hidden">{t('pts')}</TableHead>
+              <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('pts')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-bold text-accent">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {tableData.map((entry) => {
               const isFirst = entry.rank === 1;
+              const isUCLZone = entry.rank >= 2 && entry.rank <= 4;
               const isLastThree = entry.rank >= totalPlayers - 2 && totalPlayers > 3;
               return (
                 <TableRow 
                   key={entry.id}
                   className={cn(
                     isFirst && "bg-yellow-500/10 hover:bg-yellow-500/20 text-base",
+                    isUCLZone && "bg-green-500/10 hover:bg-green-500/20",
                     isLastThree && "bg-red-500/10 hover:bg-red-500/20"
                   )}
                 >
                   <TableCell className={cn("p-0 w-1", 
                     isFirst ? 'bg-yellow-400' :
+                    isUCLZone ? 'bg-green-500' :
                     isLastThree ? 'bg-destructive' : 'bg-transparent'
                   )}>
                   </TableCell>
