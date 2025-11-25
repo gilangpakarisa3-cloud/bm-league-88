@@ -238,7 +238,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     const resultConfig = {
         W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
-        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-400' },
+        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
         L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
     };
     const { text, className } = resultConfig[result];
@@ -247,9 +247,6 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
 };
 
 const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
-    const config = isHome 
-        ? { text: 'H', className: 'bg-sky-500/20 text-sky-400 border-sky-500/50' } 
-        : { text: 'A', className: 'bg-amber-500/20 text-amber-400 border-amber-500/50' };
-
-    return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2", config.className)}>{config.text}</Badge>
+    const text = isHome ? 'H' : 'A';
+    return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2")}>{text}</Badge>
 };
