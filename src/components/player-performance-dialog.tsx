@@ -97,7 +97,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
               <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
               <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
             </Avatar>
-            <div className="space-y-1 pt-2">
+            <div className="flex flex-col items-center space-y-1 pt-2">
               <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
               <DialogDescription className="flex items-center justify-center gap-2">
                 <Avatar className="h-5 w-5">
@@ -174,5 +174,6 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
+
 
 
