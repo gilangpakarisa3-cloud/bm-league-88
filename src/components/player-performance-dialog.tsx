@@ -91,7 +91,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md border-2 border-primary">
         <DialogHeader className="flex flex-col items-center text-center">
             <Avatar className="h-20 w-20 border-4 border-primary">
               <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
@@ -130,7 +130,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                  <ScrollArea className="h-96 pr-4">
                     <div className="space-y-3">
                     {completedMatches.map(match => (
-                        <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary">
                         <div className="flex items-center gap-3">
                             <ResultBadge result={match.result} />
                             <div className='flex items-center gap-2'>
@@ -167,7 +167,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     const resultConfig = {
         W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
-        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
+        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-400' },
         L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
     };
     const { text, className } = resultConfig[result];
