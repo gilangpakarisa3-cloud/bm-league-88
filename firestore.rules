@@ -14,7 +14,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // PUBLIC COLLECTIONS: Teams, Players, Notices, Hall of Fame
+    // PUBLIC COLLECTIONS: Teams, Players, Notices
     // Allow public read for all.
     // Allow writes only for signed-in users.
     match /teams/{teamId} {
@@ -32,9 +32,11 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
+    // HALL OF FAME: Public read, writes for signed-in users.
+    // This allows listing the collection and getting individual documents.
     match /hallOfFame/{recordId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if isSignedIn();
+      allow list: if true;
     }
 
     // LEAGUES: Nested Collections
