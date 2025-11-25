@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -104,15 +105,19 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         </DialogHeader>
 
         <div className="py-2 space-y-6">
-            <div>
-                <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
-                <Progress value={seasonProgress} className="h-3" />
-                <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
-            </div>
-             <div className="flex items-center gap-2 bg-muted/50 p-3 rounded-lg">
-                <Percent className="w-5 h-5 text-primary"/>
-                <p className="text-sm font-semibold">Rasio Kemenangan</p>
-                <p className="ml-auto text-xl font-bold text-primary">{winRate.toFixed(0)}%</p>
+            <div className='space-y-4'>
+                <div>
+                    <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
+                    <Progress value={seasonProgress} className="h-3" />
+                    <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
+                </div>
+                <div className="flex items-center justify-between text-sm bg-muted/50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 font-semibold">
+                        <Percent className="w-4 h-4 text-primary"/>
+                        <p>Win Rate</p>
+                    </div>
+                    <p className="text-lg font-bold text-primary">{winRate.toFixed(0)}%</p>
+                </div>
             </div>
           <div>
             <h3 className="mb-4 text-lg font-semibold">{t('last_5_matches', {defaultValue: '5 Pertandingan Terakhir'})}</h3>
