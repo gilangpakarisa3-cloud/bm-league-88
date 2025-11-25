@@ -95,6 +95,25 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
       <span className="text-lg font-bold text-primary">{value}</span>
     </div>
   );
+  
+  const isTopRank = player.rank === 1;
+  const isBottomRank = player.rank >= totalPlayersInSeason - 2 && totalPlayersInSeason > 3;
+
+  const rankBadgeStyle = cn(
+    "absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background text-sm font-bold",
+    {
+      "bg-yellow-400 border-yellow-300 text-black": isTopRank,
+      "bg-red-500 border-red-400 text-white": isBottomRank,
+      "bg-primary text-primary-foreground": !isTopRank && !isBottomRank
+    }
+  );
+
+  const rankTextStyle = cn("text-xl font-bold mt-1", {
+    "text-yellow-400": isTopRank,
+    "text-red-500": isBottomRank,
+    "text-primary": !isTopRank && !isBottomRank,
+  });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,7 +124,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                 <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
                 <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground text-sm font-bold">
+              <div className={rankBadgeStyle}>
                 {player.rank}
               </div>
             </div>
@@ -148,7 +167,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                             <Trophy className="w-4 h-4 text-primary"/>
                             <p>Peringkat</p>
                         </div>
-                        <p className="text-xl font-bold text-primary mt-1">{player.rank}</p>
+                        <p className={rankTextStyle}>{player.rank}</p>
                     </div>
                 </div>
             </div>
