@@ -132,25 +132,25 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                       <div className={rankBadgeStyle}>
                         {player.rank}
                       </div>
+                      {isUnbeaten && (
+                          <TooltipProvider>
+                              <Tooltip>
+                                  <TooltipTrigger asChild>
+                                      <div className="absolute -top-2 -left-2 transform -rotate-12">
+                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/20 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full">
+                                              <ShieldCheck className="w-5 h-5"/>
+                                          </Badge>
+                                      </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                      <p>Tak Terkalahkan</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          </TooltipProvider>
+                      )}
                     </div>
                     <div className="flex flex-col items-center space-y-1 pt-2">
-                      <div className="flex items-center gap-2">
-                        <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
-                         {isUnbeaten && (
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                         <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0.5">
-                                            <ShieldCheck className="w-3 h-3"/>
-                                        </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Tak Terkalahkan</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        )}
-                      </div>
+                      <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
                       <DialogDescription className="flex items-center justify-center gap-2">
                         <Avatar className="h-5 w-5">
                             <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.teamName} />
@@ -270,5 +270,3 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
     const text = isHome ? 'H' : 'A';
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2")}>{text}</Badge>
 };
-
-    
