@@ -86,22 +86,27 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   if (!player || !performanceStats) return null;
 
   const playerDetails = playersById[player.playerId];
+  const playerTeamDetails = teamsById[player.teamId];
   const { last5Matches, winRate, seasonProgress, totalMatches } = performanceStats;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-4 mb-4">
-            <Avatar className="h-16 w-16 border-2 border-primary">
+        <DialogHeader className="items-center text-center">
+            <Avatar className="h-20 w-20 border-4 border-primary">
               <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
-              <AvatarFallback><User className="h-8 w-8" /></AvatarFallback>
+              <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
             </Avatar>
-            <div>
+            <div className="space-y-1 pt-2">
               <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
-              <DialogDescription>{player.teamName}</DialogDescription>
+              <DialogDescription className="flex items-center justify-center gap-2">
+                <Avatar className="h-5 w-5">
+                    <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.teamName} />
+                    <AvatarFallback><Shield className="w-3 h-3"/></AvatarFallback>
+                </Avatar>
+                {player.teamName}
+              </DialogDescription>
             </div>
-          </div>
         </DialogHeader>
 
         <div className="py-2 space-y-6">
@@ -111,7 +116,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                     <Progress value={seasonProgress} className="h-3" />
                     <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
                 </div>
-                <div className="flex items-center justify-between text-sm bg-muted/50 p-3 rounded-lg">
+                 <div className="flex items-center justify-between text-sm bg-muted/50 p-3 rounded-lg">
                     <div className="flex items-center gap-2 font-semibold">
                         <Percent className="w-4 h-4 text-primary"/>
                         <p>Win Rate</p>
