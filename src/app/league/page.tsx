@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -49,6 +48,7 @@ import { PasswordManager } from '@/components/password-manager';
 import { LeagueStats } from '@/components/league-stats';
 import { LiveClock } from '@/components/live-clock';
 import { PlayerPerformanceDialog } from '@/components/player-performance-dialog';
+import { Progress } from '@/components/ui/progress';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -417,17 +417,28 @@ export default function LeaguePage() {
     return `${start} - ${end}`;
   }, [activeSeason]);
 
+  const seasonProgress = useMemo(() => {
+    if (!matches || matches.length === 0) return 0;
+    const completedMatches = matches.filter(m => m.isCompleted).length;
+    return (completedMatches / matches.length) * 100;
+  }, [matches]);
+
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('league_standings_page_title')}</h1>
             {activeSeason && (
               <>
                 <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>
                 {formattedDateRange && <p className="text-sm font-medium text-primary">{formattedDateRange}</p>}
+                 {matches && matches.length > 0 && (
+                  <div className="w-full pt-1">
+                    <Progress value={seasonProgress} className="h-2" />
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -689,5 +700,3 @@ export default function LeaguePage() {
     </div>
   );
 }
-
-    
