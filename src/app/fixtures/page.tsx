@@ -181,9 +181,11 @@ const FixtureContent = memo(function FixtureContent({
             });
 
         const upcoming = filteredMatches.filter(m => !m.isCompleted);
-        const completed = filteredMatches.filter(m => m.isCompleted);
+        const completed = filteredMatches
+            .filter(m => m.isCompleted)
+            .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
 
-        return { upcomingMatches: upcoming, completedMatches: completed.reverse() }; // Show most recent completed first
+        return { upcomingMatches: upcoming, completedMatches: completed };
     }, [matches, playersById, searchTerm]);
 
 
@@ -781,4 +783,6 @@ export default function FixturesPage() {
   );
 }
     
+    
+
     
