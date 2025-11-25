@@ -127,7 +127,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
           <div>
             <h3 className="mb-4 text-lg font-semibold">{t('match_history', {defaultValue: 'Riwayat Pertandingan'})}</h3>
             {completedMatches.length > 0 ? (
-                 <ScrollArea className="h-72 pr-4">
+                 <ScrollArea className="h-96 pr-4">
                     <div className="space-y-3">
                     {completedMatches.map(match => (
                         <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -174,3 +174,4 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
+
