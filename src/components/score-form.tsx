@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarIcon, User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
@@ -55,25 +55,22 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
     date: z.date({ required_error: "A date is required."}),
   });
 
+  const getInitialValues = (match: WithId<Match>) => {
+    const isNewScore = !match.isCompleted;
+    const dateToUse = isNewScore ? new Date() : match.matchDate.toDate();
+
+    return {
+      score1: match.player1Score ?? 0,
+      score2: match.player2Score ?? 0,
+      time: format(dateToUse, 'HH:mm'),
+      date: dateToUse,
+    }
+  }
+
   const form = useForm<ScoreFormValues>({
     resolver: zodResolver(formSchemaTranslated),
+    defaultValues: getInitialValues(match),
   });
-
-  useEffect(() => {
-    if (match) {
-        // If the match is NOT completed, use the current date and time.
-        // Otherwise, use the existing match date and time.
-        const isNewScore = !match.isCompleted;
-        const dateToUse = isNewScore ? new Date() : match.matchDate.toDate();
-
-        form.reset({
-            score1: match.player1Score ?? 0,
-            score2: match.player2Score ?? 0,
-            time: format(dateToUse, 'HH:mm'),
-            date: dateToUse,
-        });
-    }
-  }, [match, form]);
 
 
   const handleSave = async (data: ScoreFormValues) => {
