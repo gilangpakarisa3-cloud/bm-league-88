@@ -57,7 +57,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
 
     // Apply GMT+7 offset to all dates
-    const gmt7Date = new Date(match.matchDate.toDate().getTime() + 7 * 60 * 60 * 1000);
+    const gmt7Date = new Date(match.matchDate.toDate().getTime());
 
     const displayDate = match.isCompleted 
         ? format(gmt7Date, 'd MMM, HH:mm') 
