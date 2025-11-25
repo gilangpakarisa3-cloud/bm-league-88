@@ -125,11 +125,10 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
 
 const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
-    const { t } = useTranslation();
     const resultConfig = {
-        W: { text: t('w', { defaultValue: 'M' }), className: 'bg-green-500/20 text-green-400 border-green-500/50' },
-        D: { text: t('d', { defaultValue: 'S' }), className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
-        L: { text: t('l', { defaultValue: 'K' }), className: 'bg-red-500/20 text-red-400 border-red-500/50' },
+        W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
+        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
+        L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
     };
     const { text, className } = resultConfig[result];
     
