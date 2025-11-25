@@ -145,7 +145,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                     <div className="space-y-3">
                     {completedMatches.map(match => {
                       const scoreColorPlayer = cn({
-                        'text-yellow-400': match.result === 'W',
+                        'text-green-400': match.result === 'W',
                         'text-red-400': match.result === 'L',
                         'text-foreground': match.result === 'D',
                       });
