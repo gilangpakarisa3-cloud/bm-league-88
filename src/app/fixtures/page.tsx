@@ -57,13 +57,9 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
     const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
 
-    // Apply GMT+7 offset to all dates
-    const gmt7Date = new Date(match.matchDate.toDate().getTime());
-    gmt7Date.setHours(gmt7Date.getHours() + 7);
-
-    const displayDate = match.isCompleted 
-        ? format(gmt7Date, 'd MMM, HH:mm') 
-        : format(gmt7Date, 'd MMM');
+    const displayDate = match.isCompleted
+        ? format(match.matchDate.toDate(), 'd MMM, HH:mm')
+        : format(match.matchDate.toDate(), 'd MMM');
 
 
     const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
@@ -516,7 +512,7 @@ export default function FixturesPage() {
                 player1Id: player1Entry.playerId,
                 player2Id: player2Entry.playerId,
                 isCompleted: false,
-                matchDate: activeSeason.startDate || Timestamp.now(), // Default to season start, user can edit
+                matchDate: Timestamp.now(), // Default to now, user can edit
             };
             const matchRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`));
             batch.set(matchRef, matchData);
@@ -621,7 +617,6 @@ export default function FixturesPage() {
             const [hours, minutes] = values.time.split(':').map(Number);
             const dateFromPicker = values.date;
             
-            // Create a new Date object in the local timezone
             const newDate = new Date(
                 dateFromPicker.getFullYear(),
                 dateFromPicker.getMonth(),
