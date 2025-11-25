@@ -58,7 +58,8 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
 
     // Apply GMT+7 offset to all dates
-    const gmt7Date = new Date(match.matchDate.toDate().getTime() + 7 * 60 * 60 * 1000);
+    const gmt7Date = new Date(match.matchDate.toDate().getTime());
+    gmt7Date.setHours(gmt7Date.getHours() + 7);
 
     const displayDate = match.isCompleted 
         ? format(gmt7Date, 'd MMM, HH:mm') 
@@ -515,7 +516,7 @@ export default function FixturesPage() {
                 player1Id: player1Entry.playerId,
                 player2Id: player2Entry.playerId,
                 isCompleted: false,
-                matchDate: Timestamp.now(), // Default to current time, user can edit
+                matchDate: activeSeason.startDate || Timestamp.now(), // Default to season start, user can edit
             };
             const matchRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`));
             batch.set(matchRef, matchData);
@@ -618,10 +619,17 @@ export default function FixturesPage() {
             transaction.set(p2EntryRef, newP2Stats);
 
             const [hours, minutes] = values.time.split(':').map(Number);
-            const newDate = new Date(values.date);
-            // We need to subtract the GMT+7 offset before storing to keep it consistent
-            // The display layer will add the offset back
-            newDate.setUTCHours(hours, minutes, 0, 0); 
+            const dateFromPicker = values.date;
+            
+            // Create a new Date object in the local timezone
+            const newDate = new Date(
+                dateFromPicker.getFullYear(),
+                dateFromPicker.getMonth(),
+                dateFromPicker.getDate(),
+                hours,
+                minutes
+            );
+
             const newTimestamp = Timestamp.fromDate(newDate);
 
             transaction.update(matchRef, { 

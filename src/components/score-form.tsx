@@ -48,10 +48,8 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
   const player1 = players.find(p => p.id === match.player1Id);
   const player2 = players.find(p => p.id === match.player2Id);
   
-  // Convert Firestore timestamp to GMT+7 for form display
+  // Convert Firestore timestamp to local Date object for form display
   const matchDate = match.matchDate.toDate();
-  const gmt7Date = new Date(matchDate.getTime() + 7 * 60 * 60 * 1000);
-
 
   const formSchemaTranslated = z.object({
     score1: z.coerce.number().min(0, t('score_positive_error')),
@@ -65,8 +63,8 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
     defaultValues: {
       score1: match.player1Score ?? 0,
       score2: match.player2Score ?? 0,
-      time: match.isCompleted ? format(gmt7Date, 'HH:mm') : format(new Date(), 'HH:mm'),
-      date: gmt7Date,
+      time: match.isCompleted ? format(matchDate, 'HH:mm') : format(new Date(), 'HH:mm'),
+      date: matchDate,
     },
   });
 
