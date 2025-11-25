@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
+import { useState } from "react";
 
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -38,6 +39,7 @@ interface ScoreFormProps {
 
 export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
   const { t } = useTranslation();
+  const [isSaving, setIsSaving] = useState(false);
 
   const player1 = players.find(p => p.id === match.player1Id);
   const player2 = players.find(p => p.id === match.player2Id);
@@ -57,9 +59,22 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
     },
   });
 
+  const handleSave = async (data: ScoreFormValues) => {
+    setIsSaving(true);
+    try {
+      await onSave(data);
+    } finally {
+      // It's possible the component unmounts upon successful save,
+      // so check if it's still mounted before setting state.
+      if (form.formState.isSubmitting) {
+        setIsSaving(false);
+      }
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSave)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -114,7 +129,9 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
           )}
         />
         <div className="flex justify-end gap-2">
-            <Button type="submit">{t('save_score')}</Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? t('save') + "..." : t('save_score')}
+            </Button>
         </div>
       </form>
     </Form>
