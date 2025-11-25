@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -136,12 +135,21 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                    <StatDisplay label={t('l', { defaultValue: "L"})} value={player.loss} />
                    <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
                 </div>
-                 <div className="flex items-center justify-between text-sm bg-muted/50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2 font-semibold">
-                        <Percent className="w-4 h-4 text-primary"/>
-                        <p>Win Rate</p>
+                 <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                            <Percent className="w-4 h-4 text-primary"/>
+                            <p>Win Rate</p>
+                        </div>
+                        <p className="text-xl font-bold text-primary mt-1">{winRate.toFixed(0)}%</p>
                     </div>
-                    <p className="text-lg font-bold text-primary">{winRate.toFixed(0)}%</p>
+                    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                            <Trophy className="w-4 h-4 text-primary"/>
+                            <p>Peringkat</p>
+                        </div>
+                        <p className="text-xl font-bold text-primary mt-1">{player.rank}</p>
+                    </div>
                 </div>
             </div>
           <div>
