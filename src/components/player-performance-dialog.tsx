@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -6,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Swords, Shield, Percent } from 'lucide-react';
+import { User, Shield, Percent } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -62,6 +61,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         
         return {
           ...m,
+          isPlayer1,
           opponent,
           opponentTeam,
           playerScore,
@@ -129,32 +129,49 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
             {completedMatches.length > 0 ? (
                  <ScrollArea className="h-96 pr-4">
                     <div className="space-y-3">
-                    {completedMatches.map(match => (
+                    {completedMatches.map(match => {
+                      const scoreColorClass = cn({
+                        'text-primary': match.result === 'W',
+                        'text-destructive': match.result === 'L',
+                        'text-foreground': match.result === 'D',
+                      });
+                      
+                      const homeScore = match.player1Score ?? 0;
+                      const awayScore = match.player2Score ?? 0;
+                      
+                      return (
                         <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary">
-                        <div className="flex items-center gap-3">
-                            <ResultBadge result={match.result} />
-                            <div className='flex items-center gap-2'>
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
-                                    <AvatarFallback><Shield /></AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                                    <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
-                                </div>
-                            </div>
+                          <div className="flex items-center gap-3">
+                              <ResultBadge result={match.result} />
+                              <div className='flex items-center gap-2'>
+                                  <Avatar className="h-8 w-8">
+                                      <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
+                                      <AvatarFallback><Shield /></AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                      <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
+                                      <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                                  </div>
+                              </div>
+                          </div>
+                          <p className="text-lg font-bold">
+                              {match.isPlayer1 ? (
+                                <>
+                                  <span className={scoreColorClass}>{homeScore}</span>
+                                  <span className="mx-2 text-muted-foreground">-</span>
+                                  <span className="text-foreground">{awayScore}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-foreground">{homeScore}</span>
+                                  <span className="mx-2 text-muted-foreground">-</span>
+                                  <span className={scoreColorClass}>{awayScore}</span>
+                                </>
+                              )}
+                          </p>
                         </div>
-                        <p className="text-lg font-bold">
-                            <span className={cn({
-                                'text-primary': match.result === 'W',
-                                'text-destructive': match.result === 'L',
-                                'text-foreground': match.result === 'D'
-                            })}>{match.playerScore}</span>
-                            <span className="mx-2 text-muted-foreground">-</span>
-                            <span className="text-foreground">{match.opponentScore}</span>
-                        </p>
-                        </div>
-                    ))}
+                      )
+                    })}
                     </div>
                 </ScrollArea>
             ) : (
@@ -178,4 +195,5 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
+
 
