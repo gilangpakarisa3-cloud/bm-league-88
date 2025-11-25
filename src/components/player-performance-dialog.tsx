@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -100,10 +101,15 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md border-2 border-primary">
         <DialogHeader className="flex flex-col items-center text-center">
-            <Avatar className="h-20 w-20 border-4 border-primary">
-              <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
-              <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-20 w-20 border-4 border-primary">
+                <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
+                <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground text-sm font-bold">
+                {player.rank}
+              </div>
+            </div>
             <div className="flex flex-col items-center space-y-1 pt-2">
               <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
               <DialogDescription className="flex items-center justify-center gap-2">
