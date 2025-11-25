@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Shield, Percent } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -88,6 +88,13 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   const playerDetails = playersById[player.playerId];
   const playerTeamDetails = teamsById[player.teamId];
   const { completedMatches, winRate, seasonProgress, totalMatches } = performanceStats;
+  
+  const StatDisplay = ({ label, value }: { label: string, value: string | number }) => (
+    <div className="flex flex-col items-center justify-center p-2 rounded-md bg-card">
+      <span className="text-sm font-semibold text-muted-foreground">{label}</span>
+      <span className="text-lg font-bold text-primary">{value}</span>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,6 +123,13 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                     <Progress value={seasonProgress} className="h-3" />
                     <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
                 </div>
+                 <div className="grid grid-cols-5 gap-2 text-center">
+                   <StatDisplay label={t('played', { defaultValue: "P"})} value={player.played} />
+                   <StatDisplay label={t('w', { defaultValue: "W"})} value={player.win} />
+                   <StatDisplay label={t('d', { defaultValue: "D"})} value={player.draw} />
+                   <StatDisplay label={t('l', { defaultValue: "L"})} value={player.loss} />
+                   <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
+                </div>
                  <div className="flex items-center justify-between text-sm bg-muted/50 p-3 rounded-lg">
                     <div className="flex items-center gap-2 font-semibold">
                         <Percent className="w-4 h-4 text-primary"/>
@@ -130,11 +144,12 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                  <ScrollArea className="h-96 pr-4">
                     <div className="space-y-3">
                     {completedMatches.map(match => {
-                      const scoreColorClass = cn({
-                        'text-primary': match.result === 'W',
-                        'text-destructive': match.result === 'L',
+                      const scoreColorPlayer = cn({
+                        'text-yellow-400': match.result === 'W',
+                        'text-red-400': match.result === 'L',
                         'text-foreground': match.result === 'D',
                       });
+                       const scoreColorOpponent = 'text-foreground';
                       
                       const homeScore = match.player1Score ?? 0;
                       const awayScore = match.player2Score ?? 0;
@@ -157,15 +172,15 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                           <p className="text-lg font-bold">
                               {match.isPlayer1 ? (
                                 <>
-                                  <span className={scoreColorClass}>{homeScore}</span>
+                                  <span className={scoreColorPlayer}>{homeScore}</span>
                                   <span className="mx-2 text-muted-foreground">-</span>
-                                  <span className="text-foreground">{awayScore}</span>
+                                  <span className={scoreColorOpponent}>{awayScore}</span>
                                 </>
                               ) : (
                                 <>
-                                  <span className="text-foreground">{homeScore}</span>
+                                  <span className={scoreColorOpponent}>{homeScore}</span>
                                   <span className="mx-2 text-muted-foreground">-</span>
-                                  <span className={scoreColorClass}>{awayScore}</span>
+                                  <span className={scoreColorPlayer}>{awayScore}</span>
                                 </>
                               )}
                           </p>
@@ -195,5 +210,3 @@ const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
 };
-
-
