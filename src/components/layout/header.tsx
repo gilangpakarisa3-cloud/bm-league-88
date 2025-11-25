@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -36,8 +35,8 @@ export function Header() {
           <Flame className="h-7 w-7 text-primary group-hover:animate-pulse" />
           <span className="font-headline font-bold text-2xl hidden sm:inline tracking-tighter">BM League 88</span>
         </Link>
-        <div className="flex-1 overflow-hidden">
-            <nav className="flex items-center gap-1 sm:gap-2 justify-end sm:justify-start overflow-x-auto pb-4 -mb-4">
+        <div className="flex-1 overflow-hidden sm:flex sm:justify-center">
+            <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-4 -mb-4 sm:pb-0 sm:mb-0">
               {navLinks.map((link) => {
                 const isActive = pathname ? pathname.startsWith(link.href) : false;
                 return (
