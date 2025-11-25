@@ -24,9 +24,9 @@ export default function HallOfFamePage() {
             <div className="container mx-auto px-4 py-8">
                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="text-center mb-12">
-                        <h1 className="font-headline text-4xl sm:text-5xl font-extrabold tracking-tight text-primary">Hall of Fame</h1>
+                        <h1 className="font-headline text-4xl sm:text-5xl font-extrabold tracking-tight text-primary">{t('hall_of_fame_title')}</h1>
                         <p className="mt-2 max-w-2xl mx-auto text-lg text-foreground">
-                            A chronicle of champions and legends from past seasons.
+                            {t('hall_of_fame_desc')}
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -49,9 +49,9 @@ export default function HallOfFamePage() {
         <div className="container mx-auto px-4 py-8">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center mb-12">
-                    <h1 className="font-headline text-4xl sm:text-5xl font-extrabold tracking-tight text-primary">Hall of Fame</h1>
+                    <h1 className="font-headline text-4xl sm:text-5xl font-extrabold tracking-tight text-primary">{t('hall_of_fame_title')}</h1>
                     <p className="mt-2 max-w-2xl mx-auto text-lg text-foreground">
-                        A chronicle of champions and legends from past seasons.
+                        {t('hall_of_fame_desc')}
                     </p>
                 </div>
                 
@@ -63,9 +63,9 @@ export default function HallOfFamePage() {
                     </div>
                 ): (
                     <div className="text-center border-2 border-dashed border-muted rounded-lg p-12">
-                        <h2 className="text-xl font-medium text-muted-foreground">The Hall is Empty</h2>
+                        <h2 className="text-xl font-medium text-muted-foreground">{t('hall_of_fame_empty_title')}</h2>
                         <p className="mt-2 text-muted-foreground">
-                            No seasons have been completed yet. The first champion awaits their place in history.
+                            {t('hall_of_fame_empty_desc')}
                         </p>
                     </div>
                 )}

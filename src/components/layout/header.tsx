@@ -26,7 +26,7 @@ export function Header() {
     { href: '/fixtures', label: t('header_fixtures') },
     { href: '/players', label: t('header_players') },
     { href: '/teams', label: t('header_teams') },
-    { href: '/hall-of-fame', label: 'Hall of Fame' },
+    { href: '/hall-of-fame', label: t('header_hall_of_fame') },
   ];
 
   return (

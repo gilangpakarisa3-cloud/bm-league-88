@@ -4,6 +4,7 @@
   "header_fixtures": "Jadwal",
   "header_players": "Pemain",
   "header_teams": "Tim",
+  "header_hall_of_fame": "Daftar Juara",
   "home_welcome": "Selamat datang di Liga Tarkam Engineering EightyEight. Lacak klasemen liga secara live.",
   "home_league_standings_title": "Klasemen Liga",
   "home_league_standings_desc": "Lihat peringkat pemain resmi, lacak poin, dan lihat siapa yang mendominasi musim ini.",
@@ -147,7 +148,7 @@
   "invalid_url_error": "Silakan masukkan URL yang valid.",
   "team_not_found_error": "Tim yang dipilih tidak ditemukan.",
   "player_updated_title": "Pemain diperbarui!",
-  "player_updated_desc": "Detail {{playerName}} telah disinkronkan di semua kompetisi.",
+  "player_updated_desc": "{{playerName}}'s detail telah disinkronkan di semua kompetisi.",
   "player_sync_error": "Tidak dapat menyinkronkan pembaruan pemain ke tabel liga/piala.",
   "invalid_name_title": "Nama Tidak Valid",
   "invalid_name_desc": "Nama pemain tidak dapat diubah menjadi ID yang valid. Silakan gunakan karakter alfanumerik.",
@@ -204,5 +205,17 @@
   "new_password": "Kata Sandi Baru",
   "confirm_new_password": "Konfirmasi Kata Sandi Baru",
   "today": "Hari Ini",
-  "unplayed_abbv": "TBD"
+  "unplayed_abbv": "TBD",
+  "hall_of_fame_title": "Daftar Juara",
+  "hall_of_fame_desc": "Tawarikh para juara dan legenda dari musim-musim sebelumnya.",
+  "hall_of_fame_empty_title": "Daftar Juara Masih Kosong",
+  "hall_of_fame_empty_desc": "Belum ada musim yang selesai. Sang juara pertama menanti tempatnya dalam sejarah.",
+  "fun_stats_most_wins": "Kemenangan Terbanyak",
+  "fun_stats_most_wins_tooltip": "Dengan {{value}} kemenangan",
+  "fun_stats_best_attacker": "Penyerang Terbaik",
+  "fun_stats_best_attacker_tooltip": "Mencetak {{value}} gol",
+  "fun_stats_worst_defense": "Pertahanan Terburuk",
+  "fun_stats_worst_defense_tooltip": "Kemasukan {{value}} gol"
 }
+
+    

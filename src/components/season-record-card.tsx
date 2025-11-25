@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Award, Flame, ShieldAlert, Star, Trophy, User } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguage } from "@/context/language-context";
 
 const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip }: { icon: React.ElementType, label: string, value: string, valueClassName?: string, tooltip: string }) => (
     <TooltipProvider>
@@ -26,12 +28,16 @@ const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip }: { icon:
 
 
 export function SeasonRecordCard({ record }: { record: WithId<SeasonRecord>}) {
+    const { t } = useTranslation();
+    const { language } = useLanguage();
+    
+    const dateLocale = language === 'id' ? 'id-ID' : 'en-US';
 
     return (
         <Card className="flex flex-col overflow-hidden border-2 bg-card border-primary/50 hover:border-primary transition-all duration-300 shadow-lg hover:shadow-primary/20">
             <CardHeader className="text-center p-4 bg-secondary/30">
                 <CardTitle className="text-lg font-bold text-primary">{record.seasonName}</CardTitle>
-                <CardDescription>{new Date(record.completedAt.toDate()).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</CardDescription>
+                <CardDescription>{new Date(record.completedAt.toDate()).toLocaleDateString(dateLocale, { year: 'numeric', month: 'long' })}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center text-center p-6 flex-grow">
                  <div className="relative mb-4">
@@ -54,17 +60,16 @@ export function SeasonRecordCard({ record }: { record: WithId<SeasonRecord>}) {
             <CardFooter className="p-4 bg-secondary/30">
                 <div className="w-full space-y-2">
                     {record.funStats?.mostWins && (
-                        <StatItem icon={Award} label="Most Wins" value={record.funStats.mostWins.playerName} tooltip={`With ${record.funStats.mostWins.value} wins`} />
+                        <StatItem icon={Award} label={t('fun_stats_most_wins')} value={record.funStats.mostWins.playerName} tooltip={t('fun_stats_most_wins_tooltip', { value: record.funStats.mostWins.value })} />
                     )}
                     {record.funStats?.bestAttacker && (
-                        <StatItem icon={Flame} label="Best Attacker" value={record.funStats.bestAttacker.playerName} tooltip={`Scored ${record.funStats.bestAttacker.value} goals`} valueClassName="text-green-400" />
+                        <StatItem icon={Flame} label={t('fun_stats_best_attacker')} value={record.funStats.bestAttacker.playerName} tooltip={t('fun_stats_best_attacker_tooltip', { value: record.funStats.bestAttacker.value })} valueClassName="text-green-400" />
                     )}
                     {record.funStats?.worstDefender && (
-                        <StatItem icon={ShieldAlert} label="Worst Defense" value={record.funStats.worstDefender.playerName} tooltip={`Conceded ${record.funStats.worstDefender.value} goals`} valueClassName="text-red-400" />
+                        <StatItem icon={ShieldAlert} label={t('fun_stats_worst_defense')} value={record.funStats.worstDefender.playerName} tooltip={t('fun_stats_worst_defense_tooltip', { value: record.funStats.worstDefender.value })} valueClassName="text-red-400" />
                     )}
                 </div>
             </CardFooter>
         </Card>
     );
 }
-
