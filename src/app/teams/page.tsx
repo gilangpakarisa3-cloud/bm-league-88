@@ -77,10 +77,13 @@ export default function TeamsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="text-center mb-4">
+        <div className="text-center mb-8">
             <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">
             {t('teams_page_title')}
             </h1>
+            <p className="mt-2 text-lg text-muted-foreground">
+              {t('teams_page_subtitle', { defaultValue: "A complete list of all registered teams in the league."})}
+            </p>
         </div>
         <div className="flex justify-end mb-8">
             <div className="flex gap-2">
