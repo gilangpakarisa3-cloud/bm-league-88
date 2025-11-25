@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -5,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -189,8 +190,11 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                       
                       return (
                         <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                               <ResultBadge result={match.result} />
+                              <Badge variant="outline" className="h-8 w-8 flex items-center justify-center p-0">
+                                {match.isPlayer1 ? <Home className="w-4 h-4"/> : <Route className="w-4 h-4"/>}
+                              </Badge>
                               <div className='flex items-center gap-2'>
                                   <Avatar className="h-8 w-8">
                                       <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
