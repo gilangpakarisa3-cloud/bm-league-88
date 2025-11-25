@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { Progress } from './ui/progress';
+import { ScrollArea } from './ui/scroll-area';
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
@@ -43,10 +44,9 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   const performanceStats = useMemo(() => {
     if (!player) return null;
 
-    const last5Matches = matches
+    const completedMatches = matches
       .filter(m => (m.player1Id === player.playerId || m.player2Id === player.playerId) && m.isCompleted)
       .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
-      .slice(0, 5)
       .map(m => {
         const isPlayer1 = m.player1Id === player.playerId;
         const playerScore = isPlayer1 ? m.player1Score! : m.player2Score!;
@@ -75,7 +75,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     const seasonProgress = totalMatches > 0 ? (player.played / totalMatches) * 100 : 0;
 
     return {
-        last5Matches,
+        completedMatches,
         winRate,
         seasonProgress,
         totalMatches
@@ -87,17 +87,17 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   const playerDetails = playersById[player.playerId];
   const playerTeamDetails = teamsById[player.teamId];
-  const { last5Matches, winRate, seasonProgress, totalMatches } = performanceStats;
+  const { completedMatches, winRate, seasonProgress, totalMatches } = performanceStats;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
+        <DialogHeader className="text-center">
             <Avatar className="h-20 w-20 border-4 border-primary mx-auto">
               <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
               <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
             </Avatar>
-            <div className="space-y-1 pt-2 text-center">
+            <div className="space-y-1 pt-2">
               <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
               <DialogDescription className="flex items-center justify-center gap-2">
                 <Avatar className="h-5 w-5">
@@ -125,32 +125,34 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                 </div>
             </div>
           <div>
-            <h3 className="mb-4 text-lg font-semibold">{t('last_5_matches', {defaultValue: '5 Pertandingan Terakhir'})}</h3>
-            {last5Matches.length > 0 ? (
-                <div className="space-y-3">
-                {last5Matches.map(match => (
-                    <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-3">
-                        <ResultBadge result={match.result} />
-                        <div className='flex items-center gap-2'>
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
-                                <AvatarFallback><Shield /></AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                                <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+            <h3 className="mb-4 text-lg font-semibold">{t('match_history', {defaultValue: 'Riwayat Pertandingan'})}</h3>
+            {completedMatches.length > 0 ? (
+                 <ScrollArea className="h-72 pr-4">
+                    <div className="space-y-3">
+                    {completedMatches.map(match => (
+                        <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-3">
+                            <ResultBadge result={match.result} />
+                            <div className='flex items-center gap-2'>
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
+                                    <AvatarFallback><Shield /></AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
+                                    <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                                </div>
                             </div>
                         </div>
+                        <p className="text-lg font-bold">
+                            <span className={cn(match.result === 'W' && 'text-green-400', match.result === 'L' && 'text-red-400')}>{match.playerScore}</span>
+                            <span className="mx-2 text-muted-foreground">-</span>
+                            <span className={cn(match.result === 'L' && 'text-green-400', match.result === 'W' && 'text-red-400')}>{match.opponentScore}</span>
+                        </p>
+                        </div>
+                    ))}
                     </div>
-                    <p className="text-lg font-bold">
-                        <span className={cn(match.result === 'W' && 'text-green-400', match.result === 'L' && 'text-red-400')}>{match.playerScore}</span>
-                        <span className="mx-2 text-muted-foreground">-</span>
-                        <span className={cn(match.result === 'L' && 'text-green-400', match.result === 'W' && 'text-red-400')}>{match.opponentScore}</span>
-                    </p>
-                    </div>
-                ))}
-                </div>
+                </ScrollArea>
             ) : (
                 <p className="text-center text-muted-foreground py-4">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
             )}
