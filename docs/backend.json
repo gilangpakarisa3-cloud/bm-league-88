@@ -163,11 +163,6 @@
           "description": "The date of the match.",
           "format": "date-time"
         },
-        "matchTime": {
-          "type": "string",
-          "description": "The time of the match.",
-          "format": "time"
-        },
         "isCompleted": {
           "type": "boolean",
           "description": "Flag indicating if the match has been played."
@@ -251,6 +246,60 @@
         "rules",
         "schedule"
       ]
+    },
+    "SeasonRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SeasonRecord",
+      "type": "object",
+      "description": "A record of a completed season for the Hall of Fame.",
+      "properties": {
+        "seasonId": { "type": "string" },
+        "seasonName": { "type": "string" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "winnerPlayerId": { "type": "string" },
+        "winnerPlayerName": { "type": "string" },
+        "winnerTeamName": { "type": "string" },
+        "winnerPhotoUrl": { "type": "string", "format": "uri" },
+        "winnerStats": {
+          "type": "object",
+          "properties": {
+            "points": { "type": "number" },
+            "win": { "type": "number" },
+            "draw": { "type": "number" },
+            "loss": { "type": "number" },
+            "goalsFor": { "type": "number" },
+            "goalsAgainst": { "type": "number" },
+            "goalDifference": { "type": "number" }
+          }
+        },
+        "funStats": {
+          "type": "object",
+          "properties": {
+            "bestAttacker": {
+              "type": ["object", "null"],
+              "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            },
+            "worstDefender": {
+               "type": ["object", "null"],
+               "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            },
+            "mostWins": {
+              "type": ["object", "null"],
+              "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+      "required": ["seasonId", "seasonName", "completedAt", "winnerPlayerId", "winnerPlayerName", "winnerTeamName", "winnerStats", "funStats"]
     }
   },
   "auth": {
@@ -338,6 +387,16 @@
             "$ref": "#/backend/entities/Notice"
           },
           "description": "Stores the content for the homepage notice board. This is a singleton document."
+        }
+      },
+      {
+        "path": "/hallOfFame/{recordId}",
+        "definition": {
+          "entityName": "SeasonRecord",
+          "schema": {
+            "$ref": "#/backend/entities/SeasonRecord"
+          },
+          "description": "Stores a summary of a completed season for the Hall of Fame."
         }
       }
     ]

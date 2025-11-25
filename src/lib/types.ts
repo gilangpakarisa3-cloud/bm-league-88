@@ -60,3 +60,27 @@ export type Notice = {
   rules: string[];
   schedule: string;
 };
+
+export type SeasonRecord = {
+    seasonId: string;
+    seasonName: string;
+    completedAt: Timestamp;
+    winnerPlayerId: string;
+    winnerPlayerName: string;
+    winnerTeamName: string;
+    winnerPhotoUrl?: string;
+    winnerStats: {
+        points: number;
+        win: number;
+        draw: number;
+        loss: number;
+        goalsFor: number;
+        goalsAgainst: number;
+        goalDifference: number;
+    };
+    funStats: {
+        bestAttacker: { playerName: string; value: number } | null;
+        worstDefender: { playerName: string; value: number } | null;
+        mostWins: { playerName: string; value: number } | null;
+    };
+}

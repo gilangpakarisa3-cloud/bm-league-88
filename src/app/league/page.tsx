@@ -21,9 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp } from 'firebase/firestore';
-import type { League, Season, LeagueEntry, Player, WithId, Match, Team } from '@/lib/types';
+import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -328,11 +328,64 @@ export default function LeaguePage() {
   const handleUpdateSeasonStatus = (status: 'In Progress' | 'Completed') => {
     if (!firestore || !activeSeason) return;
 
+    if (status === 'Completed') {
+        handleFinishSeason();
+        return;
+    }
+
     const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeason.id);
     updateDocumentNonBlocking(seasonRef, { status });
     toast({ title: t('season_updated_title'), description: t('season_status_updated_desc', { status }) });
   };
   
+   const handleFinishSeason = () => {
+    if (!firestore || !activeSeason || sortedTable.length === 0) return;
+
+    // 1. Find winner and calculate fun stats
+    const winner = sortedTable[0];
+    const playersWhoPlayed = sortedTable.filter(p => p.played > 0);
+
+    const bestAttacker = [...playersWhoPlayed].sort((a, b) => b.goalsFor - a.goalsFor)[0];
+    const worstDefender = [...playersWhoPlayed].sort((a, b) => b.goalsAgainst - a.goalsAgainst)[0];
+    const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
+    const mostWinsPlayer = playersWhoPlayed.find(p => p.win === maxWins && maxWins > 0);
+
+    // 2. Create the season record object
+    const seasonRecord: SeasonRecord = {
+        seasonId: activeSeason.id,
+        seasonName: activeSeason.name,
+        completedAt: Timestamp.now(),
+        winnerPlayerId: winner.playerId,
+        winnerPlayerName: winner.playerName,
+        winnerTeamName: winner.teamName,
+        winnerPhotoUrl: winner.photoUrl,
+        winnerStats: {
+            points: winner.points,
+            win: winner.win,
+            draw: winner.draw,
+            loss: winner.loss,
+            goalsFor: winner.goalsFor,
+            goalsAgainst: winner.goalsAgainst,
+            goalDifference: winner.goalDifference
+        },
+        funStats: {
+            bestAttacker: bestAttacker ? { playerName: bestAttacker.playerName, value: bestAttacker.goalsFor } : null,
+            worstDefender: worstDefender ? { playerName: worstDefender.playerName, value: worstDefender.goalsAgainst } : null,
+            mostWins: mostWinsPlayer ? { playerName: mostWinsPlayer.playerName, value: mostWinsPlayer.win } : null,
+        }
+    };
+
+    // 3. Save the record to the hallOfFame collection
+    const hallOfFameRef = doc(firestore, `hallOfFame`, activeSeason.id);
+    setDocumentNonBlocking(hallOfFameRef, seasonRecord, {});
+
+    // 4. Update the season status
+    const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeason.id);
+    updateDocumentNonBlocking(seasonRef, { status: 'Completed' });
+
+    toast({ title: "Season Completed!", description: `${activeSeason.name} is finished. A record has been saved in the Hall of Fame.` });
+  };
+
   const handleShareParticipants = () => {
     if (!activeSeason || !sortedTable || sortedTable.length === 0) {
       toast({
@@ -437,38 +490,21 @@ export default function LeaguePage() {
                         </Button>
                     </>
                 )}
-                 {!isAdmin && (
-                    <div className="flex gap-2">
-                        <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
-                            <Share2 className="mr-2 h-4 w-4" />
-                            {t('share_participants')}
-                        </Button>
-                        <Button asChild variant="outline" size="sm">
-                            <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
-                                <Trophy className="mr-2 h-4 w-4" />
-                                {t('view_champion')}
-                            </Link>
-                        </Button>
-                    </div>
-                )}
+                <div className="flex gap-2">
+                    <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        {t('share_participants')}
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
+                            <Trophy className="mr-2 h-4 w-4" />
+                            {t('view_champion')}
+                        </Link>
+                    </Button>
+                </div>
             </div>
             <LiveClock />
         </div>
-        
-        {isAdmin && (
-             <div className="flex gap-2 mb-8">
-                <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
-                    <Share2 className="mr-2 h-4 w-4" />
-                    {t('share_participants')}
-                </Button>
-                <Button asChild variant="outline" size="sm">
-                    <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
-                        <Trophy className="mr-2 h-4 w-4" />
-                        {t('view_champion')}
-                    </Link>
-                </Button>
-            </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <div className="lg:col-span-3">

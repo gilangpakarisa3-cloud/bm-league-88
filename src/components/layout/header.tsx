@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Flame, Languages } from 'lucide-react';
+import { Flame, Languages, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -26,6 +26,7 @@ export function Header() {
     { href: '/fixtures', label: t('header_fixtures') },
     { href: '/players', label: t('header_players') },
     { href: '/teams', label: t('header_teams') },
+    { href: '/hall-of-fame', label: 'Hall of Fame' },
   ];
 
   return (
