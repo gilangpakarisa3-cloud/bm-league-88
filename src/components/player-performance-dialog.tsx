@@ -92,8 +92,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   
   const StatDisplay = ({ label, value }: { label: string, value: string | number }) => (
     <div className="flex flex-col items-center justify-center p-2 rounded-md bg-card">
-      <span className="text-sm font-semibold text-muted-foreground">{label}</span>
-      <span className="text-lg font-bold text-primary">{value}</span>
+      <span className="text-xs sm:text-sm font-semibold text-muted-foreground">{label}</span>
+      <span className="text-base sm:text-lg font-bold text-primary">{value}</span>
     </div>
   );
   
@@ -118,117 +118,119 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-2 border-primary">
-        <DialogHeader className="flex flex-col items-center text-center">
-            <div className="relative">
-              <Avatar className="h-20 w-20 border-4 border-primary">
-                <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
-                <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
-              </Avatar>
-              <div className={rankBadgeStyle}>
-                {player.rank}
-              </div>
-            </div>
-            <div className="flex flex-col items-center space-y-1 pt-2">
-              <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
-              <DialogDescription className="flex items-center justify-center gap-2">
-                <Avatar className="h-5 w-5">
-                    <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.teamName} />
-                    <AvatarFallback><Shield className="w-3 h-3"/></AvatarFallback>
-                </Avatar>
-                {player.teamName}
-              </DialogDescription>
-            </div>
-        </DialogHeader>
+      <DialogContent className="max-w-md border-primary border-2 p-0">
+        <ScrollArea className="max-h-[90vh]">
+            <div className="p-6">
+                <DialogHeader className="flex flex-col items-center text-center">
+                    <div className="relative">
+                      <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-primary">
+                        <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
+                        <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
+                      </Avatar>
+                      <div className={rankBadgeStyle}>
+                        {player.rank}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-center space-y-1 pt-2">
+                      <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
+                      <DialogDescription className="flex items-center justify-center gap-2">
+                        <Avatar className="h-5 w-5">
+                            <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.teamName} />
+                            <AvatarFallback><Shield className="w-3 h-3"/></AvatarFallback>
+                        </Avatar>
+                        {player.teamName}
+                      </DialogDescription>
+                    </div>
+                </DialogHeader>
 
-        <div className="py-2 space-y-6">
-            <div className='space-y-4'>
-                <div>
-                    <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
-                    <Progress value={seasonProgress} className="h-3" />
-                    <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
-                </div>
-                 <div className="grid grid-cols-5 gap-2 text-center">
-                   <StatDisplay label={t('played', { defaultValue: "P"})} value={player.played} />
-                   <StatDisplay label={t('w', { defaultValue: "W"})} value={player.win} />
-                   <StatDisplay label={t('d', { defaultValue: "D"})} value={player.draw} />
-                   <StatDisplay label={t('l', { defaultValue: "L"})} value={player.loss} />
-                   <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
-                </div>
-                 <div className="grid grid-cols-2 gap-2">
-                    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                            <Percent className="w-4 h-4 text-primary"/>
-                            <p>Win Rate</p>
+                <div className="py-2 space-y-6 mt-4">
+                    <div className='space-y-4'>
+                        <div>
+                            <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
+                            <Progress value={seasonProgress} className="h-3" />
+                            <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
                         </div>
-                        <p className="text-xl font-bold text-primary mt-1">{winRate.toFixed(0)}%</p>
-                    </div>
-                    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                            <Trophy className="w-4 h-4 text-primary"/>
-                            <p>Peringkat</p>
+                         <div className="grid grid-cols-5 gap-2 text-center">
+                           <StatDisplay label={t('played', { defaultValue: "P"})} value={player.played} />
+                           <StatDisplay label={t('w', { defaultValue: "W"})} value={player.win} />
+                           <StatDisplay label={t('d', { defaultValue: "D"})} value={player.draw} />
+                           <StatDisplay label={t('l', { defaultValue: "L"})} value={player.loss} />
+                           <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
                         </div>
-                        <p className={rankTextStyle}>{player.rank}</p>
+                         <div className="grid grid-cols-2 gap-2">
+                            <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                                    <Percent className="w-4 h-4 text-primary"/>
+                                    <p>Win Rate</p>
+                                </div>
+                                <p className="text-xl font-bold text-primary mt-1">{winRate.toFixed(0)}%</p>
+                            </div>
+                            <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                                    <Trophy className="w-4 h-4 text-primary"/>
+                                    <p>Peringkat</p>
+                                </div>
+                                <p className={rankTextStyle}>{player.rank}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">{t('match_history', {defaultValue: 'Riwayat Pertandingan'})}</h3>
-            {completedMatches.length > 0 ? (
-                 <ScrollArea className="h-96 pr-4">
-                    <div className="space-y-3">
-                    {completedMatches.map(match => {
-                      const scoreColorPlayer = cn({
-                        'text-green-400': match.result === 'W',
-                        'text-red-400': match.result === 'L',
-                        'text-foreground': match.result === 'D',
-                      });
-                       const scoreColorOpponent = 'text-foreground';
-                      
-                      const homeScore = match.player1Score ?? 0;
-                      const awayScore = match.player2Score ?? 0;
-                      
-                      return (
-                        <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary">
-                          <div className="flex items-center gap-2">
-                              <ResultBadge result={match.result} />
-                              <HomeAwayBadge isHome={match.isPlayer1} />
-                              <div className='flex items-center gap-2'>
-                                  <Avatar className="h-8 w-8">
-                                      <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
-                                      <AvatarFallback><Shield /></AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                      <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                                      <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                  <div>
+                    <h3 className="mb-4 text-lg font-semibold">{t('match_history', {defaultValue: 'Riwayat Pertandingan'})}</h3>
+                    {completedMatches.length > 0 ? (
+                        <div className="space-y-3">
+                        {completedMatches.map(match => {
+                           const scoreColorPlayer = cn({
+                                'text-green-400': match.result === 'W',
+                                'text-red-400': match.result === 'L',
+                                'text-foreground': match.result === 'D',
+                            });
+                           const scoreColorOpponent = 'text-foreground';
+                          
+                          const homeScore = match.player1Score ?? 0;
+                          const awayScore = match.player2Score ?? 0;
+                          
+                          return (
+                            <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
+                              <div className="flex items-center gap-2">
+                                  <ResultBadge result={match.result} />
+                                  <HomeAwayBadge isHome={match.isPlayer1} />
+                                  <div className='flex items-center gap-2'>
+                                      <Avatar className="h-8 w-8">
+                                          <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
+                                          <AvatarFallback><Shield /></AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                          <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
+                                          <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                                      </div>
                                   </div>
                               </div>
-                          </div>
-                          <p className="text-lg font-bold">
-                              {match.isPlayer1 ? (
-                                <>
-                                  <span className={scoreColorPlayer}>{homeScore}</span>
-                                  <span className="mx-2 text-muted-foreground">-</span>
-                                  <span className={scoreColorOpponent}>{awayScore}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className={scoreColorOpponent}>{homeScore}</span>
-                                  <span className="mx-2 text-muted-foreground">-</span>
-                                  <span className={scoreColorPlayer}>{awayScore}</span>
-                                </>
-                              )}
-                          </p>
+                              <p className="text-lg font-bold">
+                                  {match.isPlayer1 ? (
+                                    <>
+                                      <span className={scoreColorPlayer}>{homeScore}</span>
+                                      <span className="mx-2 text-muted-foreground">-</span>
+                                      <span className={scoreColorOpponent}>{awayScore}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className={scoreColorOpponent}>{homeScore}</span>
+                                      <span className="mx-2 text-muted-foreground">-</span>
+                                      <span className={scoreColorPlayer}>{awayScore}</span>
+                                    </>
+                                  )}
+                              </p>
+                            </div>
+                          )
+                        })}
                         </div>
-                      )
-                    })}
-                    </div>
-                </ScrollArea>
-            ) : (
-                <p className="text-center text-muted-foreground py-4">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
-            )}
-          </div>
-        </div>
+                    ) : (
+                        <p className="text-center text-muted-foreground py-4">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
+                    )}
+                  </div>
+                </div>
+            </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
@@ -238,7 +240,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
     const resultConfig = {
         W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
-        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
+        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-400' },
         L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
     };
     const { text, className } = resultConfig[result];
@@ -250,3 +252,5 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
     const text = isHome ? 'H' : 'A';
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2")}>{text}</Badge>
 };
+
+    
