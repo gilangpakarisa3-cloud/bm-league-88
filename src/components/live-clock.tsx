@@ -34,7 +34,7 @@ export function LiveClock() {
     <div className="text-center font-mono tracking-wider">
         <span className="text-lg font-semibold text-foreground">{formattedTime}</span>
         <span className="text-primary mx-2">|</span>
-        <span className="text-sm font-medium text-muted-foreground">{formattedDate}</span>
+        <span className="text-sm font-medium text-primary">{formattedDate}</span>
     </div>
   );
 }
