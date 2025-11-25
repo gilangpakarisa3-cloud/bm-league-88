@@ -154,44 +154,51 @@ const FixtureContent = memo(function FixtureContent({
         }, {} as Record<string, WithId<Team>>);
     }, [allTeams]);
     
-    const { upcomingMatches, completedMatches, progressPercentage } = useMemo(() => {
-        if (!matches) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0 };
+    const { upcomingMatches, completedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
+        if (!matches) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
         
-        const filteredMatches = matches
+        const enrichedMatches = matches
             .map(match => ({
                 ...match,
                 player1: playersById[match.player1Id] || null,
                 player2: playersById[match.player2Id] || null,
-            }))
-            .filter(m => {
-                if (!searchTerm.trim()) return true;
-                
-                const searchTerms = searchTerm.toLowerCase().split(' ').filter(Boolean);
-                const p1Name = m.player1?.name.toLowerCase() || '';
-                const p2Name = m.player2?.name.toLowerCase() || '';
+            }));
 
-                if (searchTerms.length > 1) {
-                    // Search for matches between two specific players
-                    const term1 = searchTerms[0];
-                    const term2 = searchTerms[1];
-                    return (p1Name.includes(term1) && p2Name.includes(term2)) ||
-                           (p1Name.includes(term2) && p2Name.includes(term1));
-                } else {
-                    // Original search for a single player
-                    const term = searchTerms[0];
-                    return p1Name.includes(term) || p2Name.includes(term);
-                }
-            });
+        const filteredMatches = enrichedMatches.filter(m => {
+            if (!searchTerm.trim()) return true;
+            
+            const searchTerms = searchTerm.toLowerCase().split(' ').filter(Boolean);
+            const p1Name = m.player1?.name.toLowerCase() || '';
+            const p2Name = m.player2?.name.toLowerCase() || '';
+
+            if (searchTerms.length > 1) {
+                const term1 = searchTerms[0];
+                const term2 = searchTerms[1];
+                return (p1Name.includes(term1) && p2Name.includes(term2)) ||
+                        (p1Name.includes(term2) && p2Name.includes(term1));
+            } else {
+                const term = searchTerms[0];
+                return p1Name.includes(term) || p2Name.includes(term);
+            }
+        });
 
         const upcoming = filteredMatches.filter(m => !m.isCompleted);
         const completed = filteredMatches
             .filter(m => m.isCompleted)
             .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
-            
-        const totalMatches = matches.length;
-        const progress = totalMatches > 0 ? (completed.length / totalMatches) * 100 : 0;
+        
+        const totalForProgress = searchTerm.trim() ? filteredMatches.length : matches.length;
+        const completedForProgress = searchTerm.trim() ? completed.length : matches.filter(m => m.isCompleted).length;
 
-        return { upcomingMatches: upcoming, completedMatches: completed, progressPercentage: progress };
+        const progress = totalForProgress > 0 ? (completedForProgress / totalForProgress) * 100 : 0;
+        
+        return { 
+            upcomingMatches: upcoming, 
+            completedMatches: completed, 
+            progressPercentage: progress,
+            totalMatchesForDisplay: totalForProgress,
+            completedMatchesForDisplay: completedForProgress
+        };
     }, [matches, playersById, searchTerm]);
 
 
@@ -224,7 +231,7 @@ const FixtureContent = memo(function FixtureContent({
              <div className="my-6">
                 <Progress value={progressPercentage} className="h-3" />
                 <p className="text-xs text-center text-foreground font-bold mt-2">
-                    {completedMatches.length} dari {matches.length} pertandingan selesai ({progressPercentage.toFixed(0)}%)
+                    {completedMatchesForDisplay} dari {totalMatchesForDisplay} pertandingan selesai ({progressPercentage.toFixed(0)}%)
                 </p>
             </div>
 
