@@ -188,7 +188,7 @@ const FixtureContent = memo(function FixtureContent({
             .filter(m => m.isCompleted)
             .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
             
-        const totalMatches = filteredMatches.length;
+        const totalMatches = matches.length;
         const progress = totalMatches > 0 ? (completed.length / totalMatches) * 100 : 0;
 
         return { upcomingMatches: upcoming, completedMatches: completed, progressPercentage: progress };
@@ -223,7 +223,7 @@ const FixtureContent = memo(function FixtureContent({
             
              <div className="my-6">
                 <Progress value={progressPercentage} className="h-3" />
-                <p className="text-xs text-center text-muted-foreground mt-2">
+                <p className="text-xs text-center text-foreground font-bold mt-2">
                     {completedMatches.length} dari {matches.length} pertandingan selesai ({progressPercentage.toFixed(0)}%)
                 </p>
             </div>
