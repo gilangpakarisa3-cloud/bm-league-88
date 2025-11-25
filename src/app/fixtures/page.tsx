@@ -531,7 +531,7 @@ export default function FixturesPage() {
   }, [firestore, activeSeasonId, leagueTable, activeSeason, t, toast]);
 
 
-  const handleUpdateScore = async (matchId: string, scores: { score1: number, score2: number, time: string }) => {
+  const handleUpdateScore = async (matchId: string, values: { score1: number, score2: number, time: string, date: Date }) => {
     if (!firestore || !activeSeasonId) return;
 
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
@@ -593,15 +593,15 @@ export default function FixturesPage() {
             // 2. Apply new stats
             newP1Stats.played += 1;
             newP2Stats.played += 1;
-            newP1Stats.goalsFor += scores.score1;
-            newP1Stats.goalsAgainst += scores.score2;
-            newP2Stats.goalsFor += scores.score2;
-            newP2Stats.goalsAgainst += scores.score1;
+            newP1Stats.goalsFor += values.score1;
+            newP1Stats.goalsAgainst += values.score2;
+            newP2Stats.goalsFor += values.score2;
+            newP2Stats.goalsAgainst += values.score1;
             
-            if (scores.score1 > scores.score2) { // P1 wins
+            if (values.score1 > values.score2) { // P1 wins
                 newP1Stats.win += 1; newP1Stats.points += 3;
                 newP2Stats.loss += 1;
-            } else if (scores.score2 > scores.score1) { // P2 wins
+            } else if (values.score2 > values.score1) { // P2 wins
                 newP2Stats.win += 1; newP2Stats.points += 3;
                 newP1Stats.loss += 1;
             } else { // Draw
@@ -616,14 +616,14 @@ export default function FixturesPage() {
             transaction.set(p1EntryRef, newP1Stats);
             transaction.set(p2EntryRef, newP2Stats);
 
-            const [hours, minutes] = scores.time.split(':').map(Number);
-            const newDate = originalMatch.matchDate.toDate();
-            newDate.setHours(hours, minutes);
+            const [hours, minutes] = values.time.split(':').map(Number);
+            const newDate = new Date(values.date);
+            newDate.setHours(hours, minutes, 0, 0); // Set hours and minutes on the new date
             const newTimestamp = Timestamp.fromDate(newDate);
 
             transaction.update(matchRef, { 
-                player1Score: scores.score1, 
-                player2Score: scores.score2,
+                player1Score: values.score1, 
+                player2Score: values.score2,
                 matchDate: newTimestamp,
                 isCompleted: true
             });
@@ -781,7 +781,7 @@ export default function FixturesPage() {
                 </DialogDescription>
               )}
             </DialogHeader>
-            {editingMatch && <ScoreForm match={editingMatch} onSave={(scores) => handleUpdateScore(editingMatch.id, scores)} players={allPlayers || []} />}
+            {editingMatch && <ScoreForm match={editingMatch} onSave={(values) => handleUpdateScore(editingMatch.id, values)} players={allPlayers || []} />}
           </DialogContent>
         </Dialog>
       </div>
