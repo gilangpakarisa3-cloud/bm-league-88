@@ -56,7 +56,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
     const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
     const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
 
-    const displayTime = match.isCompleted ? format(match.matchDate.toDate(), 'HH:mm') : t('unplayed_abbv', { defaultValue: 'TBD' });
+    const displayDate = match.isCompleted ? format(match.matchDate.toDate(), 'd MMM, HH:mm') : format(match.matchDate.toDate(), 'd MMM');
 
     const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
         <div className={cn("flex items-center gap-2 text-sm font-semibold truncate", {
@@ -99,7 +99,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
                     }
                 >
                     <Pencil className="mr-1 h-3 w-3" />
-                    {displayTime}
+                    {match.isCompleted ? displayDate : t('unplayed_abbv', {defaultValue: 'TBD'})}
                 </Button>
             </div>
         </div>
@@ -783,6 +783,8 @@ export default function FixturesPage() {
   );
 }
     
+    
+
     
 
     
