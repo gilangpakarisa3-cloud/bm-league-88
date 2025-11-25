@@ -217,5 +217,9 @@
   "fun_stats_best_attacker": "Penyerang Terbaik",
   "fun_stats_best_attacker_tooltip": "Mencetak {{value}} gol",
   "fun_stats_worst_defense": "Pertahanan Terburuk",
-  "fun_stats_worst_defense_tooltip": "Kemasukan {{value}} gol"
+  "fun_stats_worst_defense_tooltip": "Kemasukan {{value}} gol",
+  "last_5_matches": "5 Pertandingan Terakhir",
+  "no_completed_matches": "Belum ada pertandingan yang selesai."
 }
+
+    

@@ -19,11 +19,12 @@ interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
   isLoading?: boolean;
   onRemovePlayer?: (entry: WithId<LeagueEntry>) => void;
+  onSelectPlayer: (entry: WithId<LeagueEntry>) => void;
   seasonStatus?: Season['status'];
   isAdmin: boolean;
 }
 
-export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seasonStatus, isAdmin }: LeagueTableProps) {
+export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin }: LeagueTableProps) {
   const { t } = useTranslation();
   
   if (isLoading) {
@@ -89,13 +90,16 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, seas
                     {entry.rank}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-3">
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer group"
+                      onClick={() => onSelectPlayer(entry)}
+                    >
                        <Avatar className="h-10 w-10">
                         <AvatarImage src={entry.player?.photoUrl} alt={entry.playerName} />
                         <AvatarFallback><User /></AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className={cn("font-bold", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</div>
+                        <div className={cn("font-bold group-hover:text-primary transition-colors", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</div>
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                             <Avatar className="h-4 w-4">
                                 <AvatarImage src={entry.team?.logoUrl} alt={entry.team?.name} />
@@ -192,3 +196,5 @@ function LeagueTableSkeleton() {
     </div>
   );
 }
+
+    

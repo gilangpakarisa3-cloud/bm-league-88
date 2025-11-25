@@ -217,5 +217,9 @@
   "fun_stats_best_attacker": "Best Attacker",
   "fun_stats_best_attacker_tooltip": "Scored {{value}} goals",
   "fun_stats_worst_defense": "Worst Defense",
-  "fun_stats_worst_defense_tooltip": "Conceded {{value}} goals"
+  "fun_stats_worst_defense_tooltip": "Conceded {{value}} goals",
+  "last_5_matches": "Last 5 Matches",
+  "no_completed_matches": "No completed matches yet."
 }
+
+    
