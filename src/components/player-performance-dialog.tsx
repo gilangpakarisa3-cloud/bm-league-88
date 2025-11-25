@@ -6,13 +6,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { Progress } from './ui/progress';
 import { ScrollArea } from './ui/scroll-area';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
@@ -99,6 +100,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   
   const isTopRank = player.rank === 1;
   const isBottomRank = player.rank >= totalPlayersInSeason - 2 && totalPlayersInSeason > 3;
+  const isUnbeaten = player.played > 0 && player.loss === 0;
 
   const rankBadgeStyle = cn(
     "absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background text-sm font-bold",
@@ -132,7 +134,23 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                       </div>
                     </div>
                     <div className="flex flex-col items-center space-y-1 pt-2">
-                      <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
+                      <div className="flex items-center gap-2">
+                        <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
+                         {isUnbeaten && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                         <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0.5">
+                                            <ShieldCheck className="w-3 h-3"/>
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Tak Terkalahkan</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                      </div>
                       <DialogDescription className="flex items-center justify-center gap-2">
                         <Avatar className="h-5 w-5">
                             <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.teamName} />
@@ -143,7 +161,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                     </div>
                 </DialogHeader>
 
-                <div className="py-2 space-y-6 mt-4">
+                <div className="py-2 sm:space-y-6 mt-4">
                     <div className='space-y-4'>
                         <div>
                             <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
@@ -174,7 +192,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                             </div>
                         </div>
                     </div>
-                  <div>
+                  <div className="mt-6 sm:mt-0">
                     <h3 className="mb-4 text-lg font-semibold">{t('match_history', {defaultValue: 'Riwayat Pertandingan'})}</h3>
                     {completedMatches.length > 0 ? (
                         <div className="space-y-3">
