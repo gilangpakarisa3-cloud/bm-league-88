@@ -417,10 +417,11 @@ export default function LeaguePage() {
     return `${start} - ${end}`;
   }, [activeSeason]);
 
-  const seasonProgress = useMemo(() => {
-    if (!matches || matches.length === 0) return 0;
-    const completedMatches = matches.filter(m => m.isCompleted).length;
-    return (completedMatches / matches.length) * 100;
+  const { seasonProgress, completedMatchesCount } = useMemo(() => {
+    if (!matches || matches.length === 0) return { seasonProgress: 0, completedMatchesCount: 0 };
+    const completed = matches.filter(m => m.isCompleted).length;
+    const progress = (completed / matches.length) * 100;
+    return { seasonProgress: progress, completedMatchesCount: completed };
   }, [matches]);
 
 
@@ -437,6 +438,9 @@ export default function LeaguePage() {
                  {matches && matches.length > 0 && (
                   <div className="w-full pt-1">
                     <Progress value={seasonProgress} className="h-2" />
+                    <p className="text-xs font-bold mt-1.5">
+                      {completedMatchesCount} dari {matches.length} pertandingan ({seasonProgress.toFixed(0)}%)
+                    </p>
                   </div>
                 )}
               </>
