@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarIcon, User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
@@ -48,9 +48,6 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
   const player1 = players.find(p => p.id === match.player1Id);
   const player2 = players.find(p => p.id === match.player2Id);
   
-  // Convert Firestore timestamp to local Date object for form display
-  const matchDate = match.matchDate.toDate();
-
   const formSchemaTranslated = z.object({
     score1: z.coerce.number().min(0, t('score_positive_error')),
     score2: z.coerce.number().min(0, t('score_positive_error')),
@@ -60,13 +57,20 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
 
   const form = useForm<ScoreFormValues>({
     resolver: zodResolver(formSchemaTranslated),
-    defaultValues: {
-      score1: match.player1Score ?? 0,
-      score2: match.player2Score ?? 0,
-      time: match.isCompleted ? format(matchDate, 'HH:mm') : format(new Date(), 'HH:mm'),
-      date: matchDate,
-    },
   });
+
+  useEffect(() => {
+    if (match) {
+      const matchDate = match.matchDate.toDate();
+      form.reset({
+        score1: match.player1Score ?? 0,
+        score2: match.player2Score ?? 0,
+        time: format(matchDate, 'HH:mm'),
+        date: matchDate,
+      });
+    }
+  }, [match, form]);
+
 
   const handleSave = async (data: ScoreFormValues) => {
     setIsSaving(true);
