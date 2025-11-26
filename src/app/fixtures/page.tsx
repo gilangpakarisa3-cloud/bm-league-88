@@ -328,6 +328,7 @@ const AdminControls = memo(function AdminControls({
   const { toast } = useToast();
   const { t } = useTranslation();
   const [showRecalculateConfirm, setShowRecalculateConfirm] = useState(false);
+  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
 
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
@@ -360,6 +361,12 @@ const AdminControls = memo(function AdminControls({
         setShowRecalculateConfirm(true);
     });
   }
+  
+  const handleGenerateClick = () => {
+    withAdminCheck(() => {
+        setShowGenerateConfirm(true);
+    });
+  }
 
   return (
     <>
@@ -377,7 +384,7 @@ const AdminControls = memo(function AdminControls({
         <div className="flex gap-2">
             {isAdmin && (
                 <>
-                    <Button onClick={() => withAdminCheck(onGenerateFixtures)} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
+                    <Button onClick={handleGenerateClick} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
                         <RefreshCw className="mr-2 h-4 w-4" />
                         {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
                     </Button>
@@ -422,6 +429,7 @@ const AdminControls = memo(function AdminControls({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
       <AlertDialog open={showRecalculateConfirm} onOpenChange={setShowRecalculateConfirm}>
         <AlertDialogContent>
             <AlertDialogHeader>
@@ -433,6 +441,21 @@ const AdminControls = memo(function AdminControls({
             <AlertDialogFooter>
                 <AlertDialogCancel>Batal</AlertDialogCancel>
                 <AlertDialogAction onClick={() => { onRecalculate(); setShowRecalculateConfirm(false); }} className="bg-destructive hover:bg-destructive/90">Ya, Hitung Ulang</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru' : 'membuat jadwal pertandingan baru'} untuk <strong>{leagueTable?.length} pemain</strong>. Ini akan menghasilkan <strong>{(leagueTable?.length ?? 0) * ((leagueTable?.length ?? 0) - 1)}</strong> pertandingan (operasi tulis).
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={() => { onGenerateFixtures(); setShowGenerateConfirm(false); }}>Ya, Lanjutkan</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -815,5 +838,7 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
 
     
