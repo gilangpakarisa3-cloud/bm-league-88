@@ -26,7 +26,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -692,8 +692,6 @@ export default function FixturesPage() {
 
     toast({ title: "Memulai Perhitungan Ulang...", description: "Harap tunggu sebentar." });
 
-    const batch = writeBatch(firestore);
-
     // 1. Get all completed matches for the season
     const matchesQuery = query(
         collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`),
@@ -704,11 +702,8 @@ export default function FixturesPage() {
 
     // 2. Create a fresh stats map
     const playerStatsMap: { [playerId: string]: Omit<LeagueEntry, 'id' | 'rank' | 'playerId' | 'teamId' | 'playerName' | 'teamName' | 'photoUrl'> } = {};
-    
     leagueTable.forEach(entry => {
-        playerStatsMap[entry.playerId] = {
-            played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0
-        };
+        playerStatsMap[entry.playerId] = { played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0 };
     });
 
     // 3. Recalculate stats from completed matches
@@ -722,46 +717,47 @@ export default function FixturesPage() {
             const p1Stats = playerStatsMap[p1Id];
             const p2Stats = playerStatsMap[p2Id];
 
-            p1Stats.played += 1;
-            p2Stats.played += 1;
-            p1Stats.goalsFor += score1;
-            p1Stats.goalsAgainst += score2;
-            p2Stats.goalsFor += score2;
-            p2Stats.goalsAgainst += score1;
+            p1Stats.played++; p2Stats.played++;
+            p1Stats.goalsFor += score1; p1Stats.goalsAgainst += score2;
+            p2Stats.goalsFor += score2; p2Stats.goalsAgainst += score1;
 
-            if (score1 > score2) { // P1 wins
-                p1Stats.win += 1;
-                p1Stats.points += 3;
-                p2Stats.loss += 1;
-            } else if (score2 > score1) { // P2 wins
-                p2Stats.win += 1;
-                p2Stats.points += 3;
-                p1Stats.loss += 1;
-            } else { // Draw
-                p1Stats.draw += 1;
-                p1Stats.points += 1;
-                p2Stats.draw += 1;
-                p2Stats.points += 1;
+            if (score1 > score2) { p1Stats.win++; p1Stats.points += 3; p2Stats.loss++; }
+            else if (score2 > score1) { p2Stats.win++; p2Stats.points += 3; p1Stats.loss++; }
+            else { p1Stats.draw++; p1Stats.points++; p2Stats.draw++; p2Stats.points++; }
+        }
+    });
+
+    // 4. Compare and batch update only changed entries
+    const batch = writeBatch(firestore);
+    let updatedCount = 0;
+    
+    for (const entry of leagueTable) {
+        const newStats = playerStatsMap[entry.playerId];
+        if (newStats) {
+            const finalNewStats = { ...newStats, goalDifference: newStats.goalsFor - newStats.goalsAgainst };
+            
+            const oldStats = {
+                played: entry.played, win: entry.win, draw: entry.draw, loss: entry.loss, 
+                goalsFor: entry.goalsFor, goalsAgainst: entry.goalsAgainst, 
+                goalDifference: entry.goalDifference, points: entry.points
+            };
+
+            // Compare new vs old stats. If different, add to batch.
+            if (JSON.stringify(finalNewStats) !== JSON.stringify(oldStats)) {
+                const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, entry.id);
+                batch.update(entryRef, finalNewStats);
+                updatedCount++;
             }
         }
-    });
-
-    // 4. Update the leagueTable documents in a batch
-    leagueTable.forEach(entry => {
-        const stats = playerStatsMap[entry.playerId];
-        if (stats) {
-            const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, entry.id);
-            const finalStats = {
-                ...stats,
-                goalDifference: stats.goalsFor - stats.goalsAgainst,
-            };
-            batch.update(entryRef, finalStats);
-        }
-    });
+    }
     
     try {
-        await batch.commit();
-        toast({ title: "Sukses!", description: "Statistik tabel liga telah dihitung ulang dan diperbarui." });
+        if (updatedCount > 0) {
+            await batch.commit();
+            toast({ title: "Sukses!", description: `Statistik telah dihitung ulang. ${updatedCount} data pemain diperbarui.` });
+        } else {
+            toast({ title: "Tidak Ada Perubahan", description: "Semua statistik pemain sudah sesuai." });
+        }
     } catch(e) {
         console.error("Failed to recalculate stats: ", e);
         toast({ variant: 'destructive', title: "Gagal", description: "Terjadi kesalahan saat menyimpan statistik baru." });
@@ -838,7 +834,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
-
-    
