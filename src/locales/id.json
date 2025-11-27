@@ -219,5 +219,15 @@
   "fun_stats_worst_defense": "Pertahanan Terburuk",
   "fun_stats_worst_defense_tooltip": "Kemasukan {{value}} gol",
   "match_history": "Riwayat Pertandingan",
-  "no_completed_matches": "Belum ada pertandingan yang selesai."
+  "no_completed_matches": "Belum ada pertandingan yang selesai.",
+  "revert_match": "Kembalikan Pertandingan",
+  "revert_match_error_not_completed": "Pertandingan belum selesai atau tidak ada.",
+  "match_reverted_title": "Pertandingan Dikembalikan",
+  "match_reverted_desc": "Skor pertandingan dan statistik telah berhasil dikembalikan.",
+  "revert_failed_title": "Pengembalian Gagal",
+  "revert_match_confirm_title": "Kembalikan Pertandingan Ini?",
+  "revert_match_confirm_desc": "Apakah Anda yakin ingin mengembalikan pertandingan antara {{player1}} dan {{player2}}? Skor akan dihapus dan statistik pemain akan disesuaikan.",
+  "revert_match_action": "Ya, Kembalikan"
 }
+
+    

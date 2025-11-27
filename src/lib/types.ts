@@ -50,8 +50,8 @@ export type Match = {
   seasonId: string;
   player1Id: string;
   player2Id: string;
-  player1Score?: number;
-  player2Score?: number;
+  player1Score: number | null;
+  player2Score: number | null;
   matchDate: Timestamp;
   isCompleted: boolean;
 }
@@ -84,3 +84,5 @@ export type SeasonRecord = {
         mostWins: { playerName: string; value: number } | null;
     };
 }
+
+    

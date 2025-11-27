@@ -219,5 +219,15 @@
   "fun_stats_worst_defense": "Worst Defense",
   "fun_stats_worst_defense_tooltip": "Conceded {{value}} goals",
   "match_history": "Match History",
-  "no_completed_matches": "No completed matches yet."
+  "no_completed_matches": "No completed matches yet.",
+  "revert_match": "Revert Match",
+  "revert_match_error_not_completed": "Match has not been completed or does not exist.",
+  "match_reverted_title": "Match Reverted",
+  "match_reverted_desc": "The match score and stats have been successfully reverted.",
+  "revert_failed_title": "Revert Failed",
+  "revert_match_confirm_title": "Revert This Match?",
+  "revert_match_confirm_desc": "Are you sure you want to revert the match between {{player1}} and {{player2}}? The score will be cleared and player stats will be adjusted.",
+  "revert_match_action": "Yes, Revert It"
 }
+
+    

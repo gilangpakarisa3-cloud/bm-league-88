@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, RefreshCw, Search, Lock, Unlock, Calculator } from 'lucide-react';
+import { Pencil, RefreshCw, Search, Lock, Unlock, Calculator, Undo2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc, updateDoc } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -47,9 +47,10 @@ import { Progress } from '@/components/ui/progress';
 const LEAGUE_ID = 'main-league';
 
 
-const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSeason, teamsById }: {
+const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason, teamsById }: {
     match: WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null };
     onEditMatch: (match: WithId<Match>) => void;
+    onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     activeSeason: WithId<Season> | null;
     teamsById: Record<string, WithId<Team>>;
@@ -89,21 +90,28 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
 
             <PlayerInfo player={match.player2} team={team2} alignment="left" />
             
-            <div className="flex-none">
+            <div className="flex-none flex items-center gap-1">
                  <Button
                     variant="outline"
                     size="sm"
                     className="text-xs"
                     onClick={() => onEditMatch(match)}
-                    disabled={
-                        match.isCompleted
-                            ? !isAdmin // Only admins can edit completed scores
-                            : activeSeason?.status !== 'In Progress' // Anyone can update scores for a season 'In Progress'
-                    }
+                    disabled={activeSeason?.status !== 'In Progress'}
                 >
                     <Pencil className="mr-1 h-3 w-3" />
                     {match.isCompleted ? displayDate : t('unplayed_abbv', {defaultValue: 'TBD'})}
                 </Button>
+                {isAdmin && match.isCompleted && (
+                     <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                        onClick={() => onRevertMatch(match)}
+                        title={t('revert_match', { defaultValue: "Revert Match"})}
+                    >
+                        <Undo2 className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
         </div>
     );
@@ -113,6 +121,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, isAdmin, activeSea
 const FixtureContent = memo(function FixtureContent({
     activeSeasonId,
     onEditMatch,
+    onRevertMatch,
     isAdmin,
     allPlayers,
     allTeams,
@@ -120,6 +129,7 @@ const FixtureContent = memo(function FixtureContent({
 }: {
     activeSeasonId: string | null;
     onEditMatch: (match: WithId<Match>) => void;
+    onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     allPlayers: WithId<Player>[];
     allTeams: WithId<Team>[];
@@ -256,6 +266,7 @@ const FixtureContent = memo(function FixtureContent({
                                                 key={match.id}
                                                 match={match}
                                                 onEditMatch={onEditMatch}
+                                                onRevertMatch={onRevertMatch}
                                                 isAdmin={isAdmin}
                                                 activeSeason={activeSeason}
                                                 teamsById={teamsById}
@@ -278,6 +289,7 @@ const FixtureContent = memo(function FixtureContent({
                                                 key={match.id}
                                                 match={match}
                                                 onEditMatch={onEditMatch}
+                                                onRevertMatch={onRevertMatch}
                                                 isAdmin={isAdmin}
                                                 activeSeason={activeSeason}
                                                 teamsById={teamsById}
@@ -433,13 +445,13 @@ const AdminControls = memo(function AdminControls({
       <AlertDialog open={showRecalculateConfirm} onOpenChange={setShowRecalculateConfirm}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                <AlertDialogTitle>{t('are_you_sure', { defaultValue: 'Anda yakin?'})}</AlertDialogTitle>
                 <AlertDialogDescription>
                     Tindakan ini akan menghitung ulang semua statistik (main, menang, kalah, seri, gol, poin) untuk semua pemain di musim <strong>{activeSeason?.name}</strong> berdasarkan data pertandingan yang sudah selesai. Gunakan ini untuk memperbaiki data yang tidak konsisten.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogCancel>{t('cancel', { defaultValue: 'Batal' })}</AlertDialogCancel>
                 <AlertDialogAction onClick={() => { onRecalculate(); setShowRecalculateConfirm(false); }} className="bg-destructive hover:bg-destructive/90">Ya, Hitung Ulang</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
@@ -448,13 +460,13 @@ const AdminControls = memo(function AdminControls({
       <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                <AlertDialogTitle>{t('are_you_sure', { defaultValue: 'Anda yakin?'})}</AlertDialogTitle>
                 <AlertDialogDescription>
                     Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru' : 'membuat jadwal pertandingan baru'} untuk <strong>{leagueTable?.length} pemain</strong>. Ini akan menghasilkan <strong>{(leagueTable?.length ?? 0) * ((leagueTable?.length ?? 0) - 1)}</strong> pertandingan (operasi tulis).
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogCancel>{t('cancel', { defaultValue: 'Batal' })}</AlertDialogCancel>
                 <AlertDialogAction onClick={() => { onGenerateFixtures(); setShowGenerateConfirm(false); }}>Ya, Lanjutkan</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
@@ -471,6 +483,7 @@ export default function FixturesPage() {
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
+  const [revertingMatch, setRevertingMatch] = useState<WithId<Match> | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   
   // --- Firestore Data Hooks ---
@@ -513,6 +526,13 @@ export default function FixturesPage() {
   // --- Memoized Derived State ---
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
+  const playersById = useMemo(() => {
+    if (!allPlayers) return {};
+    return allPlayers.reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+    }, {} as Record<string, WithId<Player>>);
+  }, [allPlayers]);
   
   // --- Effects ---
   useEffect(() => {
@@ -684,6 +704,79 @@ export default function FixturesPage() {
     setEditingMatch(null);
   };
 
+  const handleRevertMatch = useCallback(async () => {
+    if (!firestore || !activeSeasonId || !revertingMatch) return;
+    
+    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, revertingMatch.id);
+
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const matchDoc = await transaction.get(matchRef);
+            if (!matchDoc.exists() || !matchDoc.data().isCompleted) {
+                throw new Error(t('revert_match_error_not_completed', { defaultValue: "Match has not been completed or does not exist."}));
+            }
+            const matchToRevert = matchDoc.data() as Match;
+
+            const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
+            const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player1Id));
+            const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player2Id));
+            
+            const [p1EntrySnap, p2EntrySnap] = await Promise.all([ getDocs(p1EntryQuery), getDocs(p2EntryQuery) ]);
+
+            if (p1EntrySnap.empty || p2EntrySnap.empty) {
+                throw new Error(t('update_score_error_no_entries'));
+            }
+
+            const p1EntryRef = p1EntrySnap.docs[0].ref;
+            const p2EntryRef = p2EntrySnap.docs[0].ref;
+            const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry;
+            const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry;
+
+            // Revert stats
+            const oldScores = { p1: matchToRevert.player1Score ?? 0, p2: matchToRevert.player2Score ?? 0 };
+            p1EntryData.played -= 1;
+            p2EntryData.played -= 1;
+            p1EntryData.goalsFor -= oldScores.p1;
+            p1EntryData.goalsAgainst -= oldScores.p2;
+            p2EntryData.goalsFor -= oldScores.p2;
+            p2EntryData.goalsAgainst -= oldScores.p1;
+            
+            if (oldScores.p1 > oldScores.p2) { // P1 won
+                p1EntryData.win -= 1; p1EntryData.points -= 3;
+                p2EntryData.loss -= 1;
+            } else if (oldScores.p2 > oldScores.p1) { // P2 won
+                p2EntryData.win -= 1; p2EntryData.points -= 3;
+                p1EntryData.loss -= 1;
+            } else { // Draw
+                p1EntryData.draw -= 1; p1EntryData.points -= 1;
+                p2EntryData.draw -= 1; p2EntryData.points -= 1;
+            }
+
+            p1EntryData.goalDifference = p1EntryData.goalsFor - p1EntryData.goalsAgainst;
+            p2EntryData.goalDifference = p2EntryData.goalsFor - p2EntryData.goalsAgainst;
+
+            transaction.set(p1EntryRef, p1EntryData);
+            transaction.set(p2EntryRef, p2EntryData);
+
+            // Revert match document
+            transaction.update(matchRef, { 
+                player1Score: null, 
+                player2Score: null,
+                isCompleted: false 
+            });
+        });
+
+        toast({ title: t('match_reverted_title', { defaultValue: 'Match Reverted' }), description: t('match_reverted_desc', { defaultValue: 'The match score and stats have been successfully reverted.' }) });
+    } catch(e) {
+        console.error("Revert transaction failed: ", e);
+        toast({ variant: 'destructive', title: t('revert_failed_title', { defaultValue: 'Revert Failed' }), description: (e as Error).message });
+    }
+
+    setRevertingMatch(null);
+
+  }, [firestore, activeSeasonId, revertingMatch, t, toast]);
+
+
   const handleRecalculateStats = useCallback(async () => {
     if (!firestore || !activeSeasonId || !leagueTable) {
         toast({ variant: 'destructive', title: "Gagal", description: "Musim atau tabel liga tidak ditemukan." });
@@ -736,6 +829,7 @@ export default function FixturesPage() {
         if (newStats) {
             const finalNewStats = { ...newStats, goalDifference: newStats.goalsFor - newStats.goalsAgainst };
             
+            // This is a simplified version of the old stats object for comparison
             const oldStats = {
                 played: entry.played, win: entry.win, draw: entry.draw, loss: entry.loss, 
                 goalsFor: entry.goalsFor, goalsAgainst: entry.goalsAgainst, 
@@ -768,6 +862,10 @@ export default function FixturesPage() {
   const handleEditMatch = (match: WithId<Match>) => {
     setEditingMatch(match)
   };
+  
+  const handleRevertConfirm = (match: WithId<Match>) => {
+      setRevertingMatch(match);
+  }
 
   const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams;
 
@@ -805,6 +903,7 @@ export default function FixturesPage() {
                 <FixtureContent 
                     activeSeasonId={activeSeasonId}
                     onEditMatch={handleEditMatch}
+                    onRevertMatch={handleRevertConfirm}
                     isAdmin={isAdmin}
                     allPlayers={allPlayers || []}
                     allTeams={allTeams || []}
@@ -821,8 +920,8 @@ export default function FixturesPage() {
               {editingMatch && allPlayers && (
                  <DialogDescription>
                     {t('update_match_score_desc', { 
-                        player1: allPlayers.find(p => p.id === editingMatch.player1Id)?.name, 
-                        player2: allPlayers.find(p => p.id === editingMatch.player2Id)?.name 
+                        player1: playersById[editingMatch.player1Id]?.name, 
+                        player2: playersById[editingMatch.player2Id]?.name 
                     })}
                 </DialogDescription>
               )}
@@ -830,7 +929,33 @@ export default function FixturesPage() {
             {editingMatch && <ScoreForm match={editingMatch} onSave={(values) => handleUpdateScore(editingMatch.id, values)} players={allPlayers || []} />}
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={!!revertingMatch} onOpenChange={(isOpen) => !isOpen && setRevertingMatch(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{t('revert_match_confirm_title', { defaultValue: 'Revert This Match?'})}</AlertDialogTitle>
+                     {revertingMatch && (
+                        <AlertDialogDescription>
+                           {t('revert_match_confirm_desc', { 
+                               defaultValue: 'Are you sure you want to revert the match between {{player1}} and {{player2}}? The score will be cleared and player stats will be adjusted.',
+                               player1: playersById[revertingMatch.player1Id]?.name,
+                               player2: playersById[revertingMatch.player2Id]?.name
+                           })}
+                        </AlertDialogDescription>
+                     )}
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setRevertingMatch(null)}>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleRevertMatch} className="bg-amber-500 hover:bg-amber-600">
+                        {t('revert_match_action', { defaultValue: 'Yes, Revert It'})}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
       </div>
     </div>
   );
 }
+
+    
