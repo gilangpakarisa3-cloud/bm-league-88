@@ -96,7 +96,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     size="sm"
                     className="text-xs"
                     onClick={() => onEditMatch(match)}
-                    disabled={activeSeason?.status !== 'In Progress'}
+                    disabled={activeSeason?.status !== 'In Progress' || !isAdmin}
                 >
                     <Pencil className="mr-1 h-3 w-3" />
                     {match.isCompleted ? displayDate : t('unplayed_abbv', {defaultValue: 'TBD'})}
