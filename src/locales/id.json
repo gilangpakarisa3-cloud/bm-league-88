@@ -5,6 +5,7 @@
   "header_players": "Pemain",
   "header_teams": "Tim",
   "header_hall_of_fame": "Daftar Juara",
+  "header_settings": "Pengaturan",
   "home_welcome": "Selamat datang di Liga Tarkam Engineering EightyEight. Lacak klasemen liga secara live.",
   "home_league_standings_title": "Klasemen Liga",
   "home_league_standings_desc": "Lihat peringkat pemain resmi, lacak poin, dan lihat siapa yang mendominasi musim ini.",
@@ -231,5 +232,8 @@
   "password_set_title": "Kata Sandi Ditetapkan!",
   "password_set_desc": "Kata sandi admin Anda telah ditetapkan.",
   "set_initial_password_desc": "Sepertinya ini pertama kalinya Anda mengatur kata sandi admin. Buat sekarang.",
-  "set_password": "Atur Kata Sandi"
+  "set_password": "Atur Kata Sandi",
+  "settings_page_title": "Pengaturan Aplikasi",
+  "settings_page_subtitle": "Kelola pengaturan global untuk aplikasi.",
+  "manage_admin_password_button": "Kelola Kata Sandi Admin"
 }

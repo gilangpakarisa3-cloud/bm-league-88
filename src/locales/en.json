@@ -5,6 +5,7 @@
   "header_players": "Players",
   "header_teams": "Teams",
   "header_hall_of_fame": "Hall of Fame",
+  "header_settings": "Settings",
   "home_welcome": "Welcome to the official hub for the Liga Tarkam. Track league standings, cup progress, and celebrate the champions.",
   "home_league_standings_title": "League Standings",
   "home_league_standings_desc": "View the official player rankings, track points, and see who's dominating the season.",
@@ -231,5 +232,8 @@
   "password_set_title": "Password Set!",
   "password_set_desc": "Your admin password has been set.",
   "set_initial_password_desc": "It looks like this is the first time setting up an admin password. Create one now.",
-  "set_password": "Set Password"
+  "set_password": "Set Password",
+  "settings_page_title": "Application Settings",
+  "settings_page_subtitle": "Manage global settings for the application.",
+  "manage_admin_password_button": "Manage Admin Password"
 }

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, KeyRound } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -44,7 +44,6 @@ import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
 import { useSharedPassword } from '@/context/password-context';
-import { PasswordManager } from '@/components/password-manager';
 import { LeagueStats } from '@/components/league-stats';
 import { LiveClock } from '@/components/live-clock';
 import { PlayerPerformanceDialog } from '@/components/player-performance-dialog';
@@ -74,7 +73,6 @@ export default function LeaguePage() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({ from: undefined, to: undefined });
-  const [showPasswordManager, setShowPasswordManager] = useState(false);
   const [selectedPlayerForStats, setSelectedPlayerForStats] = useState<WithId<LeagueEntry> | null>(null);
 
 
@@ -499,10 +497,6 @@ export default function LeaguePage() {
                         </Button>
                     </>
                 )}
-                <Button onClick={() => setShowPasswordManager(true)} variant="outline">
-                    <KeyRound className="mr-2 h-4 w-4" />
-                    {t('manage_password', { defaultValue: 'Manage Password' })}
-                </Button>
                 <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
                     {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
                     {isAdmin ? t('lock_admin') : t('unlock_admin')}
@@ -687,9 +681,6 @@ export default function LeaguePage() {
           shareText={shareText}
         />
       
-      {/* Password Manager Dialog */}
-      <PasswordManager open={showPasswordManager} onOpenChange={setShowPasswordManager} />
-
       {/* Player Performance Dialog */}
       <PlayerPerformanceDialog
         player={selectedPlayerForStats}

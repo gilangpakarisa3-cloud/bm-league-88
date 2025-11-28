@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Flame, Languages, Trophy } from 'lucide-react';
+import { Flame, Languages, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -69,6 +69,12 @@ export function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+               <Button asChild variant={pathname === '/settings' ? "default" : "ghost"} size="icon" className="shrink-0">
+                  <Link href="/settings">
+                    <Settings className="h-5 w-5" />
+                    <span className="sr-only">{t('header_settings')}</span>
+                  </Link>
+              </Button>
             </nav>
         </div>
       </div>
