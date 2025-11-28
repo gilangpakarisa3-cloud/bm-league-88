@@ -23,7 +23,9 @@ export function LiveClock() {
 
   if (!currentTime) {
     return (
-        <div className="h-6 bg-muted/50 rounded-md w-64 animate-pulse" />
+        <div className="text-center font-mono tracking-wider">
+            <div className="h-6 bg-muted/50 rounded-md w-64 animate-pulse mx-auto" />
+        </div>
     );
   }
   

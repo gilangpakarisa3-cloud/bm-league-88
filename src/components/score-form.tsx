@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarIcon, User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
@@ -57,20 +57,33 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
 
   const getInitialValues = (match: WithId<Match>) => {
     const isNewScore = !match.isCompleted;
-    const dateToUse = isNewScore ? new Date() : match.matchDate.toDate();
+    // Use match date if it exists, otherwise it will be set in useEffect
+    const dateToUse = isNewScore ? undefined : match.matchDate.toDate(); 
+    const timeToUse = dateToUse ? format(dateToUse, 'HH:mm') : '00:00';
 
     return {
       score1: match.player1Score ?? 0,
       score2: match.player2Score ?? 0,
-      time: format(dateToUse, 'HH:mm'),
+      time: timeToUse,
       date: dateToUse,
     }
   }
 
   const form = useForm<ScoreFormValues>({
     resolver: zodResolver(formSchemaTranslated),
+    // Set initial values without new Date() to avoid hydration mismatch
     defaultValues: getInitialValues(match),
   });
+
+  useEffect(() => {
+    // Only run on the client after hydration
+    // If it's a new match and date is not set, set it to now()
+    if (!match.isCompleted && !form.getValues('date')) {
+      const now = new Date();
+      form.setValue('date', now);
+      form.setValue('time', format(now, 'HH:mm'));
+    }
+  }, [match, form]);
 
 
   const handleSave = async (data: ScoreFormValues) => {
