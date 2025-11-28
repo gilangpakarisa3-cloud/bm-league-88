@@ -148,6 +148,22 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                               </Tooltip>
                           </TooltipProvider>
                       )}
+                      {isTopRank && (
+                           <TooltipProvider>
+                              <Tooltip>
+                                  <TooltipTrigger asChild>
+                                      <div className="absolute -top-2 -right-2 transform rotate-12">
+                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/20 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full">
+                                              <Trophy className="w-5 h-5"/>
+                                          </Badge>
+                                      </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                      <p>Peringkat Pertama</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          </TooltipProvider>
+                      )}
                     </div>
                     <div className="flex flex-col items-center space-y-1 pt-2">
                       <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>

@@ -10,7 +10,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck } from "lucide-react";
+import { Trash2, User, ShieldCheck, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -108,6 +108,20 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                       <div>
                         <div className="flex items-center gap-2">
                            <span className={cn("font-bold group-hover:text-primary transition-colors", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</span>
+                            {isFirst && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                             <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0.5">
+                                                <Trophy className="w-3 h-3"/>
+                                            </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Peringkat Pertama</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
                             {isUnbeaten && (
                                 <TooltipProvider>
                                     <Tooltip>
