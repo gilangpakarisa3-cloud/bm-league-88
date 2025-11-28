@@ -61,6 +61,11 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
 
+    // Button is disabled if:
+    // 1. Season is not 'In Progress'
+    // 2. The match is already completed AND the user is NOT an admin.
+    const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
+
 
     const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
         <div className={cn("flex items-center gap-2 text-sm font-semibold truncate", {
@@ -96,7 +101,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     size="sm"
                     className="text-xs"
                     onClick={() => onEditMatch(match)}
-                    disabled={activeSeason?.status !== 'In Progress' || !isAdmin}
+                    disabled={isEditDisabled}
                 >
                     <Pencil className="mr-1 h-3 w-3" />
                     {match.isCompleted ? displayDate : t('unplayed_abbv', {defaultValue: 'TBD'})}
