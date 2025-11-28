@@ -20,9 +20,10 @@ import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { User, Pencil, Trash2 } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
@@ -120,6 +121,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {sortedPlayers.map((player) => {
           const team = teamsById[player.teamId];
+          const winRate = player.overallPlayed > 0 ? (player.overallWin / player.overallPlayed) * 100 : 0;
           return (
             <Card key={player.id} className="flex flex-col text-center">
               <CardHeader className="items-center pt-6">
@@ -128,18 +130,32 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                       <AvatarFallback><User className="h-12 w-12" /></AvatarFallback>
                   </Avatar>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="font-bold text-lg text-primary">{player.name}</p>
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-1">
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={team?.logoUrl} alt={team?.name} />
-                    <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span>{team?.name}</span>
+              <CardContent className="flex-grow space-y-3">
+                <div>
+                  <p className="font-bold text-lg text-primary">{player.name}</p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-1">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={team?.logoUrl} alt={team?.name} />
+                      <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span>{team?.name}</span>
+                  </div>
+                </div>
+                <div className='pt-2'>
+                    <Separator />
+                    <CardDescription className="text-xs pt-3 font-semibold tracking-wider uppercase">
+                      Statistik Karir
+                    </CardDescription>
+                     <div className="grid grid-cols-3 gap-1 text-center mt-2">
+                        <div className="text-xs"><span className="font-bold text-base">{player.overallPlayed}</span><br/>Main</div>
+                        <div className="text-xs"><span className="font-bold text-base text-green-400">{player.overallWin}</span><br/>Menang</div>
+                        <div className="text-xs"><span className="font-bold text-base text-red-400">{player.overallLoss}</span><br/>Kalah</div>
+                    </div>
+                     <div className="text-xs mt-2"><span className="font-bold text-base text-primary">{winRate.toFixed(0)}%</span><br/>Rasio Menang</div>
                 </div>
               </CardContent>
               {isAdmin && (
-                <CardFooter className="flex justify-center gap-2 p-4">
+                <CardFooter className="flex justify-center gap-2 p-4 border-t mt-auto">
                   <Button variant="outline" size="sm" onClick={() => onEdit(player)}>
                     <Pencil className="mr-2 h-4 w-4" />
                     {t('edit_player_title')}
@@ -177,3 +193,5 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     </>
   );
 }
+
+    

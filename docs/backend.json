@@ -50,7 +50,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Player",
       "type": "object",
-      "description": "Represents a player in the league.",
+      "description": "Represents a player in the league, including their overall career stats.",
       "properties": {
         "name": {
           "type": "string",
@@ -68,12 +68,42 @@
             "type": "string",
             "description": "URL for the player's profile photo.",
             "format": "uri"
+        },
+        "overallPlayed": {
+          "type": "number",
+          "description": "Total matches played across all seasons."
+        },
+        "overallWin": {
+          "type": "number",
+          "description": "Total matches won across all seasons."
+        },
+        "overallDraw": {
+          "type": "number",
+          "description": "Total matches drawn across all seasons."
+        },
+        "overallLoss": {
+          "type": "number",
+          "description": "Total matches lost across all seasons."
+        },
+        "overallGoalsFor": {
+          "type": "number",
+          "description": "Total goals scored by the player across all seasons."
+        },
+        "overallGoalsAgainst": {
+          "type": "number",
+          "description": "Total goals conceded by the player across all seasons."
         }
       },
       "required": [
         "name",
         "teamId",
-        "teamName"
+        "teamName",
+        "overallPlayed",
+        "overallWin",
+        "overallDraw",
+        "overallLoss",
+        "overallGoalsFor",
+        "overallGoalsAgainst"
       ]
     },
     "League": {
@@ -349,7 +379,7 @@
           "schema": {
             "$ref": "#/backend/entities/Player"
           },
-          "description": "Stores all player information."
+          "description": "Stores all player information, including their overall career stats."
         }
       },
       {
@@ -425,3 +455,5 @@
     ]
   }
 }
+
+    

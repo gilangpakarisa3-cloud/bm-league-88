@@ -26,7 +26,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc, updateDoc, increment } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -612,13 +612,18 @@ export default function FixturesPage() {
             const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
             const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player1Id));
             const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player2Id));
+
+            const p1PlayerRef = doc(firestore, 'players', originalMatch.player1Id);
+            const p2PlayerRef = doc(firestore, 'players', originalMatch.player2Id);
             
-            const [p1EntrySnap, p2EntrySnap] = await Promise.all([
+            const [p1EntrySnap, p2EntrySnap, p1PlayerDoc, p2PlayerDoc] = await Promise.all([
                 getDocs(p1EntryQuery),
-                getDocs(p2EntryQuery)
+                getDocs(p2EntryQuery),
+                transaction.get(p1PlayerRef),
+                transaction.get(p2PlayerRef)
             ]);
 
-            if (p1EntrySnap.empty || p2EntrySnap.empty) {
+            if (p1EntrySnap.empty || p2EntrySnap.empty || !p1PlayerDoc.exists() || !p2PlayerDoc.exists()) {
                 throw new Error(t('update_score_error_no_entries'));
             }
             
@@ -677,6 +682,28 @@ export default function FixturesPage() {
             newP1Stats.goalDifference = newP1Stats.goalsFor - newP1Stats.goalsAgainst;
             newP2Stats.goalDifference = newP2Stats.goalsFor - newP2Stats.goalsAgainst;
 
+            // Update overall player stats
+            const isNewMatch = !originalMatch.isCompleted;
+            if (isNewMatch) {
+              transaction.update(p1PlayerRef, {
+                overallPlayed: increment(1),
+                overallWin: increment(values.score1 > values.score2 ? 1 : 0),
+                overallDraw: increment(values.score1 === values.score2 ? 1 : 0),
+                overallLoss: increment(values.score1 < values.score2 ? 1 : 0),
+                overallGoalsFor: increment(values.score1),
+                overallGoalsAgainst: increment(values.score2),
+              });
+              transaction.update(p2PlayerRef, {
+                overallPlayed: increment(1),
+                overallWin: increment(values.score2 > values.score1 ? 1 : 0),
+                overallDraw: increment(values.score1 === values.score2 ? 1 : 0),
+                overallLoss: increment(values.score2 < values.score1 ? 1 : 0),
+                overallGoalsFor: increment(values.score2),
+                overallGoalsAgainst: increment(values.score1),
+              });
+            }
+
+
             // 3. Set the new, correct state in the transaction, overwriting old data.
             transaction.set(p1EntryRef, newP1Stats);
             transaction.set(p2EntryRef, newP2Stats);
@@ -727,10 +754,18 @@ export default function FixturesPage() {
             const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
             const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player1Id));
             const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player2Id));
-            
-            const [p1EntrySnap, p2EntrySnap] = await Promise.all([ getDocs(p1EntryQuery), getDocs(p2EntryQuery) ]);
 
-            if (p1EntrySnap.empty || p2EntrySnap.empty) {
+            const p1PlayerRef = doc(firestore, 'players', matchToRevert.player1Id);
+            const p2PlayerRef = doc(firestore, 'players', matchToRevert.player2Id);
+            
+            const [p1EntrySnap, p2EntrySnap, p1PlayerDoc, p2PlayerDoc] = await Promise.all([ 
+                getDocs(p1EntryQuery), 
+                getDocs(p2EntryQuery),
+                transaction.get(p1PlayerRef),
+                transaction.get(p2PlayerRef)
+            ]);
+
+            if (p1EntrySnap.empty || p2EntrySnap.empty || !p1PlayerDoc.exists() || !p2PlayerDoc.exists()) {
                 throw new Error(t('update_score_error_no_entries'));
             }
 
@@ -739,7 +774,7 @@ export default function FixturesPage() {
             const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry;
             const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry;
 
-            // Revert stats
+            // Revert season stats
             const oldScores = { p1: matchToRevert.player1Score ?? 0, p2: matchToRevert.player2Score ?? 0 };
             p1EntryData.played -= 1;
             p2EntryData.played -= 1;
@@ -764,6 +799,25 @@ export default function FixturesPage() {
 
             transaction.set(p1EntryRef, p1EntryData);
             transaction.set(p2EntryRef, p2EntryData);
+
+            // Revert overall player stats
+            transaction.update(p1PlayerRef, {
+              overallPlayed: increment(-1),
+              overallWin: increment(oldScores.p1 > oldScores.p2 ? -1 : 0),
+              overallDraw: increment(oldScores.p1 === oldScores.p2 ? -1 : 0),
+              overallLoss: increment(oldScores.p1 < oldScores.p2 ? -1 : 0),
+              overallGoalsFor: increment(-oldScores.p1),
+              overallGoalsAgainst: increment(-oldScores.p2),
+            });
+            transaction.update(p2PlayerRef, {
+              overallPlayed: increment(-1),
+              overallWin: increment(oldScores.p2 > oldScores.p1 ? -1 : 0),
+              overallDraw: increment(oldScores.p1 === oldScores.p2 ? -1 : 0),
+              overallLoss: increment(oldScores.p2 < oldScores.p1 ? -1 : 0),
+              overallGoalsFor: increment(-oldScores.p2),
+              overallGoalsAgainst: increment(-oldScores.p1),
+            });
+
 
             // Revert match document
             transaction.update(matchRef, { 
@@ -964,5 +1018,7 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
 
     

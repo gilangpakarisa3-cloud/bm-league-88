@@ -134,6 +134,12 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         teamId: data.teamId,
         teamName: selectedTeam.name,
         photoUrl: data.photoUrl,
+        overallPlayed: player?.overallPlayed ?? 0,
+        overallWin: player?.overallWin ?? 0,
+        overallDraw: player?.overallDraw ?? 0,
+        overallLoss: player?.overallLoss ?? 0,
+        overallGoalsFor: player?.overallGoalsFor ?? 0,
+        overallGoalsAgainst: player?.overallGoalsAgainst ?? 0,
     };
 
     if (player) {
@@ -266,4 +272,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     </Form>
   );
 }
+    
+
     

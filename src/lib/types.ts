@@ -13,6 +13,12 @@ export type Player = {
   teamId: string;
   teamName: string;
   photoUrl?: string;
+  overallPlayed: number;
+  overallWin: number;
+  overallDraw: number;
+  overallLoss: number;
+  overallGoalsFor: number;
+  overallGoalsAgainst: number;
 };
 
 export type League = {
@@ -84,5 +90,7 @@ export type SeasonRecord = {
         mostWins: { playerName: string; value: number } | null;
     };
 }
+
+    
 
     
