@@ -122,6 +122,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
         {sortedPlayers.map((player) => {
           const team = teamsById[player.teamId];
           const winRate = player.overallPlayed > 0 ? (player.overallWin / player.overallPlayed) * 100 : 0;
+          const hasPlayed = player.overallPlayed > 0;
           return (
             <Card key={player.id} className="flex flex-col text-center">
               <CardHeader className="items-center pt-6">
@@ -140,18 +141,6 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                     </Avatar>
                     <span>{team?.name}</span>
                   </div>
-                </div>
-                <div className='pt-2'>
-                    <Separator />
-                    <CardDescription className="text-xs pt-3 font-semibold tracking-wider uppercase">
-                      Statistik Karir
-                    </CardDescription>
-                     <div className="grid grid-cols-3 gap-1 text-center mt-2">
-                        <div className="text-xs"><span className="font-bold text-base">{player.overallPlayed}</span><br/>Main</div>
-                        <div className="text-xs"><span className="font-bold text-base text-green-400">{player.overallWin}</span><br/>Menang</div>
-                        <div className="text-xs"><span className="font-bold text-base text-red-400">{player.overallLoss}</span><br/>Kalah</div>
-                    </div>
-                     <div className="text-xs mt-2"><span className="font-bold text-base text-primary">{winRate.toFixed(0)}%</span><br/>Rasio Menang</div>
                 </div>
               </CardContent>
               {isAdmin && (
@@ -193,5 +182,3 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     </>
   );
 }
-
-    
