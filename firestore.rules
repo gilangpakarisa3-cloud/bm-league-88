@@ -32,6 +32,11 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
+    match /appConfig/admin {
+      allow read: if true;
+      allow write: if isSignedIn(); // Further validation is handled in-app before write.
+    }
+
     // HALL OF FAME: Public read, writes for signed-in users.
     // This allows listing the collection and getting individual documents.
     match /hallOfFame/{recordId} {

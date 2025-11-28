@@ -339,7 +339,7 @@ const AdminControls = memo(function AdminControls({
   isAdmin: boolean;
   setIsAdmin: (isAdmin: boolean) => void;
 }) {
-  const { password: ADMIN_PASSWORD } = useSharedPassword();
+  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
   const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void }>({ open: false });
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();
@@ -348,6 +348,7 @@ const AdminControls = memo(function AdminControls({
   const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
 
   const handlePasswordCheck = () => {
+    if (!isPasswordLoaded) return;
     if (passwordInput === ADMIN_PASSWORD) {
       setIsAdmin(true);
       toast({ title: t('admin_mode_unlocked_title'), description: t('admin_mode_unlocked_desc') });
@@ -411,7 +412,7 @@ const AdminControls = memo(function AdminControls({
                     </Button>
                 </>
             )}
-            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline">
+            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline" disabled={!isPasswordLoaded}>
               {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
               {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
             </Button>
@@ -485,6 +486,7 @@ export default function FixturesPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { isLoaded: isPasswordLoaded } = useSharedPassword();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
@@ -872,7 +874,7 @@ export default function FixturesPage() {
       setRevertingMatch(match);
   }
 
-  const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams;
+  const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -36,7 +36,7 @@ export function EditableNotice() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { password: ADMIN_PASSWORD } = useSharedPassword();
+  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
 
   const noticeRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'notices', NOTICE_ID) : null),
@@ -124,7 +124,7 @@ export function EditableNotice() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || !isPasswordLoaded) {
     return <NoticeSkeleton />;
   }
 

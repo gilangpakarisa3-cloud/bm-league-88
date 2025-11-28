@@ -300,6 +300,19 @@
         }
       },
       "required": ["seasonId", "seasonName", "completedAt", "winnerPlayerId", "winnerPlayerName", "winnerTeamName", "winnerStats", "funStats"]
+    },
+    "AdminConfig": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "AdminConfig",
+        "type": "object",
+        "description": "Stores global application configuration like the admin password.",
+        "properties": {
+            "password": {
+            "type": "string",
+            "description": "The admin password for the application."
+            }
+        },
+        "required": ["password"]
     }
   },
   "auth": {
@@ -397,6 +410,16 @@
             "$ref": "#/backend/entities/SeasonRecord"
           },
           "description": "Stores a summary of a completed season for the Hall of Fame."
+        }
+      },
+      {
+        "path": "/appConfig/admin",
+        "definition": {
+          "entityName": "AdminConfig",
+          "schema": {
+            "$ref": "#/backend/entities/AdminConfig"
+          },
+          "description": "Stores the admin password as a singleton document."
         }
       }
     ]

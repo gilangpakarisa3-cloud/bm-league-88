@@ -30,9 +30,10 @@ export default function TeamsPage() {
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { password: ADMIN_PASSWORD } = useSharedPassword();
+  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
 
   const handlePasswordCheck = () => {
+    if (!isPasswordLoaded) return;
     if (passwordInput === ADMIN_PASSWORD) {
         setIsAdmin(true);
         if (passwordPrompt.action) {
@@ -93,7 +94,7 @@ export default function TeamsPage() {
                       {t('add_new_team')}
                   </Button>
                 )}
-                 <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
+                 <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline" disabled={!isPasswordLoaded}>
                     {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
                     {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                 </Button>

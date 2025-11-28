@@ -1,12 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useDoc, useFirestore, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
-const STORAGE_KEY = 'admin-password';
-const DEFAULT_PASSWORD = '123123';
+const PASSWORD_DOC_PATH = 'appConfig/admin';
 
 interface PasswordContextType {
-  password: string;
+  password?: string;
   updatePassword: (newPassword: string) => boolean;
   isLoaded: boolean;
 }
@@ -14,37 +15,26 @@ interface PasswordContextType {
 const PasswordContext = createContext<PasswordContextType | undefined>(undefined);
 
 export const PasswordProvider = ({ children }: { children: ReactNode }) => {
-  const [password, setPassword] = useState(DEFAULT_PASSWORD);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    // This effect runs only on the client
-    try {
-      const storedPassword = localStorage.getItem(STORAGE_KEY);
-      if (storedPassword) {
-        setPassword(storedPassword);
-      } else {
-        // If no password is set, use the default and store it
-        localStorage.setItem(STORAGE_KEY, DEFAULT_PASSWORD);
-      }
-    } catch (error) {
-      console.error("Could not access localStorage:", error);
-    }
-    setIsLoaded(true);
-  }, []);
-
+  const passwordDocRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, PASSWORD_DOC_PATH) : null),
+    [firestore]
+  );
+  const { data: passwordData, isLoading: isPasswordLoading } = useDoc<{password: string}>(passwordDocRef);
+  
   const updatePassword = useCallback((newPassword: string) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, newPassword);
-      setPassword(newPassword);
-      return true;
-    } catch (error) {
-      console.error("Could not save password to localStorage:", error);
-      return false;
-    }
-  }, []);
+    if (!passwordDocRef) return false;
+    
+    setDocumentNonBlocking(passwordDocRef, { password: newPassword }, {});
+    return true;
+  }, [passwordDocRef]);
 
-  const value = { password, updatePassword, isLoaded };
+  const value = { 
+      password: passwordData?.password, 
+      updatePassword, 
+      isLoaded: !isPasswordLoading 
+  };
 
   return (
     <PasswordContext.Provider value={value}>

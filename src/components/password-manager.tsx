@@ -67,6 +67,14 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!currentPassword) {
+         toast({
+            variant: 'destructive',
+            title: t('error'),
+            description: "Cannot change password, old password not loaded.",
+        });
+        return;
+    }
     const success = updatePassword(values.newPassword);
     if (success) {
       toast({
