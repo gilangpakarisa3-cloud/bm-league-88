@@ -64,7 +64,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     // Button is disabled if:
     // 1. Season is not 'In Progress'
     // 2. The match is already completed AND the user is NOT an admin.
-    const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
+    const isEditDisabled = activeSeason?.status !== 'In Progress' && !isAdmin;
 
 
     const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
@@ -613,17 +613,9 @@ export default function FixturesPage() {
             const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player1Id));
             const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player2Id));
 
-            const p1PlayerRef = doc(firestore, 'players', originalMatch.player1Id);
-            const p2PlayerRef = doc(firestore, 'players', originalMatch.player2Id);
-            
-            const [p1EntrySnap, p2EntrySnap, p1PlayerDoc, p2PlayerDoc] = await Promise.all([
-                getDocs(p1EntryQuery),
-                getDocs(p2EntryQuery),
-                transaction.get(p1PlayerRef),
-                transaction.get(p2PlayerRef)
-            ]);
+            const [p1EntrySnap, p2EntrySnap] = await Promise.all([ getDocs(p1EntryQuery), getDocs(p2EntryQuery) ]);
 
-            if (p1EntrySnap.empty || p2EntrySnap.empty || !p1PlayerDoc.exists() || !p2PlayerDoc.exists()) {
+            if (p1EntrySnap.empty || p2EntrySnap.empty) {
                 throw new Error(t('update_score_error_no_entries'));
             }
             
@@ -682,28 +674,6 @@ export default function FixturesPage() {
             newP1Stats.goalDifference = newP1Stats.goalsFor - newP1Stats.goalsAgainst;
             newP2Stats.goalDifference = newP2Stats.goalsFor - newP2Stats.goalsAgainst;
 
-            // Update overall player stats
-            const isNewMatch = !originalMatch.isCompleted;
-            if (isNewMatch) {
-              transaction.update(p1PlayerRef, {
-                overallPlayed: increment(1),
-                overallWin: increment(values.score1 > values.score2 ? 1 : 0),
-                overallDraw: increment(values.score1 === values.score2 ? 1 : 0),
-                overallLoss: increment(values.score1 < values.score2 ? 1 : 0),
-                overallGoalsFor: increment(values.score1),
-                overallGoalsAgainst: increment(values.score2),
-              });
-              transaction.update(p2PlayerRef, {
-                overallPlayed: increment(1),
-                overallWin: increment(values.score2 > values.score1 ? 1 : 0),
-                overallDraw: increment(values.score1 === values.score2 ? 1 : 0),
-                overallLoss: increment(values.score2 < values.score1 ? 1 : 0),
-                overallGoalsFor: increment(values.score2),
-                overallGoalsAgainst: increment(values.score1),
-              });
-            }
-
-
             // 3. Set the new, correct state in the transaction, overwriting old data.
             transaction.set(p1EntryRef, newP1Stats);
             transaction.set(p2EntryRef, newP2Stats);
@@ -754,18 +724,10 @@ export default function FixturesPage() {
             const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
             const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player1Id));
             const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player2Id));
-
-            const p1PlayerRef = doc(firestore, 'players', matchToRevert.player1Id);
-            const p2PlayerRef = doc(firestore, 'players', matchToRevert.player2Id);
             
-            const [p1EntrySnap, p2EntrySnap, p1PlayerDoc, p2PlayerDoc] = await Promise.all([ 
-                getDocs(p1EntryQuery), 
-                getDocs(p2EntryQuery),
-                transaction.get(p1PlayerRef),
-                transaction.get(p2PlayerRef)
-            ]);
+            const [p1EntrySnap, p2EntrySnap] = await Promise.all([ getDocs(p1EntryQuery), getDocs(p2EntryQuery) ]);
 
-            if (p1EntrySnap.empty || p2EntrySnap.empty || !p1PlayerDoc.exists() || !p2PlayerDoc.exists()) {
+            if (p1EntrySnap.empty || p2EntrySnap.empty) {
                 throw new Error(t('update_score_error_no_entries'));
             }
 
@@ -799,25 +761,6 @@ export default function FixturesPage() {
 
             transaction.set(p1EntryRef, p1EntryData);
             transaction.set(p2EntryRef, p2EntryData);
-
-            // Revert overall player stats
-            transaction.update(p1PlayerRef, {
-              overallPlayed: increment(-1),
-              overallWin: increment(oldScores.p1 > oldScores.p2 ? -1 : 0),
-              overallDraw: increment(oldScores.p1 === oldScores.p2 ? -1 : 0),
-              overallLoss: increment(oldScores.p1 < oldScores.p2 ? -1 : 0),
-              overallGoalsFor: increment(-oldScores.p1),
-              overallGoalsAgainst: increment(-oldScores.p2),
-            });
-            transaction.update(p2PlayerRef, {
-              overallPlayed: increment(-1),
-              overallWin: increment(oldScores.p2 > oldScores.p1 ? -1 : 0),
-              overallDraw: increment(oldScores.p1 === oldScores.p2 ? -1 : 0),
-              overallLoss: increment(oldScores.p2 < oldScores.p1 ? -1 : 0),
-              overallGoalsFor: increment(-oldScores.p2),
-              overallGoalsAgainst: increment(-oldScores.p1),
-            });
-
 
             // Revert match document
             transaction.update(matchRef, { 
