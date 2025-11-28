@@ -60,7 +60,8 @@ const StatCardSkeleton = () => (
 const ChampionChanceCard = ({ topContenders }: { topContenders: (WithId<LeagueEntry> & { chance: number, player?: WithId<Player>, team?: WithId<Team> })[] }) => {
     if (!topContenders || topContenders.length === 0) return null;
 
-    const colors = ["bg-yellow-400", "bg-gray-400", "bg-yellow-600"];
+    // Use theme-based chart colors for gold, silver, bronze equivalent
+    const colors = ["bg-chart-1", "bg-chart-2", "bg-chart-3"];
 
     return (
         <Card className="bg-card border-2 border-primary">
@@ -88,7 +89,7 @@ const ChampionChanceCard = ({ topContenders }: { topContenders: (WithId<LeagueEn
                                 </div>
                                 <span className="ml-auto text-lg font-bold text-primary">{player.chance.toFixed(1)}%</span>
                             </div>
-                            <Progress value={player.chance} className={cn("h-2", colors[index] || "bg-primary")} />
+                            <Progress value={player.chance} color={cn("h-2", colors[index] || "bg-primary")} />
                         </div>
                     ))}
                 </div>
