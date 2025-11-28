@@ -64,7 +64,7 @@ export default function HallOfFamePage() {
                     </div>
                 ): (
                     <div className="text-center border-2 border-dashed border-primary/50 rounded-lg p-12 bg-card shadow-lg shadow-primary/10">
-                        <Trophy className="w-16 h-16 mx-auto text-primary/50 mb-4" />
+                        <Trophy className="w-16 h-16 mx-auto text-primary mb-4" />
                         <h2 className="text-2xl font-bold text-primary">{t('hall_of_fame_empty_title')}</h2>
                         <p className="mt-2 text-foreground">
                             {t('hall_of_fame_empty_desc')}
