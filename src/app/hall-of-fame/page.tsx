@@ -7,6 +7,7 @@ import type { SeasonRecord, WithId } from "@/lib/types";
 import { useTranslation } from "@/hooks/use-translation";
 import { SeasonRecordCard } from "@/components/season-record-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Trophy } from "lucide-react";
 
 export default function HallOfFamePage() {
     const firestore = useFirestore();
@@ -62,9 +63,10 @@ export default function HallOfFamePage() {
                         ))}
                     </div>
                 ): (
-                    <div className="text-center border-2 border-dashed border-muted rounded-lg p-12">
-                        <h2 className="text-xl font-medium text-muted-foreground">{t('hall_of_fame_empty_title')}</h2>
-                        <p className="mt-2 text-muted-foreground">
+                    <div className="text-center border-2 border-dashed border-primary/50 rounded-lg p-12 bg-card shadow-lg shadow-primary/10">
+                        <Trophy className="w-16 h-16 mx-auto text-primary/50 mb-4" />
+                        <h2 className="text-2xl font-bold text-primary">{t('hall_of_fame_empty_title')}</h2>
+                        <p className="mt-2 text-foreground">
                             {t('hall_of_fame_empty_desc')}
                         </p>
                     </div>
