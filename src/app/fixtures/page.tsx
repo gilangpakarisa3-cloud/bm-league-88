@@ -47,17 +47,18 @@ import { Progress } from '@/components/ui/progress';
 const LEAGUE_ID = 'main-league';
 
 
-const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason, teamsById }: {
+const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason }: {
     match: WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null };
     onEditMatch: (match: WithId<Match>) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     activeSeason: WithId<Season> | null;
-    teamsById: Record<string, WithId<Team>>;
 }) {
     const { t } = useTranslation();
-    const team1 = match.player1 ? teamsById[match.player1.teamId] : null;
-    const team2 = match.player2 ? teamsById[match.player2.teamId] : null;
+    
+    // This is a simplified way to get team info. For a real app, a map would be more efficient.
+    const team1 = match.player1 ? { name: match.player1.teamName, logoUrl: (match.player1 as any).teamLogoUrl } : null
+    const team2 = match.player2 ? { name: match.player2.teamName, logoUrl: (match.player2 as any).teamLogoUrl } : null
 
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
 
@@ -67,7 +68,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
 
-    const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
+    const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: {name: string, logoUrl?: string} | null, alignment?: 'left' | 'right' }) => (
         <div className={cn("flex items-center gap-2 text-sm font-semibold truncate", {
             'justify-start': alignment === 'left',
             'justify-end': alignment === 'right',
@@ -128,17 +129,13 @@ const FixtureContent = memo(function FixtureContent({
     onEditMatch,
     onRevertMatch,
     isAdmin,
-    allPlayers,
-    allTeams,
-    activeSeason
+    allPlayers
 }: {
     activeSeasonId: string | null;
     onEditMatch: (match: WithId<Match>) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     allPlayers: WithId<Player>[];
-    allTeams: WithId<Team>[];
-    activeSeason: WithId<Season> | null;
 }) {
     const firestore = useFirestore();
     const { t } = useTranslation();
@@ -154,6 +151,12 @@ const FixtureContent = memo(function FixtureContent({
     );
     const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
     
+    const activeSeasonDoc = useMemoFirebase(
+        () => (firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null),
+        [firestore, activeSeasonId]
+    );
+    const { data: activeSeason } = useDoc<Season>(activeSeasonDoc);
+    
     // --- Memoized Derived State ---
     const playersById = useMemo(() => {
         return allPlayers.reduce((acc, player) => {
@@ -161,13 +164,6 @@ const FixtureContent = memo(function FixtureContent({
         return acc;
         }, {} as Record<string, WithId<Player>>);
     }, [allPlayers]);
-    
-    const teamsById = useMemo(() => {
-        return allTeams.reduce((acc, team) => {
-        acc[team.id] = team;
-        return acc;
-        }, {} as Record<string, WithId<Team>>);
-    }, [allTeams]);
     
     const { upcomingMatches, completedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
         if (!matches) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
@@ -274,7 +270,6 @@ const FixtureContent = memo(function FixtureContent({
                                                 onRevertMatch={onRevertMatch}
                                                 isAdmin={isAdmin}
                                                 activeSeason={activeSeason}
-                                                teamsById={teamsById}
                                             />
                                         ))}
                                     </div>
@@ -297,7 +292,6 @@ const FixtureContent = memo(function FixtureContent({
                                                 onRevertMatch={onRevertMatch}
                                                 isAdmin={isAdmin}
                                                 activeSeason={activeSeason}
-                                                teamsById={teamsById}
                                             />
                                         ))}
                                     </div>
@@ -316,7 +310,6 @@ const FixtureContent = memo(function FixtureContent({
 
 const AdminControls = memo(function AdminControls({
   activeSeasonId,
-  activeSeason,
   hasFixtures,
   isLoadingSeasons,
   seasons,
@@ -328,7 +321,6 @@ const AdminControls = memo(function AdminControls({
   setIsAdmin
 }: {
   activeSeasonId: string | null;
-  activeSeason: WithId<Season> | null;
   hasFixtures: boolean;
   isLoadingSeasons: boolean;
   seasons: WithId<Season>[];
@@ -339,7 +331,8 @@ const AdminControls = memo(function AdminControls({
   isAdmin: boolean;
   setIsAdmin: (isAdmin: boolean) => void;
 }) {
-  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
+  const firestore = useFirestore();
+  const [password, setPassword] = useState('');
   const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void }>({ open: false });
   const [passwordInput, setPasswordInput] = useState('');
   const { toast } = useToast();
@@ -347,8 +340,21 @@ const AdminControls = memo(function AdminControls({
   const [showRecalculateConfirm, setShowRecalculateConfirm] = useState(false);
   const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
 
+  const adminPasswordRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'appConfig/admin') : null),
+    [firestore]
+  );
+  const { data: adminConfig } = useDoc<{ password?: string }>(adminPasswordRef);
+  const ADMIN_PASSWORD = adminConfig?.password;
+
+  const activeSeasonDoc = useMemoFirebase(
+      () => (firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null),
+      [firestore, activeSeasonId]
+  );
+  const { data: activeSeason } = useDoc<Season>(activeSeasonDoc);
+
+
   const handlePasswordCheck = () => {
-    if (!isPasswordLoaded) return;
     if (passwordInput === ADMIN_PASSWORD) {
       setIsAdmin(true);
       toast({ title: t('admin_mode_unlocked_title'), description: t('admin_mode_unlocked_desc') });
@@ -412,7 +418,7 @@ const AdminControls = memo(function AdminControls({
                     </Button>
                 </>
             )}
-            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline" disabled={!isPasswordLoaded}>
+            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline">
               {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
               {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
             </Button>
@@ -486,7 +492,6 @@ export default function FixturesPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { isLoaded: isPasswordLoaded } = useSharedPassword();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
@@ -524,14 +529,7 @@ export default function FixturesPage() {
   );
   const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
   
-   const teamsCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'teams') : null),
-    [firestore]
-  );
-  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
-  
   // --- Memoized Derived State ---
-  const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   const playersById = useMemo(() => {
     if (!allPlayers) return {};
@@ -549,12 +547,13 @@ export default function FixturesPage() {
   }, [seasons, activeSeasonId]);
   
   const handleGenerateFixtures = useCallback(async () => {
-    if (!firestore || !activeSeasonId || !leagueTable || leagueTable.length < 2 || !activeSeason) {
+    if (!firestore || !activeSeasonId || !leagueTable || leagueTable.length < 2) {
       toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_min_players') });
       return;
     }
     
-    if (activeSeason?.status !== 'Not Started') {
+    const seasonDoc = await getDoc(doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId));
+    if (!seasonDoc.exists() || seasonDoc.data().status !== 'Not Started') {
        toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_not_started') });
        return;
     }
@@ -588,12 +587,12 @@ export default function FixturesPage() {
     
     try {
       await batch.commit();
-      toast({ title: t('fixtures_generated_title'), description: t('fixtures_generated_desc', { seasonName: activeSeason.name }) });
+      toast({ title: t('fixtures_generated_title'), description: t('fixtures_generated_desc', { seasonName: seasonDoc.data().name }) });
     } catch(e) {
       console.error(e);
       toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error') });
     }
-  }, [firestore, activeSeasonId, leagueTable, activeSeason, t, toast]);
+  }, [firestore, activeSeasonId, leagueTable, t, toast]);
 
 
   const handleUpdateScore = async (matchId: string, values: { score1: number, score2: number, time: string, date: Date }) => {
@@ -871,7 +870,9 @@ export default function FixturesPage() {
       setRevertingMatch(match);
   }
 
-  const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
+  const isLoading = isLoadingSeasons || isLoadingPlayers;
+
+  const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -884,7 +885,6 @@ export default function FixturesPage() {
                 </div>
                 <AdminControls
                   activeSeasonId={activeSeasonId}
-                  activeSeason={activeSeason}
                   hasFixtures={hasFixtures}
                   isLoadingSeasons={isLoadingSeasons}
                   seasons={seasons || []}
@@ -910,8 +910,6 @@ export default function FixturesPage() {
                     onRevertMatch={handleRevertConfirm}
                     isAdmin={isAdmin}
                     allPlayers={allPlayers || []}
-                    allTeams={allTeams || []}
-                    activeSeason={activeSeason}
                 />
             )}
 
@@ -961,9 +959,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
