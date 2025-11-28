@@ -30,8 +30,8 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <LanguageProvider>
-          <PasswordProvider>
-            <FirebaseClientProvider>
+          <FirebaseClientProvider>
+            <PasswordProvider>
               <VantaBackground />
               <div className="relative flex min-h-screen flex-col">
                 <Header />
@@ -41,8 +41,8 @@ export default function RootLayout({
                 <Footer />
               </div>
               <Toaster />
-            </FirebaseClientProvider>
-          </PasswordProvider>
+            </PasswordProvider>
+          </FirebaseClientProvider>
         </LanguageProvider>
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" />
         <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js" />
