@@ -497,12 +497,12 @@ export default function LeaguePage() {
                             <Flag className="mr-2 h-4 w-4" />
                             {t('finish_season')}
                         </Button>
-                        <Button onClick={() => setShowPasswordManager(true)} variant="outline">
-                            <KeyRound className="mr-2 h-4 w-4" />
-                            {t('manage_password', { defaultValue: 'Manage Password' })}
-                        </Button>
                     </>
                 )}
+                <Button onClick={() => setShowPasswordManager(true)} variant="outline">
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    {t('manage_password', { defaultValue: 'Manage Password' })}
+                </Button>
                 <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline">
                     {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
                     {isAdmin ? t('lock_admin') : t('unlock_admin')}
