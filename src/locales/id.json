@@ -202,7 +202,7 @@
   "password_updated_desc": "Kata sandi admin Anda telah berhasil diubah.",
   "password_update_error": "Gagal memperbarui kata sandi.",
   "manage_admin_password": "Kelola Kata Sandi Admin",
-  "manage_admin_password_desc": "Ubah kata sandi admin Anda di sini. Ini akan disimpan secara lokal di browser Anda.",
+  "manage_admin_password_desc": "Ubah kata sandi admin Anda di sini. Ini akan disimpan di database dan disinkronkan di semua perangkat.",
   "current_password": "Kata Sandi Saat Ini",
   "new_password": "Kata Sandi Baru",
   "confirm_new_password": "Konfirmasi Kata Sandi Baru",
@@ -227,7 +227,9 @@
   "revert_failed_title": "Pengembalian Gagal",
   "revert_match_confirm_title": "Kembalikan Pertandingan Ini?",
   "revert_match_confirm_desc": "Apakah Anda yakin ingin mengembalikan pertandingan antara {{player1}} dan {{player2}}? Skor akan dihapus dan statistik pemain akan disesuaikan.",
-  "revert_match_action": "Ya, Kembalikan"
+  "revert_match_action": "Ya, Kembalikan",
+  "password_set_title": "Kata Sandi Ditetapkan!",
+  "password_set_desc": "Kata sandi admin Anda telah ditetapkan.",
+  "set_initial_password_desc": "Sepertinya ini pertama kalinya Anda mengatur kata sandi admin. Buat sekarang.",
+  "set_password": "Atur Kata Sandi"
 }
-
-    

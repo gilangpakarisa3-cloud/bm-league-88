@@ -202,7 +202,7 @@
   "password_updated_desc": "Your admin password has been changed successfully.",
   "password_update_error": "Failed to update password.",
   "manage_admin_password": "Manage Admin Password",
-  "manage_admin_password_desc": "Change your admin password here. This will be stored locally in your browser.",
+  "manage_admin_password_desc": "Change your admin password here. This will be stored in the database and synced across devices.",
   "current_password": "Current Password",
   "new_password": "New Password",
   "confirm_new_password": "Confirm New Password",
@@ -227,7 +227,9 @@
   "revert_failed_title": "Revert Failed",
   "revert_match_confirm_title": "Revert This Match?",
   "revert_match_confirm_desc": "Are you sure you want to revert the match between {{player1}} and {{player2}}? The score will be cleared and player stats will be adjusted.",
-  "revert_match_action": "Yes, Revert It"
+  "revert_match_action": "Yes, Revert It",
+  "password_set_title": "Password Set!",
+  "password_set_desc": "Your admin password has been set.",
+  "set_initial_password_desc": "It looks like this is the first time setting up an admin password. Create one now.",
+  "set_password": "Set Password"
 }
-
-    

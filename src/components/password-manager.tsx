@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -32,29 +32,35 @@ interface PasswordManagerProps {
 }
 
 const baseFormSchema = z.object({
-    oldPassword: z.string().min(1),
+    oldPassword: z.string().optional(),
     newPassword: z.string().min(6),
     confirmPassword: z.string(),
 });
 
 export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
   const { toast } = useToast();
-  const { password: currentPassword, updatePassword } = useSharedPassword();
+  const { password: currentPassword, updatePassword, isLoaded } = useSharedPassword();
   const { t } = useTranslation();
+
+  const isInitialSetup = isLoaded && !currentPassword;
 
   const formSchema = useMemo(() => {
     return baseFormSchema.extend({
-        oldPassword: z.string().min(1, { message: t('current_password_required') }),
         newPassword: z.string().min(6, { message: t('password_min_length') }),
     }).refine(data => data.newPassword === data.confirmPassword, {
       message: t('passwords_do_not_match'),
       path: ['confirmPassword'],
     })
-    .refine(data => data.oldPassword === currentPassword, {
+    .refine(data => {
+        if (!isInitialSetup) {
+            return data.oldPassword === currentPassword;
+        }
+        return true;
+    }, {
         message: t('incorrect_current_password'),
         path: ['oldPassword'],
     });
-  }, [currentPassword, t]);
+  }, [currentPassword, t, isInitialSetup]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,20 +72,25 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
     },
   });
 
+  useEffect(() => {
+      form.reset();
+  }, [open, form]);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!currentPassword) {
+    // This check is slightly redundant due to the form validation, but it's good practice.
+    if (!isInitialSetup && values.oldPassword !== currentPassword) {
          toast({
             variant: 'destructive',
             title: t('error'),
-            description: "Cannot change password, old password not loaded.",
+            description: t('incorrect_current_password'),
         });
         return;
     }
     const success = updatePassword(values.newPassword);
     if (success) {
       toast({
-        title: t('password_updated_title'),
-        description: t('password_updated_desc'),
+        title: isInitialSetup ? t('password_set_title', {defaultValue: 'Password Set!'}) : t('password_updated_title'),
+        description: isInitialSetup ? t('password_set_desc', {defaultValue: 'Your admin password has been set.'}) : t('password_updated_desc'),
       });
       form.reset();
       onOpenChange(false);
@@ -98,24 +109,29 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
         <DialogHeader>
           <DialogTitle>{t('manage_admin_password')}</DialogTitle>
           <DialogDescription>
-            {t('manage_admin_password_desc')}
+            {isInitialSetup 
+              ? t('set_initial_password_desc', {defaultValue: "It looks like this is the first time setting up an admin password. Create one now."})
+              : t('manage_admin_password_desc')
+            }
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="oldPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('current_password')}</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isInitialSetup && (
+              <FormField
+                control={form.control}
+                name="oldPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('current_password')}</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="newPassword"
@@ -143,7 +159,7 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
               )}
             />
             <DialogFooter>
-              <Button type="submit">{t('save_changes')}</Button>
+              <Button type="submit" disabled={!isLoaded}>{isInitialSetup ? t('set_password', {defaultValue: 'Set Password'}) : t('save_changes')}</Button>
             </DialogFooter>
           </form>
         </Form>
