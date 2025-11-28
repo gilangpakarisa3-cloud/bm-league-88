@@ -64,7 +64,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     // Button is disabled if:
     // 1. Season is not 'In Progress'
     // 2. The match is already completed AND the user is NOT an admin.
-    const isEditDisabled = activeSeason?.status !== 'In Progress' && !isAdmin;
+    const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
 
     const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
@@ -961,6 +961,8 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    
 
     
 
