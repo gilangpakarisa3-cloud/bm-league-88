@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -14,6 +14,8 @@ import { id as localeId } from 'date-fns/locale';
 import { Progress } from './ui/progress';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
@@ -45,8 +47,10 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   const performanceStats = useMemo(() => {
     if (!player) return null;
 
-    const completedMatches = matches
-      .filter(m => (m.player1Id === player.playerId || m.player2Id === player.playerId) && m.isCompleted)
+    const playerMatches = matches.filter(m => (m.player1Id === player.playerId || m.player2Id === player.playerId));
+
+    const completedMatches = playerMatches
+      .filter(m => m.isCompleted)
       .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
       .map(m => {
         const isPlayer1 = m.player1Id === player.playerId;
@@ -71,6 +75,23 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
           result,
         };
       });
+      
+    const upcomingMatches = playerMatches
+      .filter(m => !m.isCompleted)
+      .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis())
+      .map(m => {
+          const isPlayer1 = m.player1Id === player.playerId;
+          const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
+          const opponent = playersById[opponentId];
+          const opponentTeam = opponent ? teamsById[opponent.teamId] : null;
+          return {
+              ...m,
+              isPlayer1,
+              opponent,
+              opponentTeam
+          }
+      });
+
 
     const winRate = player.played > 0 ? (player.win / player.played) * 100 : 0;
     const totalMatches = totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) * 2 : 0;
@@ -78,6 +99,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
     return {
         completedMatches,
+        upcomingMatches,
         winRate,
         seasonProgress,
         totalMatches
@@ -89,7 +111,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   const playerDetails = playersById[player.playerId];
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, winRate, seasonProgress, totalMatches } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches } = performanceStats;
   
   const StatDisplay = ({ label, value }: { label: string, value: string | number }) => (
     <div className="flex flex-col items-center justify-center p-2 rounded-md bg-card">
@@ -209,58 +231,93 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                         </div>
                     </div>
                   <div className="mt-6 sm:mt-0">
-                    <h3 className="mb-4 text-lg font-semibold">{t('match_history', {defaultValue: 'Riwayat Pertandingan'})}</h3>
-                    {completedMatches.length > 0 ? (
-                        <div className="space-y-3">
-                        {completedMatches.map(match => {
-                           const scoreColorPlayer = cn({
-                                'text-green-400': match.result === 'W',
-                                'text-red-400': match.result === 'L',
-                                'text-foreground': match.result === 'D',
-                            });
-                           const scoreColorOpponent = 'text-foreground';
-                          
-                          const homeScore = match.player1Score ?? 0;
-                          const awayScore = match.player2Score ?? 0;
-                          
-                          return (
-                            <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
-                              <div className="flex items-center gap-2">
-                                  <ResultBadge result={match.result} />
-                                  <HomeAwayBadge isHome={match.isPlayer1} />
-                                  <div className='flex items-center gap-2'>
-                                      <Avatar className="h-8 w-8">
-                                          <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
-                                          <AvatarFallback><Shield /></AvatarFallback>
-                                      </Avatar>
-                                      <div>
-                                          <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                                          <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
-                                      </div>
-                                  </div>
-                              </div>
-                              <p className="text-lg font-bold">
-                                  {match.isPlayer1 ? (
-                                    <>
-                                      <span className={scoreColorPlayer}>{homeScore}</span>
-                                      <span className="mx-2 text-muted-foreground">-</span>
-                                      <span className={scoreColorOpponent}>{awayScore}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span className={scoreColorOpponent}>{homeScore}</span>
-                                      <span className="mx-2 text-muted-foreground">-</span>
-                                      <span className={scoreColorPlayer}>{awayScore}</span>
-                                    </>
-                                  )}
-                              </p>
-                            </div>
-                          )
-                        })}
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground py-4">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
-                    )}
+                    <Tabs defaultValue="history" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="history">Riwayat Pertandingan</TabsTrigger>
+                            <TabsTrigger value="upcoming">Sisa Pertandingan</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="history">
+                             {completedMatches.length > 0 ? (
+                                <div className="space-y-3 pt-4">
+                                {completedMatches.map(match => {
+                                const scoreColorPlayer = cn({
+                                        'text-green-400': match.result === 'W',
+                                        'text-red-400': match.result === 'L',
+                                        'text-foreground': match.result === 'D',
+                                    });
+                                const scoreColorOpponent = 'text-foreground';
+                                
+                                const homeScore = match.player1Score ?? 0;
+                                const awayScore = match.player2Score ?? 0;
+                                
+                                return (
+                                    <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
+                                    <div className="flex items-center gap-2">
+                                        <ResultBadge result={match.result} />
+                                        <HomeAwayBadge isHome={match.isPlayer1} />
+                                        <div className='flex items-center gap-2'>
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
+                                                <AvatarFallback><Shield /></AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
+                                                <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-lg font-bold">
+                                        {match.isPlayer1 ? (
+                                            <>
+                                            <span className={scoreColorPlayer}>{homeScore}</span>
+                                            <span className="mx-2 text-muted-foreground">-</span>
+                                            <span className={scoreColorOpponent}>{awayScore}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                            <span className={scoreColorOpponent}>{homeScore}</span>
+                                            <span className="mx-2 text-muted-foreground">-</span>
+                                            <span className={scoreColorPlayer}>{awayScore}</span>
+                                            </>
+                                        )}
+                                    </p>
+                                    </div>
+                                )
+                                })}
+                                </div>
+                            ) : (
+                                <p className="text-center text-muted-foreground py-8">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
+                            )}
+                        </TabsContent>
+                        <TabsContent value="upcoming">
+                             {upcomingMatches.length > 0 ? (
+                                <div className="space-y-3 pt-4">
+                                {upcomingMatches.map(match => (
+                                    <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="outline" className="w-8 h-8 flex items-center justify-center font-bold border-2 border-muted">
+                                                <CalendarClock className="w-4 h-4"/>
+                                            </Badge>
+                                             <HomeAwayBadge isHome={match.isPlayer1} />
+                                             <div className='flex items-center gap-2'>
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
+                                                    <AvatarFallback><Shield /></AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
+                                                    <p className="text-xs text-muted-foreground">Jadwal belum ditentukan</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                </div>
+                            ) : (
+                                 <p className="text-center text-muted-foreground py-8">Semua pertandingan telah selesai.</p>
+                            )}
+                        </TabsContent>
+                    </Tabs>
                   </div>
                 </div>
             </div>
@@ -286,3 +343,5 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
     const text = isHome ? 'H' : 'A';
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2")}>{text}</Badge>
 };
+
+    
