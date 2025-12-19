@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -70,6 +71,7 @@ export default function LeaguePage() {
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
+  const [showFinishSeasonConfirm, setShowFinishSeasonConfirm] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({ from: undefined, to: undefined });
@@ -330,6 +332,7 @@ export default function LeaguePage() {
     if (!firestore || !activeSeason) return;
 
     if (status === 'Completed') {
+        // This will be triggered from the confirmation dialog now
         handleFinishSeason();
         return;
     }
@@ -491,7 +494,7 @@ export default function LeaguePage() {
                             <Play className="mr-2 h-4 w-4" />
                             {t('start_season')}
                         </Button>
-                        <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('Completed'))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
+                        <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
                             <Flag className="mr-2 h-4 w-4" />
                             {t('finish_season')}
                         </Button>
@@ -656,6 +659,23 @@ export default function LeaguePage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+
+        {/* Finish Season Confirmation Dialog */}
+        <AlertDialog open={showFinishSeasonConfirm} onOpenChange={setShowFinishSeasonConfirm}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                       Tindakan ini akan menyelesaikan musim <strong>{activeSeason?.name}</strong>. Setelah selesai, status tidak dapat diubah kembali dan catatan akan dibuat di Daftar Juara.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => { handleUpdateSeasonStatus('Completed'); setShowFinishSeasonConfirm(false); }}>Ya, Selesaikan</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
 
       {/* Register Players Dialog */}
       <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}>
