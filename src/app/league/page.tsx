@@ -578,7 +578,7 @@ export default function LeaguePage() {
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
 
-                {activeSeason?.registrationFee && activeSeason.registrationFee > 0 && sortedTable.length > 0 && (
+                {activeSeason?.registrationFee && sortedTable.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -588,18 +588,18 @@ export default function LeaguePage() {
                             <CardDescription>Lacak pembayaran registrasi dan total hadiah.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="border bg-card p-4 rounded-lg text-center">
-                                <p className="text-sm text-muted-foreground">Total Prizepool</p>
+                            <div className="border bg-card p-4 rounded-lg text-center space-y-1">
+                                <p className="text-sm text-foreground">Total Hadiah Terkumpul</p>
                                 <p className="text-3xl font-bold text-primary">
                                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
                                 </p>
                                 {sponsorshipPool > 0 && (
-                                     <p className="text-xs text-muted-foreground">
-                                        ({new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)} dari pendaftaran + {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)} dari sponsor)
+                                     <p className="text-xs text-foreground">
+                                        (<span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</span> dari pendaftaran + <span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</span> dari sponsor)
                                     </p>
                                 )}
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    ({paidPlayersCount} dari {sortedTable.length} pemain telah membayar)
+                                <p className="text-xs text-foreground pt-1">
+                                    <span className="font-bold text-primary">{paidPlayersCount}</span> dari <span className="font-bold text-primary">{sortedTable.length}</span> pemain telah membayar
                                 </p>
                             </div>
                             <div>
