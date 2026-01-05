@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -50,7 +49,7 @@ export function RegisterPlayersForm({
   , [registeredPlayers]);
 
   const availablePlayers = React.useMemo(() =>
-    allPlayers.filter(p => !registeredPlayerIds.has(p.id))
+    allPlayers.filter(p => !registeredPlayerIds.has(p.id) && p.teamId) // Only allow registering players with a team
   , [allPlayers, registeredPlayerIds]);
   
   const areAllSelected = React.useMemo(() => 
@@ -112,7 +111,7 @@ export function RegisterPlayersForm({
       <ScrollArea className="h-64 border rounded-md">
         <div className="p-4 space-y-2">
           {availablePlayers.map(player => {
-            const team = teamsById[player.teamId];
+            const team = player.teamId ? teamsById[player.teamId] : null;
             return (
               <div
                 key={player.id}
@@ -130,7 +129,7 @@ export function RegisterPlayersForm({
                 </Avatar>
                 <label htmlFor={`player-${player.id}`} className="flex-1 cursor-pointer">
                   <div className="font-medium">{player.name}</div>
-                  <div className="text-sm text-muted-foreground">{player.teamName}</div>
+                  <div className="text-sm text-muted-foreground">{player.teamName || 'Tanpa Tim'}</div>
                 </label>
               </div>
             )

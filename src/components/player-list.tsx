@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -120,8 +119,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {sortedPlayers.map((player) => {
-          const team = teamsById[player.teamId];
-          const winRate = player.overallPlayed > 0 ? (player.overallWin / player.overallPlayed) * 100 : 0;
+          const team = player.teamId ? teamsById[player.teamId] : null;
           const hasPlayed = player.overallPlayed > 0;
           return (
             <Card key={player.id} className="flex flex-col text-center">
@@ -135,11 +133,17 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                 <div>
                   <p className="font-bold text-lg text-primary">{player.name}</p>
                   <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-1">
-                    <Avatar className="h-5 w-5">
-                      <AvatarImage src={team?.logoUrl} alt={team?.name} />
-                      <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span>{team?.name}</span>
+                    {team ? (
+                        <>
+                            <Avatar className="h-5 w-5">
+                            <AvatarImage src={team?.logoUrl} alt={team?.name} />
+                            <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span>{team?.name}</span>
+                        </>
+                    ) : (
+                        <span>Tanpa Tim</span>
+                    )}
                   </div>
                 </div>
               </CardContent>

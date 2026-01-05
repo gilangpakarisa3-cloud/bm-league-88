@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -27,7 +26,7 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: 'Player name must be at least 2 characters.',
   }),
-  teamId: z.string({ required_error: 'Please select a team.' }),
+  teamId: z.string().optional(),
 });
 
 type PlayerFormValues = z.infer<typeof formSchema>;
@@ -60,21 +59,20 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
   );
   const { data: leagues } = useCollection<League>(leaguesCollection);
 
+  const formSchemaTranslated = z.object({
+    name: z.string().min(2, {
+      message: t('player_name_min_char'),
+    }),
+    teamId: z.string().optional(),
+  });
+  
   const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchemaTranslated),
     defaultValues: {
       name: player?.name || '',
       teamId: player?.teamId || '',
     },
   });
-
-  const formSchemaTranslated = z.object({
-    name: z.string().min(2, {
-      message: t('player_name_min_char'),
-    }),
-    teamId: z.string({ required_error: t('select_team_error') }),
-  });
-  form.resolver = zodResolver(formSchemaTranslated);
   
   React.useEffect(() => {
     if (player) {
@@ -102,12 +100,15 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         .map(p => p.teamId)
     );
 
-    return teams
+    const availableTeams = teams
       .filter(team => !assignedTeamIds.has(team.id)) // Filter out teams that are already taken
       .map(team => ({
         value: team.id,
         label: team.name,
       }));
+      
+    // Add a "No Team" option
+    return [{ value: '', label: 'Tanpa Tim' }, ...availableTeams];
   }, [teams, players, player]);
 
 
@@ -115,19 +116,11 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     if (!firestore) return;
     
     const selectedTeam = teams?.find(t => t.id === data.teamId);
-    if (!selectedTeam) {
-        toast({
-            variant: "destructive",
-            title: t('error'),
-            description: t('team_not_found_error'),
-        });
-        return;
-    }
     
     const playerData: Omit<Player, 'id'> = {
         name: data.name,
-        teamId: data.teamId,
-        teamName: selectedTeam.name,
+        teamId: selectedTeam?.id || '',
+        teamName: selectedTeam?.name || '',
         overallPlayed: player?.overallPlayed ?? 0,
         overallWin: player?.overallWin ?? 0,
         overallDraw: player?.overallDraw ?? 0,
@@ -252,6 +245,3 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     </Form>
   );
 }
-    
-
-    
