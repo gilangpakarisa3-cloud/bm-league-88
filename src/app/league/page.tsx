@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -49,6 +49,9 @@ import { LeagueStats } from '@/components/league-stats';
 import { LiveClock } from '@/components/live-clock';
 import { PlayerPerformanceDialog } from '@/components/player-performance-dialog';
 import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -68,6 +71,7 @@ export default function LeaguePage() {
   const [showCreateSeason, setShowCreateSeason] = useState(false);
   const [showRegisterPlayers, setShowRegisterPlayers] = useState(false);
   const [newSeasonName, setNewSeasonName] = useState('');
+  const [newSeasonFee, setNewSeasonFee] = useState<number | string>('');
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
@@ -157,6 +161,16 @@ export default function LeaguePage() {
   }, [leagueTable, activeSeason, playersById, teamsById]);
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
+  
+  const { paidPlayersCount, prizePool } = useMemo(() => {
+    if (!leagueTable || !activeSeason || !activeSeason.registrationFee) {
+      return { paidPlayersCount: 0, prizePool: 0 };
+    }
+    const paidCount = leagueTable.filter(p => p.hasPaid).length;
+    const pool = paidCount * (activeSeason.registrationFee || 0);
+    return { paidPlayersCount: paidCount, prizePool: pool };
+  }, [leagueTable, activeSeason]);
+
 
   // --- Effects ---
   useEffect(() => {
@@ -202,10 +216,12 @@ export default function LeaguePage() {
       return;
     }
 
+    const fee = typeof newSeasonFee === 'string' ? parseFloat(newSeasonFee) : newSeasonFee;
     const seasonData: Partial<Season> = {
         name: newSeasonName.trim(),
         ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
         ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
+        registrationFee: isNaN(fee) ? 0 : fee,
     }
 
     if (editingSeason) {
@@ -225,6 +241,7 @@ export default function LeaguePage() {
     }
     setShowCreateSeason(false);
     setNewSeasonName('');
+    setNewSeasonFee('');
     setEditingSeason(null);
     setDateRange({ from: undefined, to: undefined });
   };
@@ -233,6 +250,7 @@ export default function LeaguePage() {
     if (activeSeason) {
       setEditingSeason(activeSeason);
       setNewSeasonName(activeSeason.name);
+      setNewSeasonFee(activeSeason.registrationFee || '');
       setDateRange({
         from: activeSeason.startDate?.toDate(),
         to: activeSeason.endDate?.toDate(),
@@ -244,6 +262,7 @@ export default function LeaguePage() {
   const handleOpenCreateDialog = () => {
     setEditingSeason(null);
     setNewSeasonName('');
+    setNewSeasonFee('');
     setDateRange({ from: undefined, to: undefined });
     setShowCreateSeason(true);
   }
@@ -311,7 +330,8 @@ export default function LeaguePage() {
             goalsFor: 0,
             goalsAgainst: 0,
             goalDifference: 0,
-            points: 0
+            points: 0,
+            hasPaid: false,
         };
         batch.set(leagueEntryRef, newEntry);
     });
@@ -409,6 +429,15 @@ export default function LeaguePage() {
     setShareText(header + participantsList);
     setShareDialogOpen(true);
   };
+  
+  const handlePaymentToggle = useCallback((leagueEntryId: string, currentStatus: boolean) => {
+    if (!firestore || !activeSeasonId || !isAdmin) return;
+
+    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, leagueEntryId);
+    updateDocumentNonBlocking(entryRef, { hasPaid: !currentStatus });
+
+  }, [firestore, activeSeasonId, isAdmin]);
+
 
   const formattedDateRange = useMemo(() => {
     if (!activeSeason || !activeSeason.startDate || !activeSeason.endDate) return null;
@@ -529,8 +558,55 @@ export default function LeaguePage() {
                 />
             </div>
             <div className="lg:col-span-1 space-y-4">
-                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
+                <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
+
+                {activeSeason?.registrationFee && activeSeason.registrationFee > 0 && sortedTable.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <DollarSign className="w-5 h-5 text-primary" />
+                                Keuangan Musim
+                            </CardTitle>
+                            <CardDescription>Lacak pembayaran registrasi dan total hadiah.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="border bg-card p-4 rounded-lg text-center">
+                                <p className="text-sm text-muted-foreground">Total Prizepool</p>
+                                <p className="text-3xl font-bold text-primary">
+                                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    ({paidPlayersCount} dari {sortedTable.length} pemain telah membayar)
+                                </p>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold mb-2">Status Pembayaran</h4>
+                                <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                                    {sortedTable.map(player => (
+                                        <div key={player.id} className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
+                                            <div className='flex items-center gap-2'>
+                                                <Avatar className="h-6 w-6">
+                                                    <AvatarImage src={player.team?.logoUrl} alt={player.playerName} />
+                                                    <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                                                </Avatar>
+                                                <Label htmlFor={`paid-${player.id}`} className="text-sm font-medium">
+                                                    {player.playerName}
+                                                </Label>
+                                            </div>
+                                            <Checkbox
+                                                id={`paid-${player.id}`}
+                                                checked={!!player.hasPaid}
+                                                onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)}
+                                                disabled={!isAdmin}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
       </div>
@@ -579,6 +655,16 @@ export default function LeaguePage() {
                     placeholder="e.g., 2024/25 Season"
                     value={newSeasonName}
                     onChange={(e) => setNewSeasonName(e.target.value)}
+                />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="season-fee">Biaya Pendaftaran (IDR)</Label>
+                <Input 
+                    id="season-fee"
+                    type="number"
+                    placeholder="e.g., 15000"
+                    value={newSeasonFee}
+                    onChange={(e) => setNewSeasonFee(e.target.value)}
                 />
             </div>
             <div className="space-y-2">

@@ -147,6 +147,10 @@
             "type": "string",
             "format": "date-time",
             "description": "The end date of the season."
+        },
+        "registrationFee": {
+          "type": "number",
+          "description": "The registration fee for this season."
         }
       },
       "required": [
@@ -240,6 +244,10 @@
         },
         "points": {
           "type": "number"
+        },
+        "hasPaid": {
+          "type": "boolean",
+          "description": "Indicates if the player has paid the registration fee for the season."
         }
       }
     },

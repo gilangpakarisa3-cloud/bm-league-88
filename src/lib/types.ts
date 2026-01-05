@@ -31,6 +31,7 @@ export type Season = {
   createdAt: Timestamp;
   startDate?: Timestamp;
   endDate?: Timestamp;
+  registrationFee?: number;
 }
 
 export type LeagueEntry = {
@@ -48,6 +49,7 @@ export type LeagueEntry = {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
+  hasPaid?: boolean;
 };
 
 export type Match = {
@@ -88,7 +90,3 @@ export type SeasonRecord = {
         mostWins: { playerName: string; value: number } | null;
     };
 }
-
-    
-
-    
