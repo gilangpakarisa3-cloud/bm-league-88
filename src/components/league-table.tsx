@@ -10,7 +10,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck, Trophy } from "lucide-react";
+import { Trash2, User, ShieldCheck, Trophy, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -24,9 +24,10 @@ interface LeagueTableProps {
   onSelectPlayer: (entry: WithId<LeagueEntry>) => void;
   seasonStatus?: Season['status'];
   isAdmin: boolean;
+  defendingChampionId?: string;
 }
 
-export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin }: LeagueTableProps) {
+export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }: LeagueTableProps) {
   const { t } = useTranslation();
   
   if (isLoading) {
@@ -74,6 +75,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
               const isUCLZone = entry.rank >= 2 && entry.rank <= 4;
               const isLastThree = entry.rank >= totalPlayers - 2 && totalPlayers > 3;
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
+              const isDefendingChampion = entry.playerId === defendingChampionId;
 
               return (
                 <TableRow 
@@ -132,6 +134,20 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                                         </TooltipTrigger>
                                         <TooltipContent>
                                             <p>Tak Terkalahkan</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                             {isDefendingChampion && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1.5 py-0.5">
+                                                <Award className="w-3 h-3"/>
+                                            </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Juara Bertahan</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
@@ -233,3 +249,5 @@ function LeagueTableSkeleton() {
     </div>
   );
 }
+
+    

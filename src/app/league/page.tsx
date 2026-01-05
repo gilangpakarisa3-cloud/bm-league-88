@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp } from 'firebase/firestore';
 import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
@@ -119,6 +119,21 @@ export default function LeaguePage() {
     [firestore, activeSeasonId]
   );
   const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
+  
+  const previousCompletedSeason = useMemo(() => {
+    if (!seasons) return null;
+    return seasons
+      .filter(s => s.status === 'Completed' && s.id !== activeSeasonId)
+      .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())[0];
+  }, [seasons, activeSeasonId]);
+
+  const previousWinnerDocRef = useMemoFirebase(
+    () => (firestore && previousCompletedSeason ? doc(firestore, 'hallOfFame', previousCompletedSeason.id) : null),
+    [firestore, previousCompletedSeason]
+  );
+  const { data: previousWinnerRecord } = useDoc<SeasonRecord>(previousWinnerDocRef);
+  const previousWinnerId = previousWinnerRecord?.winnerPlayerId;
+
 
   // --- Memoized Derived State ---
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
@@ -164,13 +179,13 @@ export default function LeaguePage() {
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   
   const { paidPlayersCount, prizePool, registrationPool, sponsorshipPool } = useMemo(() => {
-    if (!leagueTable || !activeSeason) {
+    if (!activeSeason) {
       return { paidPlayersCount: 0, prizePool: 0, registrationPool: 0, sponsorshipPool: 0 };
     }
     const registrationFee = activeSeason.registrationFee || 0;
     const sponsorship = activeSeason.sponsorshipAmount || 0;
 
-    const paidCount = leagueTable.filter(p => p.hasPaid).length;
+    const paidCount = (leagueTable || []).filter(p => p.hasPaid).length;
     const regPool = paidCount * registrationFee;
     const totalPool = regPool + sponsorship;
 
@@ -572,13 +587,14 @@ export default function LeaguePage() {
                     onSelectPlayer={setSelectedPlayerForStats}
                     seasonStatus={activeSeason?.status}
                     isAdmin={isAdmin}
+                    defendingChampionId={previousWinnerId}
                 />
             </div>
             <div className="lg:col-span-1 space-y-4">
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
 
-                {activeSeason?.registrationFee && leagueTable && leagueTable.length > 0 && (
+                {activeSeason?.registrationFee && (leagueTable || []).length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -834,3 +850,5 @@ export default function LeaguePage() {
     </div>
   );
 }
+
+    
