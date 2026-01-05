@@ -64,11 +64,6 @@
           "type": "string",
           "description": "Denormalized name of the team for easier display."
         },
-        "photoUrl": {
-            "type": "string",
-            "description": "URL for the player's profile photo.",
-            "format": "uri"
-        },
         "overallPlayed": {
           "type": "number",
           "description": "Total matches played across all seasons."
@@ -96,8 +91,6 @@
       },
       "required": [
         "name",
-        "teamId",
-        "teamName",
         "overallPlayed",
         "overallWin",
         "overallDraw",
@@ -154,6 +147,14 @@
             "type": "string",
             "format": "date-time",
             "description": "The end date of the season."
+        },
+        "registrationFee": {
+          "type": "number",
+          "description": "The registration fee for this season."
+        },
+        "sponsorshipAmount": {
+          "type": "number",
+          "description": "The sponsorship amount for this season."
         }
       },
       "required": [
@@ -224,10 +225,6 @@
         "teamName": {
           "type": "string"
         },
-        "photoUrl": {
-            "type": "string",
-            "format": "uri"
-        },
         "played": {
           "type": "number"
         },
@@ -251,6 +248,10 @@
         },
         "points": {
           "type": "number"
+        },
+        "hasPaid": {
+          "type": "boolean",
+          "description": "Indicates if the player has paid the registration fee for the season."
         }
       }
     },
@@ -455,5 +456,3 @@
     ]
   }
 }
-
-    

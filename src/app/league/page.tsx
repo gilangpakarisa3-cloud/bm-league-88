@@ -72,6 +72,7 @@ export default function LeaguePage() {
   const [showRegisterPlayers, setShowRegisterPlayers] = useState(false);
   const [newSeasonName, setNewSeasonName] = useState('');
   const [newSeasonFee, setNewSeasonFee] = useState<number | string>('');
+  const [newSponsorshipAmount, setNewSponsorshipAmount] = useState<number | string>('');
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
@@ -162,13 +163,23 @@ export default function LeaguePage() {
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   
-  const { paidPlayersCount, prizePool } = useMemo(() => {
-    if (!leagueTable || !activeSeason || !activeSeason.registrationFee) {
-      return { paidPlayersCount: 0, prizePool: 0 };
+  const { paidPlayersCount, prizePool, registrationPool, sponsorshipPool } = useMemo(() => {
+    if (!leagueTable || !activeSeason) {
+      return { paidPlayersCount: 0, prizePool: 0, registrationPool: 0, sponsorshipPool: 0 };
     }
+    const registrationFee = activeSeason.registrationFee || 0;
+    const sponsorship = activeSeason.sponsorshipAmount || 0;
+
     const paidCount = leagueTable.filter(p => p.hasPaid).length;
-    const pool = paidCount * (activeSeason.registrationFee || 0);
-    return { paidPlayersCount: paidCount, prizePool: pool };
+    const regPool = paidCount * registrationFee;
+    const totalPool = regPool + sponsorship;
+
+    return { 
+      paidPlayersCount: paidCount, 
+      prizePool: totalPool,
+      registrationPool: regPool,
+      sponsorshipPool: sponsorship
+    };
   }, [leagueTable, activeSeason]);
 
 
@@ -217,11 +228,14 @@ export default function LeaguePage() {
     }
 
     const fee = typeof newSeasonFee === 'string' ? parseFloat(newSeasonFee) : newSeasonFee;
+    const sponsorship = typeof newSponsorshipAmount === 'string' ? parseFloat(newSponsorshipAmount) : newSponsorshipAmount;
+    
     const seasonData: Partial<Season> = {
         name: newSeasonName.trim(),
         ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
         ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
         registrationFee: isNaN(fee) ? 0 : fee,
+        sponsorshipAmount: isNaN(sponsorship) ? 0 : sponsorship,
     }
 
     if (editingSeason) {
@@ -242,6 +256,7 @@ export default function LeaguePage() {
     setShowCreateSeason(false);
     setNewSeasonName('');
     setNewSeasonFee('');
+    setNewSponsorshipAmount('');
     setEditingSeason(null);
     setDateRange({ from: undefined, to: undefined });
   };
@@ -251,6 +266,7 @@ export default function LeaguePage() {
       setEditingSeason(activeSeason);
       setNewSeasonName(activeSeason.name);
       setNewSeasonFee(activeSeason.registrationFee || '');
+      setNewSponsorshipAmount(activeSeason.sponsorshipAmount || '');
       setDateRange({
         from: activeSeason.startDate?.toDate(),
         to: activeSeason.endDate?.toDate(),
@@ -263,6 +279,7 @@ export default function LeaguePage() {
     setEditingSeason(null);
     setNewSeasonName('');
     setNewSeasonFee('');
+    setNewSponsorshipAmount('');
     setDateRange({ from: undefined, to: undefined });
     setShowCreateSeason(true);
   }
@@ -561,7 +578,7 @@ export default function LeaguePage() {
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
 
-                {activeSeason?.registrationFee && activeSeason.registrationFee > 0 && sortedTable && sortedTable.length > 0 && (
+                {activeSeason?.registrationFee && activeSeason.registrationFee > 0 && sortedTable.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -576,7 +593,12 @@ export default function LeaguePage() {
                                 <p className="text-3xl font-bold text-primary">
                                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
+                                {sponsorshipPool > 0 && (
+                                     <p className="text-xs text-muted-foreground">
+                                        ({new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)} dari pendaftaran + {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)} dari sponsor)
+                                    </p>
+                                )}
+                                <p className="text-xs text-muted-foreground mt-1">
                                     ({paidPlayersCount} dari {sortedTable.length} pemain telah membayar)
                                 </p>
                             </div>
@@ -657,15 +679,27 @@ export default function LeaguePage() {
                     onChange={(e) => setNewSeasonName(e.target.value)}
                 />
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="season-fee">Biaya Pendaftaran (IDR)</Label>
-                <Input 
-                    id="season-fee"
-                    type="number"
-                    placeholder="e.g., 15000"
-                    value={newSeasonFee}
-                    onChange={(e) => setNewSeasonFee(e.target.value)}
-                />
+            <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="season-fee">Biaya Pendaftaran (IDR)</Label>
+                    <Input 
+                        id="season-fee"
+                        type="number"
+                        placeholder="e.g., 15000"
+                        value={newSeasonFee}
+                        onChange={(e) => setNewSeasonFee(e.target.value)}
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="sponsorship-amount">Jumlah Sponsor (IDR)</Label>
+                    <Input 
+                        id="sponsorship-amount"
+                        type="number"
+                        placeholder="e.g., 500000"
+                        value={newSponsorshipAmount}
+                        onChange={(e) => setNewSponsorshipAmount(e.target.value)}
+                    />
+                </div>
             </div>
             <div className="space-y-2">
                 <Label>{t('date_range')}</Label>

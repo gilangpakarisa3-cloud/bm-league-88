@@ -32,6 +32,7 @@ export type Season = {
   startDate?: Timestamp;
   endDate?: Timestamp;
   registrationFee?: number;
+  sponsorshipAmount?: number;
 }
 
 export type LeagueEntry = {
