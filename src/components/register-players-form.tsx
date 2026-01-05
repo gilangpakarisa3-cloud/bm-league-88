@@ -1,14 +1,18 @@
+
 'use client';
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { Player, LeagueEntry, WithId } from '@/lib/types';
+import type { Player, LeagueEntry, WithId, Team } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from './ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { User } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+
 
 interface RegisterPlayersFormProps {
   allPlayers: WithId<Player>[];
@@ -25,6 +29,21 @@ export function RegisterPlayersForm({
 }: RegisterPlayersFormProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = React.useState<Record<string, boolean>>({});
+  const firestore = useFirestore();
+
+  const teamsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'teams') : null),
+    [firestore]
+  );
+  const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
+  const teamsById = React.useMemo(() => {
+    if (!teams) return {};
+    return teams.reduce((acc, team) => {
+      acc[team.id] = team;
+      return acc;
+    }, {} as Record<string, WithId<Team>>);
+  }, [teams]);
 
   const registeredPlayerIds = React.useMemo(() => 
     new Set(registeredPlayers.map(p => p.playerId))
@@ -63,7 +82,7 @@ export function RegisterPlayersForm({
     onRegister(selectedIds);
   };
   
-  if (isLoading) {
+  if (isLoading || isLoadingTeams) {
     return <RegisterPlayersSkeleton />;
   }
 
@@ -92,27 +111,30 @@ export function RegisterPlayersForm({
       </div>
       <ScrollArea className="h-64 border rounded-md">
         <div className="p-4 space-y-2">
-          {availablePlayers.map(player => (
-            <div
-              key={player.id}
-              className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted cursor-pointer"
-              onClick={() => handleSelect(player.id)}
-            >
-              <Checkbox
-                id={`player-${player.id}`}
-                checked={!!selected[player.id]}
-                onCheckedChange={() => handleSelect(player.id)}
-              />
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={player.photoUrl} />
-                <AvatarFallback><User /></AvatarFallback>
-              </Avatar>
-              <label htmlFor={`player-${player.id}`} className="flex-1 cursor-pointer">
-                <div className="font-medium">{player.name}</div>
-                <div className="text-sm text-muted-foreground">{player.teamName}</div>
-              </label>
-            </div>
-          ))}
+          {availablePlayers.map(player => {
+            const team = teamsById[player.teamId];
+            return (
+              <div
+                key={player.id}
+                className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted cursor-pointer"
+                onClick={() => handleSelect(player.id)}
+              >
+                <Checkbox
+                  id={`player-${player.id}`}
+                  checked={!!selected[player.id]}
+                  onCheckedChange={() => handleSelect(player.id)}
+                />
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={team?.logoUrl} />
+                  <AvatarFallback><User /></AvatarFallback>
+                </Avatar>
+                <label htmlFor={`player-${player.id}`} className="flex-1 cursor-pointer">
+                  <div className="font-medium">{player.name}</div>
+                  <div className="text-sm text-muted-foreground">{player.teamName}</div>
+                </label>
+              </div>
+            )
+          })}
         </div>
       </ScrollArea>
       <Button onClick={handleSubmit} className="w-full">

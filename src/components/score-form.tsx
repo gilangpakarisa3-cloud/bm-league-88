@@ -14,12 +14,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { Match, Player, WithId } from "@/lib/types";
+import type { Match, Player, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarIcon, User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
@@ -39,14 +39,18 @@ interface ScoreFormProps {
   match: WithId<Match>;
   onSave: (data: ScoreFormValues) => void;
   players: WithId<Player>[];
+  teams: WithId<Team>[];
 }
 
-export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
+export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
   const player1 = players.find(p => p.id === match.player1Id);
   const player2 = players.find(p => p.id === match.player2Id);
+
+  const team1 = useMemo(() => teams.find(t => t.id === player1?.teamId), [teams, player1]);
+  const team2 = useMemo(() => teams.find(t => t.id === player2?.teamId), [teams, player2]);
   
   const formSchemaTranslated = z.object({
     score1: z.coerce.number().min(0, t('score_positive_error')),
@@ -110,7 +114,7 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
               <FormItem>
                 <FormLabel className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
-                        <AvatarImage src={player1?.photoUrl} />
+                        <AvatarImage src={team1?.logoUrl} />
                         <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                     {player1?.name}
@@ -129,7 +133,7 @@ export function ScoreForm({ match, onSave, players }: ScoreFormProps) {
               <FormItem>
                  <FormLabel className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
-                        <AvatarImage src={player2?.photoUrl} />
+                        <AvatarImage src={team2?.logoUrl} />
                         <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                     {player2?.name}

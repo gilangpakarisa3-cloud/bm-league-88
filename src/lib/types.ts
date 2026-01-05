@@ -12,7 +12,6 @@ export type Player = {
   name: string;
   teamId: string;
   teamName: string;
-  photoUrl?: string;
   overallPlayed: number;
   overallWin: number;
   overallDraw: number;
@@ -41,7 +40,6 @@ export type LeagueEntry = {
   teamId: string;
   playerName: string;
   teamName: string;
-  photoUrl?: string;
   played: number;
   win: number;
   draw: number;

@@ -48,7 +48,7 @@ const LEAGUE_ID = 'main-league';
 
 
 const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason }: {
-    match: WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null };
+    match: WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null, team1: WithId<Team> | null, team2: WithId<Team> | null };
     onEditMatch: (match: WithId<Match>) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
@@ -56,10 +56,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 }) {
     const { t } = useTranslation();
     
-    // This is a simplified way to get team info. For a real app, a map would be more efficient.
-    const team1 = match.player1 ? { name: match.player1.teamName, logoUrl: (match.player1 as any).teamLogoUrl } : null
-    const team2 = match.player2 ? { name: match.player2.teamName, logoUrl: (match.player2 as any).teamLogoUrl } : null
-
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
 
     // Button is disabled if:
@@ -68,7 +64,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
 
-    const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: {name: string, logoUrl?: string} | null, alignment?: 'left' | 'right' }) => (
+    const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
         <div className={cn("flex items-center gap-2 text-sm font-semibold truncate", {
             'justify-start': alignment === 'left',
             'justify-end': alignment === 'right',
@@ -84,7 +80,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 
     return (
         <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-4 p-3 transition-colors rounded-md hover:bg-muted/50">
-            <PlayerInfo player={match.player1} team={team1} alignment="right" />
+            <PlayerInfo player={match.player1} team={match.team1} alignment="right" />
             
             <div className="flex-none text-center">
                  {match.isCompleted ? (
@@ -94,7 +90,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 )}
             </div>
 
-            <PlayerInfo player={match.player2} team={team2} alignment="left" />
+            <PlayerInfo player={match.player2} team={match.team2} alignment="left" />
             
             <div className="flex-none flex items-center gap-1">
                  <Button
@@ -129,13 +125,15 @@ const FixtureContent = memo(function FixtureContent({
     onEditMatch,
     onRevertMatch,
     isAdmin,
-    allPlayers
+    allPlayers,
+    allTeams,
 }: {
     activeSeasonId: string | null;
     onEditMatch: (match: WithId<Match>) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     allPlayers: WithId<Player>[];
+    allTeams: WithId<Team>[];
 }) {
     const firestore = useFirestore();
     const { t } = useTranslation();
@@ -164,16 +162,30 @@ const FixtureContent = memo(function FixtureContent({
         return acc;
         }, {} as Record<string, WithId<Player>>);
     }, [allPlayers]);
+
+    const teamsById = useMemo(() => {
+        if (!allTeams) return {};
+        return allTeams.reduce((acc, t) => {
+            acc[t.id] = t;
+            return acc;
+        }, {} as Record<string, WithId<Team>>);
+    }, [allTeams]);
     
     const { upcomingMatches, completedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
         if (!matches) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
         
         const enrichedMatches = matches
-            .map(match => ({
-                ...match,
-                player1: playersById[match.player1Id] || null,
-                player2: playersById[match.player2Id] || null,
-            }));
+            .map(match => {
+                const player1 = playersById[match.player1Id] || null;
+                const player2 = playersById[match.player2Id] || null;
+                return {
+                    ...match,
+                    player1,
+                    player2,
+                    team1: player1 ? teamsById[player1.teamId] : null,
+                    team2: player2 ? teamsById[player2.teamId] : null,
+                }
+            });
 
         const filteredMatches = enrichedMatches.filter(m => {
             if (!searchTerm.trim()) return true;
@@ -210,7 +222,7 @@ const FixtureContent = memo(function FixtureContent({
             totalMatchesForDisplay: totalForProgress,
             completedMatchesForDisplay: completedForProgress
         };
-    }, [matches, playersById, searchTerm]);
+    }, [matches, playersById, teamsById, searchTerm]);
 
 
     if (isLoadingMatches) {
@@ -528,6 +540,12 @@ export default function FixturesPage() {
     [firestore]
   );
   const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
+
+  const teamsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'teams') : null),
+    [firestore]
+  );
+  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
   
   // --- Memoized Derived State ---
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
@@ -797,7 +815,7 @@ export default function FixturesPage() {
     const completedMatches = matchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
 
     // 2. Create a fresh stats map
-    const playerStatsMap: { [playerId: string]: Omit<LeagueEntry, 'id' | 'rank' | 'playerId' | 'teamId' | 'playerName' | 'teamName' | 'photoUrl'> } = {};
+    const playerStatsMap: { [playerId: string]: Omit<LeagueEntry, 'id' | 'rank' | 'playerId' | 'teamId' | 'playerName' | 'teamName'> } = {};
     leagueTable.forEach(entry => {
         playerStatsMap[entry.playerId] = { played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0 };
     });
@@ -870,7 +888,7 @@ export default function FixturesPage() {
       setRevertingMatch(match);
   }
 
-  const isLoading = isLoadingSeasons || isLoadingPlayers;
+  const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams;
 
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
 
@@ -910,6 +928,7 @@ export default function FixturesPage() {
                     onRevertMatch={handleRevertConfirm}
                     isAdmin={isAdmin}
                     allPlayers={allPlayers || []}
+                    allTeams={allTeams || []}
                 />
             )}
 
@@ -928,7 +947,7 @@ export default function FixturesPage() {
                 </DialogDescription>
               )}
             </DialogHeader>
-            {editingMatch && <ScoreForm match={editingMatch} onSave={(values) => handleUpdateScore(editingMatch.id, values)} players={allPlayers || []} />}
+            {editingMatch && <ScoreForm match={editingMatch} onSave={(values) => handleUpdateScore(editingMatch.id, values)} players={allPlayers || []} teams={allTeams || []} />}
           </DialogContent>
         </Dialog>
 
@@ -959,5 +978,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    

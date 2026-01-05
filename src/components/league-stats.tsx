@@ -26,7 +26,7 @@ const StatCard = ({ icon, title, description, value, valueLabel, player, valueCl
                  <div className="flex items-center justify-between gap-3 pt-2">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
-                          <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                          <AvatarImage src={player.team?.logoUrl} alt={player.playerName} />
                           <AvatarFallback><User /></AvatarFallback>
                       </Avatar>
                       <div>
@@ -80,7 +80,7 @@ const ChampionChanceCard = ({ topContenders }: { topContenders: (WithId<LeagueEn
                         <div key={player.id}>
                             <div className="flex items-center gap-3 mb-1">
                                 <Avatar className="h-8 w-8">
-                                    <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                    <AvatarImage src={player.team?.logoUrl} alt={player.playerName} />
                                     <AvatarFallback><User /></AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -235,7 +235,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                              <div key={player.id} className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                        <AvatarImage src={player.team?.logoUrl} alt={player.playerName} />
                                         <AvatarFallback><User /></AvatarFallback>
                                     </Avatar>
                                     <div>
@@ -265,7 +265,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                         {stats.unbeaten.map(player => (
                              <div key={player.id} className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
-                                    <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                    <AvatarImage src={player.team?.logoUrl} alt={player.playerName} />
                                     <AvatarFallback><User /></AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -294,7 +294,7 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
                              <div key={player.id} className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={player.player?.photoUrl} alt={player.playerName} />
+                                        <AvatarImage src={player.team?.logoUrl} alt={player.playerName} />
                                         <AvatarFallback><User /></AvatarFallback>
                                     </Avatar>
                                     <div>
@@ -312,7 +312,3 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
         </div>
     );
 }
-
-    
-
-    

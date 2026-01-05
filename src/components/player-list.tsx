@@ -127,7 +127,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
             <Card key={player.id} className="flex flex-col text-center">
               <CardHeader className="items-center pt-6">
                   <Avatar className="h-24 w-24">
-                      <AvatarImage src={player.photoUrl} alt={player.name} />
+                      <AvatarImage src={team?.logoUrl} alt={player.name} />
                       <AvatarFallback><User className="h-12 w-12" /></AvatarFallback>
                   </Avatar>
               </CardHeader>

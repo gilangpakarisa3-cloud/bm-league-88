@@ -102,7 +102,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                       onClick={() => onSelectPlayer(entry)}
                     >
                        <Avatar className="h-10 w-10">
-                        <AvatarImage src={entry.player?.photoUrl} alt={entry.playerName} />
+                        <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
                         <AvatarFallback><User /></AvatarFallback>
                       </Avatar>
                       <div>

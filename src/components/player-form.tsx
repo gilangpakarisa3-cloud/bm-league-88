@@ -28,7 +28,6 @@ const formSchema = z.object({
     message: 'Player name must be at least 2 characters.',
   }),
   teamId: z.string({ required_error: 'Please select a team.' }),
-  photoUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
 });
 
 type PlayerFormValues = z.infer<typeof formSchema>;
@@ -66,7 +65,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     defaultValues: {
       name: player?.name || '',
       teamId: player?.teamId || '',
-      photoUrl: player?.photoUrl || '',
     },
   });
 
@@ -75,7 +73,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       message: t('player_name_min_char'),
     }),
     teamId: z.string({ required_error: t('select_team_error') }),
-    photoUrl: z.string().url({ message: t('invalid_url_error') }).optional().or(z.literal('')),
   });
   form.resolver = zodResolver(formSchemaTranslated);
   
@@ -84,13 +81,11 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       form.reset({
         name: player.name,
         teamId: player.teamId,
-        photoUrl: player.photoUrl || '',
       });
     } else {
       form.reset({
         name: '',
         teamId: '',
-        photoUrl: '',
       });
     }
   }, [player, form]);
@@ -133,7 +128,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         name: data.name,
         teamId: data.teamId,
         teamName: selectedTeam.name,
-        photoUrl: data.photoUrl,
         overallPlayed: player?.overallPlayed ?? 0,
         overallWin: player?.overallWin ?? 0,
         overallDraw: player?.overallDraw ?? 0,
@@ -167,7 +161,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                             playerName: playerData.name,
                             teamName: playerData.teamName,
                             teamId: playerData.teamId,
-                            photoUrl: playerData.photoUrl
                         });
                     });
                 }
@@ -245,19 +238,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                   searchPlaceholder={t('search_team')}
                   emptyPlaceholder={isLoadingTeams ? t('loading_teams') : t('no_teams_available')}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="photoUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('photo_url')}</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com/player.jpg" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

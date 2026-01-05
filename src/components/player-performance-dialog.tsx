@@ -148,7 +148,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                 <DialogHeader className="flex flex-col items-center text-center">
                     <div className="relative">
                       <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-primary">
-                        <AvatarImage src={playerDetails?.photoUrl} alt={player.playerName} />
+                        <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.playerName} />
                         <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
                       </Avatar>
                       <div className={rankBadgeStyle}>

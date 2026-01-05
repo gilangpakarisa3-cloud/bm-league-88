@@ -90,7 +90,6 @@ function LeaderboardSection() {
       ...entry,
       player: playersById[entry.playerId],
       team: teamsById[entry.teamId],
-      photoUrl: playersById[entry.playerId]?.photoUrl,
     }));
     
     const sorted = [...enrichedTable].sort((a, b) => {
@@ -149,7 +148,7 @@ function LeaderboardSection() {
   )
 }
 
-const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<LeagueEntry> & { rank: number, photoUrl?: string, team?: WithId<Team> })[], isBottom?: boolean }) => {
+const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<LeagueEntry> & { rank: number, team?: WithId<Team> })[], isBottom?: boolean }) => {
   const { t } = useTranslation();
   return (
      <Table>
@@ -180,7 +179,7 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
                   <TableCell>
                   <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                          <AvatarImage src={entry.photoUrl} alt={entry.playerName} />
+                          <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
                           <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
                       <div>

@@ -304,7 +304,6 @@ export default function LeaguePage() {
             teamId: player.teamId,
             playerName: player.name,
             teamName: player.teamName,
-            photoUrl: player.photoUrl,
             played: 0,
             win: 0,
             draw: 0,
@@ -362,7 +361,7 @@ export default function LeaguePage() {
         winnerPlayerId: winner.playerId,
         winnerPlayerName: winner.playerName,
         winnerTeamName: winner.teamName,
-        winnerPhotoUrl: winner.photoUrl,
+        winnerPhotoUrl: winner.team?.logoUrl, // Using team logo as player photo
         winnerStats: {
             points: winner.points,
             win: winner.win,
