@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, User } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -52,6 +52,7 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User } from 'lucide-react';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -455,7 +456,7 @@ export default function LeaguePage() {
     const header = `*${t('share_participants_header', { seasonName })}*\n\n`;
     
     const participantsList = sortedTable
-      .map((p, index) => `${index + 1}. ${p.playerName} (${p.team?.name})`)
+      .map((p, index) => `${index + 1}. ${p.playerName} (${p.team?.name || 'Tanpa Tim'})`)
       .join('\n');
       
     setShareText(header + participantsList);
@@ -845,6 +846,7 @@ export default function LeaguePage() {
         totalPlayersInSeason={leagueTable?.length || 0}
         open={!!selectedPlayerForStats}
         onOpenChange={() => setSelectedPlayerForStats(null)}
+        defendingChampionId={previousWinnerId}
       />
 
     </div>

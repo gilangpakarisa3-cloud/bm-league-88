@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -25,9 +25,10 @@ interface PlayerPerformanceDialogProps {
   totalPlayersInSeason: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defendingChampionId?: string;
 }
 
-export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange }: PlayerPerformanceDialogProps) {
+export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
   
   const playersById = useMemo(() => {
@@ -123,6 +124,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   const isTopRank = player.rank === 1;
   const isBottomRank = player.rank >= totalPlayersInSeason - 2 && totalPlayersInSeason > 3;
   const isUnbeaten = player.played > 0 && player.loss === 0;
+  const isDefendingChampion = player.playerId === defendingChampionId;
+
 
   const rankBadgeStyle = cn(
     "absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background text-sm font-bold",
@@ -154,11 +157,29 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                       <div className={rankBadgeStyle}>
                         {player.rank}
                       </div>
-                      {isUnbeaten && (
+
+                       {isDefendingChampion && (
                           <TooltipProvider>
                               <Tooltip>
                                   <TooltipTrigger asChild>
                                       <div className="absolute -top-2 -left-2 transform -rotate-12">
+                                          <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full">
+                                              <Award className="w-5 h-5"/>
+                                          </Badge>
+                                      </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                      <p>Juara Bertahan</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          </TooltipProvider>
+                      )}
+
+                      {isUnbeaten && (
+                          <TooltipProvider>
+                              <Tooltip>
+                                  <TooltipTrigger asChild>
+                                      <div className="absolute -top-2 -right-2 transform rotate-12">
                                           <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/20 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full">
                                               <ShieldCheck className="w-5 h-5"/>
                                           </Badge>
@@ -170,7 +191,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                               </Tooltip>
                           </TooltipProvider>
                       )}
-                      {isTopRank && (
+                      
+                      {isTopRank && !isUnbeaten && !isDefendingChampion && (
                            <TooltipProvider>
                               <Tooltip>
                                   <TooltipTrigger asChild>
