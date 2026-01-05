@@ -578,7 +578,7 @@ export default function LeaguePage() {
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
 
-                {activeSeason?.registrationFee && sortedTable.length > 0 && (
+                {activeSeason?.registrationFee && leagueTable && leagueTable.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -588,7 +588,7 @@ export default function LeaguePage() {
                             <CardDescription>Lacak pembayaran registrasi dan total hadiah.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="border bg-card p-4 rounded-lg text-center space-y-1">
+                             <div className="border bg-card p-4 rounded-lg text-center space-y-1">
                                 <p className="text-sm text-foreground">Total Hadiah Terkumpul</p>
                                 <p className="text-3xl font-bold text-primary">
                                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
