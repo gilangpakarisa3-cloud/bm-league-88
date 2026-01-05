@@ -561,7 +561,7 @@ export default function LeaguePage() {
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
 
-                {activeSeason?.registrationFee && activeSeason.registrationFee > 0 && sortedTable.length > 0 && (
+                {activeSeason?.registrationFee && activeSeason.registrationFee > 0 && sortedTable && sortedTable.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
