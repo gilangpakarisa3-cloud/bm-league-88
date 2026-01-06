@@ -101,16 +101,17 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     const totalMatches = totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) * 2 : 0;
     const seasonProgress = totalMatches > 0 ? (player.played / totalMatches) * 100 : 0;
 
-    let cumulativePoints = 0;
-    const chartData = [...completedMatches].reverse().map((match, index) => {
-        if (match.result === 'W') cumulativePoints += 3;
-        else if (match.result === 'D') cumulativePoints += 1;
+    let trendScore = 0;
+    const chartData = [{ match: 0, points: 0, tooltip: 'Awal Musim' }, ...[...completedMatches].reverse().map((match, index) => {
+        if (match.result === 'W') trendScore += 1;
+        else if (match.result === 'L') trendScore -= 1;
+        // Draw does nothing
         return {
             match: index + 1,
-            points: cumulativePoints,
+            points: trendScore,
             tooltip: `vs ${match.opponent?.name}: ${match.playerScore}-${match.opponentScore} (${match.result})`
         };
-    });
+    })];
 
 
     return {
@@ -368,7 +369,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-primary">
                                         <TrendingUp className="w-5 h-5"/>
-                                        Tren Performa Poin
+                                        Tren Performa
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
@@ -388,23 +389,23 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                                     tickLine={false}
                                                     axisLine={false}
                                                     tickMargin={8}
-                                                    tickFormatter={(value) => `M${value}`}
+                                                    tickFormatter={(value) => value === 0 ? 'Start' : `M${value}`}
                                                 />
                                                 <YAxis
                                                     tickLine={false}
                                                     axisLine={false}
                                                     tickMargin={8}
-                                                    domain={[0, 'dataMax + 5']}
+                                                    allowDecimals={false}
                                                 />
                                                 <ChartTooltip
                                                     cursor={false}
                                                     content={
                                                         <ChartTooltipContent
                                                             indicator="dot"
-                                                            labelFormatter={(_, payload) => `Match ${payload?.[0]?.payload.match}`}
-                                                            formatter={(_, name, item) => (
+                                                            labelFormatter={(value, payload) => payload?.[0]?.payload.match === 0 ? "Awal Musim" : `Match ${payload?.[0]?.payload.match}`}
+                                                            formatter={(value, name, item) => (
                                                                 <div className="text-left">
-                                                                    <p className="font-bold">{item.payload.points} Pts</p>
+                                                                    <p className="font-bold">{item.payload.points > 0 ? `+${item.payload.points}`: item.payload.points} Pts</p>
                                                                     <p className="text-xs text-muted-foreground">{item.payload.tooltip}</p>
                                                                 </div>
                                                             )}
