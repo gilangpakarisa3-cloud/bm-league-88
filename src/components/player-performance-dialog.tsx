@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -15,6 +15,9 @@ import { Progress } from './ui/progress';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 
 interface PlayerPerformanceDialogProps {
@@ -98,12 +101,25 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     const totalMatches = totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) * 2 : 0;
     const seasonProgress = totalMatches > 0 ? (player.played / totalMatches) * 100 : 0;
 
+    let cumulativePoints = 0;
+    const chartData = [...completedMatches].reverse().map((match, index) => {
+        if (match.result === 'W') cumulativePoints += 3;
+        else if (match.result === 'D') cumulativePoints += 1;
+        return {
+            match: index + 1,
+            points: cumulativePoints,
+            tooltip: `vs ${match.opponent?.name}: ${match.playerScore}-${match.opponentScore} (${match.result})`
+        };
+    });
+
+
     return {
         completedMatches,
         upcomingMatches,
         winRate,
         seasonProgress,
-        totalMatches
+        totalMatches,
+        chartData
     }
 
   }, [player, matches, playersById, teamsById, totalPlayersInSeason]);
@@ -112,8 +128,15 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   const playerDetails = playersById[player.playerId];
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches, chartData } = performanceStats;
   
+   const chartConfig = {
+    points: {
+      label: "Points",
+      color: "hsl(var(--primary))",
+    },
+  } satisfies ChartConfig;
+
   const StatDisplay = ({ label, value }: { label: string, value: string | number }) => (
     <div className="flex flex-col items-center justify-center p-2 rounded-md bg-card">
       <span className="text-xs sm:text-sm font-semibold text-muted-foreground">{label}</span>
@@ -254,9 +277,10 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                     </div>
                   <div className="mt-6 sm:mt-0">
                     <Tabs defaultValue="history" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="history">Riwayat Pertandingan</TabsTrigger>
-                            <TabsTrigger value="upcoming">Sisa Pertandingan</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="history">Riwayat</TabsTrigger>
+                            <TabsTrigger value="upcoming">Sisa Laga</TabsTrigger>
+                            <TabsTrigger value="trend">Tren Poin</TabsTrigger>
                         </TabsList>
                         <TabsContent value="history">
                              {completedMatches.length > 0 ? (
@@ -339,6 +363,75 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                  <p className="text-center text-muted-foreground py-8">Semua pertandingan telah selesai.</p>
                             )}
                         </TabsContent>
+                         <TabsContent value="trend">
+                            <Card className="mt-4">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-primary">
+                                        <TrendingUp className="w-5 h-5"/>
+                                        Tren Performa Poin
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {chartData.length > 1 ? (
+                                        <ChartContainer config={chartConfig} className="h-48 w-full">
+                                            <LineChart
+                                                accessibilityLayer
+                                                data={chartData}
+                                                margin={{
+                                                    left: -20,
+                                                    right: 20,
+                                                }}
+                                            >
+                                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
+                                                <XAxis
+                                                    dataKey="match"
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickMargin={8}
+                                                    tickFormatter={(value) => `M${value}`}
+                                                />
+                                                <YAxis
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickMargin={8}
+                                                    domain={[0, 'dataMax + 5']}
+                                                />
+                                                <ChartTooltip
+                                                    cursor={false}
+                                                    content={
+                                                        <ChartTooltipContent
+                                                            indicator="dot"
+                                                            labelFormatter={(_, payload) => `Match ${payload?.[0]?.payload.match}`}
+                                                            formatter={(_, name, item) => (
+                                                                <div className="text-left">
+                                                                    <p className="font-bold">{item.payload.points} Pts</p>
+                                                                    <p className="text-xs text-muted-foreground">{item.payload.tooltip}</p>
+                                                                </div>
+                                                            )}
+                                                        />
+                                                    }
+                                                />
+                                                <Line
+                                                    dataKey="points"
+                                                    type="monotone"
+                                                    stroke="hsl(var(--primary))"
+                                                    strokeWidth={2}
+                                                    dot={{
+                                                        fill: "hsl(var(--primary))",
+                                                        r: 4
+                                                    }}
+                                                    activeDot={{
+                                                        r: 6
+                                                    }}
+                                                />
+                                            </LineChart>
+                                        </ChartContainer>
+                                    ) : (
+                                        <p className="text-center text-muted-foreground py-8">Butuh minimal 2 pertandingan untuk menampilkan tren.</p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                         </TabsContent>
                     </Tabs>
                   </div>
                 </div>
@@ -367,3 +460,4 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
 };
 
     
+
