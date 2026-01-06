@@ -281,7 +281,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="history">Riwayat</TabsTrigger>
                             <TabsTrigger value="upcoming">Sisa Laga</TabsTrigger>
-                            <TabsTrigger value="trend">Tren Poin</TabsTrigger>
+                            <TabsTrigger value="trend">Tren Performa</TabsTrigger>
                         </TabsList>
                         <TabsContent value="history">
                              {completedMatches.length > 0 ? (
@@ -462,3 +462,6 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
 
     
 
+
+
+    
