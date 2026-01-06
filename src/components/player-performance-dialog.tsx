@@ -15,7 +15,7 @@ import { Progress } from './ui/progress';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
@@ -116,6 +116,23 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
     const finalTrendScore = chartData.length > 1 ? chartData[chartData.length - 1].points : 0;
 
+    // Calculate trend for last 5 matches
+    const last5Matches = completedMatches.slice(0, 5);
+    let last5TrendScore = 0;
+    let performanceStatus = null;
+    if (last5Matches.length === 5) {
+        last5Matches.forEach(match => {
+            if (match.result === 'W') last5TrendScore += 1;
+            else if (match.result === 'L') last5TrendScore -=1;
+        });
+
+        if (last5TrendScore === 5) performanceStatus = { text: "Merasa Tak Terkalahkan", color: "text-green-400" };
+        else if (last5TrendScore >= 3) performanceStatus = { text: "Dalam performa yang bagus", color: "text-green-400" };
+        else if (last5TrendScore <= -3 && last5TrendScore > -5) performanceStatus = { text: "Dalam performa yang buruk", color: "text-red-400" };
+        else if (last5TrendScore === -5) performanceStatus = { text: "Pemain sedang ketakutan", color: "text-red-400" };
+    }
+
+
     return {
         completedMatches,
         upcomingMatches,
@@ -124,6 +141,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         totalMatches,
         chartData,
         finalTrendScore,
+        performanceStatus,
     }
 
   }, [player, matches, playersById, teamsById, totalPlayersInSeason]);
@@ -132,7 +150,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   const playerDetails = playersById[player.playerId];
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches, chartData, finalTrendScore } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches, chartData, finalTrendScore, performanceStatus } = performanceStats;
   
    const chartConfig = {
     points: {
@@ -391,6 +409,11 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                             </span>
                                         </div>
                                     </div>
+                                     {performanceStatus && (
+                                        <CardDescription className={cn("text-sm font-bold italic", performanceStatus.color)}>
+                                            "{performanceStatus.text}"
+                                        </CardDescription>
+                                    )}
                                 </CardHeader>
                                 <CardContent>
                                     {chartData.length > 1 ? (
