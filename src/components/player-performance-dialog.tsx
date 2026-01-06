@@ -113,6 +113,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         };
     })];
 
+    const finalTrendScore = chartData.length > 1 ? chartData[chartData.length - 1].points : 0;
 
     return {
         completedMatches,
@@ -120,7 +121,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         winRate,
         seasonProgress,
         totalMatches,
-        chartData
+        chartData,
+        finalTrendScore,
     }
 
   }, [player, matches, playersById, teamsById, totalPlayersInSeason]);
@@ -129,7 +131,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   const playerDetails = playersById[player.playerId];
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches, chartData } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches, chartData, finalTrendScore } = performanceStats;
   
    const chartConfig = {
     points: {
@@ -367,10 +369,22 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                          <TabsContent value="trend">
                             <Card className="mt-4">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-primary">
-                                        <TrendingUp className="w-5 h-5"/>
-                                        Tren Performa
-                                    </CardTitle>
+                                    <div className="flex justify-between items-center">
+                                        <CardTitle className="flex items-center gap-2 text-primary">
+                                            <TrendingUp className="w-5 h-5"/>
+                                            Tren Performa
+                                        </CardTitle>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-sm text-muted-foreground">Nilai Akhir:</span>
+                                            <span className={cn("text-xl font-bold", 
+                                                finalTrendScore > 0 && "text-green-400",
+                                                finalTrendScore < 0 && "text-red-400",
+                                                finalTrendScore === 0 && "text-foreground"
+                                            )}>
+                                                {finalTrendScore > 0 ? `+${finalTrendScore}` : finalTrendScore}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </CardHeader>
                                 <CardContent>
                                     {chartData.length > 1 ? (
@@ -405,8 +419,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                                             labelFormatter={(value, payload) => payload?.[0]?.payload.match === 0 ? "Awal Musim" : `Match ${payload?.[0]?.payload.match}`}
                                                             formatter={(value, name, item) => (
                                                                 <div className="text-left">
-                                                                    <p className="font-bold">{item.payload.points > 0 ? `+${item.payload.points}`: item.payload.points} Pts</p>
                                                                     <p className="text-xs text-muted-foreground">{item.payload.tooltip}</p>
+                                                                    <p className="font-bold">Nilai Tren: {item.payload.points > 0 ? `+${item.payload.points}`: item.payload.points}</p>
                                                                 </div>
                                                             )}
                                                         />
