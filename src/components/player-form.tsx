@@ -19,7 +19,7 @@ import type { Player, Team, WithId, League, LeagueEntry } from '@/lib/types';
 import { useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
@@ -58,6 +58,99 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     [firestore]
   );
   const { data: leagues } = useCollection<League>(leaguesCollection);
+  
+  // --- ONE-TIME DATA MIGRATION SCRIPT ---
+  useEffect(() => {
+    async function pairTeams() {
+        if (!firestore || !players || !teams) return;
+
+        const playerTeamMap: Record<string, string> = {
+            'riki': 'manutd',
+            'firman': 'inter',
+            'alan': 'acmilan',
+            'sulton': 'juventus',
+            'zulfriansah': 'liverpool',
+            'ridwan': 'realmadrid',
+            'hery': 'arsenal',
+            'bagas': 'chelsea',
+            'dapid': 'mancity',
+            'ade-urip': 'barcelona',
+        };
+        
+        // Check if migration has already run to avoid re-running
+        const migrationDocRef = doc(firestore, 'appConfig', 'migrations');
+        const migrationDoc = await getDocs(query(collection(firestore, 'appConfig'), where('name', '==', 'playerTeamPairing20240906')));
+
+        if (!migrationDoc.empty) {
+            console.log("Team pairing migration has already run. Skipping.");
+            return;
+        }
+
+        console.log("Running one-time team pairing migration...");
+        
+        const batch = writeBatch(firestore);
+
+        for (const p of players) {
+            const desiredTeamId = playerTeamMap[p.id];
+            if (desiredTeamId) {
+                const team = teams.find(t => t.id === desiredTeamId);
+                if (team) {
+                    const playerRef = doc(firestore, 'players', p.id);
+                    batch.update(playerRef, {
+                        teamId: team.id,
+                        teamName: team.name,
+                        // teamLogoUrl: team.logoUrl // player data doesn't have this
+                    });
+                     // Also update all league entries
+                    if (leagues) {
+                        for (const lg of leagues) {
+                            const seasonsRef = collection(firestore, `leagues/${lg.id}/seasons`);
+                            const seasonsSnap = await getDocs(seasonsRef);
+                            for (const seasonDoc of seasonsSnap.docs) {
+                                const leagueTableRef = collection(seasonsRef, seasonDoc.id, 'leagueTable');
+                                const q = query(leagueTableRef, where('playerId', '==', p.id));
+                                const leagueEntriesSnap = await getDocs(q);
+                                leagueEntriesSnap.forEach(entryDoc => {
+                                    const entryRef = doc(leagueTableRef, entryDoc.id);
+                                    batch.update(entryRef, {
+                                        teamName: team.name,
+                                        teamId: team.id,
+                                    });
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Mark migration as complete
+        const newMigrationRef = doc(firestore, 'appConfig', 'playerTeamPairing20240906');
+        batch.set(newMigrationRef, { name: 'playerTeamPairing20240906', completedAt: new Date() });
+        
+        try {
+            await batch.commit();
+            toast({
+                title: "Player Teams Re-paired!",
+                description: "Teams have been successfully updated for Season 1 players.",
+            });
+        } catch (error) {
+            console.error("Team pairing migration failed:", error);
+            toast({
+                variant: 'destructive',
+                title: "Migration Failed",
+                description: "Could not update player teams.",
+            });
+        }
+    }
+    
+    // Check if data is loaded before running
+    if (!isLoadingPlayers && !isLoadingTeams && players && teams && leagues) {
+        pairTeams();
+    }
+
+  }, [firestore, players, teams, leagues, isLoadingPlayers, isLoadingTeams, toast]);
+
 
   const formSchemaTranslated = z.object({
     name: z.string().min(2, {
@@ -91,23 +184,19 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
   const teamOptions = React.useMemo(() => {
     if (!teams || !players) return [];
 
-    // Get a set of all team IDs that are already assigned to players.
     const assignedTeamIds = new Set(
       players
-        // If we are editing a player, we must exclude their *current* team from the "assigned" list,
-        // so that their own team remains selectable in the dropdown.
         .filter(p => p.id !== player?.id)
         .map(p => p.teamId)
     );
 
     const availableTeams = teams
-      .filter(team => !assignedTeamIds.has(team.id)) // Filter out teams that are already taken
+      .filter(team => !assignedTeamIds.has(team.id))
       .map(team => ({
         value: team.id,
         label: team.name,
       }));
       
-    // Add a "No Team" option
     return [{ value: '', label: 'Tanpa Tim' }, ...availableTeams];
   }, [teams, players, player]);
 
@@ -130,15 +219,12 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     };
 
     if (player) {
-      // --- Update Flow ---
       const batch = writeBatch(firestore);
       
-      // 1. Update the main player document
       const playerRef = doc(firestore, 'players', player.id);
       batch.update(playerRef, playerData);
 
       try {
-        // 2. Find and update all league entries for this player
         if (leagues) {
             for (const lg of leagues) {
                 const seasonsRef = collection(firestore, `leagues/${lg.id}/seasons`);
@@ -177,7 +263,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
 
 
     } else {
-      // --- Add New Player Flow ---
       const playerId = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       if (!playerId) {
         toast({
@@ -197,7 +282,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
       });
     }
 
-    onSave?.(); // Close the dialog
+    onSave?.();
   };
 
   return (
