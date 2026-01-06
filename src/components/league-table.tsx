@@ -81,9 +81,10 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                 <TableRow 
                   key={entry.id}
                   className={cn(
-                    isFirst && "bg-yellow-500/10 hover:bg-yellow-500/20 text-base",
-                    isUCLZone && "bg-green-500/10 hover:bg-green-500/20",
-                    isLastThree && "bg-red-500/10 hover:bg-red-500/20"
+                    "transition-colors",
+                    isFirst ? "bg-yellow-500/10 hover:bg-yellow-500/20" :
+                    isUCLZone ? "bg-green-500/10 hover:bg-green-500/20" :
+                    isLastThree ? "bg-red-500/10 hover:bg-red-500/20" : "hover:bg-muted/50"
                   )}
                 >
                   <TableCell className={cn("p-0 w-1", 
@@ -249,5 +250,7 @@ function LeagueTableSkeleton() {
     </div>
   );
 }
+
+    
 
     
