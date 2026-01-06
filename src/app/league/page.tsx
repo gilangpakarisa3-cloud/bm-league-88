@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -52,7 +52,6 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from 'lucide-react';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -595,7 +594,7 @@ export default function LeaguePage() {
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
 
-                {activeSeason?.registrationFee && (leagueTable || []).length > 0 && (
+                {activeSeason?.registrationFee && (sortedTable || []).length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -847,6 +846,7 @@ export default function LeaguePage() {
         open={!!selectedPlayerForStats}
         onOpenChange={() => setSelectedPlayerForStats(null)}
         defendingChampionId={previousWinnerId}
+        previousSeasonName={previousCompletedSeason?.name}
       />
 
     </div>

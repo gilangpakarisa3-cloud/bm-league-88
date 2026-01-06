@@ -29,9 +29,10 @@ interface PlayerPerformanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defendingChampionId?: string;
+  previousSeasonName?: string;
 }
 
-export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId }: PlayerPerformanceDialogProps) {
+export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId, previousSeasonName }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
   
   const playersById = useMemo(() => {
@@ -244,6 +245,11 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                         </Avatar>
                         {player.teamName}
                       </DialogDescription>
+                       {isDefendingChampion && previousSeasonName && (
+                        <p className="text-xs font-bold text-yellow-400">
+                          Juara Bertahan - {previousSeasonName}
+                        </p>
+                      )}
                     </div>
                 </DialogHeader>
 
