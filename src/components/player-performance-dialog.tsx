@@ -533,7 +533,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         <DialogContent>
             <DialogHeader>
                 <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5 text-primary"/> Akses Terbatas</DialogTitle>
-                <DialogDescription>Tab ini hanya dapat diakses oleh admin dan <strong>Ade Urip</strong>. Silakan masukkan kata sandi untuk melanjutkan.</DialogDescription>
+                <DialogDescription className="text-foreground">Tab ini hanya dapat diakses oleh admin dan <strong>Ade Urip</strong>. Silakan masukkan kata sandi untuk melanjutkan.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
