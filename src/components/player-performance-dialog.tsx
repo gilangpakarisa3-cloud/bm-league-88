@@ -168,9 +168,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   
   const handleTabChange = (value: string) => {
     if (value === 'trend') {
-      const hasAccess = isAdmin;
-      // If the tab is already unlocked, allow switching. Otherwise, check permissions.
-      if (activeTab === 'trend' || hasAccess) {
+      const hasAccess = isAdmin; // Only admin has direct access now
+      if (hasAccess) {
         setActiveTab('trend');
       } else {
         setPasswordPromptOpen(true);
@@ -534,7 +533,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         <DialogContent>
             <DialogHeader>
                 <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5 text-primary"/> Akses Terbatas</DialogTitle>
-                <DialogDescription>Tab ini hanya dapat diakses oleh admin dan Ade Urip. Silakan masukkan kata sandi untuk melanjutkan.</DialogDescription>
+                <DialogDescription>Tab ini hanya dapat diakses oleh admin dan <strong>Ade Urip</strong>. Silakan masukkan kata sandi untuk melanjutkan.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -574,11 +573,5 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
     const text = isHome ? 'H' : 'A';
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2")}>{text}</Badge>
 };
-
-    
-
-
-
-    
 
     
