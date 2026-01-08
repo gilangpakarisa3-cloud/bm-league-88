@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +46,14 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   const [passwordInput, setPasswordInput] = useState('');
   
   const TREND_TAB_PASSWORD = "buka dong";
+
+  useEffect(() => {
+    // Reset the active tab to 'history' whenever the player prop changes.
+    // This ensures the trend tab is not left open when viewing a new player.
+    if (player) {
+      setActiveTab('history');
+    }
+  }, [player]);
   
   const playersById = useMemo(() => {
     return allPlayers.reduce((acc, p) => {
@@ -161,7 +169,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   const handleTabChange = (value: string) => {
     if (value === 'trend') {
       const hasAccess = isAdmin || player?.playerName.toLowerCase().includes('ade urip');
-      if (hasAccess) {
+      // If the tab is already unlocked, allow switching. Otherwise, check permissions.
+      if (activeTab === 'trend' || hasAccess) {
         setActiveTab('trend');
       } else {
         setPasswordPromptOpen(true);
