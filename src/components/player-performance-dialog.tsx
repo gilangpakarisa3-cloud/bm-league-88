@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useMemo, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, KeyRound } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -18,6 +18,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface PlayerPerformanceDialogProps {
@@ -30,10 +34,18 @@ interface PlayerPerformanceDialogProps {
   onOpenChange: (open: boolean) => void;
   defendingChampionId?: string;
   previousSeasonName?: string;
+  isAdmin: boolean;
 }
 
-export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId, previousSeasonName }: PlayerPerformanceDialogProps) {
+export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId, previousSeasonName, isAdmin }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  
+  const [activeTab, setActiveTab] = useState('history');
+  const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  
+  const TREND_TAB_PASSWORD = "buka dong";
   
   const playersById = useMemo(() => {
     return allPlayers.reduce((acc, p) => {
@@ -145,6 +157,30 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     }
 
   }, [player, matches, playersById, teamsById, totalPlayersInSeason]);
+  
+  const handleTabChange = (value: string) => {
+    if (value === 'trend') {
+      const hasAccess = isAdmin || player?.playerName.toLowerCase().includes('ade urip');
+      if (hasAccess) {
+        setActiveTab('trend');
+      } else {
+        setPasswordPromptOpen(true);
+      }
+    } else {
+      setActiveTab(value);
+    }
+  };
+
+  const handlePasswordSubmit = () => {
+    if (passwordInput === TREND_TAB_PASSWORD) {
+      toast({ title: 'Akses Diberikan', description: 'Tab tren performa telah dibuka.' });
+      setActiveTab('trend');
+      setPasswordPromptOpen(false);
+      setPasswordInput('');
+    } else {
+      toast({ variant: 'destructive', title: 'Kata Sandi Salah', description: 'Anda tidak diizinkan mengakses tab ini.' });
+    }
+  };
 
   if (!player || !performanceStats) return null;
 
@@ -189,6 +225,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md border-primary border-2 p-0">
         <ScrollArea className="max-h-[90vh]">
@@ -303,7 +340,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                         </div>
                     </div>
                   <div className="mt-6 sm:mt-0">
-                    <Tabs defaultValue="history" className="w-full">
+                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="history">Riwayat</TabsTrigger>
                             <TabsTrigger value="upcoming">Sisa Laga</TabsTrigger>
@@ -483,6 +520,32 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         </ScrollArea>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5 text-primary"/> Akses Terbatas</DialogTitle>
+                <DialogDescription>Tab ini hanya dapat diakses oleh admin dan Ade Urip. Silakan masukkan kata sandi untuk melanjutkan.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="trend-password">Kata Sandi</Label>
+                    <Input
+                        id="trend-password"
+                        type="password"
+                        value={passwordInput}
+                        onChange={e => setPasswordInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
+                        className="col-span-3"
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button onClick={handlePasswordSubmit}>Buka</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
@@ -506,5 +569,7 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
     
 
 
+
+    
 
     

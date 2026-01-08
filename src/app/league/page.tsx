@@ -847,10 +847,13 @@ export default function LeaguePage() {
         onOpenChange={() => setSelectedPlayerForStats(null)}
         defendingChampionId={previousWinnerId}
         previousSeasonName={previousCompletedSeason?.name}
+        isAdmin={isAdmin}
       />
 
     </div>
   );
 }
+
+    
 
     
