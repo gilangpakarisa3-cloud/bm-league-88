@@ -168,7 +168,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   
   const handleTabChange = (value: string) => {
     if (value === 'trend') {
-      const hasAccess = isAdmin || player?.playerName.toLowerCase().includes('ade urip');
+      const hasAccess = isAdmin;
       // If the tab is already unlocked, allow switching. Otherwise, check permissions.
       if (activeTab === 'trend' || hasAccess) {
         setActiveTab('trend');
