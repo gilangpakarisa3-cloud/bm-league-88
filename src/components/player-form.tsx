@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Combobox } from './ui/combobox';
-import type { Player, Team, WithId, League, LeagueEntry } from '@/lib/types';
+import type { Player, Team, WithId, League, LeagueEntry, Season } from '@/lib/types';
 import { useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
@@ -138,17 +138,28 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
                 const seasonsRef = collection(firestore, `leagues/${lg.id}/seasons`);
                 const seasonsSnap = await getDocs(seasonsRef);
                 for (const seasonDoc of seasonsSnap.docs) {
+                    const season = seasonDoc.data() as Season;
                     const leagueTableRef = collection(seasonsRef, seasonDoc.id, 'leagueTable');
                     const q = query(leagueTableRef, where('playerId', '==', player.id));
                     const leagueEntriesSnap = await getDocs(q);
                     
                     leagueEntriesSnap.forEach(entryDoc => {
                         const entryRef = doc(leagueTableRef, entryDoc.id);
-                        batch.update(entryRef, { 
+                        
+                        const updateData: {
+                            playerName: string;
+                            teamName?: string;
+                            teamId?: string;
+                        } = {
                             playerName: playerData.name,
-                            teamName: playerData.teamName,
-                            teamId: playerData.teamId,
-                        });
+                        };
+
+                        if (season.status === 'Not Started') {
+                            updateData.teamName = playerData.teamName;
+                            updateData.teamId = playerData.teamId;
+                        }
+
+                        batch.update(entryRef, updateData);
                     });
                 }
             }
