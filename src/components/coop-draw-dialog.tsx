@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -256,38 +255,40 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
     onMovePlayer: (player: PlayerInPot) => void;
     moveIcon: React.ReactNode;
     moveTooltip: string;
-}) => (
-    <Card>
-        <CardHeader>
-            <CardTitle className="text-center text-primary">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <ScrollArea className="h-48">
-                 <div className="space-y-2 pr-4">
-                    {players.map(player => (
-                        <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border">
-                            <span>{player.playerName}</span>
-                             {isAdmin && (
-                               <div className="flex items-center ml-auto">
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
-                                                    {moveIcon}
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{moveTooltip}</p></TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                               </div>
-                           )}
-                        </div>
-                    ))}
-                </div>
-            </ScrollArea>
-        </CardContent>
-    </Card>
-);
+}) => {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-center text-primary">{title} ({players.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <ScrollArea className="h-48">
+                    <div className="space-y-2 pr-4">
+                        {players.map(player => (
+                            <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border">
+                                <span>{player.playerName}</span>
+                                {isAdmin && (
+                                <div className="flex items-center ml-auto">
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
+                                                        {moveIcon}
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent><p>{moveTooltip}</p></TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </div>
+                            )}
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </CardContent>
+        </Card>
+    );
+};
