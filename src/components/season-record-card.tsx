@@ -3,7 +3,7 @@
 import type { SeasonRecord, WithId } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Award, Trash2, Trophy, User } from "lucide-react";
+import { Award, Trash2, Trophy, User, TrendingUp, ShieldAlert } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useTranslation } from "@/hooks/use-translation";
 import { useLanguage } from "@/context/language-context";
@@ -68,6 +68,12 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                 <div className="w-full space-y-2">
                     {record.funStats?.mostWins && (
                         <StatItem icon={Award} label={t('fun_stats_most_wins')} value={record.funStats.mostWins.playerName} tooltip={t('fun_stats_most_wins_tooltip', { value: record.funStats.mostWins.value })} />
+                    )}
+                    {record.funStats?.bestAttacker && (
+                        <StatItem icon={TrendingUp} label={t('fun_stats_best_attacker')} value={record.funStats.bestAttacker.playerName} valueClassName="text-green-400" tooltip={t('fun_stats_best_attacker_tooltip', { value: record.funStats.bestAttacker.value })} />
+                    )}
+                    {record.funStats?.worstDefender && (
+                        <StatItem icon={ShieldAlert} label={t('fun_stats_worst_defense')} value={record.funStats.worstDefender.playerName} valueClassName="text-red-400" tooltip={t('fun_stats_worst_defense_tooltip', { value: record.funStats.worstDefender.value })} />
                     )}
                 </div>
             </CardFooter>
