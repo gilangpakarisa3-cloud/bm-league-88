@@ -243,9 +243,11 @@
   "fun_stats_king_of_draws": "Raja Seri",
   "fun_stats_king_of_draws_desc": "Pemain dengan jumlah seri terbanyak.",
   "fun_stats_championship_contender": "Peluang Juara",
-  "fun_stats_championship_contender_desc": "Pemain dalam jarak 6 poin dari puncak klasemen.",
+  "fun_stats_championship_contender_desc": "Para penantang terdekat untuk gelar juara musim ini.",
   "fun_stats_best_attacker_desc": "Pemain dengan gol terbanyak.",
   "fun_stats_worst_defense_desc": "Pemain dengan jumlah kebobolan terbanyak.",
   "fun_stats_unbeaten": "Tak Terkalahkan",
   "fun_stats_unbeaten_desc": "Pemain yang belum pernah kalah di musim ini."
 }
+
+    

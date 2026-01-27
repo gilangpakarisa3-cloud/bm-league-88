@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from "react";
@@ -70,7 +71,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             kingOfDraws = playersWhoPlayed.filter(p => p.draw === maxDraws && maxDraws > 0);
 
             championshipContenders = tableData
-                .filter(p => p.rank > 1 && (leaderPoints - p.points <= 6))
+                .filter(p => p.rank === 2 || p.rank === 3)
                 .map(p => ({...p, pointsBehind: leaderPoints - p.points }));
         }
 
@@ -259,3 +260,5 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         </div>
     );
 }
+
+    
