@@ -153,7 +153,7 @@ export default function LeaguePage() {
     if (!seasons) return null;
     return seasons
       .filter(s => s.status === 'Completed' && s.id !== activeSeasonId)
-      .sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis())[0];
+      .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())[0];
   }, [seasons, activeSeasonId]);
 
   const previousWinnerDocRef = useMemoFirebase(
@@ -217,10 +217,19 @@ export default function LeaguePage() {
     if (activeSeason?.status === 'Not Started') {
         return [...enrichedTable].sort((a, b) => a.playerName.localeCompare(b.playerName)).map((entry, index) => ({...entry, rank: index + 1}));
     }
+    
+    // Sort logic
+    if (activeSeason?.type === 'Co-Op') {
+      return [...enrichedTable].sort((a, b) => b.points - a.points).map((entry, index) => ({...entry, rank: index + 1}));
+    }
+    
     return [...enrichedTable].sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        return a.playerName.localeCompare(b.playerName);
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+      return a.playerName.localeCompare(b.playerName);
     }).map((entry, index) => ({...entry, rank: index + 1}));
+
   }, [singleLeagueTable, coopLeagueTable, activeSeason, playersById, teamsById]);
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
@@ -252,7 +261,7 @@ export default function LeaguePage() {
       setActiveSeasonId(sortedSeasons[0].id);
     }
     if (seasons && activeSeasonId && !seasons.find(s => s.id === activeSeasonId)) {
-        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
+        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons.length > 0 ? sortedSeasons[0].id : null);
     }
   }, [seasons, activeSeasonId]);
@@ -302,25 +311,36 @@ export default function LeaguePage() {
     const existingMatchesSnap = await getDocs(matchesCollectionRef);
     existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
 
-    // 2. Generate new fixtures (single meeting for Best of 3)
-    for (let i = 0; i < tableToUse.length; i++) {
-        for (let j = i + 1; j < tableToUse.length; j++) {
-            const entry1 = tableToUse[i];
-            const entry2 = tableToUse[j];
+    // 2. Generate new fixtures
+    const meetings = activeSeason.type === 'Co-Op' ? 1 : 2;
 
-            const id1 = activeSeason.type === 'Co-Op' ? entry1.id : (entry1 as WithId<LeagueEntry>).playerId;
-            const id2 = activeSeason.type === 'Co-Op' ? entry2.id : (entry2 as WithId<LeagueEntry>).playerId;
-            
-            const matchData: Omit<Match, 'id' | 'player1Wins' | 'player2Wins'> = {
+    for (let i = 0; i < tableToUse.length; i++) {
+      for (let j = i + 1; j < tableToUse.length; j++) {
+        const entry1 = tableToUse[i];
+        const entry2 = tableToUse[j];
+        
+        const id1 = activeSeason.type === 'Co-Op' ? entry1.id : (entry1 as WithId<LeagueEntry>).playerId;
+        const id2 = activeSeason.type === 'Co-Op' ? entry2.id : (entry2 as WithId<LeagueEntry>).playerId;
+        
+        for (let k = 0; k < meetings; k++) {
+            const player1Id = k === 0 ? id1 : id2;
+            const player2Id = k === 0 ? id2 : id1;
+
+            const matchData: Omit<Match, 'id'> = {
                 seasonId: activeSeasonId,
-                player1Id: id1,
-                player2Id: id2,
+                player1Id: player1Id,
+                player2Id: player2Id,
+                player1Score: null,
+                player2Score: null,
+                player1Wins: null,
+                player2Wins: null,
                 isCompleted: false,
                 matchDate: Timestamp.now(),
             };
             const matchRef = doc(matchesCollectionRef);
             batch.set(matchRef, matchData);
         }
+      }
     }
     
     try {
@@ -404,19 +424,27 @@ export default function LeaguePage() {
     if (!firestore || !deletingSeason) return;
 
     try {
+        const batch = writeBatch(firestore);
+
+        // Delete subcollections' documents
         const subcollections = ['leagueTable', 'matches', 'coopLeagueTable'];
         for (const sub of subcollections) {
             const subcollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${deletingSeason.id}/${sub}`);
             const snapshot = await getDocs(subcollectionRef);
             if (!snapshot.empty) {
-                const batch = writeBatch(firestore);
                 snapshot.docs.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
             }
         }
+        
+        // Delete the Hall of Fame record
+        const hallOfFameRef = doc(firestore, 'hallOfFame', deletingSeason.id);
+        batch.delete(hallOfFameRef);
 
+        // Delete the main season document itself
         const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, deletingSeason.id);
-        await deleteDoc(seasonRef);
+        batch.delete(seasonRef);
+
+        await batch.commit();
 
         toast({ title: t('season_deleted_title'), description: t('season_deleted_desc', { seasonName: deletingSeason.name }) });
 
@@ -459,7 +487,11 @@ export default function LeaguePage() {
             teamName: player.teamName,
             played: 0,
             win: 0,
+            draw: 0,
             loss: 0,
+            goalsFor: 0,
+            goalsAgainst: 0,
+            goalDifference: 0,
             points: 0,
             hasPaid: false,
         };
@@ -553,14 +585,29 @@ export default function LeaguePage() {
    const handleFinishSeason = () => {
     if (!firestore || !activeSeason || sortedTable.length === 0) return;
 
-    // 1. Find winner and calculate fun stats
     const winner = sortedTable[0];
     const playersWhoPlayed = sortedTable.filter(p => p.played > 0);
+    
+    let bestAttacker = null;
+    let worstDefender = null;
+
+    if (activeSeason.type !== 'Co-Op') {
+      const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
+      const bestAttackerPlayer = playersWhoPlayed.find(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
+      if (bestAttackerPlayer) {
+          bestAttacker = { playerName: bestAttackerPlayer.playerName, value: bestAttackerPlayer.goalsFor };
+      }
+
+      const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst || 0));
+      const worstDefenderPlayer = playersWhoPlayed.find(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
+      if (worstDefenderPlayer) {
+          worstDefender = { playerName: worstDefenderPlayer.playerName, value: worstDefenderPlayer.goalsAgainst };
+      }
+    }
 
     const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
     const mostWinsPlayer = playersWhoPlayed.find(p => p.win === maxWins && maxWins > 0);
 
-    // 2. Create the season record object
     const seasonRecord: SeasonRecord = {
         seasonId: activeSeason.id,
         seasonName: activeSeason.name,
@@ -572,18 +619,22 @@ export default function LeaguePage() {
         winnerStats: {
             points: winner.points,
             win: winner.win,
+            draw: winner.draw,
             loss: winner.loss,
+            goalsFor: winner.goalsFor,
+            goalsAgainst: winner.goalsAgainst,
+            goalDifference: winner.goalDifference,
         },
         funStats: {
             mostWins: mostWinsPlayer ? { playerName: mostWinsPlayer.playerName, value: mostWinsPlayer.win } : null,
+            bestAttacker: bestAttacker,
+            worstDefender: worstDefender,
         }
     };
 
-    // 3. Save the record to the hallOfFame collection
     const hallOfFameRef = doc(firestore, `hallOfFame`, activeSeason.id);
     setDocumentNonBlocking(hallOfFameRef, seasonRecord, {});
 
-    // 4. Update the season status
     const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeason.id);
     updateDocumentNonBlocking(seasonRef, { status: 'Completed' });
 
@@ -701,7 +752,7 @@ export default function LeaguePage() {
                                 Undi Pasangan
                             </Button>
                          )}
-                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started' || (sortedTable?.length ?? 0) < 2}>
+                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started' || ((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2}>
                             <RefreshCw className="mr-2 h-4 w-4" />
                             {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
                         </Button>
@@ -745,13 +796,18 @@ export default function LeaguePage() {
                     onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
                     onSelectPlayer={setSelectedPlayerForStats}
                     seasonStatus={activeSeason?.status}
+                    seasonType={activeSeason?.type}
                     isAdmin={isAdmin}
                     defendingChampionId={previousWinnerId}
                 />
             </div>
             <div className="lg:col-span-1 space-y-4">
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
-                <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
+                <LeagueStats 
+                  tableData={sortedTable} 
+                  isLoading={isLoadingTable || isLoadingPlayers}
+                  seasonType={activeSeason?.type}
+                />
 
                 {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && activeSeason.type === 'Single' && (
                     <Card>
