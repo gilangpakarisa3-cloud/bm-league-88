@@ -1,12 +1,13 @@
-
 'use client';
 
 import { useMemo } from "react";
 import type { LeagueEntry, Player, Team, WithId, Season } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import { Award, ShieldCheck, User, ShieldAlert, TrendingUp } from "lucide-react";
+import { Award, ShieldCheck, User, ShieldAlert, TrendingUp, Handshake, Flame } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useTranslation } from "@/hooks/use-translation";
+import { Badge } from "./ui/badge";
 
 const StatCardSkeleton = () => (
     <Card>
@@ -28,6 +29,7 @@ interface LeagueStatsProps {
 }
 
 export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsProps) {
+    const { t } = useTranslation();
     const stats = useMemo(() => {
         if (!tableData || tableData.length === 0) {
             return {
@@ -35,12 +37,14 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 unbeaten: [],
                 bestAttacker: [],
                 worstDefender: [],
+                kingOfDraws: [],
+                championshipContenders: [],
             };
         }
 
         const playersWhoPlayed = tableData.filter(p => p.played > 0);
         if (playersWhoPlayed.length === 0) {
-             return { mostWins: [], unbeaten: [], bestAttacker: [], worstDefender: [] };
+             return { mostWins: [], unbeaten: [], bestAttacker: [], worstDefender: [], kingOfDraws: [], championshipContenders: [] };
         }
 
         const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
@@ -50,6 +54,10 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         
         let bestAttacker: any[] = [];
         let worstDefender: any[] = [];
+        let kingOfDraws: any[] = [];
+        let championshipContenders: any[] = [];
+        const leaderPoints = tableData.length > 0 ? tableData[0].points : 0;
+
 
         if ((seasonType || 'Single') === 'Single') {
             const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
@@ -57,14 +65,23 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             
             const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst || 0));
             worstDefender = playersWhoPlayed.filter(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
+            
+            const maxDraws = Math.max(...playersWhoPlayed.map(p => p.draw || 0));
+            kingOfDraws = playersWhoPlayed.filter(p => p.draw === maxDraws && maxDraws > 0);
+
+            championshipContenders = tableData
+                .filter(p => p.rank > 1 && (leaderPoints - p.points <= 6))
+                .map(p => ({...p, pointsBehind: leaderPoints - p.points }));
         }
 
-        return { mostWins, unbeaten, bestAttacker, worstDefender };
+        return { mostWins, unbeaten, bestAttacker, worstDefender, kingOfDraws, championshipContenders };
     }, [tableData, seasonType]);
 
     if (isLoading) {
         return (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+                <StatCardSkeleton />
+                <StatCardSkeleton />
                 <StatCardSkeleton />
                 <StatCardSkeleton />
             </div>
@@ -73,7 +90,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
     
     const showUnbeaten = stats.unbeaten.length > 0;
 
-    if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.worstDefender.length === 0) {
+    if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.worstDefender.length === 0 && stats.kingOfDraws.length === 0 && stats.championshipContenders.length === 0) {
         return (
              <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
@@ -91,10 +108,10 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                         <div className="flex items-center gap-2">
                              <Award className="text-primary h-5 w-5"/>
                             <CardTitle className="text-base font-bold text-foreground">
-                                Raja Kemenangan
+                                {t('fun_stats_most_wins')}
                             </CardTitle>
                         </div>
-                        <CardDescription className="text-xs pt-1">Pemain dengan jumlah kemenangan terbanyak.</CardDescription>
+                        <CardDescription className="text-xs pt-1">{t('fun_stats_most_wins_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.mostWins.map(player => (
@@ -116,14 +133,64 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
+             {(seasonType || 'Single') === 'Single' && stats.kingOfDraws.length > 0 && (
+                <Card className="bg-card border-2 border-primary">
+                    <CardHeader className="pb-2">
+                        <div className="flex items-center gap-2">
+                            <Handshake className="text-primary h-5 w-5"/>
+                            <CardTitle className="text-base font-bold text-foreground">
+                                {t('fun_stats_king_of_draws')}
+                            </CardTitle>
+                        </div>
+                        <CardDescription className="text-xs pt-1">{t('fun_stats_king_of_draws_desc')}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-4">
+                        {stats.kingOfDraws.map(player => (
+                             <div key={player.id} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8"><AvatarImage src={player.team?.logoUrl} alt={player.playerName} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                    <div><p className="text-sm font-semibold">{player.playerName}</p><p className="text-xs text-muted-foreground">{player.teamName}</p></div>
+                                </div>
+                                <span className="text-2xl font-bold text-yellow-400">{player.draw} <span className="text-sm">kali</span></span>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
+
+            {(seasonType || 'Single') === 'Single' && stats.championshipContenders.length > 0 && (
+                <Card className="bg-card border-2 border-primary">
+                    <CardHeader className="pb-2">
+                        <div className="flex items-center gap-2">
+                            <Flame className="text-primary h-5 w-5"/>
+                            <CardTitle className="text-base font-bold text-foreground">
+                                {t('fun_stats_championship_contender')}
+                            </CardTitle>
+                        </div>
+                        <CardDescription className="text-xs pt-1">{t('fun_stats_championship_contender_desc')}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-4">
+                        {stats.championshipContenders.map(player => (
+                             <div key={player.id} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8"><AvatarImage src={player.team?.logoUrl} alt={player.playerName} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                    <div><p className="text-sm font-semibold">{player.playerName}</p><p className="text-xs text-muted-foreground">{player.teamName}</p></div>
+                                </div>
+                                <Badge variant="outline" className="text-primary border-primary">-{player.pointsBehind} Poin</Badge>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
+
             {(seasonType || 'Single') === 'Single' && stats.bestAttacker.length > 0 && (
                  <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
                             <TrendingUp className="text-primary h-5 w-5"/>
-                            <CardTitle className="text-base font-bold text-foreground">Penyerang Terbaik</CardTitle>
+                            <CardTitle className="text-base font-bold text-foreground">{t('fun_stats_best_attacker')}</CardTitle>
                         </div>
-                        <CardDescription className="text-xs pt-1">Pemain dengan gol terbanyak.</CardDescription>
+                        <CardDescription className="text-xs pt-1">{t('fun_stats_best_attacker_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.bestAttacker.map(player => (
@@ -145,10 +212,10 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                        <div className="flex items-center gap-2">
                          <ShieldCheck className="text-primary h-5 w-5"/>
                         <CardTitle className="text-base font-bold text-foreground">
-                            Tak Terkalahkan
+                            {t('fun_stats_unbeaten')}
                         </CardTitle>
                        </div>
-                       <CardDescription className="text-xs pt-1">Pemain yang belum pernah kalah di musim ini.</CardDescription>
+                       <CardDescription className="text-xs pt-1">{t('fun_stats_unbeaten_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.unbeaten.map(player => (
@@ -172,9 +239,9 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
                             <ShieldAlert className="text-destructive h-5 w-5"/>
-                            <CardTitle className="text-base font-bold text-foreground">Pertahanan Terburuk</CardTitle>
+                            <CardTitle className="text-base font-bold text-foreground">{t('fun_stats_worst_defense')}</CardTitle>
                         </div>
-                        <CardDescription className="text-xs pt-1">Pemain dengan jumlah kebobolan terbanyak.</CardDescription>
+                        <CardDescription className="text-xs pt-1">{t('fun_stats_worst_defense_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                         {stats.worstDefender.map(player => (

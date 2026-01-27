@@ -213,7 +213,7 @@
   "hall_of_fame_desc": "Sejarah para juara dan legenda dari musim-musim sebelumnya.",
   "hall_of_fame_empty_title": "Daftar Juara Masih Kosong",
   "hall_of_fame_empty_desc": "Belum ada musim yang selesai. Sang juara pertama menanti tempatnya dalam sejarah.",
-  "fun_stats_most_wins": "Kemenangan Terbanyak",
+  "fun_stats_most_wins": "Raja Kemenangan",
   "fun_stats_most_wins_tooltip": "Dengan {{value}} kemenangan",
   "fun_stats_best_attacker": "Penyerang Terbaik",
   "fun_stats_best_attacker_tooltip": "Mencetak {{value}} gol",
@@ -238,5 +238,14 @@
   "manage_admin_password_button": "Kelola Kata Sandi Admin",
   "record_deleted_title": "Catatan Dihapus",
   "record_deleted_desc": "Catatan untuk '{{seasonName}}' telah dihapus dari Daftar Juara.",
-  "delete_record_confirm_desc": "Ini akan menghapus catatan untuk '{{seasonName}}' secara permanen. Tindakan ini tidak dapat dibatalkan."
+  "delete_record_confirm_desc": "Ini akan menghapus catatan untuk '{{seasonName}}' secara permanen. Tindakan ini tidak dapat dibatalkan.",
+  "fun_stats_most_wins_desc": "Pemain dengan jumlah kemenangan terbanyak.",
+  "fun_stats_king_of_draws": "Raja Seri",
+  "fun_stats_king_of_draws_desc": "Pemain dengan jumlah seri terbanyak.",
+  "fun_stats_championship_contender": "Peluang Juara",
+  "fun_stats_championship_contender_desc": "Pemain dalam jarak 6 poin dari puncak klasemen.",
+  "fun_stats_best_attacker_desc": "Pemain dengan gol terbanyak.",
+  "fun_stats_worst_defense_desc": "Pemain dengan jumlah kebobolan terbanyak.",
+  "fun_stats_unbeaten": "Tak Terkalahkan",
+  "fun_stats_unbeaten_desc": "Pemain yang belum pernah kalah di musim ini."
 }

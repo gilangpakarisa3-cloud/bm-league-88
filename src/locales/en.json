@@ -238,5 +238,14 @@
   "manage_admin_password_button": "Manage Admin Password",
   "record_deleted_title": "Record Deleted",
   "record_deleted_desc": "'{{seasonName}}' has been removed from the Hall of Fame.",
-  "delete_record_confirm_desc": "This will permanently delete the record for '{{seasonName}}'. This action cannot be undone."
+  "delete_record_confirm_desc": "This will permanently delete the record for '{{seasonName}}'. This action cannot be undone.",
+  "fun_stats_most_wins_desc": "Player with the most wins.",
+  "fun_stats_king_of_draws": "King of Draws",
+  "fun_stats_king_of_draws_desc": "Player with the most draws.",
+  "fun_stats_championship_contender": "Championship Contenders",
+  "fun_stats_championship_contender_desc": "Players within 6 points of the leader.",
+  "fun_stats_unbeaten": "Unbeaten",
+  "fun_stats_unbeaten_desc": "Players who have not lost a match this season.",
+  "fun_stats_best_attacker_desc": "Player with the most goals scored.",
+  "fun_stats_worst_defense_desc": "Player with the most goals conceded."
 }
