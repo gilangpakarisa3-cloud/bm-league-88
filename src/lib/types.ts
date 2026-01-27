@@ -20,6 +20,8 @@ export type Player = {
   overallGoalsAgainst: number;
 };
 
+export type PlayerWithTeam = WithId<Player> & { teamId: string, teamName: string };
+
 export type League = {
   name: string;
   currentSeasonId?: string;

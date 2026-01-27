@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp } from 'firebase/firestore';
-import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord, CoOpLeagueEntry } from '@/lib/types';
+import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord, CoOpLeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -53,7 +53,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CoopDrawDialog, DrawnPair } from '@/components/coop-draw-dialog';
+import { CoopDrawDialog } from '@/components/coop-draw-dialog';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -424,7 +424,7 @@ export default function LeaguePage() {
     setShowRegisterPlayers(false);
   };
 
-  const handleSavePairs = async (pairs: DrawnPair[]) => {
+  const handleSavePairs = async (pairs: { player1: PlayerWithTeam; player2: PlayerWithTeam; teamId: string; teamName: string }[]) => {
     if (!firestore || !activeSeasonId) return;
 
     const batch = writeBatch(firestore);
@@ -437,12 +437,12 @@ export default function LeaguePage() {
             teamName: `${pair.player1.name} & ${pair.player2.name}`,
             player1Id: pair.player1.id,
             player1Name: pair.player1.name,
-            player1TeamId: pair.player1.teamId,
-            player1TeamName: pair.player1.teamName,
+            player1TeamId: pair.teamId,
+            player1TeamName: pair.teamName,
             player2Id: pair.player2.id,
             player2Name: pair.player2.name,
-            player2TeamId: pair.player2.teamId,
-            player2TeamName: pair.player2.teamName,
+            player2TeamId: pair.teamId,
+            player2TeamName: pair.teamName,
             played: 0, win: 0, draw: 0, loss: 0,
             goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0,
         };

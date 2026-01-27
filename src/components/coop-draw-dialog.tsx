@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
-import type { WithId, Season, Player, LeagueEntry, Team } from '@/lib/types';
+import type { WithId, Season, Player, LeagueEntry, Team, PlayerWithTeam } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Users, Swords, Trash2, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -18,7 +18,6 @@ import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 const LEAGUE_ID = 'main-league';
 const SEED_POT_SIZE = 8; // Top 8 players from previous season go to Pot 1
 
-type PlayerWithTeam = WithId<Player> & { teamId: string, teamName: string };
 export type DrawnPair = { player1: PlayerWithTeam, player2: PlayerWithTeam };
 type PlayerInPot = WithId<LeagueEntry> & { prevRank: number };
 
@@ -29,7 +28,7 @@ interface CoopDrawDialogProps {
   allTeams: WithId<Team>[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSavePairs: (pairs: DrawnPair[]) => void;
+  onSavePairs: (pairs: { player1: PlayerWithTeam; player2: PlayerWithTeam; teamId: string; teamName: string }[]) => void;
   isAdmin: boolean;
   onRemovePlayer: (leagueEntryId: string, playerName: string) => void;
 }
@@ -53,7 +52,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
   const [pot1, setPot1] = useState<PlayerInPot[]>([]);
   const [pot2, setPot2] = useState<PlayerInPot[]>([]);
   const [drawnPairs, setDrawnPairs] = useState<{player1: PlayerInPot, player2: PlayerInPot}[] | null>(null);
-  const [playerTeams, setPlayerTeams] = useState<Record<string, string>>({}); // playerId -> teamId map
+  const [pairTeams, setPairTeams] = useState<Record<string, string>>({}); // pairId -> teamId map
   
   const allPlayersMap = useMemo(() => {
     return allPlayers.reduce((acc, p) => {
@@ -68,15 +67,8 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
     const findPreviousSeason = async () => {
         setIsLoading(true);
         setDrawnPairs(null); // Reset drawn pairs when dialog opens
+        setPairTeams({});
         
-        const teamMap: Record<string, string> = {};
-        registeredPlayers.forEach(p => {
-          const playerInfo = allPlayersMap[p.playerId];
-          // use player's default team if available
-          teamMap[p.playerId] = playerInfo?.teamId || 'no-team';
-        });
-        setPlayerTeams(teamMap);
-
         // 1. Find the most recent 'Completed' season
         const seasonsQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc'));
         const seasonsSnap = await getDocs(seasonsQuery);
@@ -104,7 +96,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
     };
 
     findPreviousSeason();
-  }, [open, firestore, toast, registeredPlayers, allPlayersMap]);
+  }, [open, firestore, toast]);
   
   useEffect(() => {
       if (isLoading || !previousSeason || registeredPlayers.length === 0) {
@@ -144,8 +136,8 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
     }
   }, []);
 
-  const handleTeamChange = useCallback((playerId: string, teamId: string) => {
-    setPlayerTeams(prev => ({ ...prev, [playerId]: teamId }));
+  const handlePairTeamChange = useCallback((pairId: string, teamId: string) => {
+    setPairTeams(prev => ({ ...prev, [pairId]: teamId }));
   }, []);
   
   const handleDraw = useCallback(() => {
@@ -179,29 +171,30 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
   const handleFinalSave = () => {
     if (!drawnPairs) return;
 
-    const pairsToSave: DrawnPair[] = drawnPairs.map(pair => {
-        const p1Details = allPlayersMap[pair.player1.playerId];
-        const p2Details = allPlayersMap[pair.player2.playerId];
-        
-        const p1TeamId = playerTeams[p1Details.id] || 'no-team';
-        const p1Team = allTeams.find(t => t.id === p1TeamId);
-
-        const p2TeamId = playerTeams[p2Details.id] || 'no-team';
-        const p2Team = allTeams.find(t => t.id === p2TeamId);
-
-        return { 
-            player1: {
-                ...p1Details,
-                teamId: p1TeamId === 'no-team' ? '' : p1TeamId,
-                teamName: p1Team?.name || 'Tanpa Tim'
-            }, 
-            player2: {
-                ...p2Details,
-                teamId: p2TeamId === 'no-team' ? '' : p2TeamId,
-                teamName: p2Team?.name || 'Tanpa Tim'
-            }
-        };
+    // Check if all pairs have a team selected
+    const allTeamsSelected = drawnPairs.every(pair => {
+      const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
+      return pairTeams[pairId] && pairTeams[pairId] !== 'no-team';
     });
+
+    if (!allTeamsSelected) {
+      toast({ variant: 'destructive', title: "Tim Belum Dipilih", description: "Harap pilih satu tim untuk setiap pasangan." });
+      return;
+    }
+
+    const pairsToSave = drawnPairs.map(pair => {
+      const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
+      const teamId = pairTeams[pairId];
+      const team = allTeams.find(t => t.id === teamId)!;
+
+      return { 
+        player1: allPlayersMap[pair.player1.playerId],
+        player2: allPlayersMap[pair.player2.playerId],
+        teamId: team.id,
+        teamName: team.name,
+      };
+    });
+
     onSavePairs(pairsToSave);
   }
 
@@ -253,58 +246,38 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
                 <h3 className="text-lg font-semibold text-center mb-2 text-primary">Hasil Undian & Pemilihan Tim</h3>
                 <div className="border rounded-md p-4 space-y-3">
                      {drawnPairs.map((pair, index) => {
+                        const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
                         const player1 = allPlayersMap[pair.player1.playerId];
                         const player2 = allPlayersMap[pair.player2.playerId];
                         
                         return (
                             <div key={index} className="p-3 bg-card rounded-md border">
                                 <p className="text-sm font-bold text-center mb-3 text-primary/80">Pasangan {index + 1}</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 items-start">
-                                    {/* Player 1 */}
-                                    <div className="space-y-1">
-                                        <div className="font-semibold text-sm flex items-center gap-2">
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 items-center mb-3">
+                                     <div className="font-semibold text-sm flex items-center gap-2">
                                            <Avatar className="h-6 w-6"><AvatarFallback>{player1.name.charAt(0)}</AvatarFallback></Avatar>
                                            {player1.name}
-                                        </div>
-                                        <Select
-                                            value={playerTeams[player1.id] || 'no-team'}
-                                            onValueChange={(teamId) => handleTeamChange(player1.id, teamId)}
-                                            disabled={!isAdmin}
-                                        >
-                                            <SelectTrigger className="h-9 text-xs">
-                                                <SelectValue placeholder="Pilih tim..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="no-team">Tanpa Tim</SelectItem>
-                                                {allTeams.map(team => (
-                                                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    {/* Player 2 */}
-                                     <div className="space-y-1">
-                                        <div className="font-semibold text-sm flex items-center gap-2">
-                                            <Avatar className="h-6 w-6"><AvatarFallback>{player2.name.charAt(0)}</AvatarFallback></Avatar>
-                                            {player2.name}
-                                        </div>
-                                        <Select
-                                            value={playerTeams[player2.id] || 'no-team'}
-                                            onValueChange={(teamId) => handleTeamChange(player2.id, teamId)}
-                                            disabled={!isAdmin}
-                                        >
-                                            <SelectTrigger className="h-9 text-xs">
-                                                <SelectValue placeholder="Pilih tim..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="no-team">Tanpa Tim</SelectItem>
-                                                {allTeams.map(team => (
-                                                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                     </div>
+                                     <div className="font-semibold text-sm flex items-center gap-2">
+                                           <Avatar className="h-6 w-6"><AvatarFallback>{player2.name.charAt(0)}</AvatarFallback></Avatar>
+                                           {player2.name}
+                                     </div>
                                 </div>
+                                <Select
+                                    value={pairTeams[pairId] || 'no-team'}
+                                    onValueChange={(teamId) => handlePairTeamChange(pairId, teamId)}
+                                    disabled={!isAdmin}
+                                >
+                                    <SelectTrigger className="h-9 text-xs w-full">
+                                        <SelectValue placeholder="Pilih tim untuk pasangan ini..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="no-team" disabled>Pilih Tim...</SelectItem>
+                                        {allTeams.map(team => (
+                                            <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         )
                     })}
@@ -379,6 +352,3 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
         </Card>
     );
 };
-
-
-    
