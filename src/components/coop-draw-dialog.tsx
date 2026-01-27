@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -71,7 +72,8 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
         const teamMap: Record<string, string> = {};
         registeredPlayers.forEach(p => {
           const playerInfo = allPlayersMap[p.playerId];
-          teamMap[p.playerId] = playerInfo?.teamId || p.teamId;
+          // use player's default team if available
+          teamMap[p.playerId] = playerInfo?.teamId || 'no-team';
         });
         setPlayerTeams(teamMap);
 
@@ -181,23 +183,21 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
         const p1Details = allPlayersMap[pair.player1.playerId];
         const p2Details = allPlayersMap[pair.player2.playerId];
         
-        let p1TeamId = playerTeams[p1Details.id] || 'no-team';
-        if (p1TeamId === 'no-team') p1TeamId = '';
+        const p1TeamId = playerTeams[p1Details.id] || 'no-team';
         const p1Team = allTeams.find(t => t.id === p1TeamId);
 
-        let p2TeamId = playerTeams[p2Details.id] || 'no-team';
-        if (p2TeamId === 'no-team') p2TeamId = '';
+        const p2TeamId = playerTeams[p2Details.id] || 'no-team';
         const p2Team = allTeams.find(t => t.id === p2TeamId);
 
         return { 
             player1: {
                 ...p1Details,
-                teamId: p1TeamId,
+                teamId: p1TeamId === 'no-team' ? '' : p1TeamId,
                 teamName: p1Team?.name || 'Tanpa Tim'
             }, 
             player2: {
                 ...p2Details,
-                teamId: p2TeamId,
+                teamId: p2TeamId === 'no-team' ? '' : p2TeamId,
                 teamName: p2Team?.name || 'Tanpa Tim'
             }
         };
@@ -235,9 +235,6 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
                     onMovePlayer={(player) => handleMovePlayer(player, 'pot2')}
                     moveIcon={<ArrowDownCircle className="h-4 w-4 text-amber-500" />}
                     moveTooltip="Pindahkan ke Pot 2"
-                    allTeams={allTeams}
-                    playerTeams={playerTeams}
-                    onTeamChange={handleTeamChange}
                 />
                 <PotDisplay 
                     title="Pot 2" 
@@ -247,26 +244,70 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
                     onMovePlayer={(player) => handleMovePlayer(player, 'pot1')}
                     moveIcon={<ArrowUpCircle className="h-4 w-4 text-green-500" />}
                     moveTooltip="Pindahkan ke Pot 1 (Unggulan)"
-                    allTeams={allTeams}
-                    playerTeams={playerTeams}
-                    onTeamChange={handleTeamChange}
                 />
              </div>
         )}
 
         {drawnPairs && (
             <div className="mt-4">
-                <h3 className="text-lg font-semibold text-center mb-2">Hasil Undian</h3>
-                <div className="border rounded-md p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {drawnPairs.map((pair, index) => (
-                             <div key={index} className="flex items-center justify-center gap-2 p-2 bg-muted rounded-md text-sm">
-                                <span className="font-semibold">{pair.player1.playerName}</span>
-                                <span className="text-primary">&</span>
-                                <span className="font-semibold">{pair.player2.playerName}</span>
+                <h3 className="text-lg font-semibold text-center mb-2 text-primary">Hasil Undian & Pemilihan Tim</h3>
+                <div className="border rounded-md p-4 space-y-3">
+                     {drawnPairs.map((pair, index) => {
+                        const player1 = allPlayersMap[pair.player1.playerId];
+                        const player2 = allPlayersMap[pair.player2.playerId];
+                        
+                        return (
+                            <div key={index} className="p-3 bg-card rounded-md border">
+                                <p className="text-sm font-bold text-center mb-3 text-primary/80">Pasangan {index + 1}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 items-start">
+                                    {/* Player 1 */}
+                                    <div className="space-y-1">
+                                        <div className="font-semibold text-sm flex items-center gap-2">
+                                           <Avatar className="h-6 w-6"><AvatarFallback>{player1.name.charAt(0)}</AvatarFallback></Avatar>
+                                           {player1.name}
+                                        </div>
+                                        <Select
+                                            value={playerTeams[player1.id] || 'no-team'}
+                                            onValueChange={(teamId) => handleTeamChange(player1.id, teamId)}
+                                            disabled={!isAdmin}
+                                        >
+                                            <SelectTrigger className="h-9 text-xs">
+                                                <SelectValue placeholder="Pilih tim..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="no-team">Tanpa Tim</SelectItem>
+                                                {allTeams.map(team => (
+                                                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    {/* Player 2 */}
+                                     <div className="space-y-1">
+                                        <div className="font-semibold text-sm flex items-center gap-2">
+                                            <Avatar className="h-6 w-6"><AvatarFallback>{player2.name.charAt(0)}</AvatarFallback></Avatar>
+                                            {player2.name}
+                                        </div>
+                                        <Select
+                                            value={playerTeams[player2.id] || 'no-team'}
+                                            onValueChange={(teamId) => handleTeamChange(player2.id, teamId)}
+                                            disabled={!isAdmin}
+                                        >
+                                            <SelectTrigger className="h-9 text-xs">
+                                                <SelectValue placeholder="Pilih tim..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="no-team">Tanpa Tim</SelectItem>
+                                                {allTeams.map(team => (
+                                                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
+                        )
+                    })}
                 </div>
             </div>
         )}
@@ -289,7 +330,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
   );
 }
 
-const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, moveTooltip, allTeams, playerTeams, onTeamChange }: { 
+const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, moveTooltip }: { 
     title: string;
     players: PlayerInPot[];
     isAdmin: boolean;
@@ -297,9 +338,6 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
     onMovePlayer: (player: PlayerInPot) => void;
     moveIcon: React.ReactNode;
     moveTooltip: string;
-    allTeams: WithId<Team>[];
-    playerTeams: Record<string, string>;
-    onTeamChange: (playerId: string, teamId: string) => void;
 }) => {
     return (
         <Card>
@@ -309,33 +347,12 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
             <CardContent>
                 <div className="space-y-2">
                     {players.map(player => {
-                        const teamId = playerTeams[player.playerId];
-                        const team = allTeams.find(t => t.id === teamId);
                         return (
                             <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border gap-2">
                                 <div className="flex items-center gap-2">
-                                    <Avatar className="h-6 w-6">
-                                        <AvatarImage src={team?.logoUrl} />
-                                        <AvatarFallback>{team?.name?.charAt(0) || <User className="w-4 h-4" />}</AvatarFallback>
-                                    </Avatar>
                                     <span className="font-semibold">{player.playerName}</span>
                                 </div>
-                                <div className="flex items-center gap-2 ml-auto">
-                                    <Select
-                                        value={playerTeams[player.playerId] || 'no-team'}
-                                        onValueChange={(teamId) => onTeamChange(player.playerId, teamId)}
-                                        disabled={!isAdmin}
-                                    >
-                                        <SelectTrigger className="w-[150px] h-8 text-xs">
-                                            <SelectValue placeholder="Pilih tim..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="no-team">Tanpa Tim</SelectItem>
-                                            {allTeams.map(team => (
-                                                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                <div className="flex items-center gap-1 ml-auto">
                                     {isAdmin && (
                                     <div className="flex items-center">
                                             <TooltipProvider>
@@ -362,3 +379,6 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
         </Card>
     );
 };
+
+
+    
