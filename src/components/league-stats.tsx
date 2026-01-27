@@ -73,7 +73,7 @@ const ChampionChanceCard = ({ topContenders }: { topContenders: (WithId<LeagueEn
             </CardHeader>
             <CardContent>
                  <CardDescription className="text-xs pt-1 mb-4">
-                    Berdasarkan poin, sisa laga & selisih gol.
+                    Berdasarkan poin dan selisih gol saat ini.
                 </CardDescription>
                 <div className="space-y-4 pt-4">
                     {topContenders.map((player, index) => (
@@ -140,7 +140,6 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
         const mostDraws = playersWhoPlayed.filter(p => p.draw === maxDraws && maxDraws > 0);
         
         // --- Champion Chance Logic ---
-        const totalMatchesPerPlayer = (tableData.length - 1) * 2;
         let topContenders: (WithId<LeagueEntry> & { chance: number })[] = [];
 
         // Only calculate chance if at least one match has been played
@@ -148,10 +147,8 @@ export function LeagueStats({ tableData, isLoading }: LeagueStatsProps) {
 
         if (anyMatchPlayed) {
             const contenders = tableData.map(player => {
-                const matchesLeft = totalMatchesPerPlayer - player.played;
-                const potentialPoints = matchesLeft * 3;
-                // Simple scoring: current points + potential points + goal difference as tie-breaker
-                const chanceScore = player.points + potentialPoints + (player.goalDifference * 0.1);
+                // The chance score is now based only on current points and goal difference as a tie-breaker.
+                const chanceScore = player.points + (player.goalDifference * 0.01);
                 return { ...player, chanceScore };
             });
 
