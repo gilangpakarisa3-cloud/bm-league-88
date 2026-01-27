@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -18,10 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { useToast } from '@/hooks/use-toast';
 
 
 interface PlayerPerformanceDialogProps {
@@ -41,17 +36,11 @@ interface PlayerPerformanceDialogProps {
 
 export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId, previousSeasonName, isAdmin, activeSeason, coopLeagueTable }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
-  const { toast } = useToast();
   
   const [activeTab, setActiveTab] = useState('history');
-  const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
   
-  const TREND_TAB_PASSWORD = "buka dong";
-
   useEffect(() => {
     // Reset the active tab to 'history' whenever the player prop changes.
-    // This ensures the trend tab is not left open when viewing a new player.
     if (player) {
       setActiveTab('history');
     }
@@ -205,30 +194,6 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     }
 
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable]);
-  
-  const handleTabChange = (value: string) => {
-    if (value === 'trend') {
-      const hasAccess = isAdmin; // Only admin has direct access now
-      if (hasAccess) {
-        setActiveTab('trend');
-      } else {
-        setPasswordPromptOpen(true);
-      }
-    } else {
-      setActiveTab(value);
-    }
-  };
-
-  const handlePasswordSubmit = () => {
-    if (passwordInput === TREND_TAB_PASSWORD) {
-      toast({ title: 'Akses Diberikan', description: 'Tab tren performa telah dibuka.' });
-      setActiveTab('trend');
-      setPasswordPromptOpen(false);
-      setPasswordInput('');
-    } else {
-      toast({ variant: 'destructive', title: 'Kata Sandi Salah', description: 'Anda tidak diizinkan mengakses tab ini.' });
-    }
-  };
 
   if (!player || !performanceStats) return null;
 
@@ -387,7 +352,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                         </div>
                     </div>
                   <div className="mt-6 sm:mt-0">
-                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="history">Riwayat</TabsTrigger>
                             <TabsTrigger value="upcoming">Sisa Laga</TabsTrigger>
@@ -565,31 +530,6 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
             </div>
         </ScrollArea>
       </DialogContent>
-    </Dialog>
-
-    <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5 text-primary"/> Akses Terbatas</DialogTitle>
-                <DialogDescription className="text-foreground">Tab ini hanya dapat diakses oleh admin dan <strong>Ade Urip</strong>. Silakan masukkan kata sandi untuk melanjutkan.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="trend-password">Kata Sandi</Label>
-                    <Input
-                        id="trend-password"
-                        type="password"
-                        value={passwordInput}
-                        onChange={e => setPasswordInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
-                        className="col-span-3"
-                    />
-                </div>
-            </div>
-            <DialogFooter>
-                <Button onClick={handlePasswordSubmit}>Buka</Button>
-            </DialogFooter>
-        </DialogContent>
     </Dialog>
     </>
   );
