@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from "react";
@@ -24,7 +23,7 @@ const StatCardSkeleton = () => (
 interface LeagueStatsProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>; team?: WithId<Team> })[];
   isLoading?: boolean;
-  seasonType: Season['type'];
+  seasonType?: Season['type'];
 }
 
 export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsProps) {
@@ -46,7 +45,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
         const mostWins = playersWhoPlayed.filter(p => p.win === maxWins && maxWins > 0);
 
-        const unbeaten = playersWhoPlayed.filter(p => p.loss === 0);
+        const unbeaten = playersWhoPlayed.filter(p => p.loss === 0 && p.played > 0);
         
         let bestAttacker: any[] = [];
         let worstDefender: any[] = [];
