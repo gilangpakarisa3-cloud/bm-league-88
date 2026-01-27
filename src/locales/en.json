@@ -235,5 +235,8 @@
   "set_password": "Set Password",
   "settings_page_title": "Application Settings",
   "settings_page_subtitle": "Manage global settings for the application.",
-  "manage_admin_password_button": "Manage Admin Password"
+  "manage_admin_password_button": "Manage Admin Password",
+  "record_deleted_title": "Record Deleted",
+  "record_deleted_desc": "'{{seasonName}}' has been removed from the Hall of Fame.",
+  "delete_record_confirm_desc": "This will permanently delete the record for '{{seasonName}}'. This action cannot be undone."
 }

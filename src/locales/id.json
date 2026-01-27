@@ -235,5 +235,8 @@
   "set_password": "Atur Kata Sandi",
   "settings_page_title": "Pengaturan Aplikasi",
   "settings_page_subtitle": "Kelola pengaturan global untuk aplikasi.",
-  "manage_admin_password_button": "Kelola Kata Sandi Admin"
+  "manage_admin_password_button": "Kelola Kata Sandi Admin",
+  "record_deleted_title": "Catatan Dihapus",
+  "record_deleted_desc": "Catatan untuk '{{seasonName}}' telah dihapus dari Daftar Juara.",
+  "delete_record_confirm_desc": "Ini akan menghapus catatan untuk '{{seasonName}}' secara permanen. Tindakan ini tidak dapat dibatalkan."
 }

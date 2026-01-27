@@ -1,13 +1,13 @@
-
 'use client';
 
 import type { SeasonRecord, WithId } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Award, Flame, ShieldAlert, Star, Trophy, User } from "lucide-react";
+import { Award, Trash2, Trophy, User } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useTranslation } from "@/hooks/use-translation";
 import { useLanguage } from "@/context/language-context";
+import { Button } from "./ui/button";
 
 const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip }: { icon: React.ElementType, label: string, value: string, valueClassName?: string, tooltip: string }) => (
     <TooltipProvider>
@@ -27,7 +27,7 @@ const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip }: { icon:
 );
 
 
-export function SeasonRecordCard({ record }: { record: WithId<SeasonRecord>}) {
+export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId<SeasonRecord>, isAdmin?: boolean, onDelete?: () => void }) {
     const { t } = useTranslation();
     const { language } = useLanguage();
     
@@ -35,7 +35,14 @@ export function SeasonRecordCard({ record }: { record: WithId<SeasonRecord>}) {
 
     return (
         <Card className="flex flex-col overflow-hidden border-2 bg-card border-primary/50 hover:border-primary transition-all duration-300 shadow-lg hover:shadow-primary/20">
-            <CardHeader className="text-center p-4 bg-secondary/30">
+            <CardHeader className="text-center p-4 bg-secondary/30 relative">
+                 {isAdmin && onDelete && (
+                    <div className="absolute top-2 right-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onDelete}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                    </div>
+                )}
                 <CardTitle className="text-lg font-bold text-primary">{record.seasonName}</CardTitle>
                 <CardDescription>{new Date(record.completedAt.toDate()).toLocaleDateString(dateLocale, { year: 'numeric', month: 'long' })}</CardDescription>
             </CardHeader>
