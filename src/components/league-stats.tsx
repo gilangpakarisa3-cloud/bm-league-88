@@ -52,10 +52,10 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         let worstDefender: any[] = [];
 
         if (seasonType === 'Single') {
-            const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor));
+            const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
             bestAttacker = playersWhoPlayed.filter(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
             
-            const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst));
+            const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst || 0));
             worstDefender = playersWhoPlayed.filter(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
         }
 
