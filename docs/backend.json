@@ -174,7 +174,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Match",
       "type": "object",
-      "description": "Represents a match between two players or two co-op teams.",
+      "description": "Represents a best-of-3 match between two players or two co-op teams.",
       "properties": {
         "seasonId": {
           "type": "string",
@@ -188,13 +188,13 @@
           "type": "string",
           "description": "Reference to the second player or co-op team in the match."
         },
-        "player1Score": {
+        "player1Wins": {
           "type": "number",
-          "description": "The score of the first player/team."
+          "description": "The number of games won by the first player/team."
         },
-        "player2Score": {
+        "player2Wins": {
           "type": "number",
-          "description": "The score of the second player/team."
+          "description": "The number of games won by the second player/team."
         },
         "matchDate": {
           "type": "string",
@@ -238,19 +238,7 @@
         "win": {
           "type": "number"
         },
-        "draw": {
-          "type": "number"
-        },
         "loss": {
-          "type": "number"
-        },
-        "goalsFor": {
-          "type": "number"
-        },
-        "goalsAgainst": {
-          "type": "number"
-        },
-        "goalDifference": {
           "type": "number"
         },
         "points": {
@@ -279,14 +267,10 @@
             "player2TeamName": {"type": "string"},
             "played": {"type": "number"},
             "win": {"type": "number"},
-            "draw": {"type": "number"},
             "loss": {"type": "number"},
-            "goalsFor": {"type": "number"},
-            "goalsAgainst": {"type": "number"},
-            "goalDifference": {"type": "number"},
             "points": {"type": "number"}
         },
-        "required": ["teamName", "player1Id", "player1Name", "player2Id", "player2Name", "played", "win", "draw", "loss", "goalsFor", "goalsAgainst", "goalDifference", "points"]
+        "required": ["teamName", "player1Id", "player1Name", "player2Id", "player2Name", "played", "win", "loss", "points"]
     },
     "Notice": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -329,30 +313,12 @@
           "properties": {
             "points": { "type": "number" },
             "win": { "type": "number" },
-            "draw": { "type": "number" },
-            "loss": { "type": "number" },
-            "goalsFor": { "type": "number" },
-            "goalsAgainst": { "type": "number" },
-            "goalDifference": { "type": "number" }
+            "loss": { "type": "number" }
           }
         },
         "funStats": {
           "type": "object",
           "properties": {
-            "bestAttacker": {
-              "type": ["object", "null"],
-              "properties": {
-                "playerName": { "type": "string" },
-                "value": { "type": "number" }
-              }
-            },
-            "worstDefender": {
-               "type": ["object", "null"],
-               "properties": {
-                "playerName": { "type": "string" },
-                "value": { "type": "number" }
-              }
-            },
             "mostWins": {
               "type": ["object", "null"],
               "properties": {

@@ -54,19 +54,13 @@ export function SeasonRecordCard({ record }: { record: WithId<SeasonRecord>}) {
                 <h3 className="text-xl font-bold">{record.winnerPlayerName}</h3>
                 <p className="text-sm text-muted-foreground">{record.winnerTeamName}</p>
                 <p className="text-xs font-bold text-yellow-400 mt-2">
-                    {record.winnerStats.points} PTS | {record.winnerStats.win}W - {record.winnerStats.draw}D - {record.winnerStats.loss}L
+                    {record.winnerStats.points} PTS | {record.winnerStats.win}W - {record.winnerStats.loss}L
                 </p>
             </CardContent>
             <CardFooter className="p-4 bg-secondary/30">
                 <div className="w-full space-y-2">
                     {record.funStats?.mostWins && (
                         <StatItem icon={Award} label={t('fun_stats_most_wins')} value={record.funStats.mostWins.playerName} tooltip={t('fun_stats_most_wins_tooltip', { value: record.funStats.mostWins.value })} />
-                    )}
-                    {record.funStats?.bestAttacker && (
-                        <StatItem icon={Flame} label={t('fun_stats_best_attacker')} value={record.funStats.bestAttacker.playerName} tooltip={t('fun_stats_best_attacker_tooltip', { value: record.funStats.bestAttacker.value })} valueClassName="text-green-400" />
-                    )}
-                    {record.funStats?.worstDefender && (
-                        <StatItem icon={ShieldAlert} label={t('fun_stats_worst_defense')} value={record.funStats.worstDefender.playerName} tooltip={t('fun_stats_worst_defense_tooltip', { value: record.funStats.worstDefender.value })} valueClassName="text-red-400" />
                     )}
                 </div>
             </CardFooter>

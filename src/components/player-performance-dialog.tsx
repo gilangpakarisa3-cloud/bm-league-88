@@ -79,24 +79,23 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
       .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
       .map(m => {
         const isPlayer1 = m.player1Id === player.playerId;
-        const playerScore = isPlayer1 ? m.player1Score! : m.player2Score!;
-        const opponentScore = isPlayer1 ? m.player2Score! : m.player1Score!;
+        const playerWins = isPlayer1 ? m.player1Wins! : m.player2Wins!;
+        const opponentWins = isPlayer1 ? m.player2Wins! : m.player1Wins!;
         const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
         const opponent = playersById[opponentId];
         const opponentTeam = opponent ? teamsById[opponent.teamId] : null;
         
-        let result: 'W' | 'D' | 'L';
-        if (playerScore > opponentScore) result = 'W';
-        else if (playerScore < opponentScore) result = 'L';
-        else result = 'D';
+        let result: 'W' | 'L';
+        if (playerWins > opponentWins) result = 'W';
+        else result = 'L';
         
         return {
           ...m,
           isPlayer1,
           opponent,
           opponentTeam,
-          playerScore,
-          opponentScore,
+          playerWins,
+          opponentWins,
           result,
         };
       });
@@ -119,18 +118,18 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
 
     const winRate = player.played > 0 ? (player.win / player.played) * 100 : 0;
-    const totalMatches = totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) * 2 : 0;
+    const totalMatches = totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) : 0;
     const seasonProgress = totalMatches > 0 ? (player.played / totalMatches) * 100 : 0;
 
     let trendScore = 0;
     const chartData = [{ match: 0, points: 0, tooltip: 'Awal Musim' }, ...[...completedMatches].reverse().map((match, index) => {
         if (match.result === 'W') trendScore += 1;
         else if (match.result === 'L') trendScore -= 1;
-        // Draw does nothing
+        
         return {
             match: index + 1,
             points: trendScore,
-            tooltip: `vs ${match.opponent?.name}: ${match.playerScore}-${match.opponentScore} (${match.result})`
+            tooltip: `vs ${match.opponent?.name}: ${match.playerWins}-${match.opponentWins} (${match.result})`
         };
     })];
 
@@ -323,10 +322,9 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                             <Progress value={seasonProgress} className="h-3" />
                             <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
                         </div>
-                         <div className="grid grid-cols-5 gap-2 text-center">
+                         <div className="grid grid-cols-4 gap-2 text-center">
                            <StatDisplay label={t('played', { defaultValue: "P"})} value={player.played} />
                            <StatDisplay label={t('w', { defaultValue: "W"})} value={player.win} />
-                           <StatDisplay label={t('d', { defaultValue: "D"})} value={player.draw} />
                            <StatDisplay label={t('l', { defaultValue: "L"})} value={player.loss} />
                            <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
                         </div>
@@ -361,12 +359,11 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                 const scoreColorPlayer = cn({
                                         'text-green-400': match.result === 'W',
                                         'text-red-400': match.result === 'L',
-                                        'text-foreground': match.result === 'D',
                                     });
                                 const scoreColorOpponent = 'text-foreground';
                                 
-                                const homeScore = match.player1Score ?? 0;
-                                const awayScore = match.player2Score ?? 0;
+                                const homeWins = match.player1Wins ?? 0;
+                                const awayWins = match.player2Wins ?? 0;
                                 
                                 return (
                                     <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
@@ -387,15 +384,15 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                     <p className="text-lg font-bold">
                                         {match.isPlayer1 ? (
                                             <>
-                                            <span className={scoreColorPlayer}>{homeScore}</span>
+                                            <span className={scoreColorPlayer}>{homeWins}</span>
                                             <span className="mx-2 text-muted-foreground">-</span>
-                                            <span className={scoreColorOpponent}>{awayScore}</span>
+                                            <span className={scoreColorOpponent}>{awayWins}</span>
                                             </>
                                         ) : (
                                             <>
-                                            <span className={scoreColorOpponent}>{homeScore}</span>
+                                            <span className={scoreColorOpponent}>{homeWins}</span>
                                             <span className="mx-2 text-muted-foreground">-</span>
-                                            <span className={scoreColorPlayer}>{awayScore}</span>
+                                            <span className={scoreColorPlayer}>{awayWins}</span>
                                             </>
                                         )}
                                     </p>
@@ -558,10 +555,9 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 }
 
 
-const ResultBadge = ({ result }: { result: 'W' | 'D' | 'L' }) => {
+const ResultBadge = ({ result }: { result: 'W' | 'L' }) => {
     const resultConfig = {
         W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
-        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-400' },
         L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
     };
     const { text, className } = resultConfig[result];
@@ -573,5 +569,3 @@ const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
     const text = isHome ? 'H' : 'A';
     return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2")}>{text}</Badge>
 };
-
-    

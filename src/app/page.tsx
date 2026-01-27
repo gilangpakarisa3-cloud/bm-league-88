@@ -94,8 +94,6 @@ function LeaderboardSection() {
     
     const sorted = [...enrichedTable].sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
-        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
         return a.playerName.localeCompare(b.playerName);
     }).map((entry, index) => ({...entry, rank: index + 1}));
     
@@ -158,7 +156,6 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
           <TableHead className="w-[50px] pl-4">#</TableHead>
           <TableHead>{t('player')}</TableHead>
           <TableHead className="text-right">{t('pts')}</TableHead>
-          <TableHead className="hidden sm:table-cell text-right pr-4">{t('gd')}</TableHead>
           </TableRow>
       </TableHeader>
       <TableBody>
@@ -189,7 +186,6 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
                   </div>
                   </TableCell>
                   <TableCell className="text-right font-semibold">{entry.points}</TableCell>
-                  <TableCell className="hidden sm:table-cell text-right pr-4">{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
               </TableRow>
             )
           })}
@@ -208,7 +204,6 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
           <TableHead className="w-[50px] pl-4">#</TableHead>
           <TableHead>{t('player')}</TableHead>
           <TableHead className="text-right">{t('pts')}</TableHead>
-          <TableHead className="hidden sm:table-cell text-right pr-4">{t('gd')}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -226,7 +221,6 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
                     </div>
                 </TableCell>
                 <TableCell><Skeleton className="h-5 w-6 ml-auto" /></TableCell>
-                <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-6 ml-auto" /></TableCell>
              </TableRow>
         ))}
       </TableBody>

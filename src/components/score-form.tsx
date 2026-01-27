@@ -23,15 +23,23 @@ import { useState, useEffect, useMemo } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 const formSchema = z.object({
-  score1: z.coerce.number().min(0, "Score must be positive."),
-  score2: z.coerce.number().min(0, "Score must be positive."),
+  player1Wins: z.coerce.number().min(0).max(2),
+  player2Wins: z.coerce.number().min(0).max(2),
   time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
   date: z.date({ required_error: "A date is required."}),
+}).refine(data => {
+    return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
+           (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
+}, {
+    message: "Invalid best-of-3 result. One player must have 2 wins.",
+    path: ["player1Wins"],
 });
+
 
 type ScoreFormValues = z.infer<typeof formSchema>;
 
@@ -52,13 +60,6 @@ export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
   const team1 = useMemo(() => teams.find(t => t.id === player1?.teamId), [teams, player1]);
   const team2 = useMemo(() => teams.find(t => t.id === player2?.teamId), [teams, player2]);
   
-  const formSchemaTranslated = z.object({
-    score1: z.coerce.number().min(0, t('score_positive_error')),
-    score2: z.coerce.number().min(0, t('score_positive_error')),
-    time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
-    date: z.date({ required_error: "A date is required."}),
-  });
-
   const getInitialValues = (match: WithId<Match>) => {
     const isNewScore = !match.isCompleted;
     // Use match date if it exists, otherwise it will be set in useEffect
@@ -66,15 +67,15 @@ export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
     const timeToUse = dateToUse ? format(dateToUse, 'HH:mm') : '00:00';
 
     return {
-      score1: match.player1Score ?? 0,
-      score2: match.player2Score ?? 0,
+      player1Wins: match.player1Wins ?? 0,
+      player2Wins: match.player2Wins ?? 0,
       time: timeToUse,
       date: dateToUse,
     }
   }
 
   const form = useForm<ScoreFormValues>({
-    resolver: zodResolver(formSchemaTranslated),
+    resolver: zodResolver(formSchema),
     // Set initial values without new Date() to avoid hydration mismatch
     defaultValues: getInitialValues(match),
   });
@@ -106,10 +107,10 @@ export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 items-end">
           <FormField
             control={form.control}
-            name="score1"
+            name="player1Wins"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2">
@@ -119,16 +120,25 @@ export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
                     </Avatar>
                     {player1?.name}
                 </FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} />
-                </FormControl>
+                <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Wins" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">0</SelectItem>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                    </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
             control={form.control}
-            name="score2"
+            name="player2Wins"
             render={({ field }) => (
               <FormItem>
                  <FormLabel className="flex items-center gap-2">
@@ -138,9 +148,18 @@ export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
                     </Avatar>
                     {player2?.name}
                 </FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} />
-                </FormControl>
+                <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Wins" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">0</SelectItem>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                    </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

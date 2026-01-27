@@ -58,8 +58,6 @@ function LeagueWinnerPageContents() {
             const q = query(
                 leagueTableRef, 
                 orderBy('points', 'desc'), 
-                orderBy('goalDifference', 'desc'), 
-                orderBy('goalsFor', 'desc'), 
                 limit(1)
             );
             const winnerSnapshot = await getDocs(q);
@@ -109,8 +107,7 @@ function LeagueWinnerPageContents() {
     const stats = [
         { label: t('pts'), value: winner.points },
         { label: t('win_long', {defaultValue: 'Wins'}), value: winner.win },
-        { label: t('goal_difference_long', {defaultValue: 'Goal Difference'}), value: `${winner.goalDifference > 0 ? '+' : ''}${winner.goalDifference}` },
-        { label: t('goals_for_long', {defaultValue: 'Goals For'}), value: winner.goalsFor },
+        { label: t('l', { defaultValue: 'L'}), value: winner.loss },
     ];
 
     const winnerTitle = isSeasonCompleted && season ? t('winner_of_season', { seasonName: season.name }) : t('current_league_leader');

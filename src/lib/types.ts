@@ -47,11 +47,7 @@ export type LeagueEntry = {
   teamName: string;
   played: number;
   win: number;
-  draw: number;
   loss: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
   points: number;
   hasPaid?: boolean;
 };
@@ -68,11 +64,7 @@ export type CoOpLeagueEntry = {
   player2TeamName: string;
   played: number;
   win: number;
-  draw: number;
   loss: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
   points: number;
 }
 
@@ -80,8 +72,8 @@ export type Match = {
   seasonId: string;
   player1Id: string; // For Co-Op, this will be the CoOp team ID
   player2Id: string; // For Co-Op, this will be the CoOp team ID
-  player1Score: number | null;
-  player2Score: number | null;
+  player1Wins: number | null;
+  player2Wins: number | null;
   matchDate: Timestamp;
   isCompleted: boolean;
 }
@@ -102,15 +94,9 @@ export type SeasonRecord = {
     winnerStats: {
         points: number;
         win: number;
-        draw: number;
         loss: number;
-        goalsFor: number;
-        goalsAgainst: number;
-        goalDifference: number;
     };
     funStats: {
-        bestAttacker: { playerName: string; value: number } | null;
-        worstDefender: { playerName: string; value: number } | null;
         mostWins: { playerName: string; value: number } | null;
     };
 }
