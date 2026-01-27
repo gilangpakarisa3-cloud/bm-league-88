@@ -174,7 +174,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Match",
       "type": "object",
-      "description": "Represents a best-of-3 match between two players or two co-op teams.",
+      "description": "Represents a match between two players. For Single mode, it's a standard game. For Co-Op, it's a best-of-3 series.",
       "properties": {
         "seasonId": {
           "type": "string",
@@ -189,12 +189,20 @@
           "description": "Reference to the second player or co-op team in the match."
         },
         "player1Wins": {
-          "type": "number",
-          "description": "The number of games won by the first player/team."
+          "type": ["number", "null"],
+          "description": "The number of games won by the first player/team (Co-Op mode)."
         },
         "player2Wins": {
-          "type": "number",
-          "description": "The number of games won by the second player/team."
+          "type": ["number", "null"],
+          "description": "The number of games won by the second player/team (Co-Op mode)."
+        },
+        "player1Score": {
+          "type": ["number", "null"],
+          "description": "The score of the first player (Single mode)."
+        },
+        "player2Score": {
+          "type": ["number", "null"],
+          "description": "The score of the second player (Single mode)."
         },
         "matchDate": {
           "type": "string",
@@ -238,7 +246,19 @@
         "win": {
           "type": "number"
         },
+        "draw": {
+          "type": "number"
+        },
         "loss": {
+          "type": "number"
+        },
+        "goalsFor": {
+          "type": "number"
+        },
+        "goalsAgainst": {
+          "type": "number"
+        },
+        "goalDifference": {
           "type": "number"
         },
         "points": {
@@ -313,12 +333,30 @@
           "properties": {
             "points": { "type": "number" },
             "win": { "type": "number" },
-            "loss": { "type": "number" }
+            "draw": { "type": "number" },
+            "loss": { "type": "number" },
+            "goalsFor": { "type": "number" },
+            "goalsAgainst": { "type": "number" },
+            "goalDifference": { "type": "number" }
           }
         },
         "funStats": {
           "type": "object",
           "properties": {
+            "bestAttacker": {
+              "type": ["object", "null"],
+              "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            },
+            "worstDefender": {
+               "type": ["object", "null"],
+               "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            },
             "mostWins": {
               "type": ["object", "null"],
               "properties": {

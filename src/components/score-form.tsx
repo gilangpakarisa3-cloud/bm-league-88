@@ -14,27 +14,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { Match, Player, Team, WithId } from "@/lib/types";
+import type { Match, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarIcon, User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { CoopScoreChecklist } from "./coop-score-checklist";
 
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-const formSchema = z.object({
+// Zod schema for Co-Op (Best of 3) matches
+const coopFormSchema = z.object({
   player1Wins: z.coerce.number().min(0).max(2),
   player2Wins: z.coerce.number().min(0).max(2),
   time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
   date: z.date({ required_error: "A date is required."}),
 }).refine(data => {
-    // A score is valid if one player has 2 wins and the other has 0 or 1.
     return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
            (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
 }, {
@@ -42,8 +41,15 @@ const formSchema = z.object({
     path: ["player1Wins"],
 });
 
+// Zod schema for Single (standard score) matches
+const singleFormSchema = z.object({
+  player1Score: z.coerce.number().min(0, { message: "Score must be positive." }),
+  player2Score: z.coerce.number().min(0, { message: "Score must be positive." }),
+  time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
+  date: z.date({ required_error: "A date is required."}),
+});
 
-type ScoreFormValues = z.infer<typeof formSchema>;
+type ScoreFormValues = z.infer<typeof coopFormSchema> | z.infer<typeof singleFormSchema>;
 
 interface ScoreFormProps {
   match: WithId<Match>;
@@ -57,20 +63,25 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  const player1 = player1Info;
-  const player2 = player2Info;
+  const isCoop = seasonType === 'Co-Op';
+  const formSchema = isCoop ? coopFormSchema : singleFormSchema;
 
-  const team1 = player1.team;
-  const team2 = player2.team;
-  
   const getInitialValues = (match: WithId<Match>) => {
     const isNewScore = !match.isCompleted;
     const dateToUse = isNewScore ? undefined : match.matchDate.toDate(); 
     const timeToUse = dateToUse ? format(dateToUse, 'HH:mm') : '00:00';
 
+    if (isCoop) {
+        return {
+            player1Wins: match.player1Wins ?? 0,
+            player2Wins: match.player2Wins ?? 0,
+            time: timeToUse,
+            date: dateToUse,
+        }
+    }
     return {
-      player1Wins: match.player1Wins ?? 0,
-      player2Wins: match.player2Wins ?? 0,
+      player1Score: match.player1Score ?? 0,
+      player2Score: match.player2Score ?? 0,
       time: timeToUse,
       date: dateToUse,
     }
@@ -109,10 +120,10 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-        {seasonType === 'Co-Op' ? (
+        {isCoop ? (
            <CoopScoreChecklist
-              player1Name={player1.name}
-              player2Name={player2.name}
+              player1Name={player1Info.name}
+              player2Name={player2Info.name}
               initialScore={{ player1Wins: form.getValues('player1Wins'), player2Wins: form.getValues('player2Wins')}}
               onScoreChange={handleScoreChangeFromChecklist}
            />
@@ -120,56 +131,38 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
           <div className="grid grid-cols-2 gap-4 items-end">
             <FormField
               control={form.control}
-              name="player1Wins"
+              name="player1Score"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                          <AvatarImage src={team1?.logoUrl} />
+                          <AvatarImage src={player1Info.team?.logoUrl} />
                           <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                       </Avatar>
-                      {player1?.name}
+                      {player1Info.name}
                   </FormLabel>
-                  <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Wins" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="0">0</SelectItem>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                      </SelectContent>
-                  </Select>
+                   <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="player2Wins"
+              name="player2Score"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                          <AvatarImage src={team2?.logoUrl} />
+                          <AvatarImage src={player2Info.team?.logoUrl} />
                           <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                       </Avatar>
-                      {player2?.name}
+                      {player2Info.name}
                   </FormLabel>
-                  <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Wins" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="0">0</SelectItem>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                      </SelectContent>
-                  </Select>
+                   <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -178,7 +171,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
         )}
          <FormField
             control={form.control}
-            name="player1Wins"
+            name={isCoop ? "player1Wins" : "player1Score"}
             render={() => (
                 <FormItem>
                     <FormMessage />

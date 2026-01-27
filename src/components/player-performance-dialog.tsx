@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -64,13 +65,12 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     if (!player || !activeSeason) return null;
 
     const isCoop = activeSeason.type === 'Co-Op';
+    const playerIdToFilter = isCoop ? player.id : player.playerId;
 
     const coopTableById = (coopLeagueTable || []).reduce((acc, entry) => {
         acc[entry.id] = entry;
         return acc;
     }, {} as Record<string, WithId<CoOpLeagueEntry>>);
-
-    const playerIdToFilter = player.playerId;
 
     const playerMatches = matches.filter(m => (m.player1Id === playerIdToFilter || m.player2Id === playerIdToFilter));
 
@@ -79,10 +79,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
       .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
       .map(m => {
         const isPlayer1 = m.player1Id === playerIdToFilter;
-        const playerWins = isPlayer1 ? m.player1Wins! : m.player2Wins!;
-        const opponentWins = isPlayer1 ? m.player2Wins! : m.player1Wins!;
         const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
-        
+
         let opponent: { name: string } | null = null;
         let opponentTeam: WithId<Team> | null = null;
         
@@ -99,18 +97,30 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                 opponentTeam = teamsById[opponentPlayer.teamId];
             }
         }
-        
-        let result: 'W' | 'L';
-        if (playerWins > opponentWins) result = 'W';
-        else result = 'L';
+
+        let result: 'W' | 'L' | 'D';
+        let playerResult, opponentResult;
+
+        if (isCoop) {
+            playerResult = isPlayer1 ? m.player1Wins! : m.player2Wins!;
+            opponentResult = isPlayer1 ? m.player2Wins! : m.player1Wins!;
+            if (playerResult > opponentResult) result = 'W';
+            else result = 'L';
+        } else {
+            playerResult = isPlayer1 ? m.player1Score! : m.player2Score!;
+            opponentResult = isPlayer1 ? m.player2Score! : m.player1Score!;
+            if (playerResult > opponentResult) result = 'W';
+            else if (playerResult < opponentResult) result = 'L';
+            else result = 'D';
+        }
         
         return {
           ...m,
           isPlayer1,
           opponent,
           opponentTeam,
-          playerWins,
-          opponentWins,
+          playerResult,
+          opponentResult,
           result,
         };
       });
@@ -148,7 +158,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
 
     const winRate = player.played > 0 ? (player.win / player.played) * 100 : 0;
-    const totalMatches = totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) : 0;
+    const totalMatches = isCoop ? (totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) : 0) : (totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) * 2 : 0);
     const seasonProgress = totalMatches > 0 ? (player.played / totalMatches) * 100 : 0;
 
     let trendScore = 0;
@@ -159,13 +169,12 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         return {
             match: index + 1,
             points: trendScore,
-            tooltip: `vs ${match.opponent?.name}: ${match.playerWins}-${match.opponentWins} (${match.result})`
+            tooltip: `vs ${match.opponent?.name}: ${match.playerResult}-${match.opponentResult} (${match.result})`
         };
     })];
 
     const finalTrendScore = chartData.length > 1 ? chartData[chartData.length - 1].points : 0;
 
-    // Calculate trend for last 5 matches
     const last5Matches = completedMatches.slice(0, 5);
     let last5TrendScore = 0;
     let performanceStatus = null;
@@ -197,7 +206,6 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 
   if (!player || !performanceStats) return null;
 
-  const playerDetails = playersById[player.playerId];
   const playerTeamDetails = teamsById[player.teamId];
   const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches, chartData, finalTrendScore, performanceStatus } = performanceStats;
   
@@ -235,6 +243,8 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     "text-red-500": isBottomRank,
     "text-primary": !isTopRank && !isBottomRank,
   });
+
+  const isCoop = activeSeason?.type === 'Co-Op';
 
 
   return (
@@ -328,9 +338,10 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                             <Progress value={seasonProgress} className="h-3" />
                             <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
                         </div>
-                         <div className="grid grid-cols-4 gap-2 text-center">
+                         <div className={cn("grid gap-2 text-center", isCoop ? 'grid-cols-4' : 'grid-cols-5')}>
                            <StatDisplay label={t('played', { defaultValue: "P"})} value={player.played} />
                            <StatDisplay label={t('w', { defaultValue: "W"})} value={player.win} />
+                           {!isCoop && <StatDisplay label={t('d', { defaultValue: "D"})} value={player.draw} />}
                            <StatDisplay label={t('l', { defaultValue: "L"})} value={player.loss} />
                            <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
                         </div>
@@ -365,11 +376,12 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                 const scoreColorPlayer = cn({
                                         'text-green-400': match.result === 'W',
                                         'text-red-400': match.result === 'L',
+                                        'text-yellow-400': match.result === 'D',
                                     });
-                                const scoreColorOpponent = 'text-foreground';
-                                
-                                const homeWins = match.player1Wins ?? 0;
-                                const awayWins = match.player2Wins ?? 0;
+                                const scoreColorOpponent = cn({
+                                        'text-foreground': match.result !== 'D',
+                                        'text-yellow-400': match.result === 'D',
+                                });
                                 
                                 return (
                                     <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
@@ -390,15 +402,15 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                     <p className="text-lg font-bold">
                                         {match.isPlayer1 ? (
                                             <>
-                                            <span className={scoreColorPlayer}>{homeWins}</span>
+                                            <span className={scoreColorPlayer}>{match.playerResult}</span>
                                             <span className="mx-2 text-muted-foreground">-</span>
-                                            <span className={scoreColorOpponent}>{awayWins}</span>
+                                            <span className={scoreColorOpponent}>{match.opponentResult}</span>
                                             </>
                                         ) : (
                                             <>
-                                            <span className={scoreColorOpponent}>{homeWins}</span>
+                                            <span className={scoreColorOpponent}>{match.opponentResult}</span>
                                             <span className="mx-2 text-muted-foreground">-</span>
-                                            <span className={scoreColorPlayer}>{awayWins}</span>
+                                            <span className={scoreColorPlayer}>{match.playerResult}</span>
                                             </>
                                         )}
                                     </p>
@@ -536,10 +548,11 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
 }
 
 
-const ResultBadge = ({ result }: { result: 'W' | 'L' }) => {
+const ResultBadge = ({ result }: { result: 'W' | 'L' | 'D' }) => {
     const resultConfig = {
         W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
         L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
+        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
     };
     const { text, className } = resultConfig[result];
     

@@ -8,6 +8,24 @@
         {
           "fieldPath": "points",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "goalDifference",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "goalsFor",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "coopLeagueTable",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "points",
+          "order": "DESCENDING"
         }
       ]
     }

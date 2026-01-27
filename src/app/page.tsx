@@ -45,35 +45,34 @@ function LeaderboardSection() {
     }
   }, [seasons]);
 
+  const activeSeason = useMemo(() => seasons?.find(s => s.id === activeSeasonId), [seasons, activeSeasonId]);
+  const isCoop = activeSeason?.type === 'Co-Op';
+
   const leagueTableQuery = useMemoFirebase(
     () => {
       if (!firestore || !activeSeasonId) return null;
-      return query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`));
+      const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
+      
+      if (isCoop) {
+          return query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`), orderBy('points', 'desc'));
+      }
+      return query(
+          collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`),
+          orderBy('points', 'desc'),
+          orderBy('goalDifference', 'desc'),
+          orderBy('goalsFor', 'desc')
+      );
     },
-    [firestore, activeSeasonId]
+    [firestore, activeSeasonId, isCoop]
   );
 
   const { data: allLeaguePlayers, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableQuery);
-  
-  const playersCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'players') : null),
-    [firestore]
-  );
-  const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
   
   const teamsCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'teams') : null),
     [firestore]
   );
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
-
-  const playersById = useMemo(() => {
-    if (!allPlayers) return {};
-    return allPlayers.reduce((acc, player) => {
-      acc[player.id] = player;
-      return acc;
-    }, {} as Record<string, WithId<Player>>);
-  }, [allPlayers]);
 
   const teamsById = useMemo(() => {
     if (!allTeams) return {};
@@ -86,16 +85,26 @@ function LeaderboardSection() {
   const { topPlayers, bottomPlayers } = useMemo(() => {
     if (!allLeaguePlayers) return { topPlayers: [], bottomPlayers: [] };
 
-    const enrichedTable = allLeaguePlayers.map(entry => ({
-      ...entry,
-      player: playersById[entry.playerId],
-      team: teamsById[entry.teamId],
-    }));
+    let enrichedTable: any[];
+    if (isCoop) {
+        enrichedTable = allLeaguePlayers.map(entry => {
+            const coopEntry = entry as any; // Cast to access CoOpLeagueEntry fields
+            return {
+                ...coopEntry,
+                playerName: coopEntry.teamName,
+                teamName: teamsById[coopEntry.player1TeamId]?.name,
+                team: teamsById[coopEntry.player1TeamId]
+            }
+        });
+    } else {
+        enrichedTable = allLeaguePlayers.map(entry => ({
+            ...entry,
+            team: teamsById[entry.teamId],
+        }));
+    }
     
-    const sorted = [...enrichedTable].sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        return a.playerName.localeCompare(b.playerName);
-    }).map((entry, index) => ({...entry, rank: index + 1}));
+    // Add rank
+    const sorted = enrichedTable.map((entry, index) => ({...entry, rank: index + 1}));
     
     const top = sorted.slice(0, 3);
     
@@ -105,9 +114,9 @@ function LeaderboardSection() {
     }
     
     return { topPlayers: top, bottomPlayers: bottom };
-  }, [allLeaguePlayers, playersById, teamsById]);
+  }, [allLeaguePlayers, teamsById, isCoop]);
 
-  const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams || isLoadingPlayers;
+  const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams;
 
   return (
      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -23,15 +23,16 @@ interface LeagueTableProps {
   onRemovePlayer?: (entry: WithId<LeagueEntry>) => void;
   onSelectPlayer: (entry: WithId<LeagueEntry>) => void;
   seasonStatus?: Season['status'];
+  seasonType?: Season['type'];
   isAdmin: boolean;
   defendingChampionId?: string;
 }
 
-export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }: LeagueTableProps) {
+export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, seasonType, isAdmin, defendingChampionId }: LeagueTableProps) {
   const { t } = useTranslation();
   
   if (isLoading) {
-    return <LeagueTableSkeleton />;
+    return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op'} />;
   }
   
   if (tableData.length === 0) {
@@ -45,6 +46,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
   
   const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
   const totalPlayers = tableData.length;
+  const isCoop = seasonType === 'Co-Op';
 
   return (
     <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20">
@@ -59,7 +61,15 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
               <TableHead className="text-center font-bold text-primary sm:hidden">{t('played')}</TableHead>
               <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('played')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center font-bold text-green-400">{t('w')}</TableHead>
+              {!isCoop && <TableHead className="hidden sm:table-cell text-center font-bold text-yellow-400">{t('d')}</TableHead>}
               <TableHead className="hidden sm:table-cell text-center font-bold text-red-400">{t('l')}</TableHead>
+              {!isCoop && (
+                <>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gf')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('ga')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gd')}</TableHead>
+                </>
+              )}
               <TableHead className="text-center font-bold text-primary sm:hidden">{t('pts')}</TableHead>
               <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('pts')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-bold text-accent">{t('actions')}</TableHead>}
@@ -162,7 +172,15 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                   </TableCell>
                   <TableCell className="text-center">{entry.played}</TableCell>
                   <TableCell className="hidden sm:table-cell text-center text-green-400">{entry.win}</TableCell>
+                  {!isCoop && <TableCell className="hidden sm:table-cell text-center text-yellow-400">{entry.draw}</TableCell>}
                   <TableCell className="hidden sm:table-cell text-center text-red-400">{entry.loss}</TableCell>
+                  {!isCoop && (
+                    <>
+                        <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center">{entry.goalDifference}</TableCell>
+                    </>
+                  )}
                   <TableCell className={cn("text-center font-bold text-lg", isFirst ? "text-yellow-300" : "text-primary")}>
                     {entry.points}
                   </TableCell>
@@ -189,7 +207,7 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
   );
 }
 
-function LeagueTableSkeleton() {
+function LeagueTableSkeleton({ isCoop }: { isCoop: boolean}) {
   const { t } = useTranslation();
   return (
     <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20">
@@ -202,7 +220,15 @@ function LeagueTableSkeleton() {
               <TableHead>{t('player')}</TableHead>
               <TableHead className="text-center">{t('played')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center">{t('w')}</TableHead>
+              {!isCoop && <TableHead className="hidden sm:table-cell text-center">{t('d')}</TableHead>}
               <TableHead className="hidden sm:table-cell text-center">{t('l')}</TableHead>
+              {!isCoop && (
+                <>
+                  <TableHead className="hidden md:table-cell text-center">{t('gf')}</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">{t('ga')}</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">{t('gd')}</TableHead>
+                </>
+              )}
               <TableHead className="text-center font-bold">{t('pts')}</TableHead>
             </TableRow>
           </TableHeader>
@@ -222,7 +248,15 @@ function LeagueTableSkeleton() {
                 </TableCell>
                 <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                {!isCoop && <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>}
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                {!isCoop && (
+                    <>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
+                    </>
+                )}
                 <TableCell><Skeleton className="h-5 w-8 mx-auto" /></TableCell>
               </TableRow>
             ))}
