@@ -8,9 +8,10 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import type { WithId, Season, Player, LeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowRight, Loader2, Shuffle, Users, Swords, Trash2 } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Users, Swords, Trash2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const LEAGUE_ID = 'main-league';
 const SEED_POT_SIZE = 8; // Top 8 players from previous season go to Pot 1
@@ -119,6 +120,16 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
       setPot2(newPot2);
 
   }, [isLoading, previousSeason, previousSeasonTable, registeredPlayers]);
+
+  const handleMovePlayer = useCallback((playerToMove: PlayerInPot, destination: 'pot1' | 'pot2') => {
+    if (destination === 'pot1') {
+      setPot2(prev => prev.filter(p => p.id !== playerToMove.id));
+      setPot1(prev => [...prev, playerToMove].sort((a,b) => a.prevRank - b.prevRank));
+    } else { // destination is pot2
+      setPot1(prev => prev.filter(p => p.id !== playerToMove.id));
+      setPot2(prev => [...prev, playerToMove].sort((a,b) => a.prevRank - b.prevRank));
+    }
+  }, []);
   
   const handleDraw = useCallback(() => {
       if (pot1.length === 0 && pot2.length < 2) {
@@ -170,7 +181,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
         <DialogHeader>
           <DialogTitle>Undian Pasangan Co-Op: {season?.name}</DialogTitle>
           <DialogDescription>
-            Berdasarkan klasemen musim lalu '{previousSeason?.name}'. {SEED_POT_SIZE} pemain teratas masuk Pot 1 (Unggulan).
+            Berdasarkan klasemen musim lalu '{previousSeason?.name}'. {SEED_POT_SIZE} pemain teratas masuk Pot 1 (Unggulan). Anda bisa memindahkan pemain antar pot jika diperlukan.
           </DialogDescription>
         </DialogHeader>
         
@@ -181,8 +192,24 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
             </div>
         ) : (
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh]">
-                <PotDisplay title="Pot 1 (Unggulan)" players={pot1} isAdmin={isAdmin} onRemovePlayer={handleRemoveFromPot} />
-                <PotDisplay title="Pot 2" players={pot2} isAdmin={isAdmin} onRemovePlayer={handleRemoveFromPot} />
+                <PotDisplay 
+                    title="Pot 1 (Unggulan)" 
+                    players={pot1} 
+                    isAdmin={isAdmin} 
+                    onRemovePlayer={handleRemoveFromPot}
+                    onMovePlayer={(player) => handleMovePlayer(player, 'pot2')}
+                    moveIcon={<ArrowDownCircle className="h-4 w-4 text-amber-500" />}
+                    moveTooltip="Pindahkan ke Pot 2"
+                />
+                <PotDisplay 
+                    title="Pot 2" 
+                    players={pot2} 
+                    isAdmin={isAdmin} 
+                    onRemovePlayer={handleRemoveFromPot}
+                    onMovePlayer={(player) => handleMovePlayer(player, 'pot1')}
+                    moveIcon={<ArrowUpCircle className="h-4 w-4 text-green-500" />}
+                    moveTooltip="Pindahkan ke Pot 1 (Unggulan)"
+                />
              </div>
         )}
 
@@ -221,11 +248,14 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
   );
 }
 
-const PotDisplay = ({ title, players, isAdmin, onRemovePlayer }: { 
-    title: string, 
-    players: PlayerInPot[], 
-    isAdmin: boolean,
-    onRemovePlayer: (player: PlayerInPot) => void 
+const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, moveTooltip }: { 
+    title: string;
+    players: PlayerInPot[];
+    isAdmin: boolean;
+    onRemovePlayer: (player: PlayerInPot) => void;
+    onMovePlayer: (player: PlayerInPot) => void;
+    moveIcon: React.ReactNode;
+    moveTooltip: string;
 }) => (
     <Card>
         <CardHeader>
@@ -238,9 +268,21 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer }: {
                         <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border">
                             <span>{player.playerName}</span>
                              {isAdmin && (
-                               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                               <div className="flex items-center ml-auto">
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
+                                                    {moveIcon}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{moveTooltip}</p></TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                               </div>
                            )}
                         </div>
                     ))}
