@@ -1041,6 +1041,8 @@ export default function LeaguePage() {
         matches={matches || []}
         allPlayers={allPlayers || []}
         allTeams={allTeams || []}
+        coopLeagueTable={coopLeagueTable || []}
+        activeSeason={activeSeason}
         totalPlayersInSeason={(activeSeason?.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) || 0}
         open={!!selectedPlayerForStats}
         onOpenChange={() => setSelectedPlayerForStats(null)}

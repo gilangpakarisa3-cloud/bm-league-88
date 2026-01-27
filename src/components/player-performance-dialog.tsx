@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import type { WithId, LeagueEntry, Match, Player, Team } from '@/lib/types';
+import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
 import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, KeyRound } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
@@ -35,9 +35,11 @@ interface PlayerPerformanceDialogProps {
   defendingChampionId?: string;
   previousSeasonName?: string;
   isAdmin: boolean;
+  activeSeason: WithId<Season> | null;
+  coopLeagueTable: WithId<CoOpLeagueEntry>[];
 }
 
-export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId, previousSeasonName, isAdmin }: PlayerPerformanceDialogProps) {
+export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId, previousSeasonName, isAdmin, activeSeason, coopLeagueTable }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   
@@ -70,20 +72,44 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   }, [allTeams]);
 
   const performanceStats = useMemo(() => {
-    if (!player) return null;
+    if (!player || !activeSeason) return null;
 
-    const playerMatches = matches.filter(m => (m.player1Id === player.playerId || m.player2Id === player.playerId));
+    const isCoop = activeSeason.type === 'Co-Op';
+
+    const coopTableById = (coopLeagueTable || []).reduce((acc, entry) => {
+        acc[entry.id] = entry;
+        return acc;
+    }, {} as Record<string, WithId<CoOpLeagueEntry>>);
+
+    const playerIdToFilter = player.playerId;
+
+    const playerMatches = matches.filter(m => (m.player1Id === playerIdToFilter || m.player2Id === playerIdToFilter));
 
     const completedMatches = playerMatches
       .filter(m => m.isCompleted)
       .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
       .map(m => {
-        const isPlayer1 = m.player1Id === player.playerId;
+        const isPlayer1 = m.player1Id === playerIdToFilter;
         const playerWins = isPlayer1 ? m.player1Wins! : m.player2Wins!;
         const opponentWins = isPlayer1 ? m.player2Wins! : m.player1Wins!;
         const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
-        const opponent = playersById[opponentId];
-        const opponentTeam = opponent ? teamsById[opponent.teamId] : null;
+        
+        let opponent: { name: string } | null = null;
+        let opponentTeam: WithId<Team> | null = null;
+        
+        if (isCoop) {
+            const opponentEntry = coopTableById[opponentId];
+            if (opponentEntry) {
+                opponent = { name: opponentEntry.teamName };
+                opponentTeam = teamsById[opponentEntry.player1TeamId] || null;
+            }
+        } else {
+            const opponentPlayer = playersById[opponentId];
+            if(opponentPlayer){
+                opponent = { name: opponentPlayer.name };
+                opponentTeam = teamsById[opponentPlayer.teamId];
+            }
+        }
         
         let result: 'W' | 'L';
         if (playerWins > opponentWins) result = 'W';
@@ -104,10 +130,25 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
       .filter(m => !m.isCompleted)
       .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis())
       .map(m => {
-          const isPlayer1 = m.player1Id === player.playerId;
+          const isPlayer1 = m.player1Id === playerIdToFilter;
           const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
-          const opponent = playersById[opponentId];
-          const opponentTeam = opponent ? teamsById[opponent.teamId] : null;
+          
+          let opponent: { name: string } | null = null;
+          let opponentTeam: WithId<Team> | null = null;
+
+          if (isCoop) {
+            const opponentEntry = coopTableById[opponentId];
+            if (opponentEntry) {
+                opponent = { name: opponentEntry.teamName };
+                opponentTeam = teamsById[opponentEntry.player1TeamId] || null;
+            }
+          } else {
+              const opponentPlayer = playersById[opponentId];
+              if (opponentPlayer) {
+                opponent = { name: opponentPlayer.name };
+                opponentTeam = teamsById[opponentPlayer.teamId];
+              }
+          }
           return {
               ...m,
               isPlayer1,
@@ -163,7 +204,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         performanceStatus,
     }
 
-  }, [player, matches, playersById, teamsById, totalPlayersInSeason]);
+  }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable]);
   
   const handleTabChange = (value: string) => {
     if (value === 'trend') {
