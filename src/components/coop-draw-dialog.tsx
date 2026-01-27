@@ -8,7 +8,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import type { WithId, Season, Player, LeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowRight, Loader2, Shuffle, Users, Swords } from 'lucide-react';
+import { ArrowRight, Loader2, Shuffle, Users, Swords, Trash2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
@@ -17,6 +17,7 @@ const SEED_POT_SIZE = 8; // Top 8 players from previous season go to Pot 1
 
 type PlayerWithTeam = WithId<Player> & { teamId: string, teamName: string };
 export type DrawnPair = { player1: PlayerWithTeam, player2: PlayerWithTeam };
+type PlayerInPot = WithId<LeagueEntry> & { prevRank: number };
 
 interface CoopDrawDialogProps {
   season: WithId<Season> | null;
@@ -25,6 +26,8 @@ interface CoopDrawDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSavePairs: (pairs: DrawnPair[]) => void;
+  isAdmin: boolean;
+  onRemovePlayer: (leagueEntryId: string, playerName: string) => void;
 }
 
 // Fisher-Yates shuffle algorithm
@@ -37,15 +40,15 @@ const shuffleArray = <T,>(array: T[]): T[] => {
     return newArray;
 };
 
-export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, onOpenChange, onSavePairs }: CoopDrawDialogProps) {
+export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, onOpenChange, onSavePairs, isAdmin, onRemovePlayer }: CoopDrawDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [previousSeason, setPreviousSeason] = useState<WithId<Season> | null>(null);
   const [previousSeasonTable, setPreviousSeasonTable] = useState<WithId<LeagueEntry>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [pot1, setPot1] = useState<PlayerWithTeam[]>([]);
-  const [pot2, setPot2] = useState<PlayerWithTeam[]>([]);
-  const [drawnPairs, setDrawnPairs] = useState<DrawnPair[] | null>(null);
+  const [pot1, setPot1] = useState<PlayerInPot[]>([]);
+  const [pot2, setPot2] = useState<PlayerInPot[]>([]);
+  const [drawnPairs, setDrawnPairs] = useState<{player1: PlayerInPot, player2: PlayerInPot}[] | null>(null);
   
   const allPlayersMap = useMemo(() => {
     return allPlayers.reduce((acc, p) => {
@@ -59,6 +62,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
 
     const findPreviousSeason = async () => {
         setIsLoading(true);
+        setDrawnPairs(null); // Reset drawn pairs when dialog opens
         // 1. Find the most recent 'Completed' season
         const seasonsQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc'));
         const seasonsSnap = await getDocs(seasonsQuery);
@@ -89,25 +93,32 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
   }, [open, firestore, toast]);
   
   useEffect(() => {
-      if (isLoading || !previousSeason || registeredPlayers.length === 0) return;
+      if (isLoading || !previousSeason || registeredPlayers.length === 0) {
+        setPot1([]);
+        setPot2([]);
+        return;
+      };
 
-      const registeredPlayerIds = new Set(registeredPlayers.map(p => p.playerId));
       const previousSeasonRankMap = new Map(previousSeasonTable.map((p, index) => [p.playerId, index + 1]));
 
-      const playersInCurrentSeason = Array.from(registeredPlayerIds)
-        .map(id => allPlayersMap[id])
-        .filter(Boolean) // Filter out any players who might not be in the allPlayersMap
-        .map(p => ({ ...p, prevRank: previousSeasonRankMap.get(p.id) || Infinity }))
+      const playersInCurrentSeason: PlayerInPot[] = registeredPlayers
+        .map(entry => {
+            const prevRank = previousSeasonRankMap.get(entry.playerId) || Infinity;
+            return { 
+                ...entry,
+                prevRank 
+            };
+        })
         .sort((a, b) => a.prevRank - b.prevRank);
 
       const newPot1 = playersInCurrentSeason.slice(0, SEED_POT_SIZE);
-      const pot1Ids = new Set(newPot1.map(p => p.id));
-      const newPot2 = playersInCurrentSeason.filter(p => !pot1Ids.has(p.id));
+      const pot1PlayerIds = new Set(newPot1.map(p => p.playerId));
+      const newPot2 = playersInCurrentSeason.filter(p => !pot1PlayerIds.has(p.playerId));
 
       setPot1(newPot1);
       setPot2(newPot2);
 
-  }, [isLoading, previousSeason, previousSeasonTable, registeredPlayers, allPlayersMap]);
+  }, [isLoading, previousSeason, previousSeasonTable, registeredPlayers]);
   
   const handleDraw = useCallback(() => {
       if (pot1.length === 0 && pot2.length < 2) {
@@ -117,7 +128,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
       
       const shuffledPot1 = shuffleArray(pot1);
       const shuffledPot2 = shuffleArray(pot2);
-      const pairs: DrawnPair[] = [];
+      const pairs: {player1: PlayerInPot, player2: PlayerInPot}[] = [];
       
       // Pair players from Pot 1 with players from Pot 2
       while(shuffledPot1.length > 0 && shuffledPot2.length > 0) {
@@ -136,6 +147,21 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
       
       setDrawnPairs(pairs);
   }, [pot1, pot2, toast]);
+  
+  const handleFinalSave = () => {
+    if (!drawnPairs) return;
+
+    const pairsToSave: DrawnPair[] = drawnPairs.map(pair => {
+        const p1Details = allPlayersMap[pair.player1.playerId];
+        const p2Details = allPlayersMap[pair.player2.playerId];
+        return { player1: p1Details, player2: p2Details };
+    });
+    onSavePairs(pairsToSave);
+  }
+
+  const handleRemoveFromPot = (player: PlayerInPot) => {
+    onRemovePlayer(player.id, player.playerName);
+  }
 
 
   return (
@@ -155,8 +181,8 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
             </div>
         ) : (
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh]">
-                <PotDisplay title="Pot 1 (Unggulan)" players={pot1} />
-                <PotDisplay title="Pot 2" players={pot2} />
+                <PotDisplay title="Pot 1 (Unggulan)" players={pot1} isAdmin={isAdmin} onRemovePlayer={handleRemoveFromPot} />
+                <PotDisplay title="Pot 2" players={pot2} isAdmin={isAdmin} onRemovePlayer={handleRemoveFromPot} />
              </div>
         )}
 
@@ -167,9 +193,9 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {drawnPairs.map((pair, index) => (
                              <div key={index} className="flex items-center justify-center gap-2 p-2 bg-muted rounded-md text-sm">
-                                <span className="font-semibold">{pair.player1.name}</span>
+                                <span className="font-semibold">{pair.player1.playerName}</span>
                                 <span className="text-primary">&</span>
-                                <span className="font-semibold">{pair.player2.name}</span>
+                                <span className="font-semibold">{pair.player2.playerName}</span>
                             </div>
                         ))}
                     </div>
@@ -179,7 +205,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
 
         <DialogFooter className="mt-4">
             {drawnPairs ? (
-                 <Button onClick={() => onSavePairs(drawnPairs)} className="w-full sm:w-auto" disabled={isLoading}>
+                 <Button onClick={handleFinalSave} className="w-full sm:w-auto" disabled={isLoading}>
                     <Swords className="mr-2 h-4 w-4"/>
                     Simpan Pasangan & Buat Klasemen
                  </Button>
@@ -195,7 +221,12 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
   );
 }
 
-const PotDisplay = ({ title, players }: { title: string, players: PlayerWithTeam[] }) => (
+const PotDisplay = ({ title, players, isAdmin, onRemovePlayer }: { 
+    title: string, 
+    players: PlayerInPot[], 
+    isAdmin: boolean,
+    onRemovePlayer: (player: PlayerInPot) => void 
+}) => (
     <Card>
         <CardHeader>
             <CardTitle className="text-center text-primary">{title}</CardTitle>
@@ -204,8 +235,13 @@ const PotDisplay = ({ title, players }: { title: string, players: PlayerWithTeam
             <ScrollArea className="h-48">
                  <div className="space-y-2 pr-4">
                     {players.map(player => (
-                        <div key={player.id} className="text-sm font-medium p-2 bg-card rounded-md border">
-                            {player.name}
+                        <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border">
+                            <span>{player.playerName}</span>
+                             {isAdmin && (
+                               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                           )}
                         </div>
                     ))}
                 </div>

@@ -455,6 +455,19 @@ export default function LeaguePage() {
     }
   };
 
+  const handleRemovePlayerFromRegistration = useCallback((leagueEntryId: string, playerName: string) => {
+    if (!firestore || !activeSeasonId || !isAdmin) return;
+
+    // The registration list is always in 'leagueTable', even for a 'Co-Op' season type before pairs are drawn.
+    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, leagueEntryId);
+    deleteDocumentNonBlocking(entryRef);
+
+    toast({
+        title: t('player_removed_title'),
+        description: t('player_removed_desc', { playerName: playerName }),
+    });
+  }, [firestore, activeSeasonId, isAdmin, toast, t]);
+
   const handleUpdateSeasonStatus = (status: 'In Progress' | 'Completed') => {
     if (!firestore || !activeSeason) return;
 
@@ -930,6 +943,8 @@ export default function LeaguePage() {
         registeredPlayers={registeredPlayers || []}
         allPlayers={allPlayers || []}
         onSavePairs={handleSavePairs}
+        isAdmin={isAdmin}
+        onRemovePlayer={handleRemovePlayerFromRegistration}
       />
       
        {/* Share Dialog */}
