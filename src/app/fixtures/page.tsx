@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, RefreshCw, Search, Lock, Unlock, Calculator, Undo2 } from 'lucide-react';
+import { Pencil, Search, Unlock, Calculator, Undo2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc, updateDoc, increment } from 'firebase/firestore';
-import type { Season, Player, WithId, Match, Team, LeagueEntry } from '@/lib/types';
+import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -48,7 +48,7 @@ const LEAGUE_ID = 'main-league';
 
 
 const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason }: {
-    match: WithId<Match> & { player1: WithId<Player> | null, player2: WithId<Player> | null, team1: WithId<Team> | null, team2: WithId<Team> | null };
+    match: any; // Using any because the shape is now dynamic (Single or Co-op)
     onEditMatch: (match: WithId<Match>) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
@@ -58,39 +58,35 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
 
-    // Button is disabled if:
-    // 1. Season is not 'In Progress'
-    // 2. The match is already completed AND the user is NOT an admin.
     const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
-
-    const PlayerInfo = ({ player, team, alignment = 'left' }: { player: WithId<Player> | null, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
+    const PlayerInfo = ({ name, team, alignment = 'left' }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
         <div className={cn("flex items-center gap-2 text-sm font-semibold truncate", {
             'justify-start': alignment === 'left',
             'justify-end': alignment === 'right',
         })}>
-             {alignment === 'right' && <span className="truncate">{player?.name}</span>}
+             {alignment === 'right' && <span className="truncate">{name}</span>}
             <Avatar className="h-5 w-5">
                 <AvatarImage src={team?.logoUrl} alt={team?.name} />
                 <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
-            {alignment === 'left' && <span className="truncate">{player?.name}</span>}
+            {alignment === 'left' && <span className="truncate">{name}</span>}
         </div>
     );
 
     return (
         <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-4 p-3 transition-colors rounded-md hover:bg-muted/50">
-            <PlayerInfo player={match.player1} team={match.team1} alignment="right" />
+            <PlayerInfo name={match.player1.name} team={match.team1} alignment="right" />
             
             <div className="flex-none text-center">
                  {match.isCompleted ? (
-                    <span className="text-lg font-bold text-primary">{match.player1Score} - {match.player2Score}</span>
+                    <span className="text-lg font-bold text-primary">{match.player1Wins} - {match.player2Wins}</span>
                 ) : (
                     <span className="text-xs font-bold text-primary">VS</span>
                 )}
             </div>
 
-            <PlayerInfo player={match.player2} team={match.team2} alignment="left" />
+            <PlayerInfo name={match.player2.name} team={match.team2} alignment="left" />
             
             <div className="flex-none flex items-center gap-1">
                  <Button
@@ -140,6 +136,12 @@ const FixtureContent = memo(function FixtureContent({
     const [searchTerm, setSearchTerm] = useState('');
     
     // --- Firestore Data Hooks ---
+    const activeSeasonDoc = useMemoFirebase(
+        () => (firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null),
+        [firestore, activeSeasonId]
+    );
+    const { data: activeSeason } = useDoc<Season>(activeSeasonDoc);
+
     const matchesCollection = useMemoFirebase(
         () =>
         firestore && activeSeasonId
@@ -149,11 +151,18 @@ const FixtureContent = memo(function FixtureContent({
     );
     const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
     
-    const activeSeasonDoc = useMemoFirebase(
-        () => (firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null),
-        [firestore, activeSeasonId]
+    const singleLeagueTableCollection = useMemoFirebase(
+        () => firestore && activeSeasonId && activeSeason?.type !== 'Co-Op' ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
+        [firestore, activeSeasonId, activeSeason]
     );
-    const { data: activeSeason } = useDoc<Season>(activeSeasonDoc);
+    const { data: singleLeagueTable } = useCollection<LeagueEntry>(singleLeagueTableCollection);
+
+    const coopLeagueTableCollection = useMemoFirebase(
+        () => firestore && activeSeasonId && activeSeason?.type === 'Co-Op' ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`) : null,
+        [firestore, activeSeasonId, activeSeason]
+    );
+    const { data: coopLeagueTable } = useCollection<CoOpLeagueEntry>(coopLeagueTableCollection);
+    
     
     // --- Memoized Derived State ---
     const playersById = useMemo(() => {
@@ -170,22 +179,47 @@ const FixtureContent = memo(function FixtureContent({
             return acc;
         }, {} as Record<string, WithId<Team>>);
     }, [allTeams]);
+
+    const singleTableById = useMemo(() => {
+        if (!singleLeagueTable) return {};
+        return singleLeagueTable.reduce((acc, e) => { acc[e.playerId] = e; return acc; }, {} as Record<string, WithId<LeagueEntry>>);
+    }, [singleLeagueTable]);
+
+    const coopTableById = useMemo(() => {
+        if (!coopLeagueTable) return {};
+        return coopLeagueTable.reduce((acc, e) => { acc[e.id] = e; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>);
+    }, [coopLeagueTable]);
     
     const { upcomingMatches, completedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
-        if (!matches) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
+        if (!matches || !activeSeason) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
         
+        const isCoop = activeSeason.type === 'Co-Op';
+
         const enrichedMatches = matches
             .map(match => {
-                const player1 = playersById[match.player1Id] || null;
-                const player2 = playersById[match.player2Id] || null;
-                return {
-                    ...match,
-                    player1,
-                    player2,
-                    team1: player1 ? teamsById[player1.teamId] : null,
-                    team2: player2 ? teamsById[player2.teamId] : null,
+                let player1, player2, team1, team2;
+
+                if (isCoop) {
+                    const teamEntry1 = coopTableById[match.player1Id];
+                    const teamEntry2 = coopTableById[match.player2Id];
+                    if (!teamEntry1 || !teamEntry2) return null;
+
+                    player1 = { name: teamEntry1.teamName, id: teamEntry1.id };
+                    player2 = { name: teamEntry2.teamName, id: teamEntry2.id };
+                    team1 = teamsById[teamEntry1.player1TeamId] || null;
+                    team2 = teamsById[teamEntry2.player1TeamId] || null;
+
+                } else {
+                    player1 = playersById[match.player1Id] || null;
+                    player2 = playersById[match.player2Id] || null;
+                    if (!player1 || !player2) return null;
+
+                    team1 = teamsById[player1.teamId] || null;
+                    team2 = teamsById[player2.teamId] || null;
                 }
-            });
+
+                return { ...match, player1, player2, team1, team2 };
+            }).filter(Boolean) as any[];
 
         const filteredMatches = enrichedMatches.filter(m => {
             if (!searchTerm.trim()) return true;
@@ -222,7 +256,7 @@ const FixtureContent = memo(function FixtureContent({
             totalMatchesForDisplay: totalForProgress,
             completedMatchesForDisplay: completedForProgress
         };
-    }, [matches, playersById, teamsById, searchTerm]);
+    }, [matches, playersById, teamsById, searchTerm, activeSeason, singleTableById, coopTableById]);
 
 
     if (isLoadingMatches) {
@@ -244,7 +278,7 @@ const FixtureContent = memo(function FixtureContent({
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                     type="text"
-                    placeholder={t('search_by_player_or_team')}
+                    placeholder="Cari berdasarkan nama pemain/tim..."
                     className="pl-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -320,186 +354,6 @@ const FixtureContent = memo(function FixtureContent({
 });
 
 
-const AdminControls = memo(function AdminControls({
-  activeSeasonId,
-  hasFixtures,
-  isLoadingSeasons,
-  seasons,
-  leagueTable,
-  onSeasonChange,
-  onGenerateFixtures,
-  onRecalculate,
-  isAdmin,
-  setIsAdmin
-}: {
-  activeSeasonId: string | null;
-  hasFixtures: boolean;
-  isLoadingSeasons: boolean;
-  seasons: WithId<Season>[];
-  leagueTable: WithId<LeagueEntry>[] | null;
-  onSeasonChange: (id: string) => void;
-  onGenerateFixtures: () => void;
-  onRecalculate: () => void;
-  isAdmin: boolean;
-  setIsAdmin: (isAdmin: boolean) => void;
-}) {
-  const firestore = useFirestore();
-  const [password, setPassword] = useState('');
-  const [passwordPrompt, setPasswordPrompt] = useState<{ open: boolean, action?: () => void }>({ open: false });
-  const [passwordInput, setPasswordInput] = useState('');
-  const { toast } = useToast();
-  const { t } = useTranslation();
-  const [showRecalculateConfirm, setShowRecalculateConfirm] = useState(false);
-  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
-
-  const adminPasswordRef = useMemoFirebase(
-    () => (firestore ? doc(firestore, 'appConfig/admin') : null),
-    [firestore]
-  );
-  const { data: adminConfig } = useDoc<{ password?: string }>(adminPasswordRef);
-  const ADMIN_PASSWORD = adminConfig?.password;
-
-  const activeSeasonDoc = useMemoFirebase(
-      () => (firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null),
-      [firestore, activeSeasonId]
-  );
-  const { data: activeSeason } = useDoc<Season>(activeSeasonDoc);
-
-
-  const handlePasswordCheck = () => {
-    if (passwordInput === ADMIN_PASSWORD) {
-      setIsAdmin(true);
-      toast({ title: t('admin_mode_unlocked_title'), description: t('admin_mode_unlocked_desc') });
-      if (passwordPrompt.action) {
-        passwordPrompt.action();
-      }
-    } else {
-      toast({
-        variant: 'destructive',
-        title: t('incorrect_password'),
-        description: t('admin_permission_denied'),
-      });
-    }
-    setPasswordPrompt({ open: false });
-    setPasswordInput('');
-  };
-
-  const withAdminCheck = useCallback((action: () => void) => {
-    if (isAdmin) {
-      action();
-    } else {
-      setPasswordPrompt({ open: true, action });
-    }
-  }, [isAdmin]);
-
-  const handleRecalculateClick = () => {
-    withAdminCheck(() => {
-        setShowRecalculateConfirm(true);
-    });
-  }
-  
-  const handleGenerateClick = () => {
-    withAdminCheck(() => {
-        setShowGenerateConfirm(true);
-    });
-  }
-
-  return (
-    <>
-      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-        <Select value={activeSeasonId || ''} onValueChange={onSeasonChange} disabled={isLoadingSeasons}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('select_a_season')} />
-          </SelectTrigger>
-          <SelectContent>
-            {seasons?.map(season => (
-              <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="flex gap-2">
-            {isAdmin && (
-                <>
-                    <Button onClick={handleGenerateClick} disabled={!activeSeasonId || activeSeason?.status !== 'Not Started' || (leagueTable?.length ?? 0) < 2}>
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
-                    </Button>
-                    <Button onClick={handleRecalculateClick} variant="destructive" disabled={!activeSeasonId}>
-                        <Calculator className="mr-2 h-4 w-4" />
-                        Hitung Ulang
-                    </Button>
-                </>
-            )}
-            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => {})} variant="outline">
-              {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
-              {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
-            </Button>
-        </div>
-      </div>
-
-      <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('admin_auth_required_title')}</DialogTitle>
-            <DialogDescription>
-              {t('enter_admin_password_to_continue')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="password-input" className="text-right">
-                {t('password')}
-              </Label>
-              <Input
-                id="password-input"
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                className="col-span-3"
-                onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handlePasswordCheck}>{t('submit')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <AlertDialog open={showRecalculateConfirm} onOpenChange={setShowRecalculateConfirm}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>{t('are_you_sure', { defaultValue: 'Anda yakin?'})}</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Tindakan ini akan menghitung ulang semua statistik (main, menang, kalah, seri, gol, poin) untuk semua pemain di musim <strong>{activeSeason?.name}</strong> berdasarkan data pertandingan yang sudah selesai. Gunakan ini untuk memperbaiki data yang tidak konsisten.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>{t('cancel', { defaultValue: 'Batal' })}</AlertDialogCancel>
-                <AlertDialogAction onClick={() => { onRecalculate(); setShowRecalculateConfirm(false); }} className="bg-destructive hover:bg-destructive/90">Ya, Hitung Ulang</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>{t('are_you_sure', { defaultValue: 'Anda yakin?'})}</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru' : 'membuat jadwal pertandingan baru'} untuk <strong>{leagueTable?.length} pemain</strong>. Ini akan menghasilkan <strong>{(leagueTable?.length ?? 0) * ((leagueTable?.length ?? 0) - 1)}</strong> pertandingan (operasi tulis).
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>{t('cancel', { defaultValue: 'Batal' })}</AlertDialogCancel>
-                <AlertDialogAction onClick={() => { onGenerateFixtures(); setShowGenerateConfirm(false); }}>Ya, Lanjutkan</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-});
-
-
 export default function FixturesPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -517,24 +371,6 @@ export default function FixturesPage() {
   );
   const { data: seasons, isLoading: isLoadingSeasons } = useCollection<Season>(seasonsCollection);
   
-  const leagueTableCollection = useMemoFirebase(
-    () =>
-      firestore && activeSeasonId
-        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
-        : null,
-    [firestore, activeSeasonId]
-  );
-  const { data: leagueTable } = useCollection<LeagueEntry>(leagueTableCollection);
-  
-  const matchesCollection = useMemoFirebase(
-    () =>
-      firestore && activeSeasonId
-        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`)
-        : null,
-    [firestore, activeSeasonId]
-  );
-  const { data: matches } = useCollection<Match>(matchesCollection);
-
    const playersCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'players') : null),
     [firestore]
@@ -548,7 +384,6 @@ export default function FixturesPage() {
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
   
   // --- Memoized Derived State ---
-  const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   const playersById = useMemo(() => {
     if (!allPlayers) return {};
     return allPlayers.reduce((acc, p) => {
@@ -564,153 +399,86 @@ export default function FixturesPage() {
     }
   }, [seasons, activeSeasonId]);
   
-  const handleGenerateFixtures = useCallback(async () => {
-    if (!firestore || !activeSeasonId || !leagueTable || leagueTable.length < 2) {
-      toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_min_players') });
-      return;
-    }
-    
-    const seasonDoc = await getDoc(doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId));
-    if (!seasonDoc.exists() || seasonDoc.data().status !== 'Not Started') {
-       toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_not_started') });
-       return;
-    }
-
-    const batch = writeBatch(firestore);
-
-    // 1. Delete existing fixtures for this season
-    const existingMatchesQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`));
-    const existingMatchesSnap = await getDocs(existingMatchesQuery);
-    existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
-    
-    // 2. Generate new Home and away fixtures
-    for (let i = 0; i < leagueTable.length; i++) {
-        for (let j = 0; j < leagueTable.length; j++) {
-            if (i === j) continue; // Players don't play against themselves
-
-            const player1Entry = leagueTable[i];
-            const player2Entry = leagueTable[j];
-
-            const matchData: Omit<Match, 'id' | 'player1Score' | 'player2Score'> = {
-                seasonId: activeSeasonId,
-                player1Id: player1Entry.playerId,
-                player2Id: player2Entry.playerId,
-                isCompleted: false,
-                matchDate: Timestamp.now(), // Default to now, user can edit
-            };
-            const matchRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`));
-            batch.set(matchRef, matchData);
-        }
-    }
-    
-    try {
-      await batch.commit();
-      toast({ title: t('fixtures_generated_title'), description: t('fixtures_generated_desc', { seasonName: seasonDoc.data().name }) });
-    } catch(e) {
-      console.error(e);
-      toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error') });
-    }
-  }, [firestore, activeSeasonId, leagueTable, t, toast]);
-
-
-  const handleUpdateScore = async (matchId: string, values: { score1: number, score2: number, time: string, date: Date }) => {
+  const handleUpdateScore = async (matchId: string, values: { player1Wins: number; player2Wins: number; time: string; date: Date; }) => {
     if (!firestore || !activeSeasonId) return;
 
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
     
     try {
         await runTransaction(firestore, async (transaction) => {
-            const originalMatchDoc = await transaction.get(matchRef);
-            if (!originalMatchDoc.exists()) {
-                throw new Error("Match document not found!");
+            const matchDoc = await transaction.get(matchRef);
+            if (!matchDoc.exists()) throw new Error("Match document not found!");
+            
+            const originalMatch = matchDoc.data() as Match;
+
+            const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
+            const isCoop = seasonDoc.data()?.type === 'Co-Op';
+            const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
+
+            let p1EntryRef, p2EntryRef, p1EntryQuery, p2EntryQuery;
+            let p1EntrySnap, p2EntrySnap;
+
+            if (isCoop) {
+                p1EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player1Id);
+                p2EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player2Id);
+                const [p1Doc, p2Doc] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
+                p1EntrySnap = { docs: p1Doc.exists() ? [p1Doc] : [] };
+                p2EntrySnap = { docs: p2Doc.exists() ? [p2Doc] : [] };
+            } else {
+                const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`);
+                p1EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player1Id));
+                p2EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player2Id));
+                const [p1Docs, p2Docs] = await Promise.all([getDocs(p1EntryQuery), getDocs(p2EntryQuery)]);
+                p1EntrySnap = p1Docs;
+                p2EntrySnap = p2Docs;
             }
-            const originalMatch = originalMatchDoc.data() as Match;
 
-            const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
-            const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player1Id));
-            const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player2Id));
-
-            const [p1EntrySnap, p2EntrySnap] = await Promise.all([ getDocs(p1EntryQuery), getDocs(p2EntryQuery) ]);
-
-            if (p1EntrySnap.empty || p2EntrySnap.empty) {
+            if (p1EntrySnap.docs.length === 0 || p2EntrySnap.docs.length === 0) {
                 throw new Error(t('update_score_error_no_entries'));
             }
             
-            const p1EntryRef = p1EntrySnap.docs[0].ref;
-            const p2EntryRef = p2EntrySnap.docs[0].ref;
+            const p1FinalEntryRef = p1EntrySnap.docs[0].ref;
+            const p2FinalEntryRef = p2EntrySnap.docs[0].ref;
             
-            const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry;
-            const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry;
+            const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry | CoOpLeagueEntry;
+            const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry | CoOpLeagueEntry;
             
-            const newP1Stats = { ...p1EntryData };
-            const newP2Stats = { ...p2EntryData };
-
-            // 1. Revert old stats if match was already completed
+            // Revert old stats if match was already completed
             if (originalMatch.isCompleted) {
-                const oldScores = { p1: originalMatch.player1Score ?? 0, p2: originalMatch.player2Score ?? 0 };
-                newP1Stats.played -= 1;
-                newP2Stats.played -= 1;
-                newP1Stats.goalsFor -= oldScores.p1;
-                newP1Stats.goalsAgainst -= oldScores.p2;
-                newP2Stats.goalsFor -= oldScores.p2;
-                newP2Stats.goalsAgainst -= oldScores.p1;
-                
-                if (oldScores.p1 > oldScores.p2) { // P1 won
-                    newP1Stats.win -= 1;
-                    newP1Stats.points -= 3;
-                    newP2Stats.loss -= 1;
-                } else if (oldScores.p2 > oldScores.p1) { // P2 won
-                    newP2Stats.win -= 1;
-                    newP2Stats.points -= 3;
-                    newP1Stats.loss -= 1;
-                } else { // Draw
-                    newP1Stats.draw -= 1; newP1Stats.points -= 1;
-                    newP2Stats.draw -= 1; newP2Stats.points -= 1;
+                p1EntryData.played -= 1;
+                p2EntryData.played -= 1;
+                if ((originalMatch.player1Wins ?? 0) > (originalMatch.player2Wins ?? 0)) { // P1 won
+                    p1EntryData.win -= 1;
+                    p1EntryData.points -= 3;
+                    p2EntryData.loss -= 1;
+                } else if ((originalMatch.player2Wins ?? 0) > (originalMatch.player1Wins ?? 0)) { // P2 won
+                    p2EntryData.win -= 1;
+                    p2EntryData.points -= 3;
+                    p1EntryData.loss -= 1;
                 }
             }
             
-            // 2. Apply new stats
-            newP1Stats.played += 1;
-            newP2Stats.played += 1;
-            newP1Stats.goalsFor += values.score1;
-            newP1Stats.goalsAgainst += values.score2;
-            newP2Stats.goalsFor += values.score2;
-            newP2Stats.goalsAgainst += values.score1;
+            // Apply new stats
+            p1EntryData.played += 1;
+            p2EntryData.played += 1;
             
-            if (values.score1 > values.score2) { // P1 wins
-                newP1Stats.win += 1; newP1Stats.points += 3;
-                newP2Stats.loss += 1;
-            } else if (values.score2 > values.score1) { // P2 wins
-                newP2Stats.win += 1; newP2Stats.points += 3;
-                newP1Stats.loss += 1;
-            } else { // Draw
-                newP1Stats.draw += 1; newP1Stats.points += 1;
-                newP2Stats.draw += 1; newP2Stats.points += 1;
+            if (values.player1Wins > values.player2Wins) { // P1 wins
+                p1EntryData.win += 1; p1EntryData.points += 3;
+                p2EntryData.loss += 1;
+            } else if (values.player2Wins > values.player1Wins) { // P2 wins
+                p2EntryData.win += 1; p2EntryData.points += 3;
+                p1EntryData.loss += 1;
             }
             
-            newP1Stats.goalDifference = newP1Stats.goalsFor - newP1Stats.goalsAgainst;
-            newP2Stats.goalDifference = newP2Stats.goalsFor - newP2Stats.goalsAgainst;
-
-            // 3. Set the new, correct state in the transaction, overwriting old data.
-            transaction.set(p1EntryRef, newP1Stats);
-            transaction.set(p2EntryRef, newP2Stats);
+            transaction.set(p1FinalEntryRef, p1EntryData);
+            transaction.set(p2FinalEntryRef, p2EntryData);
 
             const [hours, minutes] = values.time.split(':').map(Number);
-            const dateFromPicker = values.date;
-            
-            const newDate = new Date(
-                dateFromPicker.getFullYear(),
-                dateFromPicker.getMonth(),
-                dateFromPicker.getDate(),
-                hours,
-                minutes
-            );
-
-            const newTimestamp = Timestamp.fromDate(newDate);
+            const newTimestamp = Timestamp.fromDate(new Date(values.date.setHours(hours, minutes)));
 
             transaction.update(matchRef, { 
-                player1Score: values.score1, 
-                player2Score: values.score2,
+                player1Wins: values.player1Wins, 
+                player2Wins: values.player2Wins,
                 matchDate: newTimestamp,
                 isCompleted: true
             });
@@ -738,51 +506,54 @@ export default function FixturesPage() {
             }
             const matchToRevert = matchDoc.data() as Match;
 
-            const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
-            const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player1Id));
-            const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player2Id));
-            
-            const [p1EntrySnap, p2EntrySnap] = await Promise.all([ getDocs(p1EntryQuery), getDocs(p2EntryQuery) ]);
+            const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
+            const isCoop = seasonDoc.data()?.type === 'Co-Op';
+            const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
 
-            if (p1EntrySnap.empty || p2EntrySnap.empty) {
+            let p1EntryRef, p2EntryRef, p1EntryQuery, p2EntryQuery;
+            let p1EntrySnap, p2EntrySnap;
+
+            if (isCoop) {
+                p1EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, matchToRevert.player1Id);
+                p2EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, matchToRevert.player2Id);
+                const [p1Doc, p2Doc] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
+                p1EntrySnap = { docs: p1Doc.exists() ? [p1Doc] : [] };
+                p2EntrySnap = { docs: p2Doc.exists() ? [p2Doc] : [] };
+            } else {
+                const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`);
+                p1EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player1Id));
+                p2EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player2Id));
+                const [p1Docs, p2Docs] = await Promise.all([getDocs(p1EntryQuery), getDocs(p2EntryQuery)]);
+                p1EntrySnap = p1Docs;
+                p2EntrySnap = p2Docs;
+            }
+
+            if (p1EntrySnap.docs.length === 0 || p2EntrySnap.docs.length === 0) {
                 throw new Error(t('update_score_error_no_entries'));
             }
 
-            const p1EntryRef = p1EntrySnap.docs[0].ref;
-            const p2EntryRef = p2EntrySnap.docs[0].ref;
-            const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry;
-            const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry;
+            const p1FinalEntryRef = p1EntrySnap.docs[0].ref;
+            const p2FinalEntryRef = p2EntrySnap.docs[0].ref;
+            const p1EntryData = p1EntrySnap.docs[0].data() as LeagueEntry | CoOpLeagueEntry;
+            const p2EntryData = p2EntrySnap.docs[0].data() as LeagueEntry | CoOpLeagueEntry;
 
-            // Revert season stats
-            const oldScores = { p1: matchToRevert.player1Score ?? 0, p2: matchToRevert.player2Score ?? 0 };
             p1EntryData.played -= 1;
             p2EntryData.played -= 1;
-            p1EntryData.goalsFor -= oldScores.p1;
-            p1EntryData.goalsAgainst -= oldScores.p2;
-            p2EntryData.goalsFor -= oldScores.p2;
-            p2EntryData.goalsAgainst -= oldScores.p1;
             
-            if (oldScores.p1 > oldScores.p2) { // P1 won
+            if ((matchToRevert.player1Wins ?? 0) > (matchToRevert.player2Wins ?? 0)) { // P1 won
                 p1EntryData.win -= 1; p1EntryData.points -= 3;
                 p2EntryData.loss -= 1;
-            } else if (oldScores.p2 > oldScores.p1) { // P2 won
+            } else if ((matchToRevert.player2Wins ?? 0) > (matchToRevert.player1Wins ?? 0)) { // P2 won
                 p2EntryData.win -= 1; p2EntryData.points -= 3;
                 p1EntryData.loss -= 1;
-            } else { // Draw
-                p1EntryData.draw -= 1; p1EntryData.points -= 1;
-                p2EntryData.draw -= 1; p2EntryData.points -= 1;
             }
 
-            p1EntryData.goalDifference = p1EntryData.goalsFor - p1EntryData.goalsAgainst;
-            p2EntryData.goalDifference = p2EntryData.goalsFor - p2EntryData.goalsAgainst;
+            transaction.set(p1FinalEntryRef, p1EntryData);
+            transaction.set(p2FinalEntryRef, p2EntryData);
 
-            transaction.set(p1EntryRef, p1EntryData);
-            transaction.set(p2EntryRef, p2EntryData);
-
-            // Revert match document
             transaction.update(matchRef, { 
-                player1Score: null, 
-                player2Score: null,
+                player1Wins: null, 
+                player2Wins: null,
                 isCompleted: false 
             });
         });
@@ -796,89 +567,6 @@ export default function FixturesPage() {
     setRevertingMatch(null);
 
   }, [firestore, activeSeasonId, revertingMatch, t, toast]);
-
-
-  const handleRecalculateStats = useCallback(async () => {
-    if (!firestore || !activeSeasonId || !leagueTable) {
-        toast({ variant: 'destructive', title: "Gagal", description: "Musim atau tabel liga tidak ditemukan." });
-        return;
-    }
-
-    toast({ title: "Memulai Perhitungan Ulang...", description: "Harap tunggu sebentar." });
-
-    // 1. Get all completed matches for the season
-    const matchesQuery = query(
-        collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`),
-        where('isCompleted', '==', true)
-    );
-    const matchesSnap = await getDocs(matchesQuery);
-    const completedMatches = matchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
-
-    // 2. Create a fresh stats map
-    const playerStatsMap: { [playerId: string]: Omit<LeagueEntry, 'id' | 'rank' | 'playerId' | 'teamId' | 'playerName' | 'teamName'> } = {};
-    leagueTable.forEach(entry => {
-        playerStatsMap[entry.playerId] = { played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0 };
-    });
-
-    // 3. Recalculate stats from completed matches
-    completedMatches.forEach(match => {
-        const p1Id = match.player1Id;
-        const p2Id = match.player2Id;
-        const score1 = match.player1Score ?? 0;
-        const score2 = match.player2Score ?? 0;
-
-        if (playerStatsMap[p1Id] && playerStatsMap[p2Id]) {
-            const p1Stats = playerStatsMap[p1Id];
-            const p2Stats = playerStatsMap[p2Id];
-
-            p1Stats.played++; p2Stats.played++;
-            p1Stats.goalsFor += score1; p1Stats.goalsAgainst += score2;
-            p2Stats.goalsFor += score2; p2Stats.goalsAgainst += score1;
-
-            if (score1 > score2) { p1Stats.win++; p1Stats.points += 3; p2Stats.loss++; }
-            else if (score2 > score1) { p2Stats.win++; p2Stats.points += 3; p1Stats.loss++; }
-            else { p1Stats.draw++; p1Stats.points++; p2Stats.draw++; p2Stats.points++; }
-        }
-    });
-
-    // 4. Compare and batch update only changed entries
-    const batch = writeBatch(firestore);
-    let updatedCount = 0;
-    
-    for (const entry of leagueTable) {
-        const newStats = playerStatsMap[entry.playerId];
-        if (newStats) {
-            const finalNewStats = { ...newStats, goalDifference: newStats.goalsFor - newStats.goalsAgainst };
-            
-            // This is a simplified version of the old stats object for comparison
-            const oldStats = {
-                played: entry.played, win: entry.win, draw: entry.draw, loss: entry.loss, 
-                goalsFor: entry.goalsFor, goalsAgainst: entry.goalsAgainst, 
-                goalDifference: entry.goalDifference, points: entry.points
-            };
-
-            // Compare new vs old stats. If different, add to batch.
-            if (JSON.stringify(finalNewStats) !== JSON.stringify(oldStats)) {
-                const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, entry.id);
-                batch.update(entryRef, finalNewStats);
-                updatedCount++;
-            }
-        }
-    }
-    
-    try {
-        if (updatedCount > 0) {
-            await batch.commit();
-            toast({ title: "Sukses!", description: `Statistik telah dihitung ulang. ${updatedCount} data pemain diperbarui.` });
-        } else {
-            toast({ title: "Tidak Ada Perubahan", description: "Semua statistik pemain sudah sesuai." });
-        }
-    } catch(e) {
-        console.error("Failed to recalculate stats: ", e);
-        toast({ variant: 'destructive', title: "Gagal", description: "Terjadi kesalahan saat menyimpan statistik baru." });
-    }
-  }, [firestore, activeSeasonId, leagueTable, toast]);
-
 
   const handleEditMatch = (match: WithId<Match>) => {
     setEditingMatch(match)
@@ -901,18 +589,18 @@ export default function FixturesPage() {
                     <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('fixtures_page_title')}</h1>
                     {activeSeason && <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>}
                 </div>
-                <AdminControls
-                  activeSeasonId={activeSeasonId}
-                  hasFixtures={hasFixtures}
-                  isLoadingSeasons={isLoadingSeasons}
-                  seasons={seasons || []}
-                  leagueTable={leagueTable}
-                  onSeasonChange={setActiveSeasonId}
-                  onGenerateFixtures={handleGenerateFixtures}
-                  onRecalculate={handleRecalculateStats}
-                  isAdmin={isAdmin}
-                  setIsAdmin={setIsAdmin}
-                />
+                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder={t('select_a_season')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {seasons?.map(season => (
+                        <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="mb-8">

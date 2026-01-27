@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -84,6 +84,7 @@ export default function LeaguePage() {
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
   const [showFinishSeasonConfirm, setShowFinishSeasonConfirm] = useState(false);
+  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({ from: undefined, to: undefined });
@@ -217,8 +218,6 @@ export default function LeaguePage() {
     }
     return [...enrichedTable].sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
-        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
         return a.playerName.localeCompare(b.playerName);
     }).map((entry, index) => ({...entry, rank: index + 1}));
   }, [singleLeagueTable, coopLeagueTable, activeSeason, playersById, teamsById]);
@@ -279,6 +278,59 @@ export default function LeaguePage() {
         setPasswordPrompt({ open: true, action });
     }
   };
+
+  const handleGenerateFixtures = useCallback(async () => {
+    if (!firestore || !activeSeasonId || !activeSeason) return;
+
+    if (activeSeason.status !== 'Not Started') {
+       toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_not_started') });
+       return;
+    }
+
+    const tableToUse = activeSeason.type === 'Co-Op' ? coopLeagueTable : singleLeagueTable;
+
+    if (!tableToUse || tableToUse.length < 2) {
+      toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_min_players') });
+      return;
+    }
+
+    const batch = writeBatch(firestore);
+    const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+
+    // 1. Delete existing fixtures
+    const existingMatchesSnap = await getDocs(matchesCollectionRef);
+    existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
+
+    // 2. Generate new fixtures (single meeting for Best of 3)
+    for (let i = 0; i < tableToUse.length; i++) {
+        for (let j = i + 1; j < tableToUse.length; j++) {
+            const entry1 = tableToUse[i];
+            const entry2 = tableToUse[j];
+
+            const id1 = activeSeason.type === 'Co-Op' ? entry1.id : (entry1 as WithId<LeagueEntry>).playerId;
+            const id2 = activeSeason.type === 'Co-Op' ? entry2.id : (entry2 as WithId<LeagueEntry>).playerId;
+            
+            const matchData: Omit<Match, 'id' | 'player1Wins' | 'player2Wins'> = {
+                seasonId: activeSeasonId,
+                player1Id: id1,
+                player2Id: id2,
+                isCompleted: false,
+                matchDate: Timestamp.now(),
+            };
+            const matchRef = doc(matchesCollectionRef);
+            batch.set(matchRef, matchData);
+        }
+    }
+    
+    try {
+      await batch.commit();
+      toast({ title: t('fixtures_generated_title'), description: `Jadwal pertandingan untuk ${activeSeason.name} telah dibuat.` });
+    } catch(e) {
+      console.error(e);
+      toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error') });
+    }
+  }, [firestore, activeSeason, activeSeasonId, singleLeagueTable, coopLeagueTable, t, toast]);
+
 
   // --- Event Handlers ---
   const handleSeasonDialogSubmit = () => {
@@ -406,11 +458,7 @@ export default function LeaguePage() {
             teamName: player.teamName,
             played: 0,
             win: 0,
-            draw: 0,
             loss: 0,
-            goalsFor: 0,
-            goalsAgainst: 0,
-            goalDifference: 0,
             points: 0,
             hasPaid: false,
         };
@@ -460,8 +508,7 @@ export default function LeaguePage() {
             player2Name: pair.player2.name,
             player2TeamId: pair.teamId,
             player2TeamName: pair.teamName,
-            played: 0, win: 0, draw: 0, loss: 0,
-            goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0,
+            played: 0, win: 0, loss: 0, points: 0,
         };
         batch.set(teamRef, teamData);
     });
@@ -509,8 +556,6 @@ export default function LeaguePage() {
     const winner = sortedTable[0];
     const playersWhoPlayed = sortedTable.filter(p => p.played > 0);
 
-    const bestAttacker = [...playersWhoPlayed].sort((a, b) => b.goalsFor - a.goalsFor)[0];
-    const worstDefender = [...playersWhoPlayed].sort((a, b) => b.goalsAgainst - a.goalsAgainst)[0];
     const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
     const mostWinsPlayer = playersWhoPlayed.find(p => p.win === maxWins && maxWins > 0);
 
@@ -526,15 +571,9 @@ export default function LeaguePage() {
         winnerStats: {
             points: winner.points,
             win: winner.win,
-            draw: winner.draw,
             loss: winner.loss,
-            goalsFor: winner.goalsFor,
-            goalsAgainst: winner.goalsAgainst,
-            goalDifference: winner.goalDifference
         },
         funStats: {
-            bestAttacker: bestAttacker ? { playerName: bestAttacker.playerName, value: bestAttacker.goalsFor } : null,
-            worstDefender: worstDefender ? { playerName: worstDefender.playerName, value: worstDefender.goalsAgainst } : null,
             mostWins: mostWinsPlayer ? { playerName: mostWinsPlayer.playerName, value: mostWinsPlayer.win } : null,
         }
     };
@@ -661,6 +700,10 @@ export default function LeaguePage() {
                                 Undi Pasangan
                             </Button>
                          )}
+                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started' || (sortedTable?.length ?? 0) < 2}>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
+                        </Button>
                         <Button 
                             onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
                             variant="outline" 
@@ -939,6 +982,21 @@ export default function LeaguePage() {
             </AlertDialogContent>
         </AlertDialog>
 
+        {/* Generate Fixtures Confirmation Dialog */}
+        <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{t('are_you_sure', { defaultValue: 'Anda yakin?'})}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru' : 'membuat jadwal pertandingan baru'}.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{t('cancel', { defaultValue: 'Batal' })}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => { handleGenerateFixtures(); setShowGenerateConfirm(false); }}>Ya, Lanjutkan</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
       {/* Register Players Dialog */}
       <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}>
