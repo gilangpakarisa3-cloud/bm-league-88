@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -56,6 +57,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const { t } = useTranslation();
     
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
+    const isCoop = (activeSeason?.type || 'Single') === 'Co-Op';
 
     const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
@@ -72,6 +74,9 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             {alignment === 'left' && <span className="truncate">{name}</span>}
         </div>
     );
+    
+    const score = isCoop ? `${match.player1Wins} - ${match.player2Wins}` : `${match.player1Score} - ${match.player2Score}`;
+
 
     return (
         <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-4 p-3 transition-colors rounded-md hover:bg-muted/50">
@@ -79,7 +84,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             
             <div className="flex-none text-center">
                  {match.isCompleted ? (
-                    <span className="text-lg font-bold text-primary">{match.player1Wins} - {match.player2Wins}</span>
+                    <span className="text-lg font-bold text-primary">{score}</span>
                 ) : (
                     <span className="text-xs font-bold text-primary">VS</span>
                 )}
@@ -151,7 +156,7 @@ const FixtureContent = memo(function FixtureContent({
     const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
     
     const singleLeagueTableCollection = useMemoFirebase(
-        () => firestore && activeSeasonId && activeSeason?.type !== 'Co-Op' ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
+        () => firestore && activeSeasonId && (activeSeason?.type || 'Single') === 'Single' ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
         [firestore, activeSeasonId, activeSeason]
     );
     const { data: singleLeagueTable } = useCollection<LeagueEntry>(singleLeagueTableCollection);
@@ -192,7 +197,7 @@ const FixtureContent = memo(function FixtureContent({
     const { upcomingMatches, completedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
         if (!matches || !activeSeason) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
         
-        const isCoop = activeSeason.type === 'Co-Op';
+        const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
 
         const enrichedMatches = matches
             .map(match => {
@@ -398,7 +403,7 @@ export default function FixturesPage() {
     }
   }, [seasons, activeSeasonId]);
   
-  const handleUpdateScore = async (matchId: string, values: { player1Wins: number; player2Wins: number; time: string; date: Date; }) => {
+  const handleUpdateScore = async (matchId: string, values: any) => {
     if (!firestore || !activeSeasonId) return;
 
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
@@ -411,7 +416,7 @@ export default function FixturesPage() {
             const originalMatch = matchDoc.data() as Match;
 
             const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
-            const isCoop = seasonDoc.data()?.type === 'Co-Op';
+            const isCoop = (seasonDoc.data()?.type || 'Single') === 'Co-Op';
             const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
 
             let p1EntryRef, p2EntryRef, p1EntryQuery, p2EntryQuery;
@@ -446,14 +451,33 @@ export default function FixturesPage() {
             if (originalMatch.isCompleted) {
                 p1EntryData.played -= 1;
                 p2EntryData.played -= 1;
-                if ((originalMatch.player1Wins ?? 0) > (originalMatch.player2Wins ?? 0)) { // P1 won
-                    p1EntryData.win -= 1;
-                    p1EntryData.points -= 3;
-                    p2EntryData.loss -= 1;
-                } else if ((originalMatch.player2Wins ?? 0) > (originalMatch.player1Wins ?? 0)) { // P2 won
-                    p2EntryData.win -= 1;
-                    p2EntryData.points -= 3;
-                    p1EntryData.loss -= 1;
+                
+                if (isCoop) {
+                    if ((originalMatch.player1Wins ?? 0) > (originalMatch.player2Wins ?? 0)) { // P1 won
+                        p1EntryData.win -= 1; p1EntryData.points -= 3;
+                        p2EntryData.loss -= 1;
+                    } else if ((originalMatch.player2Wins ?? 0) > (originalMatch.player1Wins ?? 0)) { // P2 won
+                        p2EntryData.win -= 1; p2EntryData.points -= 3;
+                        p1EntryData.loss -= 1;
+                    }
+                } else {
+                    const p1LeagueData = p1EntryData as LeagueEntry;
+                    const p2LeagueData = p2EntryData as LeagueEntry;
+                    p1LeagueData.goalsFor -= originalMatch.player1Score ?? 0;
+                    p1LeagueData.goalsAgainst -= originalMatch.player2Score ?? 0;
+                    p2LeagueData.goalsFor -= originalMatch.player2Score ?? 0;
+                    p2LeagueData.goalsAgainst -= originalMatch.player1Score ?? 0;
+
+                    if ((originalMatch.player1Score ?? 0) > (originalMatch.player2Score ?? 0)) { // P1 won
+                        p1LeagueData.win -= 1; p1LeagueData.points -= 3;
+                        p2LeagueData.loss -= 1;
+                    } else if ((originalMatch.player2Score ?? 0) > (originalMatch.player1Score ?? 0)) { // P2 won
+                        p2LeagueData.win -= 1; p2LeagueData.points -= 3;
+                        p1LeagueData.loss -= 1;
+                    } else { // Draw
+                        p1LeagueData.draw -= 1; p1LeagueData.points -= 1;
+                        p2LeagueData.draw -= 1; p2LeagueData.points -= 1;
+                    }
                 }
             }
             
@@ -461,12 +485,34 @@ export default function FixturesPage() {
             p1EntryData.played += 1;
             p2EntryData.played += 1;
             
-            if (values.player1Wins > values.player2Wins) { // P1 wins
-                p1EntryData.win += 1; p1EntryData.points += 3;
-                p2EntryData.loss += 1;
-            } else if (values.player2Wins > values.player1Wins) { // P2 wins
-                p2EntryData.win += 1; p2EntryData.points += 3;
-                p1EntryData.loss += 1;
+            if (isCoop) {
+                if (values.player1Wins > values.player2Wins) { // P1 wins
+                    p1EntryData.win += 1; p1EntryData.points += 3;
+                    p2EntryData.loss += 1;
+                } else if (values.player2Wins > values.player1Wins) { // P2 wins
+                    p2EntryData.win += 1; p2EntryData.points += 3;
+                    p1EntryData.loss += 1;
+                }
+            } else {
+                const p1LeagueData = p1EntryData as LeagueEntry;
+                const p2LeagueData = p2EntryData as LeagueEntry;
+                p1LeagueData.goalsFor += values.player1Score;
+                p1LeagueData.goalsAgainst += values.player2Score;
+                p2LeagueData.goalsFor += values.player2Score;
+                p2LeagueData.goalsAgainst += values.player1Score;
+
+                if (values.player1Score > values.player2Score) { // P1 wins
+                    p1LeagueData.win += 1; p1LeagueData.points += 3;
+                    p2LeagueData.loss += 1;
+                } else if (values.player2Score > values.player1Score) { // P2 wins
+                    p2LeagueData.win += 1; p2LeagueData.points += 3;
+                    p1LeagueData.loss += 1;
+                } else { // Draw
+                    p1LeagueData.draw += 1; p1LeagueData.points += 1;
+                    p2LeagueData.draw += 1; p2LeagueData.points += 1;
+                }
+                p1LeagueData.goalDifference = p1LeagueData.goalsFor - p1LeagueData.goalsAgainst;
+                p2LeagueData.goalDifference = p2LeagueData.goalsFor - p2LeagueData.goalsAgainst;
             }
             
             transaction.set(p1FinalEntryRef, p1EntryData);
@@ -474,13 +520,13 @@ export default function FixturesPage() {
 
             const [hours, minutes] = values.time.split(':').map(Number);
             const newTimestamp = Timestamp.fromDate(new Date(values.date.setHours(hours, minutes)));
-
-            transaction.update(matchRef, { 
-                player1Wins: values.player1Wins, 
-                player2Wins: values.player2Wins,
+            
+            const matchUpdateData = { 
+                ...values,
                 matchDate: newTimestamp,
                 isCompleted: true
-            });
+            };
+            transaction.update(matchRef, matchUpdateData);
         });
         toast({ title: t('score_updated_title'), description: t('score_updated_desc') });
 
@@ -506,7 +552,7 @@ export default function FixturesPage() {
             const matchToRevert = matchDoc.data() as Match;
 
             const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
-            const isCoop = seasonDoc.data()?.type === 'Co-Op';
+            const isCoop = (seasonDoc.data()?.type || 'Single') === 'Co-Op';
             const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
 
             let p1EntryRef, p2EntryRef, p1EntryQuery, p2EntryQuery;
@@ -539,12 +585,34 @@ export default function FixturesPage() {
             p1EntryData.played -= 1;
             p2EntryData.played -= 1;
             
-            if ((matchToRevert.player1Wins ?? 0) > (matchToRevert.player2Wins ?? 0)) { // P1 won
-                p1EntryData.win -= 1; p1EntryData.points -= 3;
-                p2EntryData.loss -= 1;
-            } else if ((matchToRevert.player2Wins ?? 0) > (matchToRevert.player1Wins ?? 0)) { // P2 won
-                p2EntryData.win -= 1; p2EntryData.points -= 3;
-                p1EntryData.loss -= 1;
+            if(isCoop) {
+                if ((matchToRevert.player1Wins ?? 0) > (matchToRevert.player2Wins ?? 0)) { // P1 won
+                    p1EntryData.win -= 1; p1EntryData.points -= 3;
+                    p2EntryData.loss -= 1;
+                } else if ((matchToRevert.player2Wins ?? 0) > (matchToRevert.player1Wins ?? 0)) { // P2 won
+                    p2EntryData.win -= 1; p2EntryData.points -= 3;
+                    p1EntryData.loss -= 1;
+                }
+            } else {
+                const p1LeagueData = p1EntryData as LeagueEntry;
+                const p2LeagueData = p2EntryData as LeagueEntry;
+                p1LeagueData.goalsFor -= matchToRevert.player1Score ?? 0;
+                p1LeagueData.goalsAgainst -= matchToRevert.player2Score ?? 0;
+                p2LeagueData.goalsFor -= matchToRevert.player2Score ?? 0;
+                p2LeagueData.goalsAgainst -= matchToRevert.player1Score ?? 0;
+
+                if ((matchToRevert.player1Score ?? 0) > (matchToRevert.player2Score ?? 0)) { // P1 won
+                    p1LeagueData.win -= 1; p1LeagueData.points -= 3;
+                    p2LeagueData.loss -= 1;
+                } else if ((matchToRevert.player2Score ?? 0) > (matchToRevert.player1Score ?? 0)) { // P2 won
+                    p2LeagueData.win -= 1; p2LeagueData.points -= 3;
+                    p1LeagueData.loss -= 1;
+                } else { // Draw
+                    p1LeagueData.draw -= 1; p1LeagueData.points -= 1;
+                    p2LeagueData.draw -= 1; p2LeagueData.points -= 1;
+                }
+                 p1LeagueData.goalDifference = p1LeagueData.goalsFor - p1LeagueData.goalsAgainst;
+                p2LeagueData.goalDifference = p2LeagueData.goalsFor - p2LeagueData.goalsAgainst;
             }
 
             transaction.set(p1FinalEntryRef, p1EntryData);
@@ -553,6 +621,8 @@ export default function FixturesPage() {
             transaction.update(matchRef, { 
                 player1Wins: null, 
                 player2Wins: null,
+                player1Score: null,
+                player2Score: null,
                 isCompleted: false 
             });
         });

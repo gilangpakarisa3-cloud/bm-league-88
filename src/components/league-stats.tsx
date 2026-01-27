@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from "react";
@@ -50,7 +51,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         let bestAttacker: any[] = [];
         let worstDefender: any[] = [];
 
-        if (seasonType === 'Single') {
+        if ((seasonType || 'Single') === 'Single') {
             const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
             bestAttacker = playersWhoPlayed.filter(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
             
@@ -115,7 +116,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
-            {seasonType === 'Single' && stats.bestAttacker.length > 0 && (
+            {(seasonType || 'Single') === 'Single' && stats.bestAttacker.length > 0 && (
                  <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
@@ -166,7 +167,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
-            {seasonType === 'Single' && stats.worstDefender.length > 0 && (
+            {(seasonType || 'Single') === 'Single' && stats.worstDefender.length > 0 && (
                  <Card className="bg-card border-2 border-destructive">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">

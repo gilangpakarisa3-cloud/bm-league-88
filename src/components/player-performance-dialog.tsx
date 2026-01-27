@@ -64,7 +64,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
   const performanceStats = useMemo(() => {
     if (!player || !activeSeason) return null;
 
-    const isCoop = activeSeason.type === 'Co-Op';
+    const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
     const playerIdToFilter = isCoop ? player.id : player.playerId;
 
     const coopTableById = (coopLeagueTable || []).reduce((acc, entry) => {
@@ -244,7 +244,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
     "text-primary": !isTopRank && !isBottomRank,
   });
 
-  const isCoop = activeSeason?.type === 'Co-Op';
+  const isCoop = (activeSeason?.type || 'Single') === 'Co-Op';
 
 
   return (
@@ -382,6 +382,10 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                                         'text-foreground': match.result !== 'D',
                                         'text-yellow-400': match.result === 'D',
                                 });
+                                
+                                const score = isCoop
+                                    ? `${match.playerResult} - ${match.opponentResult}`
+                                    : `${match.playerResult} - ${match.opponentResult}`;
                                 
                                 return (
                                     <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">

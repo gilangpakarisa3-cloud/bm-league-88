@@ -166,8 +166,7 @@
       "required": [
         "name",
         "status",
-        "createdAt",
-        "type"
+        "createdAt"
       ]
     },
     "Match": {

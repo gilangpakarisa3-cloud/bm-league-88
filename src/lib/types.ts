@@ -31,7 +31,7 @@ export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
-  type: 'Single' | 'Co-Op';
+  type?: 'Single' | 'Co-Op';
   startDate?: Timestamp;
   endDate?: Timestamp;
   registrationFee?: number;
