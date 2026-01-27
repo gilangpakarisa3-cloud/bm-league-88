@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -5,12 +6,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
-import type { WithId, Season, Player, LeagueEntry } from '@/lib/types';
+import type { WithId, Season, Player, LeagueEntry, Team } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Users, Swords, Trash2 } from 'lucide-react';
-import { ScrollArea } from './ui/scroll-area';
+import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Users, Swords, Trash2, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+
 
 const LEAGUE_ID = 'main-league';
 const SEED_POT_SIZE = 8; // Top 8 players from previous season go to Pot 1
@@ -23,6 +26,7 @@ interface CoopDrawDialogProps {
   season: WithId<Season> | null;
   registeredPlayers: WithId<LeagueEntry>[];
   allPlayers: WithId<Player>[];
+  allTeams: WithId<Team>[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSavePairs: (pairs: DrawnPair[]) => void;
@@ -40,7 +44,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
     return newArray;
 };
 
-export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, onOpenChange, onSavePairs, isAdmin, onRemovePlayer }: CoopDrawDialogProps) {
+export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams, open, onOpenChange, onSavePairs, isAdmin, onRemovePlayer }: CoopDrawDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [previousSeason, setPreviousSeason] = useState<WithId<Season> | null>(null);
@@ -49,6 +53,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
   const [pot1, setPot1] = useState<PlayerInPot[]>([]);
   const [pot2, setPot2] = useState<PlayerInPot[]>([]);
   const [drawnPairs, setDrawnPairs] = useState<{player1: PlayerInPot, player2: PlayerInPot}[] | null>(null);
+  const [playerTeams, setPlayerTeams] = useState<Record<string, string>>({}); // playerId -> teamId map
   
   const allPlayersMap = useMemo(() => {
     return allPlayers.reduce((acc, p) => {
@@ -63,6 +68,14 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
     const findPreviousSeason = async () => {
         setIsLoading(true);
         setDrawnPairs(null); // Reset drawn pairs when dialog opens
+        
+        const teamMap: Record<string, string> = {};
+        registeredPlayers.forEach(p => {
+          const playerInfo = allPlayersMap[p.playerId];
+          teamMap[p.playerId] = playerInfo?.teamId || p.teamId;
+        });
+        setPlayerTeams(teamMap);
+
         // 1. Find the most recent 'Completed' season
         const seasonsQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc'));
         const seasonsSnap = await getDocs(seasonsQuery);
@@ -90,7 +103,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
     };
 
     findPreviousSeason();
-  }, [open, firestore, toast]);
+  }, [open, firestore, toast, registeredPlayers, allPlayersMap]);
   
   useEffect(() => {
       if (isLoading || !previousSeason || registeredPlayers.length === 0) {
@@ -129,6 +142,10 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
       setPot2(prev => [...prev, playerToMove].sort((a,b) => a.prevRank - b.prevRank));
     }
   }, []);
+
+  const handleTeamChange = useCallback((playerId: string, teamId: string) => {
+    setPlayerTeams(prev => ({ ...prev, [playerId]: teamId }));
+  }, []);
   
   const handleDraw = useCallback(() => {
       if (pot1.length === 0 && pot2.length < 2) {
@@ -164,7 +181,25 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
     const pairsToSave: DrawnPair[] = drawnPairs.map(pair => {
         const p1Details = allPlayersMap[pair.player1.playerId];
         const p2Details = allPlayersMap[pair.player2.playerId];
-        return { player1: p1Details, player2: p2Details };
+        
+        const p1TeamId = playerTeams[p1Details.id] || '';
+        const p1Team = allTeams.find(t => t.id === p1TeamId);
+
+        const p2TeamId = playerTeams[p2Details.id] || '';
+        const p2Team = allTeams.find(t => t.id === p2TeamId);
+
+        return { 
+            player1: {
+                ...p1Details,
+                teamId: p1TeamId,
+                teamName: p1Team?.name || 'Tanpa Tim'
+            }, 
+            player2: {
+                ...p2Details,
+                teamId: p2TeamId,
+                teamName: p2Team?.name || 'Tanpa Tim'
+            }
+        };
     });
     onSavePairs(pairsToSave);
   }
@@ -199,6 +234,9 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                     onMovePlayer={(player) => handleMovePlayer(player, 'pot2')}
                     moveIcon={<ArrowDownCircle className="h-4 w-4 text-amber-500" />}
                     moveTooltip="Pindahkan ke Pot 2"
+                    allTeams={allTeams}
+                    playerTeams={playerTeams}
+                    onTeamChange={handleTeamChange}
                 />
                 <PotDisplay 
                     title="Pot 2" 
@@ -208,6 +246,9 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                     onMovePlayer={(player) => handleMovePlayer(player, 'pot1')}
                     moveIcon={<ArrowUpCircle className="h-4 w-4 text-green-500" />}
                     moveTooltip="Pindahkan ke Pot 1 (Unggulan)"
+                    allTeams={allTeams}
+                    playerTeams={playerTeams}
+                    onTeamChange={handleTeamChange}
                 />
              </div>
         )}
@@ -247,7 +288,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
   );
 }
 
-const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, moveTooltip }: { 
+const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, moveTooltip, allTeams, playerTeams, onTeamChange }: { 
     title: string;
     players: PlayerInPot[];
     isAdmin: boolean;
@@ -255,6 +296,9 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
     onMovePlayer: (player: PlayerInPot) => void;
     moveIcon: React.ReactNode;
     moveTooltip: string;
+    allTeams: WithId<Team>[];
+    playerTeams: Record<string, string>;
+    onTeamChange: (playerId: string, teamId: string) => void;
 }) => {
     return (
         <Card>
@@ -263,28 +307,55 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
             </CardHeader>
             <CardContent>
                 <div className="space-y-2">
-                    {players.map(player => (
-                        <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border">
-                            <span>{player.playerName}</span>
-                            {isAdmin && (
-                            <div className="flex items-center ml-auto">
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
-                                                    {moveIcon}
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent><p>{moveTooltip}</p></TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
+                    {players.map(player => {
+                        const teamId = playerTeams[player.playerId];
+                        const team = allTeams.find(t => t.id === teamId);
+                        return (
+                            <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border gap-2">
+                                <div className="flex items-center gap-2">
+                                    <Avatar className="h-6 w-6">
+                                        <AvatarImage src={team?.logoUrl} />
+                                        <AvatarFallback>{team?.name?.charAt(0) || <User className="w-4 h-4" />}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-semibold">{player.playerName}</span>
+                                </div>
+                                <div className="flex items-center gap-2 ml-auto">
+                                    <Select
+                                        value={playerTeams[player.playerId] || ''}
+                                        onValueChange={(teamId) => onTeamChange(player.playerId, teamId)}
+                                        disabled={!isAdmin}
+                                    >
+                                        <SelectTrigger className="w-[150px] h-8 text-xs">
+                                            <SelectValue placeholder="Pilih tim..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">Tanpa Tim</SelectItem>
+                                            {allTeams.map(team => (
+                                                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {isAdmin && (
+                                    <div className="flex items-center">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
+                                                            {moveIcon}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent><p>{moveTooltip}</p></TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                )}
+                                </div>
                             </div>
-                        )}
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             </CardContent>
         </Card>

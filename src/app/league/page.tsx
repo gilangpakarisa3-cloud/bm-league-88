@@ -431,14 +431,18 @@ export default function LeaguePage() {
     const targetCollection = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`);
 
     pairs.forEach(pair => {
-        const teamId = `${pair.player1.id}-${pair.player2.id}`.split('').sort().join(''); // create a consistent ID
+        const teamId = [pair.player1.id, pair.player2.id].sort().join('-');
         const teamRef = doc(targetCollection, teamId);
         const teamData: CoOpLeagueEntry = {
             teamName: `${pair.player1.name} & ${pair.player2.name}`,
             player1Id: pair.player1.id,
             player1Name: pair.player1.name,
+            player1TeamId: pair.player1.teamId,
+            player1TeamName: pair.player1.teamName,
             player2Id: pair.player2.id,
             player2Name: pair.player2.name,
+            player2TeamId: pair.player2.teamId,
+            player2TeamName: pair.player2.teamName,
             played: 0, win: 0, draw: 0, loss: 0,
             goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0,
         };
@@ -942,6 +946,7 @@ export default function LeaguePage() {
         season={activeSeason}
         registeredPlayers={registeredPlayers || []}
         allPlayers={allPlayers || []}
+        allTeams={allTeams || []}
         onSavePairs={handleSavePairs}
         isAdmin={isAdmin}
         onRemovePlayer={handleRemovePlayerFromRegistration}

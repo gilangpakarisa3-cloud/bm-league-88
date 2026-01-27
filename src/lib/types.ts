@@ -58,8 +58,12 @@ export type CoOpLeagueEntry = {
   teamName: string;
   player1Id: string;
   player1Name: string;
+  player1TeamId: string;
+  player1TeamName: string;
   player2Id: string;
   player2Name: string;
+  player2TeamId: string;
+  player2TeamName: string;
   played: number;
   win: number;
   draw: number;
