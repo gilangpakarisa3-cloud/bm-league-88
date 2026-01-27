@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { CoopScoreChecklist } from "./coop-score-checklist";
 
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -33,10 +34,11 @@ const formSchema = z.object({
   time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
   date: z.date({ required_error: "A date is required."}),
 }).refine(data => {
+    // A score is valid if one player has 2 wins and the other has 0 or 1.
     return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
            (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
 }, {
-    message: "Invalid best-of-3 result. One player must have 2 wins.",
+    message: "Invalid best-of-3 result. One team must have 2 wins.",
     path: ["player1Wins"],
 });
 
@@ -46,23 +48,23 @@ type ScoreFormValues = z.infer<typeof formSchema>;
 interface ScoreFormProps {
   match: WithId<Match>;
   onSave: (data: ScoreFormValues) => void;
-  players: WithId<Player>[];
-  teams: WithId<Team>[];
+  seasonType?: 'Single' | 'Co-Op';
+  player1Info: { name: string; team?: WithId<Team> | null };
+  player2Info: { name: string; team?: WithId<Team> | null };
 }
 
-export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
+export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info }: ScoreFormProps) {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  const player1 = players.find(p => p.id === match.player1Id);
-  const player2 = players.find(p => p.id === match.player2Id);
+  const player1 = player1Info;
+  const player2 = player2Info;
 
-  const team1 = useMemo(() => teams.find(t => t.id === player1?.teamId), [teams, player1]);
-  const team2 = useMemo(() => teams.find(t => t.id === player2?.teamId), [teams, player2]);
+  const team1 = player1.team;
+  const team2 = player2.team;
   
   const getInitialValues = (match: WithId<Match>) => {
     const isNewScore = !match.isCompleted;
-    // Use match date if it exists, otherwise it will be set in useEffect
     const dateToUse = isNewScore ? undefined : match.matchDate.toDate(); 
     const timeToUse = dateToUse ? format(dateToUse, 'HH:mm') : '00:00';
 
@@ -76,13 +78,10 @@ export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
 
   const form = useForm<ScoreFormValues>({
     resolver: zodResolver(formSchema),
-    // Set initial values without new Date() to avoid hydration mismatch
     defaultValues: getInitialValues(match),
   });
 
   useEffect(() => {
-    // Only run on the client after hydration
-    // If it's a new match and date is not set, set it to now()
     if (!match.isCompleted && !form.getValues('date')) {
       const now = new Date();
       form.setValue('date', now);
@@ -96,75 +95,96 @@ export function ScoreForm({ match, onSave, players, teams }: ScoreFormProps) {
     try {
       await onSave(data);
     } finally {
-      // It's possible the component unmounts upon successful save,
-      // so check if it's still mounted before setting state.
       if (form.formState.isSubmitting) {
         setIsSaving(false);
       }
     }
   };
 
+  const handleScoreChangeFromChecklist = (score: {player1Wins: number, player2Wins: number}) => {
+    form.setValue('player1Wins', score.player1Wins, { shouldValidate: true });
+    form.setValue('player2Wins', score.player2Wins, { shouldValidate: true });
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4 items-end">
-          <FormField
+        {seasonType === 'Co-Op' ? (
+           <CoopScoreChecklist
+              player1Name={player1.name}
+              player2Name={player2.name}
+              initialScore={{ player1Wins: form.getValues('player1Wins'), player2Wins: form.getValues('player2Wins')}}
+              onScoreChange={handleScoreChangeFromChecklist}
+           />
+        ) : (
+          <div className="grid grid-cols-2 gap-4 items-end">
+            <FormField
+              control={form.control}
+              name="player1Wins"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                          <AvatarImage src={team1?.logoUrl} />
+                          <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                      </Avatar>
+                      {player1?.name}
+                  </FormLabel>
+                  <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Wins" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">0</SelectItem>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                      </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="player2Wins"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                          <AvatarImage src={team2?.logoUrl} />
+                          <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                      </Avatar>
+                      {player2?.name}
+                  </FormLabel>
+                  <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Wins" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">0</SelectItem>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                      </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+         <FormField
             control={form.control}
             name="player1Wins"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={team1?.logoUrl} />
-                        <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
-                    </Avatar>
-                    {player1?.name}
-                </FormLabel>
-                <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Wins" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="0">0</SelectItem>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
+            render={() => (
+                <FormItem>
+                    <FormMessage />
+                </FormItem>
             )}
-          />
-          <FormField
-            control={form.control}
-            name="player2Wins"
-            render={({ field }) => (
-              <FormItem>
-                 <FormLabel className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={team2?.logoUrl} />
-                        <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
-                    </Avatar>
-                    {player2?.name}
-                </FormLabel>
-                <Select onValueChange={(v) => field.onChange(parseInt(v, 10))} value={String(field.value)}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Wins" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="0">0</SelectItem>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        />
         <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -49,7 +48,7 @@ const LEAGUE_ID = 'main-league';
 
 const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason }: {
     match: any; // Using any because the shape is now dynamic (Single or Co-op)
-    onEditMatch: (match: WithId<Match>) => void;
+    onEditMatch: (match: any) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     activeSeason: WithId<Season> | null;
@@ -125,7 +124,7 @@ const FixtureContent = memo(function FixtureContent({
     allTeams,
 }: {
     activeSeasonId: string | null;
-    onEditMatch: (match: WithId<Match>) => void;
+    onEditMatch: (match: any) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     allPlayers: WithId<Player>[];
@@ -360,7 +359,7 @@ export default function FixturesPage() {
   const { t } = useTranslation();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
-  const [editingMatch, setEditingMatch] = useState<WithId<Match> | null>(null);
+  const [editingMatch, setEditingMatch] = useState<any | null>(null);
   const [revertingMatch, setRevertingMatch] = useState<WithId<Match> | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   
@@ -568,7 +567,7 @@ export default function FixturesPage() {
 
   }, [firestore, activeSeasonId, revertingMatch, t, toast]);
 
-  const handleEditMatch = (match: WithId<Match>) => {
+  const handleEditMatch = (match: any) => {
     setEditingMatch(match)
   };
   
@@ -626,16 +625,24 @@ export default function FixturesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t('update_match_score_title')}</DialogTitle>
-              {editingMatch && allPlayers && (
+              {editingMatch && (
                  <DialogDescription>
                     {t('update_match_score_desc', { 
-                        player1: playersById[editingMatch.player1Id]?.name, 
-                        player2: playersById[editingMatch.player2Id]?.name 
+                        player1: editingMatch.player1?.name, 
+                        player2: editingMatch.player2?.name 
                     })}
                 </DialogDescription>
               )}
             </DialogHeader>
-            {editingMatch && <ScoreForm match={editingMatch} onSave={(values) => handleUpdateScore(editingMatch.id, values)} players={allPlayers || []} teams={allTeams || []} />}
+            {editingMatch && activeSeason && (
+                <ScoreForm 
+                    match={editingMatch} 
+                    onSave={(values) => handleUpdateScore(editingMatch.id, values)}
+                    seasonType={activeSeason.type}
+                    player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }}
+                    player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }}
+                />
+            )}
           </DialogContent>
         </Dialog>
 
