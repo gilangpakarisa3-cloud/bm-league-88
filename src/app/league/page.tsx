@@ -197,7 +197,7 @@ export default function LeaguePage() {
                 ...entry,
                 // Adapt CoOpLeagueEntry to look like LeagueEntry for the table component
                 playerName: entry.teamName, // e.g. "Ade Urip & Bagas"
-                teamId: entry.player1TeamId, // This is the fix!
+                teamId: entry.player1TeamId, // Pass team ID for logo
                 teamName: teamForPair ? teamForPair.name : entry.player1TeamName, // The Club name e.g. "Arsenal"
                 playerId: entry.id, // Use coop team ID as the main ID
                 team: teamForPair, // The full team object for the logo
@@ -809,7 +809,7 @@ export default function LeaguePage() {
                   seasonType={activeSeason?.type}
                 />
 
-                {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && activeSeason.type === 'Single' && (
+                {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
