@@ -434,6 +434,19 @@ export default function LeaguePage() {
     const batch = writeBatch(firestore);
     const targetCollection = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`);
 
+    // 1. Delete all existing documents in the collection first.
+    try {
+        const existingDocsSnap = await getDocs(targetCollection);
+        existingDocsSnap.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+    } catch (error) {
+        console.error("Error fetching existing co-op pairs for deletion:", error);
+        toast({ variant: 'destructive', title: 'Gagal Menghapus Data Lama', description: 'Tidak dapat membersihkan data pasangan Co-Op sebelumnya.'});
+        return; // Stop if we can't delete old data
+    }
+
+    // 2. Add the new pairs.
     pairs.forEach(pair => {
         const teamId = [pair.player1.id, pair.player2.id].sort().join('-');
         const teamRef = doc(targetCollection, teamId);
