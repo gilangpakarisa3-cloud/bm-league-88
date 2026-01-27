@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -10,7 +9,7 @@ import type { WithId, Season, Player, LeagueEntry, Team } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Users, Swords, Trash2, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
@@ -182,10 +181,12 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
         const p1Details = allPlayersMap[pair.player1.playerId];
         const p2Details = allPlayersMap[pair.player2.playerId];
         
-        const p1TeamId = playerTeams[p1Details.id] || '';
+        let p1TeamId = playerTeams[p1Details.id] || 'no-team';
+        if (p1TeamId === 'no-team') p1TeamId = '';
         const p1Team = allTeams.find(t => t.id === p1TeamId);
 
-        const p2TeamId = playerTeams[p2Details.id] || '';
+        let p2TeamId = playerTeams[p2Details.id] || 'no-team';
+        if (p2TeamId === 'no-team') p2TeamId = '';
         const p2Team = allTeams.find(t => t.id === p2TeamId);
 
         return { 
@@ -321,7 +322,7 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
                                 </div>
                                 <div className="flex items-center gap-2 ml-auto">
                                     <Select
-                                        value={playerTeams[player.playerId] || ''}
+                                        value={playerTeams[player.playerId] || 'no-team'}
                                         onValueChange={(teamId) => onTeamChange(player.playerId, teamId)}
                                         disabled={!isAdmin}
                                     >
@@ -329,7 +330,7 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
                                             <SelectValue placeholder="Pilih tim..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Tanpa Tim</SelectItem>
+                                            <SelectItem value="no-team">Tanpa Tim</SelectItem>
                                             {allTeams.map(team => (
                                                 <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                                             ))}
