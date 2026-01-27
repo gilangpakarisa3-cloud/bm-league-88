@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -13,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { ScrollArea } from './ui/scroll-area';
 
 
 const LEAGUE_ID = 'main-league';
@@ -205,99 +205,103 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Undian Pasangan Co-Op: {season?.name}</DialogTitle>
-          <DialogDescription>
-            Berdasarkan klasemen musim lalu '{previousSeason?.name}'. {SEED_POT_SIZE} pemain teratas masuk Pot 1 (Unggulan). Anda bisa memindahkan pemain antar pot jika diperlukan.
-          </DialogDescription>
-        </DialogHeader>
-        
-        {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-4">Mencari data musim lalu...</p>
-            </div>
-        ) : (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <PotDisplay 
-                    title="Pot 1 (Unggulan)" 
-                    players={pot1} 
-                    isAdmin={isAdmin} 
-                    onRemovePlayer={handleRemoveFromPot}
-                    onMovePlayer={(player) => handleMovePlayer(player, 'pot2')}
-                    moveIcon={<ArrowDownCircle className="h-4 w-4 text-amber-500" />}
-                    moveTooltip="Pindahkan ke Pot 2"
-                />
-                <PotDisplay 
-                    title="Pot 2" 
-                    players={pot2} 
-                    isAdmin={isAdmin} 
-                    onRemovePlayer={handleRemoveFromPot}
-                    onMovePlayer={(player) => handleMovePlayer(player, 'pot1')}
-                    moveIcon={<ArrowUpCircle className="h-4 w-4 text-green-500" />}
-                    moveTooltip="Pindahkan ke Pot 1 (Unggulan)"
-                />
-             </div>
-        )}
-
-        {drawnPairs && (
-            <div className="mt-4">
-                <h3 className="text-lg font-semibold text-center mb-2 text-primary">Hasil Undian & Pemilihan Tim</h3>
-                <div className="border rounded-md p-4 space-y-3">
-                     {drawnPairs.map((pair, index) => {
-                        const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
-                        const player1 = allPlayersMap[pair.player1.playerId];
-                        const player2 = allPlayersMap[pair.player2.playerId];
-                        
-                        return (
-                            <div key={index} className="p-3 bg-card rounded-md border">
-                                <p className="text-sm font-bold text-center mb-3 text-primary/80">Pasangan {index + 1}</p>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 items-center mb-3">
-                                     <div className="font-semibold text-sm flex items-center gap-2">
-                                           <Avatar className="h-6 w-6"><AvatarFallback>{player1.name.charAt(0)}</AvatarFallback></Avatar>
-                                           {player1.name}
-                                     </div>
-                                     <div className="font-semibold text-sm flex items-center gap-2">
-                                           <Avatar className="h-6 w-6"><AvatarFallback>{player2.name.charAt(0)}</AvatarFallback></Avatar>
-                                           {player2.name}
-                                     </div>
-                                </div>
-                                <Select
-                                    value={pairTeams[pairId] || 'no-team'}
-                                    onValueChange={(teamId) => handlePairTeamChange(pairId, teamId)}
-                                    disabled={!isAdmin}
-                                >
-                                    <SelectTrigger className="h-9 text-xs w-full">
-                                        <SelectValue placeholder="Pilih tim untuk pasangan ini..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="no-team" disabled>Pilih Tim...</SelectItem>
-                                        {allTeams.map(team => (
-                                            <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )
-                    })}
+      <DialogContent className="max-w-4xl p-0">
+        <ScrollArea className="max-h-[90vh]">
+          <div className="p-6">
+            <DialogHeader>
+              <DialogTitle>Undian Pasangan Co-Op: {season?.name}</DialogTitle>
+              <DialogDescription>
+                Berdasarkan klasemen musim lalu '{previousSeason?.name}'. {SEED_POT_SIZE} pemain teratas masuk Pot 1 (Unggulan). Anda bisa memindahkan pemain antar pot jika diperlukan.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="ml-4">Mencari data musim lalu...</p>
                 </div>
-            </div>
-        )}
-
-        <DialogFooter className="mt-4">
-            {drawnPairs ? (
-                 <Button onClick={handleFinalSave} className="w-full sm:w-auto" disabled={isLoading}>
-                    <Swords className="mr-2 h-4 w-4"/>
-                    Simpan Pasangan & Buat Klasemen
-                 </Button>
-            ): (
-                 <Button onClick={handleDraw} className="w-full sm:w-auto" disabled={isLoading || (pot1.length === 0 && pot2.length < 2)}>
-                    <Shuffle className="mr-2 h-4 w-4"/>
-                    Undi Pasangan
-                </Button>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <PotDisplay 
+                        title="Pot 1 (Unggulan)" 
+                        players={pot1} 
+                        isAdmin={isAdmin} 
+                        onRemovePlayer={handleRemoveFromPot}
+                        onMovePlayer={(player) => handleMovePlayer(player, 'pot2')}
+                        moveIcon={<ArrowDownCircle className="h-4 w-4 text-amber-500" />}
+                        moveTooltip="Pindahkan ke Pot 2"
+                    />
+                    <PotDisplay 
+                        title="Pot 2" 
+                        players={pot2} 
+                        isAdmin={isAdmin} 
+                        onRemovePlayer={handleRemoveFromPot}
+                        onMovePlayer={(player) => handleMovePlayer(player, 'pot1')}
+                        moveIcon={<ArrowUpCircle className="h-4 w-4 text-green-500" />}
+                        moveTooltip="Pindahkan ke Pot 1 (Unggulan)"
+                    />
+                </div>
             )}
-        </DialogFooter>
+
+            {drawnPairs && (
+                <div className="mt-4">
+                    <h3 className="text-lg font-semibold text-center mb-2 text-primary">Hasil Undian & Pemilihan Tim</h3>
+                    <div className="border rounded-md p-4 space-y-3">
+                        {drawnPairs.map((pair, index) => {
+                            const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
+                            const player1 = allPlayersMap[pair.player1.playerId];
+                            const player2 = allPlayersMap[pair.player2.playerId];
+                            
+                            return (
+                                <div key={index} className="p-3 bg-card rounded-md border">
+                                    <p className="text-sm font-bold text-center mb-3 text-primary/80">Pasangan {index + 1}</p>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 items-center mb-3">
+                                        <div className="font-semibold text-sm flex items-center gap-2">
+                                            <Avatar className="h-6 w-6"><AvatarFallback>{player1.name.charAt(0)}</AvatarFallback></Avatar>
+                                            {player1.name}
+                                        </div>
+                                        <div className="font-semibold text-sm flex items-center gap-2">
+                                            <Avatar className="h-6 w-6"><AvatarFallback>{player2.name.charAt(0)}</AvatarFallback></Avatar>
+                                            {player2.name}
+                                        </div>
+                                    </div>
+                                    <Select
+                                        value={pairTeams[pairId] || 'no-team'}
+                                        onValueChange={(teamId) => handlePairTeamChange(pairId, teamId)}
+                                        disabled={!isAdmin}
+                                    >
+                                        <SelectTrigger className="h-9 text-xs w-full">
+                                            <SelectValue placeholder="Pilih tim untuk pasangan ini..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="no-team" disabled>Pilih Tim...</SelectItem>
+                                            {allTeams.map(team => (
+                                                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
+            <DialogFooter className="mt-4">
+                {drawnPairs ? (
+                    <Button onClick={handleFinalSave} className="w-full sm:w-auto" disabled={isLoading}>
+                        <Swords className="mr-2 h-4 w-4"/>
+                        Simpan Pasangan & Buat Klasemen
+                    </Button>
+                ): (
+                    <Button onClick={handleDraw} className="w-full sm:w-auto" disabled={isLoading || (pot1.length === 0 && pot2.length < 2)}>
+                        <Shuffle className="mr-2 h-4 w-4"/>
+                        Undi Pasangan
+                    </Button>
+                )}
+            </DialogFooter>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
