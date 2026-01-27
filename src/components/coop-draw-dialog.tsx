@@ -176,7 +176,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Undian Pasangan Co-Op: {season?.name}</DialogTitle>
           <DialogDescription>
@@ -190,7 +190,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                 <p className="ml-4">Mencari data musim lalu...</p>
             </div>
         ) : (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh]">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <PotDisplay 
                     title="Pot 1 (Unggulan)" 
                     players={pot1} 
@@ -215,7 +215,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
         {drawnPairs && (
             <div className="mt-4">
                 <h3 className="text-lg font-semibold text-center mb-2">Hasil Undian</h3>
-                <ScrollArea className="h-48 border rounded-md p-4">
+                <div className="border rounded-md p-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {drawnPairs.map((pair, index) => (
                              <div key={index} className="flex items-center justify-center gap-2 p-2 bg-muted rounded-md text-sm">
@@ -225,7 +225,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                             </div>
                         ))}
                     </div>
-                </ScrollArea>
+                </div>
             </div>
         )}
 
@@ -262,32 +262,30 @@ const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, mov
                 <CardTitle className="text-center text-primary">{title} ({players.length})</CardTitle>
             </CardHeader>
             <CardContent>
-                <ScrollArea className="h-48">
-                    <div className="space-y-2 pr-4">
-                        {players.map(player => (
-                            <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border">
-                                <span>{player.playerName}</span>
-                                {isAdmin && (
-                                <div className="flex items-center ml-auto">
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
-                                                        {moveIcon}
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent><p>{moveTooltip}</p></TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </div>
-                            )}
+                <div className="space-y-2">
+                    {players.map(player => (
+                        <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border">
+                            <span>{player.playerName}</span>
+                            {isAdmin && (
+                            <div className="flex items-center ml-auto">
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
+                                                    {moveIcon}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>{moveTooltip}</p></TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
                             </div>
-                        ))}
-                    </div>
-                </ScrollArea>
+                        )}
+                        </div>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     );
