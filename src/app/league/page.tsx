@@ -101,7 +101,7 @@ export default function LeaguePage() {
 
   const leagueTableCollection = useMemoFirebase(
     () =>
-      firestore && activeSeasonId && activeSeason?.type === 'Single'
+      firestore && activeSeasonId && (!activeSeason?.type || activeSeason?.type === 'Single')
         ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
         : null,
     [firestore, activeSeasonId, activeSeason]
@@ -184,7 +184,7 @@ export default function LeaguePage() {
 
 
   const sortedTable = useMemo(() => {
-    const tableData = activeSeason?.type === 'Co-Op' ? coopLeagueTable : singleLeagueTable;
+    const tableData = (!activeSeason?.type || activeSeason?.type === 'Single') ? singleLeagueTable : coopLeagueTable;
     if (!tableData) return [];
     
     let enrichedTable: Omit<WithId<LeagueEntry>, 'teamId'>[];
