@@ -153,7 +153,7 @@ export default function LeaguePage() {
     if (!seasons) return null;
     return seasons
       .filter(s => s.status === 'Completed' && s.id !== activeSeasonId)
-      .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())[0];
+      .sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis())[0];
   }, [seasons, activeSeasonId]);
 
   const previousWinnerDocRef = useMemoFirebase(
@@ -197,6 +197,7 @@ export default function LeaguePage() {
                 ...entry,
                 // Adapt CoOpLeagueEntry to look like LeagueEntry for the table component
                 playerName: entry.teamName, // e.g. "Ade Urip & Bagas"
+                teamId: entry.player1TeamId, // This is the fix!
                 teamName: teamForPair ? teamForPair.name : entry.player1TeamName, // The Club name e.g. "Arsenal"
                 playerId: entry.id, // Use coop team ID as the main ID
                 team: teamForPair, // The full team object for the logo
