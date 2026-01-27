@@ -29,6 +29,7 @@ export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
+  type: 'Single' | 'Co-Op';
   startDate?: Timestamp;
   endDate?: Timestamp;
   registrationFee?: number;
@@ -53,10 +54,26 @@ export type LeagueEntry = {
   hasPaid?: boolean;
 };
 
+export type CoOpLeagueEntry = {
+  teamName: string;
+  player1Id: string;
+  player1Name: string;
+  player2Id: string;
+  player2Name: string;
+  played: number;
+  win: number;
+  draw: number;
+  loss: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+}
+
 export type Match = {
   seasonId: string;
-  player1Id: string;
-  player2Id: string;
+  player1Id: string; // For Co-Op, this will be the CoOp team ID
+  player2Id: string; // For Co-Op, this will be the CoOp team ID
   player1Score: number | null;
   player2Score: number | null;
   matchDate: Timestamp;

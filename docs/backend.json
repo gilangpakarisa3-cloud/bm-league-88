@@ -133,6 +133,12 @@
             "Completed"
           ]
         },
+        "type": {
+            "type": "string",
+            "description": "The format of the league for this season.",
+            "enum": ["Single", "Co-Op"],
+            "default": "Single"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -160,14 +166,15 @@
       "required": [
         "name",
         "status",
-        "createdAt"
+        "createdAt",
+        "type"
       ]
     },
     "Match": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Match",
       "type": "object",
-      "description": "Represents a match between two players.",
+      "description": "Represents a match between two players or two co-op teams.",
       "properties": {
         "seasonId": {
           "type": "string",
@@ -175,19 +182,19 @@
         },
         "player1Id": {
           "type": "string",
-          "description": "Reference to the first player in the match."
+          "description": "Reference to the first player or co-op team in the match."
         },
         "player2Id": {
           "type": "string",
-          "description": "Reference to the second player in the match."
+          "description": "Reference to the second player or co-op team in the match."
         },
         "player1Score": {
           "type": "number",
-          "description": "The score of the first player."
+          "description": "The score of the first player/team."
         },
         "player2Score": {
           "type": "number",
-          "description": "The score of the second player."
+          "description": "The score of the second player/team."
         },
         "matchDate": {
           "type": "string",
@@ -254,6 +261,28 @@
           "description": "Indicates if the player has paid the registration fee for the season."
         }
       }
+    },
+    "CoOpLeagueEntry": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "CoOpLeagueEntry",
+        "type": "object",
+        "description": "Represents a paired team's entry in a Co-Op league table.",
+        "properties": {
+            "teamName": {"type": "string"},
+            "player1Id": {"type": "string"},
+            "player1Name": {"type": "string"},
+            "player2Id": {"type": "string"},
+            "player2Name": {"type": "string"},
+            "played": {"type": "number"},
+            "win": {"type": "number"},
+            "draw": {"type": "number"},
+            "loss": {"type": "number"},
+            "goalsFor": {"type": "number"},
+            "goalsAgainst": {"type": "number"},
+            "goalDifference": {"type": "number"},
+            "points": {"type": "number"}
+        },
+        "required": ["teamName", "player1Id", "player1Name", "player2Id", "player2Name", "played", "win", "draw", "loss", "goalsFor", "goalsAgainst", "goalDifference", "points"]
     },
     "Notice": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -421,6 +450,16 @@
             "$ref": "#/backend/entities/LeagueEntry"
           },
           "description": "Stores the league table for a given season of a league."
+        }
+      },
+       {
+        "path": "/leagues/{leagueId}/seasons/{seasonId}/coopLeagueTable/{coopLeagueEntryId}",
+        "definition": {
+          "entityName": "CoOpLeagueEntry",
+          "schema": {
+            "$ref": "#/backend/entities/CoOpLeagueEntry"
+          },
+          "description": "Stores the league table for a Co-Op season."
         }
       },
        {

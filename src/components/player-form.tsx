@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -59,99 +60,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
   );
   const { data: leagues } = useCollection<League>(leaguesCollection);
   
-  // --- ONE-TIME DATA MIGRATION SCRIPT ---
-  useEffect(() => {
-    async function pairTeams() {
-        if (!firestore || !players || !teams) return;
-
-        const playerTeamMap: Record<string, string> = {
-            'riki': 'manutd',
-            'firman': 'inter',
-            'alan': 'acmilan',
-            'sulton': 'juventus',
-            'zulfriansah': 'liverpool',
-            'ridwan': 'realmadrid',
-            'hery': 'arsenal',
-            'bagas': 'chelsea',
-            'dapid': 'mancity',
-            'ade-urip': 'barcelona',
-        };
-        
-        // Check if migration has already run to avoid re-running
-        const migrationDocRef = doc(firestore, 'appConfig', 'migrations');
-        const migrationDoc = await getDocs(query(collection(firestore, 'appConfig'), where('name', '==', 'playerTeamPairing20240906')));
-
-        if (!migrationDoc.empty) {
-            console.log("Team pairing migration has already run. Skipping.");
-            return;
-        }
-
-        console.log("Running one-time team pairing migration...");
-        
-        const batch = writeBatch(firestore);
-
-        for (const p of players) {
-            const desiredTeamId = playerTeamMap[p.id];
-            if (desiredTeamId) {
-                const team = teams.find(t => t.id === desiredTeamId);
-                if (team) {
-                    const playerRef = doc(firestore, 'players', p.id);
-                    batch.update(playerRef, {
-                        teamId: team.id,
-                        teamName: team.name,
-                        // teamLogoUrl: team.logoUrl // player data doesn't have this
-                    });
-                     // Also update all league entries
-                    if (leagues) {
-                        for (const lg of leagues) {
-                            const seasonsRef = collection(firestore, `leagues/${lg.id}/seasons`);
-                            const seasonsSnap = await getDocs(seasonsRef);
-                            for (const seasonDoc of seasonsSnap.docs) {
-                                const leagueTableRef = collection(seasonsRef, seasonDoc.id, 'leagueTable');
-                                const q = query(leagueTableRef, where('playerId', '==', p.id));
-                                const leagueEntriesSnap = await getDocs(q);
-                                leagueEntriesSnap.forEach(entryDoc => {
-                                    const entryRef = doc(leagueTableRef, entryDoc.id);
-                                    batch.update(entryRef, {
-                                        teamName: team.name,
-                                        teamId: team.id,
-                                    });
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Mark migration as complete
-        const newMigrationRef = doc(firestore, 'appConfig', 'playerTeamPairing20240906');
-        batch.set(newMigrationRef, { name: 'playerTeamPairing20240906', completedAt: new Date() });
-        
-        try {
-            await batch.commit();
-            toast({
-                title: "Player Teams Re-paired!",
-                description: "Teams have been successfully updated for Season 1 players.",
-            });
-        } catch (error) {
-            console.error("Team pairing migration failed:", error);
-            toast({
-                variant: 'destructive',
-                title: "Migration Failed",
-                description: "Could not update player teams.",
-            });
-        }
-    }
-    
-    // Check if data is loaded before running
-    if (!isLoadingPlayers && !isLoadingTeams && players && teams && leagues) {
-        pairTeams();
-    }
-
-  }, [firestore, players, teams, leagues, isLoadingPlayers, isLoadingTeams, toast]);
-
-
   const formSchemaTranslated = z.object({
     name: z.string().min(2, {
       message: t('player_name_min_char'),

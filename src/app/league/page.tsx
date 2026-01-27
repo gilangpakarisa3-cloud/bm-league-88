@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp } from 'firebase/firestore';
-import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord } from '@/lib/types';
+import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord, CoOpLeagueEntry } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +52,8 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CoopDrawDialog, DrawnPair } from '@/components/coop-draw-dialog';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -70,10 +72,15 @@ export default function LeaguePage() {
   const [passwordInput, setPasswordInput] = useState('');
   const [showCreateSeason, setShowCreateSeason] = useState(false);
   const [showRegisterPlayers, setShowRegisterPlayers] = useState(false);
+  const [showDrawDialog, setShowDrawDialog] = useState(false);
+  
+  // Create/Edit Season State
   const [newSeasonName, setNewSeasonName] = useState('');
   const [newSeasonFee, setNewSeasonFee] = useState<number | string>('');
   const [newSponsorshipAmount, setNewSponsorshipAmount] = useState<number | string>('');
+  const [newSeasonType, setNewSeasonType] = useState<Season['type']>('Single');
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
+  
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
   const [showFinishSeasonConfirm, setShowFinishSeasonConfirm] = useState(false);
@@ -90,14 +97,35 @@ export default function LeaguePage() {
   );
   const { data: seasons, isLoading: isLoadingSeasons } = useCollection<Season>(seasonsCollection);
 
+  const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
+
   const leagueTableCollection = useMemoFirebase(
     () =>
-      firestore && activeSeasonId
+      firestore && activeSeasonId && activeSeason?.type === 'Single'
         ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
         : null,
-    [firestore, activeSeasonId]
+    [firestore, activeSeasonId, activeSeason]
   );
-  const { data: leagueTable, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableCollection);
+  const { data: singleLeagueTable, isLoading: isLoadingSingleTable } = useCollection<LeagueEntry>(leagueTableCollection);
+
+  const coopLeagueTableCollection = useMemoFirebase(
+    () =>
+      firestore && activeSeasonId && activeSeason?.type === 'Co-Op'
+        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`)
+        : null,
+    [firestore, activeSeasonId, activeSeason]
+  );
+  const { data: coopLeagueTable, isLoading: isLoadingCoopTable } = useCollection<CoOpLeagueEntry>(coopLeagueTableCollection);
+
+  const playerRegistrationCollection = useMemoFirebase(
+      () =>
+        firestore && activeSeasonId
+          ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
+          : null,
+      [firestore, activeSeasonId]
+  );
+  const { data: registeredPlayers } = useCollection<LeagueEntry>(playerRegistrationCollection);
+
   
   const playersCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'players') : null),
@@ -136,7 +164,7 @@ export default function LeaguePage() {
 
 
   // --- Memoized Derived State ---
-  const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
+  const isLoadingTable = activeSeason?.type === 'Co-Op' ? isLoadingCoopTable : isLoadingSingleTable;
   
   const playersById = useMemo(() => {
     if (!allPlayers) return {};
@@ -156,13 +184,28 @@ export default function LeaguePage() {
 
 
   const sortedTable = useMemo(() => {
-    if (!leagueTable) return [];
+    const tableData = activeSeason?.type === 'Co-Op' ? coopLeagueTable : singleLeagueTable;
+    if (!tableData) return [];
     
-    const enrichedTable = leagueTable.map(entry => ({
-        ...entry,
-        player: playersById[entry.playerId],
-        team: teamsById[entry.teamId],
-    }));
+    let enrichedTable: Omit<WithId<LeagueEntry>, 'teamId'>[];
+
+    if (activeSeason?.type === 'Co-Op' && coopLeagueTable) {
+        enrichedTable = coopLeagueTable.map(entry => ({
+            ...entry,
+            // Adapt CoOpLeagueEntry to look like LeagueEntry for the table component
+            playerName: entry.teamName,
+            teamName: `${entry.player1Name} / ${entry.player2Name}`,
+            playerId: entry.id, // Use coop team ID as the main ID
+        }));
+    } else if (singleLeagueTable) {
+        enrichedTable = singleLeagueTable.map(entry => ({
+            ...entry,
+            player: playersById[entry.playerId],
+            team: teamsById[entry.teamId],
+        }));
+    } else {
+        enrichedTable = [];
+    }
 
     // if season is not started yet, sort by name
     if (activeSeason?.status === 'Not Started') {
@@ -174,7 +217,7 @@ export default function LeaguePage() {
         if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
         return a.playerName.localeCompare(b.playerName);
     }).map((entry, index) => ({...entry, rank: index + 1}));
-  }, [leagueTable, activeSeason, playersById, teamsById]);
+  }, [singleLeagueTable, coopLeagueTable, activeSeason, playersById, teamsById]);
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   
@@ -185,7 +228,7 @@ export default function LeaguePage() {
     const registrationFee = activeSeason.registrationFee || 0;
     const sponsorship = activeSeason.sponsorshipAmount || 0;
 
-    const paidCount = (leagueTable || []).filter(p => p.hasPaid).length;
+    const paidCount = (registeredPlayers || []).filter(p => p.hasPaid).length;
     const regPool = paidCount * registrationFee;
     const totalPool = regPool + sponsorship;
 
@@ -195,17 +238,15 @@ export default function LeaguePage() {
       registrationPool: regPool,
       sponsorshipPool: sponsorship
     };
-  }, [leagueTable, activeSeason]);
+  }, [registeredPlayers, activeSeason]);
 
 
   // --- Effects ---
   useEffect(() => {
-    // On load, select the most recent season or none if no seasons exist
     if (seasons && !activeSeasonId && seasons.length > 0) {
       const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
       setActiveSeasonId(sortedSeasons[0].id);
     }
-    // if the active season is deleted, reset the active season
     if (seasons && activeSeasonId && !seasons.find(s => s.id === activeSeasonId)) {
         const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - b.createdAt.toMillis());
         setActiveSeasonId(sortedSeasons.length > 0 ? sortedSeasons[0].id : null);
@@ -245,8 +286,9 @@ export default function LeaguePage() {
     const fee = typeof newSeasonFee === 'string' ? parseFloat(newSeasonFee) : newSeasonFee;
     const sponsorship = typeof newSponsorshipAmount === 'string' ? parseFloat(newSponsorshipAmount) : newSponsorshipAmount;
     
-    const seasonData: Partial<Season> = {
+    const seasonData: Partial<Omit<Season, 'createdAt' | 'status'>> = {
         name: newSeasonName.trim(),
+        type: newSeasonType,
         ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
         ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
         registrationFee: isNaN(fee) ? 0 : fee,
@@ -254,17 +296,16 @@ export default function LeaguePage() {
     }
 
     if (editingSeason) {
-      // Update existing season
       const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, editingSeason.id);
       updateDocumentNonBlocking(seasonRef, seasonData);
       toast({ title: t('success'), description: t('season_updated_desc', { seasonName: newSeasonName.trim() }) });
     } else {
-      // Create new season
       const seasonsRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons`);
       addDocumentNonBlocking(seasonsRef, {
         ...seasonData,
         status: 'Not Started',
         createdAt: serverTimestamp(),
+        type: newSeasonType,
       });
       toast({ title: t('success'), description: t('season_created_desc', { seasonName: newSeasonName.trim() }) });
     }
@@ -272,6 +313,7 @@ export default function LeaguePage() {
     setNewSeasonName('');
     setNewSeasonFee('');
     setNewSponsorshipAmount('');
+    setNewSeasonType('Single');
     setEditingSeason(null);
     setDateRange({ from: undefined, to: undefined });
   };
@@ -282,6 +324,7 @@ export default function LeaguePage() {
       setNewSeasonName(activeSeason.name);
       setNewSeasonFee(activeSeason.registrationFee || '');
       setNewSponsorshipAmount(activeSeason.sponsorshipAmount || '');
+      setNewSeasonType(activeSeason.type || 'Single');
       setDateRange({
         from: activeSeason.startDate?.toDate(),
         to: activeSeason.endDate?.toDate(),
@@ -295,6 +338,7 @@ export default function LeaguePage() {
     setNewSeasonName('');
     setNewSeasonFee('');
     setNewSponsorshipAmount('');
+    setNewSeasonType('Single');
     setDateRange({ from: undefined, to: undefined });
     setShowCreateSeason(true);
   }
@@ -303,17 +347,17 @@ export default function LeaguePage() {
     if (!firestore || !deletingSeason) return;
 
     try {
-        // 1. Delete subcollections (leagueTable, matches)
-        const subcollections = ['leagueTable', 'matches'];
+        const subcollections = ['leagueTable', 'matches', 'coopLeagueTable'];
         for (const sub of subcollections) {
             const subcollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${deletingSeason.id}/${sub}`);
             const snapshot = await getDocs(subcollectionRef);
-            const batch = writeBatch(firestore);
-            snapshot.docs.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
+            if (!snapshot.empty) {
+                const batch = writeBatch(firestore);
+                snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+            }
         }
 
-        // 2. Delete the season document itself
         const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, deletingSeason.id);
         await deleteDoc(seasonRef);
 
@@ -330,7 +374,8 @@ export default function LeaguePage() {
   const handleDeleteEntry = () => {
     if (!firestore || !activeSeasonId || !deletingEntry) return;
 
-    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, deletingEntry.id);
+    const collectionName = activeSeason?.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${collectionName}`, deletingEntry.id);
     deleteDocumentNonBlocking(entryRef);
 
     toast({
@@ -379,11 +424,41 @@ export default function LeaguePage() {
     setShowRegisterPlayers(false);
   };
 
+  const handleSavePairs = async (pairs: DrawnPair[]) => {
+    if (!firestore || !activeSeasonId) return;
+
+    const batch = writeBatch(firestore);
+    const targetCollection = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`);
+
+    pairs.forEach(pair => {
+        const teamId = `${pair.player1.id}-${pair.player2.id}`.split('').sort().join(''); // create a consistent ID
+        const teamRef = doc(targetCollection, teamId);
+        const teamData: CoOpLeagueEntry = {
+            teamName: `${pair.player1.name} & ${pair.player2.name}`,
+            player1Id: pair.player1.id,
+            player1Name: pair.player1.name,
+            player2Id: pair.player2.id,
+            player2Name: pair.player2.name,
+            played: 0, win: 0, draw: 0, loss: 0,
+            goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0,
+        };
+        batch.set(teamRef, teamData);
+    });
+    
+    try {
+        await batch.commit();
+        toast({ title: 'Pasangan Disimpan!', description: `${pairs.length} tim Co-Op telah dibuat untuk musim ini.` });
+        setShowDrawDialog(false);
+    } catch (error) {
+        console.error("Error saving co-op pairs:", error);
+        toast({ variant: 'destructive', title: 'Gagal Menyimpan', description: 'Terjadi kesalahan saat menyimpan pasangan Co-Op.'});
+    }
+  };
+
   const handleUpdateSeasonStatus = (status: 'In Progress' | 'Completed') => {
     if (!firestore || !activeSeason) return;
 
     if (status === 'Completed') {
-        // This will be triggered from the confirmation dialog now
         handleFinishSeason();
         return;
     }
@@ -413,7 +488,7 @@ export default function LeaguePage() {
         winnerPlayerId: winner.playerId,
         winnerPlayerName: winner.playerName,
         winnerTeamName: winner.teamName,
-        winnerPhotoUrl: winner.team?.logoUrl, // Using team logo as player photo
+        winnerPhotoUrl: (winner as any).team?.logoUrl, // Using team logo as player photo
         winnerStats: {
             points: winner.points,
             win: winner.win,
@@ -455,7 +530,7 @@ export default function LeaguePage() {
     const header = `*${t('share_participants_header', { seasonName })}*\n\n`;
     
     const participantsList = sortedTable
-      .map((p, index) => `${index + 1}. ${p.playerName} (${p.team?.name || 'Tanpa Tim'})`)
+      .map((p, index) => `${index + 1}. ${p.playerName} (${p.teamName || 'Tanpa Tim'})`)
       .join('\n');
       
     setShareText(header + participantsList);
@@ -546,10 +621,16 @@ export default function LeaguePage() {
                             <UserPlus className="mr-2 h-4 w-4" />
                             {t('register_players')}
                         </Button>
+                         {activeSeason?.type === 'Co-Op' && (
+                            <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started' || (registeredPlayers?.length ?? 0) < 2}>
+                                <Shuffle className="mr-2 h-4 w-4" />
+                                Undi Pasangan
+                            </Button>
+                         )}
                         <Button 
                             onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
                             variant="outline" 
-                            disabled={!activeSeason || activeSeason.status !== 'Not Started' || !hasFixtures || (leagueTable || []).length < 2}
+                            disabled={!activeSeason || activeSeason.status !== 'Not Started' || !hasFixtures || (sortedTable || []).length < 2}
                             title={!hasFixtures ? t('generate_fixtures_first_tooltip') : ""}>
                             <Play className="mr-2 h-4 w-4" />
                             {t('start_season')}
@@ -564,7 +645,7 @@ export default function LeaguePage() {
                     {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
                     {isAdmin ? t('lock_admin') : t('unlock_admin')}
                 </Button>
-                <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!leagueTable || leagueTable.length === 0}>
+                <Button onClick={handleShareParticipants} variant="outline" size="sm" disabled={!sortedTable || sortedTable.length === 0}>
                     <Share2 className="mr-2 h-4 w-4" />
                     {t('share_participants')}
                 </Button>
@@ -594,7 +675,7 @@ export default function LeaguePage() {
                 <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} />
 
-                {activeSeason?.registrationFee && (sortedTable || []).length > 0 && (
+                {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && activeSeason.type === 'Single' && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -615,17 +696,17 @@ export default function LeaguePage() {
                                     </p>
                                 )}
                                 <p className="text-xs text-foreground pt-1">
-                                    <span className="font-bold text-primary">{paidPlayersCount}</span> dari <span className="font-bold text-primary">{sortedTable.length}</span> pemain telah membayar
+                                    <span className="font-bold text-primary">{paidPlayersCount}</span> dari <span className="font-bold text-primary">{registeredPlayers?.length}</span> pemain telah membayar
                                 </p>
                             </div>
                             <div>
                                 <h4 className="text-sm font-semibold mb-2">Status Pembayaran</h4>
                                 <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                    {sortedTable.map(player => (
+                                    {(registeredPlayers || []).map(player => (
                                         <div key={player.id} className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
                                             <div className='flex items-center gap-2'>
                                                 <Avatar className="h-6 w-6">
-                                                    <AvatarImage src={player.team?.logoUrl} alt={player.playerName} />
+                                                    <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
                                                     <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                                                 </Avatar>
                                                 <Label htmlFor={`paid-${player.id}`} className="text-sm font-medium">
@@ -686,6 +767,19 @@ export default function LeaguePage() {
             <DialogDescription>{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+                <Label>Format Liga</Label>
+                 <RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="flex gap-4">
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Single" id="single"/>
+                        <Label htmlFor="single">Single (1v1)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Co-Op" id="co-op"/>
+                        <Label htmlFor="co-op">Co-Op (2v2)</Label>
+                    </div>
+                </RadioGroup>
+            </div>
             <div className="space-y-2">
                 <Label htmlFor="season-name">{t('season_name')}</Label>
                 <Input 
@@ -821,12 +915,22 @@ export default function LeaguePage() {
           </DialogHeader>
           <RegisterPlayersForm
             allPlayers={allPlayers || []}
-            registeredPlayers={leagueTable || []}
+            registeredPlayers={registeredPlayers || []}
             onRegister={handleRegisterPlayers}
             isLoading={isLoadingPlayers}
           />
         </DialogContent>
       </Dialog>
+      
+      {/* Co-Op Draw Dialog */}
+      <CoopDrawDialog 
+        open={showDrawDialog}
+        onOpenChange={setShowDrawDialog}
+        season={activeSeason}
+        registeredPlayers={registeredPlayers || []}
+        allPlayers={allPlayers || []}
+        onSavePairs={handleSavePairs}
+      />
       
        {/* Share Dialog */}
        <ShareDialog
@@ -842,7 +946,7 @@ export default function LeaguePage() {
         matches={matches || []}
         allPlayers={allPlayers || []}
         allTeams={allTeams || []}
-        totalPlayersInSeason={leagueTable?.length || 0}
+        totalPlayersInSeason={(activeSeason?.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) || 0}
         open={!!selectedPlayerForStats}
         onOpenChange={() => setSelectedPlayerForStats(null)}
         defendingChampionId={previousWinnerId}
@@ -853,7 +957,3 @@ export default function LeaguePage() {
     </div>
   );
 }
-
-    
-
-    
