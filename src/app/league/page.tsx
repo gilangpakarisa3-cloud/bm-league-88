@@ -187,16 +187,20 @@ export default function LeaguePage() {
     const tableData = (!activeSeason?.type || activeSeason?.type === 'Single') ? singleLeagueTable : coopLeagueTable;
     if (!tableData) return [];
     
-    let enrichedTable: Omit<WithId<LeagueEntry>, 'teamId'>[];
+    let enrichedTable: any[];
 
     if (activeSeason?.type === 'Co-Op' && coopLeagueTable) {
-        enrichedTable = coopLeagueTable.map(entry => ({
-            ...entry,
-            // Adapt CoOpLeagueEntry to look like LeagueEntry for the table component
-            playerName: entry.teamName,
-            teamName: `${entry.player1Name} / ${entry.player2Name}`,
-            playerId: entry.id, // Use coop team ID as the main ID
-        }));
+        enrichedTable = coopLeagueTable.map(entry => {
+            const teamForPair = teamsById[entry.player1TeamId];
+            return {
+                ...entry,
+                // Adapt CoOpLeagueEntry to look like LeagueEntry for the table component
+                playerName: entry.teamName, // e.g. "Ade Urip & Bagas"
+                teamName: teamForPair ? teamForPair.name : entry.player1TeamName, // The Club name e.g. "Arsenal"
+                playerId: entry.id, // Use coop team ID as the main ID
+                team: teamForPair, // The full team object for the logo
+            };
+        });
     } else if (singleLeagueTable) {
         enrichedTable = singleLeagueTable.map(entry => ({
             ...entry,
