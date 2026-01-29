@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Calculator, Undo2 } from 'lucide-react';
+import { Pencil, Search, Unlock, Calculator, Undo2, Lock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -362,11 +362,14 @@ export default function FixturesPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
 
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<any | null>(null);
   const [revertingMatch, setRevertingMatch] = useState<WithId<Match> | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
   
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
@@ -403,6 +406,18 @@ export default function FixturesPage() {
     }
   }, [seasons, activeSeasonId]);
   
+  const handlePasswordCheck = () => {
+    if (!isPasswordLoaded) return;
+    if (passwordInput === ADMIN_PASSWORD) {
+        setIsAdmin(true);
+        setPasswordPromptOpen(false);
+        toast({ title: t('admin_mode_unlocked_title') });
+    } else {
+        toast({ variant: 'destructive', title: t('incorrect_password') });
+    }
+    setPasswordInput('');
+  };
+
   const handleUpdateScore = async (matchId: string, values: any) => {
     if (!firestore || !activeSeasonId) return;
 
@@ -645,7 +660,7 @@ export default function FixturesPage() {
       setRevertingMatch(match);
   }
 
-  const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams;
+  const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
 
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
 
@@ -669,6 +684,10 @@ export default function FixturesPage() {
                         ))}
                     </SelectContent>
                     </Select>
+                    <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" disabled={!isPasswordLoaded}>
+                        {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+                        {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+                    </Button>
                 </div>
             </div>
 
@@ -738,6 +757,33 @@ export default function FixturesPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+        
+        <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{t('admin_auth')}</DialogTitle>
+                    <DialogDescription>{t('admin_auth_desc')}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="password-input" className="text-right">
+                        {t('password')}
+                        </Label>
+                        <Input
+                        id="password-input"
+                        type="password"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        className="col-span-3"
+                        onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handlePasswordCheck}>{t('unlock')}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
       </div>
     </div>
