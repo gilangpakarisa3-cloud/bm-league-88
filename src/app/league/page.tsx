@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp, where } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp, where, orderBy } from 'firebase/firestore';
 import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord, CoOpLeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
@@ -252,7 +252,6 @@ export default function LeaguePage() {
   }, [sortedTable, activeSeason]);
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
-  const hasKnockoutFixtures = useMemo(() => (matches || []).some(m => m.round && m.round !== 'Group'), [matches]);
   
   const { paidPlayersCount, prizePool, registrationPool, sponsorshipPool } = useMemo(() => {
     if (!activeSeason) {
@@ -272,6 +271,29 @@ export default function LeaguePage() {
       sponsorshipPool: sponsorship
     };
   }, [registeredPlayers, activeSeason]);
+
+  const knockoutMatches = useMemo(() => (matches || []).filter(m => m.round && m.round !== 'Group'), [matches]);
+  const hasQuarterFinals = useMemo(() => knockoutMatches.some(m => m.round === 'Quarter-Final'), [knockoutMatches]);
+  const hasSemiFinals = useMemo(() => knockoutMatches.some(m => m.round === 'Semi-Final'), [knockoutMatches]);
+  const hasFinal = useMemo(() => knockoutMatches.some(m => m.round === 'Final'), [knockoutMatches]);
+
+  const groupStageMatches = useMemo(() => (matches || []).filter(m => !m.round || m.round === 'Group'), [matches]);
+  const areGroupStageMatchesComplete = useMemo(() => {
+    if (groupStageMatches.length === 0) return false;
+    return groupStageMatches.every(m => m.isCompleted);
+  }, [groupStageMatches]);
+  
+  const areQuarterFinalsComplete = useMemo(() => {
+    if (!hasQuarterFinals) return false;
+    const qfMatches = knockoutMatches.filter(m => m.round === 'Quarter-Final');
+    return qfMatches.length > 0 && qfMatches.every(m => m.isCompleted);
+  }, [knockoutMatches, hasQuarterFinals]);
+
+  const areSemiFinalsComplete = useMemo(() => {
+    if (!hasSemiFinals) return false;
+    const sfMatches = knockoutMatches.filter(m => m.round === 'Semi-Final');
+    return sfMatches.length > 0 && sfMatches.every(m => m.isCompleted);
+  }, [knockoutMatches, hasSemiFinals]);
 
 
   // --- Effects ---
@@ -365,7 +387,7 @@ export default function LeaguePage() {
         generateGroupMatches(groupB);
         
     } else {
-        const meetings = seasonType === 'Co-Op' ? 1 : 2;
+        const meetings = seasonType === 'Co-Op' ? 1 : ((activeSeason?.type || 'Single') === 'Single' ? 2 : 1);
         for (let i = 0; i < tableToUse.length; i++) {
           for (let j = i + 1; j < tableToUse.length; j++) {
             const entry1 = tableToUse[i];
@@ -375,8 +397,13 @@ export default function LeaguePage() {
             const id2 = seasonType === 'Co-Op' ? entry2.id : (entry2 as WithId<LeagueEntry>).playerId;
             
             for (let k = 0; k < meetings; k++) {
-                const player1Id = k === 0 ? id1 : id2;
-                const player2Id = k === 0 ? id2 : id1;
+                let player1Id = k === 0 ? id1 : id2;
+                let player2Id = k === 0 ? id2 : id1;
+
+                // For single-meeting rounds (Co-op or Hybrid group), randomize home/away
+                if (meetings === 1 && Math.random() > 0.5) {
+                    [player1Id, player2Id] = [player2Id, player1Id];
+                }
 
                 const matchData: Omit<Match, 'id'> = {
                     seasonId: activeSeasonId,
@@ -388,6 +415,7 @@ export default function LeaguePage() {
                     player2Wins: null,
                     isCompleted: false,
                     matchDate: Timestamp.now(),
+                    round: seasonType === 'Hybrid' ? 'Group' : undefined
                 };
                 const matchRef = doc(matchesCollectionRef);
                 batch.set(matchRef, matchData);
@@ -468,6 +496,107 @@ export default function LeaguePage() {
       });
     }
   }, [firestore, activeSeasonId, activeSeason, groupA, groupB, toast]);
+
+  const handleGenerateSemiFinals = useCallback(async () => {
+    if (!firestore || !activeSeasonId || !activeSeason || activeSeason.type !== 'Hybrid') return;
+
+    const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+
+    // Check if semi-finals already exist
+    const semiFinalsQuery = query(matchesCollectionRef, where('round', '==', 'Semi-Final'));
+    const existingSemiFinalsSnap = await getDocs(semiFinalsQuery);
+    if (!existingSemiFinalsSnap.empty) {
+        toast({
+            variant: 'destructive',
+            title: 'Babak Semi Final Sudah Ada',
+            description: 'Jadwal untuk babak semi final sudah dibuat sebelumnya.',
+        });
+        return;
+    }
+
+    // Get completed quarter-final matches, ordered by how they were created
+    const quarterFinalsQuery = query(matchesCollectionRef, where('round', '==', 'Quarter-Final'), orderBy('matchDate', 'asc'));
+    const quarterFinalsSnap = await getDocs(quarterFinalsQuery);
+
+    if (quarterFinalsSnap.size !== 4 || quarterFinalsSnap.docs.some(doc => !doc.data().isCompleted)) {
+        toast({
+            variant: 'destructive',
+            title: 'Perempat Final Belum Selesai',
+            description: 'Semua pertandingan perempat final harus diselesaikan sebelum membuat semi final.',
+        });
+        return;
+    }
+
+    const getWinner = (match: Match) => (match.player1Score! > match.player2Score!) ? match.player1Id : match.player2Id;
+    
+    const qfMatches = quarterFinalsSnap.docs.map(doc => doc.data() as Match);
+    const winners = qfMatches.map(getWinner);
+
+    const semiFinalPairings = [
+        { p1: winners[0], p2: winners[2] }, // Winner(1A vs 4B) vs Winner(2A vs 3B)
+        { p1: winners[1], p2: winners[3] }, // Winner(1B vs 4A) vs Winner(2B vs 3A)
+    ];
+
+    const batch = writeBatch(firestore);
+    semiFinalPairings.forEach(pairing => {
+        const matchData: Omit<Match, 'id'> = {
+            seasonId: activeSeasonId, player1Id: pairing.p1, player2Id: pairing.p2,
+            player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
+            isCompleted: false, matchDate: Timestamp.now(), round: 'Semi-Final',
+        };
+        batch.set(doc(matchesCollectionRef), matchData);
+    });
+
+    try {
+        await batch.commit();
+        toast({ title: 'Babak Semi Final Dibuat!', description: 'Jadwal semi final telah berhasil dibuat.' });
+    } catch (e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Gagal Membuat Jadwal', description: 'Terjadi kesalahan saat membuat jadwal semi final.' });
+    }
+  }, [firestore, activeSeasonId, activeSeason, toast]);
+
+  const handleGenerateFinal = useCallback(async () => {
+    if (!firestore || !activeSeasonId || !activeSeason || activeSeason.type !== 'Hybrid') return;
+    
+    const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+
+    // Check if final already exists
+    const finalQuery = query(matchesCollectionRef, where('round', '==', 'Final'));
+    const existingFinalSnap = await getDocs(finalQuery);
+    if (!existingFinalSnap.empty) {
+        toast({ variant: 'destructive', title: 'Babak Final Sudah Ada', description: 'Jadwal untuk babak final sudah dibuat sebelumnya.'});
+        return;
+    }
+
+    // Get completed semi-final matches
+    const semiFinalsQuery = query(matchesCollectionRef, where('round', '==', 'Semi-Final'));
+    const semiFinalsSnap = await getDocs(semiFinalsQuery);
+
+    if (semiFinalsSnap.size !== 2 || semiFinalsSnap.docs.some(doc => !doc.data().isCompleted)) {
+        toast({ variant: 'destructive', title: 'Semi Final Belum Selesai', description: 'Semua pertandingan semi final harus diselesaikan sebelum membuat final.'});
+        return;
+    }
+
+    const getWinner = (match: Match) => (match.player1Score! > match.player2Score!) ? match.player1Id : match.player2Id;
+    const winners = semiFinalsSnap.docs.map(doc => getWinner(doc.data() as Match));
+
+    const batch = writeBatch(firestore);
+    const matchData: Omit<Match, 'id'> = {
+        seasonId: activeSeasonId, player1Id: winners[0], player2Id: winners[1],
+        player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
+        isCompleted: false, matchDate: Timestamp.now(), round: 'Final',
+    };
+    batch.set(doc(matchesCollectionRef), matchData);
+
+    try {
+        await batch.commit();
+        toast({ title: 'Babak Final Dibuat!', description: 'Jadwal grand final telah berhasil dibuat.'});
+    } catch (e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Gagal Membuat Jadwal', description: 'Terjadi kesalahan saat membuat jadwal final.'});
+    }
+}, [firestore, activeSeasonId, activeSeason, toast]);
 
 
   // --- Event Handlers ---
@@ -910,10 +1039,22 @@ export default function LeaguePage() {
                             <Play className="mr-2 h-4 w-4" />
                             {t('start_season')}
                         </Button>
-                         {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && seasonProgress === 100 && !hasKnockoutFixtures && (
+                         {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && areGroupStageMatchesComplete && !hasQuarterFinals && (
                             <Button onClick={() => withAdminCheck(handleGenerateKnockoutFixtures)}>
                                 <Swords className="mr-2 h-4 w-4" />
                                 Buat Babak Gugur
+                            </Button>
+                        )}
+                        {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && areQuarterFinalsComplete && !hasSemiFinals && (
+                            <Button onClick={() => withAdminCheck(handleGenerateSemiFinals)}>
+                                <Swords className="mr-2 h-4 w-4" />
+                                Buat Semi Final
+                            </Button>
+                        )}
+                        {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && areSemiFinalsComplete && !hasFinal && (
+                            <Button onClick={() => withAdminCheck(handleGenerateFinal)}>
+                                <Trophy className="mr-2 h-4 w-4" />
+                                Buat Final
                             </Button>
                         )}
                         <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>

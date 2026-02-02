@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { Match, Team, WithId } from "@/lib/types";
+import type { Match, Season, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarIcon, User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
@@ -54,7 +54,7 @@ type ScoreFormValues = z.infer<typeof coopFormSchema> | z.infer<typeof singleFor
 interface ScoreFormProps {
   match: WithId<Match>;
   onSave: (data: ScoreFormValues) => void;
-  seasonType?: 'Single' | 'Co-Op';
+  seasonType?: Season['type'];
   player1Info: { name: string; team?: WithId<Team> | null };
   player2Info: { name: string; team?: WithId<Team> | null };
 }
@@ -63,15 +63,15 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  const isCoop = seasonType === 'Co-Op';
-  const formSchema = isCoop ? coopFormSchema : singleFormSchema;
+  const isBestOfThree = seasonType === 'Co-Op' || (seasonType === 'Hybrid' && match.round === 'Final');
+  const formSchema = isBestOfThree ? coopFormSchema : singleFormSchema;
 
   const getInitialValues = (match: WithId<Match>) => {
     const isNewScore = !match.isCompleted;
     const dateToUse = isNewScore ? undefined : match.matchDate.toDate(); 
     const timeToUse = dateToUse ? format(dateToUse, 'HH:mm') : '00:00';
 
-    if (isCoop) {
+    if (isBestOfThree) {
         return {
             player1Wins: match.player1Wins ?? 0,
             player2Wins: match.player2Wins ?? 0,
@@ -120,11 +120,11 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-        {isCoop ? (
+        {isBestOfThree ? (
            <CoopScoreChecklist
               player1Name={player1Info.name}
               player2Name={player2Info.name}
-              initialScore={{ player1Wins: form.getValues('player1Wins'), player2Wins: form.getValues('player2Wins')}}
+              initialScore={{ player1Wins: (form.getValues('player1Wins') as number), player2Wins: (form.getValues('player2Wins') as number)}}
               onScoreChange={handleScoreChangeFromChecklist}
            />
         ) : (
@@ -171,7 +171,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
         )}
          <FormField
             control={form.control}
-            name={isCoop ? "player1Wins" : "player1Score"}
+            name={isBestOfThree ? "player1Wins" : "player1Score"}
             render={() => (
                 <FormItem>
                     <FormMessage />
@@ -207,7 +207,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
+                        selected={field.value as Date}
                         onSelect={field.onChange}
                         initialFocus
                       />
