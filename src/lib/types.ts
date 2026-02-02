@@ -32,6 +32,7 @@ export type Season = {
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
   type?: 'Single' | 'Co-Op' | 'Hybrid';
+  hybridGroupMeetings?: 1 | 2;
   startDate?: Timestamp;
   endDate?: Timestamp;
   registrationFee?: number;

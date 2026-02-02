@@ -81,6 +81,7 @@ export default function LeaguePage() {
   const [newSeasonFee, setNewSeasonFee] = useState<number | string>('');
   const [newSponsorshipAmount, setNewSponsorshipAmount] = useState<number | string>('');
   const [newSeasonType, setNewSeasonType] = useState<Season['type']>('Single');
+  const [newHybridMeetings, setNewHybridMeetings] = useState<1 | 2>(1);
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
@@ -241,8 +242,8 @@ export default function LeaguePage() {
         data.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points;
             if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-            return a.playerName.localeCompare(b.playerName);
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.playerName.localeCompare(b.playerName);
+            return 0; // Add this to satisfy TypeScript for consistent return
         }).map((entry, index) => ({...entry, rank: index + 1}));
 
     const a = sortAndRank(sortedTable.filter(p => p.group === 'A'));
@@ -272,12 +273,13 @@ export default function LeaguePage() {
     };
   }, [registeredPlayers, activeSeason]);
 
-  const knockoutMatches = useMemo(() => (matches || []).filter(m => m.round && m.round !== 'Group'), [matches]);
+  const allSeasonMatches = useMemo(() => (matches || []), [matches]);
+  const knockoutMatches = useMemo(() => allSeasonMatches.filter(m => m.round && m.round !== 'Group'), [allSeasonMatches]);
   const hasQuarterFinals = useMemo(() => knockoutMatches.some(m => m.round === 'Quarter-Final'), [knockoutMatches]);
   const hasSemiFinals = useMemo(() => knockoutMatches.some(m => m.round === 'Semi-Final'), [knockoutMatches]);
   const hasFinal = useMemo(() => knockoutMatches.some(m => m.round === 'Final'), [knockoutMatches]);
 
-  const groupStageMatches = useMemo(() => (matches || []).filter(m => !m.round || m.round === 'Group'), [matches]);
+  const groupStageMatches = useMemo(() => allSeasonMatches.filter(m => !m.round || m.round === 'Group'), [allSeasonMatches]);
   const areGroupStageMatchesComplete = useMemo(() => {
     if (groupStageMatches.length === 0) return false;
     return groupStageMatches.every(m => m.isCompleted);
@@ -361,23 +363,40 @@ export default function LeaguePage() {
         const generateGroupMatches = (group: WithId<LeagueEntry>[]) => {
             for (let i = 0; i < group.length; i++) {
                 for (let j = i + 1; j < group.length; j++) {
-                    let player1Id = group[i].playerId;
-                    let player2Id = group[j].playerId;
+                    const player1Id = group[i].playerId;
+                    const player2Id = group[j].playerId;
 
-                    // Randomly assign home and away
-                    if (Math.random() > 0.5) {
-                        [player1Id, player2Id] = [player2Id, player1Id];
+                    const meetings = activeSeason.hybridGroupMeetings || 1;
+
+                    if (meetings === 2) {
+                        // Home & Away
+                        const matchData1: Omit<Match, 'id'> = {
+                            seasonId: activeSeasonId, player1Id, player2Id,
+                            player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
+                            isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
+                        };
+                        batch.set(doc(matchesCollectionRef), matchData1);
+
+                        const matchData2: Omit<Match, 'id'> = {
+                            seasonId: activeSeasonId, player1Id: player2Id, player2Id: player1Id,
+                            player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
+                            isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
+                        };
+                        batch.set(doc(matchesCollectionRef), matchData2);
+                    } else {
+                        // Single match, random home/away
+                        let p1 = player1Id;
+                        let p2 = player2Id;
+                        if (Math.random() > 0.5) {
+                            [p1, p2] = [p2, p1];
+                        }
+                        const matchData: Omit<Match, 'id'> = {
+                            seasonId: activeSeasonId, player1Id: p1, player2Id: p2,
+                            player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
+                            isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
+                        };
+                        batch.set(doc(matchesCollectionRef), matchData);
                     }
-
-                    const matchData: Omit<Match, 'id'> = {
-                        seasonId: activeSeasonId,
-                        player1Id: player1Id,
-                        player2Id: player2Id,
-                        player1Score: null, player2Score: null,
-                        player1Wins: null, player2Wins: null,
-                        isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
-                    };
-                    batch.set(doc(matchesCollectionRef), matchData);
                 }
             }
         }
@@ -445,8 +464,7 @@ export default function LeaguePage() {
     
     const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
 
-    const knockoutQuery = query(matchesCollectionRef, where('round', '!=', 'Group'));
-    const existingKnockoutSnap = await getDocs(knockoutQuery);
+    const existingKnockoutSnap = await getDocs(query(matchesCollectionRef, where('round', '!=', 'Group')));
     if (!existingKnockoutSnap.empty) {
         toast({
             variant: 'destructive',
@@ -500,9 +518,7 @@ export default function LeaguePage() {
 
     const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
     
-    // Fetch all matches and filter on the client to avoid index issues
-    const allMatchesSnap = await getDocs(matchesCollectionRef);
-    const allMatches = allMatchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
+    const allMatches = allSeasonMatches;
 
     const quarterFinalsMatches = allMatches
         .filter(m => m.round === 'Quarter-Final')
@@ -554,16 +570,14 @@ export default function LeaguePage() {
         console.error(e);
         toast({ variant: 'destructive', title: 'Gagal Membuat Jadwal', description: 'Terjadi kesalahan saat membuat jadwal semi final.' });
     }
-  }, [firestore, activeSeasonId, activeSeason, toast]);
+  }, [firestore, activeSeasonId, activeSeason, toast, allSeasonMatches]);
 
   const handleGenerateFinal = useCallback(async () => {
     if (!firestore || !activeSeasonId || !activeSeason || activeSeason.type !== 'Hybrid') return;
     
     const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
 
-    // Fetch all matches and filter on the client
-    const allMatchesSnap = await getDocs(matchesCollectionRef);
-    const allMatches = allMatchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
+    const allMatches = allSeasonMatches;
 
     // Check if final already exists
     const existingFinal = allMatches.find(m => m.round === 'Final');
@@ -598,7 +612,7 @@ export default function LeaguePage() {
         console.error(e);
         toast({ variant: 'destructive', title: 'Gagal Membuat Jadwal', description: 'Terjadi kesalahan saat membuat jadwal final.'});
     }
-}, [firestore, activeSeasonId, activeSeason, toast]);
+}, [firestore, activeSeasonId, activeSeason, toast, allSeasonMatches]);
 
 
   // --- Event Handlers ---
@@ -614,6 +628,7 @@ export default function LeaguePage() {
     const seasonData: Partial<Omit<Season, 'createdAt' | 'status'>> = {
         name: newSeasonName.trim(),
         type: newSeasonType,
+        ...(newSeasonType === 'Hybrid' && { hybridGroupMeetings: newHybridMeetings }),
         ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
         ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
         registrationFee: isNaN(fee) ? 0 : fee,
@@ -630,7 +645,6 @@ export default function LeaguePage() {
         ...seasonData,
         status: 'Not Started',
         createdAt: serverTimestamp(),
-        type: newSeasonType,
       });
       toast({ title: t('success'), description: t('season_created_desc', { seasonName: newSeasonName.trim() }) });
     }
@@ -639,6 +653,7 @@ export default function LeaguePage() {
     setNewSeasonFee('');
     setNewSponsorshipAmount('');
     setNewSeasonType('Single');
+    setNewHybridMeetings(1);
     setEditingSeason(null);
     setDateRange({ from: undefined, to: undefined });
   };
@@ -650,6 +665,7 @@ export default function LeaguePage() {
       setNewSeasonFee(activeSeason.registrationFee || '');
       setNewSponsorshipAmount(activeSeason.sponsorshipAmount || '');
       setNewSeasonType(activeSeason.type || 'Single');
+      setNewHybridMeetings(activeSeason.hybridGroupMeetings || 1);
       setDateRange({
         from: activeSeason.startDate?.toDate(),
         to: activeSeason.endDate?.toDate(),
@@ -664,6 +680,7 @@ export default function LeaguePage() {
     setNewSeasonFee('');
     setNewSponsorshipAmount('');
     setNewSeasonType('Single');
+    setNewHybridMeetings(1);
     setDateRange({ from: undefined, to: undefined });
     setShowCreateSeason(true);
   }
@@ -1213,6 +1230,21 @@ export default function LeaguePage() {
                     </div>
                 </RadioGroup>
             </div>
+             {newSeasonType === 'Hybrid' && (
+                <div className="space-y-2 pt-2">
+                    <Label>Pertemuan Fase Grup</Label>
+                     <RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="1" id="meetings-1"/>
+                            <Label htmlFor="meetings-1">1x Main</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="2" id="meetings-2"/>
+                            <Label htmlFor="meetings-2">Home &amp; Away (2x)</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+            )}
             <div className="space-y-2">
                 <Label htmlFor="season-name">{t('season_name')}</Label>
                 <Input 

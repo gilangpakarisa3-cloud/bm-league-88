@@ -139,6 +139,12 @@
             "enum": ["Single", "Co-Op", "Hybrid"],
             "default": "Single"
         },
+        "hybridGroupMeetings": {
+          "type": "number",
+          "description": "Number of meetings for the group stage in a Hybrid season (1 for single match, 2 for home & away).",
+          "enum": [1, 2],
+          "default": 1
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
