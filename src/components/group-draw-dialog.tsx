@@ -191,7 +191,7 @@ const PotDisplay = ({ title, players }: { title: string; players: PlayerInPot[];
             <CardTitle className="text-center text-primary">{title} ({players.length})</CardTitle>
         </CardHeader>
         <CardContent>
-            <ScrollArea className="h-48">
+            <ScrollArea className="h-96">
                 <div className="space-y-2 pr-4">
                     {players.map(player => (
                         <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border gap-2">
