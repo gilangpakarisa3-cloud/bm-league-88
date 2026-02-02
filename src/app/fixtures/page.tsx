@@ -57,7 +57,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const { t } = useTranslation();
     
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
-    const isCoop = (activeSeason?.type || 'Single') === 'Co-Op';
+    const isBestOfThree = activeSeason?.type === 'Co-Op' || (activeSeason?.type === 'Hybrid' && match.round === 'Final');
 
     const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
@@ -75,7 +75,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         </div>
     );
     
-    const score = isCoop ? `${match.player1Wins} - ${match.player2Wins}` : `${match.player1Score} - ${match.player2Score}`;
+    const score = isBestOfThree ? `${match.player1Wins} - ${match.player2Wins}` : `${match.player1Score} - ${match.player2Score}`;
+    
+    // A match has a valid score if it's completed and the relevant score fields are not null.
+    const hasValidScore = match.isCompleted && (isBestOfThree ? match.player1Wins !== null : match.player1Score !== null);
 
 
     return (
@@ -83,7 +86,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             <PlayerInfo name={match.player1.name} team={match.team1} alignment="right" />
             
             <div className="flex-none text-center">
-                 {match.isCompleted ? (
+                 {hasValidScore ? (
                     <span className="text-lg font-bold text-primary">{score}</span>
                 ) : (
                     <span className="text-xs font-bold text-primary">VS</span>
@@ -101,9 +104,9 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     disabled={isEditDisabled}
                 >
                     <Pencil className="mr-1 h-3 w-3" />
-                    {match.isCompleted ? displayDate : t('unplayed_abbv', {defaultValue: 'TBD'})}
+                    {hasValidScore ? displayDate : t('unplayed_abbv', {defaultValue: 'TBD'})}
                 </Button>
-                {isAdmin && match.isCompleted && (
+                {isAdmin && hasValidScore && (
                      <Button
                         variant="ghost"
                         size="icon"
@@ -149,7 +152,7 @@ const FixtureContent = memo(function FixtureContent({
     const matchesCollection = useMemoFirebase(
         () =>
         firestore && activeSeasonId
-            ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`), orderBy('matchDate', 'asc'))
+            ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`)
             : null,
         [firestore, activeSeasonId]
     );
@@ -237,8 +240,10 @@ const FixtureContent = memo(function FixtureContent({
                 return p1Name.includes(term) || p2Name.includes(term);
             }
         });
+        
+        const sortedFilteredMatches = [...filteredMatches].sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
 
-        const allGrouped = filteredMatches.reduce((acc, match) => {
+        const allGrouped = sortedFilteredMatches.reduce((acc, match) => {
             const round = match.round || 'Group'; // Default to group if undefined
             const status = match.isCompleted ? 'completed' : 'upcoming';
     
@@ -249,7 +254,7 @@ const FixtureContent = memo(function FixtureContent({
             return acc;
         }, { upcoming: {} as Record<string, any[]>, completed: {} as Record<string, any[]> });
         
-        // Sort completed matches within each group
+        // Sort completed matches within each group by date descending
         Object.keys(allGrouped.completed).forEach(round => {
             allGrouped.completed[round].sort((a,b) => b.matchDate.toMillis() - a.matchDate.toMillis());
         });
