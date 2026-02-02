@@ -31,7 +31,7 @@
     },
     {
       "collectionGroup": "matches",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
           "fieldPath": "round",
