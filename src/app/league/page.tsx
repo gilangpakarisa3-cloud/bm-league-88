@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator, Group } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator, Group, Swords } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp, where } from 'firebase/firestore';
 import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord, CoOpLeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
@@ -234,7 +234,25 @@ export default function LeaguePage() {
 
   }, [singleLeagueTable, coopLeagueTable, activeSeason, playersById, teamsById]);
 
+  const { groupA, groupB } = useMemo(() => {
+    if (activeSeason?.type !== 'Hybrid') return { groupA: [], groupB: [] };
+    
+    const sortAndRank = (data: typeof sortedTable) => 
+        data.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+            return a.playerName.localeCompare(b.playerName);
+        }).map((entry, index) => ({...entry, rank: index + 1}));
+
+    const a = sortAndRank(sortedTable.filter(p => p.group === 'A'));
+    const b = sortAndRank(sortedTable.filter(p => p.group === 'B'));
+    
+    return { groupA: a, groupB: b };
+  }, [sortedTable, activeSeason]);
+
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
+  const hasKnockoutFixtures = useMemo(() => (matches || []).some(m => m.round && m.round !== 'Group'), [matches]);
   
   const { paidPlayersCount, prizePool, registrationPool, sponsorshipPool } = useMemo(() => {
     if (!activeSeason) {
@@ -386,6 +404,70 @@ export default function LeaguePage() {
       toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error') });
     }
   }, [firestore, activeSeason, activeSeasonId, singleLeagueTable, coopLeagueTable, t, toast]);
+
+  const handleGenerateKnockoutFixtures = useCallback(async () => {
+    if (!firestore || !activeSeasonId || !activeSeason || activeSeason.type !== 'Hybrid') return;
+
+    if (groupA.length < 4 || groupB.length < 4) {
+      toast({
+        variant: 'destructive',
+        title: 'Grup Tidak Lengkap',
+        description: 'Masing-masing grup harus memiliki setidaknya 4 tim untuk membuat babak gugur.',
+      });
+      return;
+    }
+    
+    const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+
+    const knockoutQuery = query(matchesCollectionRef, where('round', '!=', 'Group'));
+    const existingKnockoutSnap = await getDocs(knockoutQuery);
+    if (!existingKnockoutSnap.empty) {
+        toast({
+            variant: 'destructive',
+            title: 'Babak Gugur Sudah Ada',
+            description: 'Jadwal untuk babak gugur sudah dibuat sebelumnya.',
+        });
+        return;
+    }
+
+    const batch = writeBatch(firestore);
+
+    const pairings = [
+      { p1: groupA[0], p2: groupB[3] }, // 1A vs 4B
+      { p1: groupB[0], p2: groupA[3] }, // 1B vs 4A
+      { p1: groupA[1], p2: groupB[2] }, // 2A vs 3B
+      { p1: groupB[1], p2: groupA[2] }, // 2B vs 3A
+    ];
+
+    pairings.forEach(pairing => {
+      const matchData: Omit<Match, 'id'> = {
+        seasonId: activeSeasonId,
+        player1Id: pairing.p1.playerId,
+        player2Id: pairing.p2.playerId,
+        player1Score: null, player2Score: null,
+        player1Wins: null, player2Wins: null,
+        isCompleted: false,
+        matchDate: Timestamp.now(),
+        round: 'Quarter-Final',
+      };
+      batch.set(doc(matchesCollectionRef), matchData);
+    });
+
+    try {
+      await batch.commit();
+      toast({
+        title: 'Babak Gugur Dibuat!',
+        description: 'Jadwal perempat final telah berhasil dibuat.',
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: 'destructive',
+        title: 'Gagal Membuat Jadwal',
+        description: 'Terjadi kesalahan saat membuat jadwal babak gugur.',
+      });
+    }
+  }, [firestore, activeSeasonId, activeSeason, groupA, groupB, toast]);
 
 
   // --- Event Handlers ---
@@ -828,6 +910,12 @@ export default function LeaguePage() {
                             <Play className="mr-2 h-4 w-4" />
                             {t('start_season')}
                         </Button>
+                         {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && seasonProgress === 100 && !hasKnockoutFixtures && (
+                            <Button onClick={() => withAdminCheck(handleGenerateKnockoutFixtures)}>
+                                <Swords className="mr-2 h-4 w-4" />
+                                Buat Babak Gugur
+                            </Button>
+                        )}
                         <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="outline" disabled={!activeSeason || activeSeason.status !== 'In Progress'}>
                             <Flag className="mr-2 h-4 w-4" />
                             {t('finish_season')}
@@ -1188,3 +1276,5 @@ export default function LeaguePage() {
     </div>
   );
 }
+
+    

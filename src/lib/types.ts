@@ -114,3 +114,5 @@ export type SeasonRecord = {
         mostWins: { playerName: string; value: number } | null;
     };
 }
+
+    

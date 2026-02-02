@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Calculator, Undo2, Lock } from 'lucide-react';
+import { Pencil, Search, Unlock, Calculator, Undo2, Lock, Swords } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -156,7 +156,7 @@ const FixtureContent = memo(function FixtureContent({
     const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
     
     const singleLeagueTableCollection = useMemoFirebase(
-        () => firestore && activeSeasonId && (activeSeason?.type || 'Single') === 'Single' ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
+        () => firestore && activeSeasonId && (activeSeason?.type || 'Single') !== 'Co-Op' ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
         [firestore, activeSeasonId, activeSeason]
     );
     const { data: singleLeagueTable } = useCollection<LeagueEntry>(singleLeagueTableCollection);
@@ -184,18 +184,13 @@ const FixtureContent = memo(function FixtureContent({
         }, {} as Record<string, WithId<Team>>);
     }, [allTeams]);
 
-    const singleTableById = useMemo(() => {
-        if (!singleLeagueTable) return {};
-        return singleLeagueTable.reduce((acc, e) => { acc[e.playerId] = e; return acc; }, {} as Record<string, WithId<LeagueEntry>>);
-    }, [singleLeagueTable]);
-
     const coopTableById = useMemo(() => {
         if (!coopLeagueTable) return {};
         return coopLeagueTable.reduce((acc, e) => { acc[e.id] = e; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>);
     }, [coopLeagueTable]);
     
-    const { upcomingMatches, completedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
-        if (!matches || !activeSeason) return { upcomingMatches: [], completedMatches: [], progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
+    const { groupedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
+        if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {} }, progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
         
         const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
 
@@ -243,25 +238,47 @@ const FixtureContent = memo(function FixtureContent({
             }
         });
 
-        const upcoming = filteredMatches.filter(m => !m.isCompleted);
-        const completed = filteredMatches
-            .filter(m => m.isCompleted)
-            .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+        const allGrouped = filteredMatches.reduce((acc, match) => {
+            const round = match.round || 'Group'; // Default to group if undefined
+            const status = match.isCompleted ? 'completed' : 'upcoming';
+    
+            if (!acc[status][round]) {
+                acc[status][round] = [];
+            }
+            acc[status][round].push(match);
+            return acc;
+        }, { upcoming: {} as Record<string, any[]>, completed: {} as Record<string, any[]> });
         
-        const totalForProgress = searchTerm.trim() ? filteredMatches.length : matches.length;
-        const completedForProgress = searchTerm.trim() ? completed.length : matches.filter(m => m.isCompleted).length;
+        // Sort completed matches within each group
+        Object.keys(allGrouped.completed).forEach(round => {
+            allGrouped.completed[round].sort((a,b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+        });
+
+        const upcomingCount = Object.values(allGrouped.upcoming).reduce((sum, arr) => sum + arr.length, 0);
+        const completedCount = Object.values(allGrouped.completed).reduce((sum, arr) => sum + arr.length, 0);
+        
+        const totalForProgress = searchTerm.trim() ? (upcomingCount + completedCount) : matches.length;
+        const completedForProgress = searchTerm.trim() ? completedCount : matches.filter(m => m.isCompleted).length;
 
         const progress = totalForProgress > 0 ? (completedForProgress / totalForProgress) * 100 : 0;
         
         return { 
-            upcomingMatches: upcoming, 
-            completedMatches: completed, 
+            groupedMatches: allGrouped,
             progressPercentage: progress,
             totalMatchesForDisplay: totalForProgress,
             completedMatchesForDisplay: completedForProgress
         };
-    }, [matches, playersById, teamsById, searchTerm, activeSeason, singleTableById, coopTableById]);
+    }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById]);
 
+    const upcomingCount = Object.values(groupedMatches.upcoming).reduce((sum, arr) => sum + arr.length, 0);
+    const completedCount = Object.values(groupedMatches.completed).reduce((sum, arr) => sum + arr.length, 0);
+
+    const roundNames: Record<string, string> = {
+        'Group': 'Fase Grup',
+        'Quarter-Final': 'Perempat Final',
+        'Semi-Final': 'Semi Final',
+        'Final': 'Final'
+    }
 
     if (isLoadingMatches) {
         return <p>{t('loading_fixtures')}</p>;
@@ -297,30 +314,30 @@ const FixtureContent = memo(function FixtureContent({
             </div>
 
 
-            {(upcomingMatches.length === 0 && completedMatches.length === 0 && searchTerm) ? (
+            {(upcomingCount === 0 && completedCount === 0 && searchTerm) ? (
                  <div className="border rounded-lg p-8 text-center bg-card">
                     <h2 className="text-xl font-medium text-muted-foreground">{t('no_matches_found')}</h2>
                 </div>
             ) : (
                 <Tabs defaultValue="upcoming" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="upcoming">Sisa Pertandingan ({upcomingMatches.length})</TabsTrigger>
-                        <TabsTrigger value="completed">Pertandingan Selesai ({completedMatches.length})</TabsTrigger>
+                        <TabsTrigger value="upcoming">Sisa Pertandingan ({upcomingCount})</TabsTrigger>
+                        <TabsTrigger value="completed">Pertandingan Selesai ({completedCount})</TabsTrigger>
                     </TabsList>
                     <TabsContent value="upcoming">
                         <Card>
-                            <CardContent className="p-2">
-                               {upcomingMatches.length > 0 ? (
-                                    <div className="divide-y">
-                                        {upcomingMatches.map(match => (
-                                            <MatchRow
-                                                key={match.id}
-                                                match={match}
-                                                onEditMatch={onEditMatch}
-                                                onRevertMatch={onRevertMatch}
-                                                isAdmin={isAdmin}
-                                                activeSeason={activeSeason}
-                                            />
+                            <CardContent className="p-0">
+                               {upcomingCount > 0 ? (
+                                    <div className="space-y-4">
+                                        {Object.entries(groupedMatches.upcoming).map(([round, roundMatches]) => (
+                                            <div key={`upcoming-${round}`}>
+                                                <h3 className="text-lg font-bold p-4 pb-0 text-primary">{roundNames[round] || round}</h3>
+                                                <div className="divide-y p-2">
+                                                    {roundMatches.map(match => (
+                                                        <MatchRow key={match.id} match={match} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
+                                                    ))}
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 ) : (
@@ -331,18 +348,18 @@ const FixtureContent = memo(function FixtureContent({
                     </TabsContent>
                     <TabsContent value="completed">
                         <Card>
-                             <CardContent className="p-2">
-                                {completedMatches.length > 0 ? (
-                                    <div className="divide-y">
-                                        {completedMatches.map(match => (
-                                            <MatchRow
-                                                key={match.id}
-                                                match={match}
-                                                onEditMatch={onEditMatch}
-                                                onRevertMatch={onRevertMatch}
-                                                isAdmin={isAdmin}
-                                                activeSeason={activeSeason}
-                                            />
+                             <CardContent className="p-0">
+                                {completedCount > 0 ? (
+                                    <div className="space-y-4">
+                                        {Object.entries(groupedMatches.completed).map(([round, roundMatches]) => (
+                                            <div key={`completed-${round}`}>
+                                                <h3 className="text-lg font-bold p-4 pb-0 text-primary">{roundNames[round] || round}</h3>
+                                                <div className="divide-y p-2">
+                                                    {roundMatches.map(match => (
+                                                        <MatchRow key={match.id} match={match} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
+                                                    ))}
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                  ) : (
@@ -433,6 +450,20 @@ export default function FixturesPage() {
             const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
             const isCoop = (seasonDoc.data()?.type || 'Single') === 'Co-Op';
             const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
+
+            // Skip table updates for knockout rounds
+            if (originalMatch.round && originalMatch.round !== 'Group') {
+                const [hours, minutes] = values.time.split(':').map(Number);
+                const newTimestamp = Timestamp.fromDate(new Date(values.date.setHours(hours, minutes)));
+                
+                const matchUpdateData = { 
+                    ...values,
+                    matchDate: newTimestamp,
+                    isCompleted: true
+                };
+                transaction.update(matchRef, matchUpdateData);
+                return;
+            }
 
             let p1EntryRef, p2EntryRef, p1EntryQuery, p2EntryQuery;
             let p1EntrySnap, p2EntrySnap;
@@ -565,6 +596,18 @@ export default function FixturesPage() {
                 throw new Error(t('revert_match_error_not_completed', { defaultValue: "Match has not been completed or does not exist."}));
             }
             const matchToRevert = matchDoc.data() as Match;
+
+            // Skip table updates for knockout rounds
+            if (matchToRevert.round && matchToRevert.round !== 'Group') {
+                transaction.update(matchRef, { 
+                    player1Wins: null, 
+                    player2Wins: null,
+                    player1Score: null,
+                    player2Score: null,
+                    isCompleted: false 
+                });
+                return;
+            }
 
             const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
             const isCoop = (seasonDoc.data()?.type || 'Single') === 'Co-Op';
@@ -789,3 +832,5 @@ export default function FixturesPage() {
     </div>
   );
 }
+
+    

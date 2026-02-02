@@ -133,6 +133,12 @@
             "Completed"
           ]
         },
+        "type": {
+            "type": "string",
+            "description": "The format of the league for this season.",
+            "enum": ["Single", "Co-Op", "Hybrid"],
+            "default": "Single"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -151,6 +157,10 @@
         "registrationFee": {
           "type": "number",
           "description": "The registration fee for this season."
+        },
+        "sponsorshipAmount": {
+          "type": "number",
+          "description": "The sponsorship amount for this season."
         }
       },
       "required": [
@@ -163,7 +173,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Match",
       "type": "object",
-      "description": "Represents a match between two players.",
+      "description": "Represents a match between two players. For Single mode, it's a standard game. For Co-Op, it's a best-of-3 series.",
       "properties": {
         "seasonId": {
           "type": "string",
@@ -171,19 +181,27 @@
         },
         "player1Id": {
           "type": "string",
-          "description": "Reference to the first player in the match."
+          "description": "Reference to the first player or co-op team in the match."
         },
         "player2Id": {
           "type": "string",
-          "description": "Reference to the second player in the match."
+          "description": "Reference to the second player or co-op team in the match."
+        },
+        "player1Wins": {
+          "type": ["number", "null"],
+          "description": "The number of games won by the first player/team (Co-Op mode)."
+        },
+        "player2Wins": {
+          "type": ["number", "null"],
+          "description": "The number of games won by the second player/team (Co-Op mode)."
         },
         "player1Score": {
-          "type": "number",
-          "description": "The score of the first player."
+          "type": ["number", "null"],
+          "description": "The score of the first player (Single mode)."
         },
         "player2Score": {
-          "type": "number",
-          "description": "The score of the second player."
+          "type": ["number", "null"],
+          "description": "The score of the second player (Single mode)."
         },
         "matchDate": {
           "type": "string",
@@ -193,6 +211,11 @@
         "isCompleted": {
           "type": "boolean",
           "description": "Flag indicating if the match has been played."
+        },
+        "round": {
+            "type": "string",
+            "description": "The stage of the match in a hybrid season.",
+            "enum": ["Group", "Quarter-Final", "Semi-Final", "Final"]
         }
       },
       "required": [
@@ -248,8 +271,35 @@
         "hasPaid": {
           "type": "boolean",
           "description": "Indicates if the player has paid the registration fee for the season."
+        },
+        "group": {
+          "type": "string",
+          "enum": ["A", "B"],
+          "description": "The group the player belongs to in a hybrid season."
         }
       }
+    },
+    "CoOpLeagueEntry": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "CoOpLeagueEntry",
+        "type": "object",
+        "description": "Represents a paired team's entry in a Co-Op league table.",
+        "properties": {
+            "teamName": {"type": "string"},
+            "player1Id": {"type": "string"},
+            "player1Name": {"type": "string"},
+            "player1TeamId": {"type": "string"},
+            "player1TeamName": {"type": "string"},
+            "player2Id": {"type": "string"},
+            "player2Name": {"type": "string"},
+            "player2TeamId": {"type": "string"},
+            "player2TeamName": {"type": "string"},
+            "played": {"type": "number"},
+            "win": {"type": "number"},
+            "loss": {"type": "number"},
+            "points": {"type": "number"}
+        },
+        "required": ["teamName", "player1Id", "player1Name", "player2Id", "player2Name", "played", "win", "loss", "points"]
     },
     "Notice": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -420,6 +470,16 @@
         }
       },
        {
+        "path": "/leagues/{leagueId}/seasons/{seasonId}/coopLeagueTable/{coopLeagueEntryId}",
+        "definition": {
+          "entityName": "CoOpLeagueEntry",
+          "schema": {
+            "$ref": "#/backend/entities/CoOpLeagueEntry"
+          },
+          "description": "Stores the league table for a Co-Op season."
+        }
+      },
+       {
         "path": "/notices/main",
         "definition": {
           "entityName": "Notice",
@@ -452,3 +512,5 @@
     ]
   }
 }
+
+    
