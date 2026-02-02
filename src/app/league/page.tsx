@@ -323,8 +323,14 @@ export default function LeaguePage() {
         const generateGroupMatches = (group: WithId<LeagueEntry>[]) => {
             for (let i = 0; i < group.length; i++) {
                 for (let j = i + 1; j < group.length; j++) {
-                    const player1Id = group[i].playerId;
-                    const player2Id = group[j].playerId;
+                    let player1Id = group[i].playerId;
+                    let player2Id = group[j].playerId;
+
+                    // Randomly assign home and away
+                    if (Math.random() > 0.5) {
+                        [player1Id, player2Id] = [player2Id, player1Id];
+                    }
+
                     const matchData: Omit<Match, 'id'> = {
                         seasonId: activeSeasonId,
                         player1Id: player1Id,
