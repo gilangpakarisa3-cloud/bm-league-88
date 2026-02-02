@@ -30,7 +30,21 @@ interface LeagueTableProps {
   defendingChampionId?: string;
 }
 
-const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId, isCoop = false, totalPlayers }: Omit<LeagueTableProps, 'seasonType'> & { isCoop?: boolean, totalPlayers: number }) => {
+interface SingleTableProps {
+  tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>, rank: number })[];
+  isLoading?: boolean;
+  onRemovePlayer?: (entry: WithId<LeagueEntry>) => void;
+  onSelectPlayer: (entry: WithId<LeagueEntry>) => void;
+  seasonStatus?: Season['status'];
+  seasonType?: Season['type'];
+  isAdmin: boolean;
+  defendingChampionId?: string;
+  isCoop?: boolean;
+  totalPlayers: number;
+}
+
+
+const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, seasonType, isAdmin, defendingChampionId, isCoop = false, totalPlayers }: SingleTableProps) => {
     const { t } = useTranslation();
     const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
 
@@ -43,28 +57,30 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
               <TableHead className="w-12 text-center font-bold text-primary sm:hidden">#</TableHead>
               <TableHead className="w-12 text-center font-bold text-primary hidden sm:table-cell">{t('rank')}</TableHead>
               <TableHead className="text-left font-bold text-primary">{t('player')}</TableHead>
-              <TableHead className="text-center font-bold text-primary sm:hidden">{t('played')}</TableHead>
+              <TableHead className="text-center font-bold text-primary sm:hidden">{t('played_short')}</TableHead>
               <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('played')}</TableHead>
-              <TableHead className="hidden sm:table-cell text-center font-bold text-green-400">{t('w')}</TableHead>
-              {!isCoop && <TableHead className="hidden sm:table-cell text-center font-bold text-yellow-400">{t('d')}</TableHead>}
-              <TableHead className="hidden sm:table-cell text-center font-bold text-red-400">{t('l')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center font-bold text-green-400">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="hidden sm:table-cell text-center font-bold text-yellow-400">{t('d_short')}</TableHead>}
+              <TableHead className="hidden sm:table-cell text-center font-bold text-red-400">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
-                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gf')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('ga')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gd')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gf_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('ga_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gd_short')}</TableHead>
                 </>
               )}
-              <TableHead className="text-center font-bold text-primary sm:hidden">{t('pts')}</TableHead>
+              <TableHead className="text-center font-bold text-primary sm:hidden">{t('pts_short')}</TableHead>
               <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('pts')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-bold text-accent">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {tableData.map((entry) => {
-              const isFirst = entry.rank === 1;
-              const isUCLZone = !isCoop && (entry.rank >= 2 && entry.rank <= 4);
-              const isLastThree = !isCoop && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
+              const isFirst = entry.rank === 1 && seasonType === 'Single';
+              const isQualificationZone =
+                  (seasonType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
+                  (seasonType === 'Single' && entry.rank > 1 && entry.rank <= 4);
+              const isRelegationZone = seasonType === 'Single' && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
 
@@ -74,14 +90,14 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                   className={cn(
                     "transition-colors",
                     isFirst ? "bg-yellow-500/10 hover:bg-yellow-500/20" :
-                    isUCLZone ? "bg-green-500/10 hover:bg-green-500/20" :
-                    isLastThree ? "bg-red-500/10 hover:bg-red-500/20" : "hover:bg-muted/50"
+                    isQualificationZone ? "bg-green-500/10 hover:bg-green-500/20" :
+                    isRelegationZone ? "bg-red-500/10 hover:bg-red-500/20" : "hover:bg-muted/50"
                   )}
                 >
                   <TableCell className={cn("p-0 w-1", 
                     isFirst ? 'bg-yellow-400' :
-                    isUCLZone ? 'bg-green-500' :
-                    isLastThree ? 'bg-destructive' : 'bg-transparent'
+                    isQualificationZone ? 'bg-green-500' :
+                    isRelegationZone ? 'bg-destructive' : 'bg-transparent'
                   )}>
                   </TableCell>
                   <TableCell className={cn(
@@ -196,8 +212,18 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
   
   const { groupA, groupB } = useMemo(() => {
     if (seasonType !== 'Hybrid') return { groupA: [], groupB: [] };
-    const a = tableData.filter(p => p.group === 'A');
-    const b = tableData.filter(p => p.group === 'B');
+    
+    const sortAndRank = (data: typeof tableData) => 
+        data.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+            return a.playerName.localeCompare(b.playerName);
+        }).map((entry, index) => ({...entry, rank: index + 1}));
+
+    const a = sortAndRank(tableData.filter(p => p.group === 'A'));
+    const b = sortAndRank(tableData.filter(p => p.group === 'B'));
+    
     return { groupA: a, groupB: b };
   }, [tableData, seasonType]);
 
@@ -229,14 +255,26 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                      <SingleTable 
                         tableData={groupA} 
                         totalPlayers={groupA.length}
-                        {...{ isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }}
+                        onSelectPlayer={onSelectPlayer}
+                        seasonType={seasonType}
+                        isLoading={isLoading}
+                        onRemovePlayer={onRemovePlayer}
+                        seasonStatus={seasonStatus}
+                        isAdmin={isAdmin}
+                        defendingChampionId={defendingChampionId}
                      />
                 </TabsContent>
                 <TabsContent value="group_b">
                      <SingleTable 
                         tableData={groupB} 
                         totalPlayers={groupB.length}
-                        {...{ isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }}
+                        onSelectPlayer={onSelectPlayer}
+                        seasonType={seasonType}
+                        isLoading={isLoading}
+                        onRemovePlayer={onRemovePlayer}
+                        seasonStatus={seasonStatus}
+                        isAdmin={isAdmin}
+                        defendingChampionId={defendingChampionId}
                      />
                 </TabsContent>
             </Tabs>
@@ -245,7 +283,13 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                 tableData={tableData}
                 isCoop={seasonType === 'Co-Op'}
                 totalPlayers={tableData.length}
-                {...{ isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }}
+                onSelectPlayer={onSelectPlayer}
+                seasonType={seasonType}
+                isLoading={isLoading}
+                onRemovePlayer={onRemovePlayer}
+                seasonStatus={seasonStatus}
+                isAdmin={isAdmin}
+                defendingChampionId={defendingChampionId}
              />
         )}
     </div>
@@ -264,14 +308,14 @@ function LeagueTableSkeleton({ isCoop }: { isCoop: boolean}) {
               <TableHead className="w-16 text-center">{t('rank')}</TableHead>
               <TableHead>{t('player')}</TableHead>
               <TableHead className="text-center">{t('played')}</TableHead>
-              <TableHead className="hidden sm:table-cell text-center">{t('w')}</TableHead>
-              {!isCoop && <TableHead className="hidden sm:table-cell text-center">{t('d')}</TableHead>}
-              <TableHead className="hidden sm:table-cell text-center">{t('l')}</TableHead>
+              <TableHead className="hidden sm:table-cell text-center">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="hidden sm:table-cell text-center">{t('d_short')}</TableHead>}
+              <TableHead className="hidden sm:table-cell text-center">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
-                  <TableHead className="hidden md:table-cell text-center">{t('gf')}</TableHead>
-                  <TableHead className="hidden md:table-cell text-center">{t('ga')}</TableHead>
-                  <TableHead className="hidden md:table-cell text-center">{t('gd')}</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">{t('gf_short')}</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">{t('ga_short')}</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">{t('gd_short')}</TableHead>
                 </>
               )}
               <TableHead className="text-center font-bold">{t('pts')}</TableHead>
