@@ -10,12 +10,14 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck, Trophy, Award } from "lucide-react";
+import { Trash2, User, ShieldCheck, Trophy, Award, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
 import { Badge } from "./ui/badge";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useMemo } from "react";
 
 interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
@@ -28,29 +30,12 @@ interface LeagueTableProps {
   defendingChampionId?: string;
 }
 
-export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, seasonType, isAdmin, defendingChampionId }: LeagueTableProps) {
-  const { t } = useTranslation();
-  
-  if (isLoading) {
-    return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op'} />;
-  }
-  
-  if (tableData.length === 0) {
-    return (
-      <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card p-8 text-center shadow-lg shadow-primary/20">
-        <h2 className="text-xl font-medium text-muted-foreground">{t('no_players_registered_title')}</h2>
-        <p className="text-sm text-muted-foreground mt-2">{t('no_players_registered_desc')}</p>
-      </div>
-    );
-  }
-  
-  const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
-  const totalPlayers = tableData.length;
-  const isCoop = seasonType === 'Co-Op';
+const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId, isCoop = false, totalPlayers }: Omit<LeagueTableProps, 'seasonType'> & { isCoop?: boolean, totalPlayers: number }) => {
+    const { t } = useTranslation();
+    const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
 
-  return (
-    <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20">
-      <div className="w-full overflow-x-auto">
+    return (
+         <div className="w-full overflow-x-auto">
         <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -78,8 +63,8 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
           <TableBody>
             {tableData.map((entry) => {
               const isFirst = entry.rank === 1;
-              const isUCLZone = entry.rank >= 2 && entry.rank <= 4;
-              const isLastThree = entry.rank >= totalPlayers - 2 && totalPlayers > 3;
+              const isUCLZone = !isCoop && (entry.rank >= 2 && entry.rank <= 4);
+              const isLastThree = !isCoop && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
 
@@ -203,6 +188,66 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
           </TableBody>
         </Table>
       </div>
+    )
+}
+
+export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, seasonType, isAdmin, defendingChampionId }: LeagueTableProps) {
+  const { t } = useTranslation();
+  
+  const { groupA, groupB } = useMemo(() => {
+    if (seasonType !== 'Hybrid') return { groupA: [], groupB: [] };
+    const a = tableData.filter(p => p.group === 'A');
+    const b = tableData.filter(p => p.group === 'B');
+    return { groupA: a, groupB: b };
+  }, [tableData, seasonType]);
+
+
+  if (isLoading) {
+    return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op'} />;
+  }
+  
+  if (tableData.length === 0) {
+    return (
+      <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card p-8 text-center shadow-lg shadow-primary/20">
+        <h2 className="text-xl font-medium text-muted-foreground">{t('no_players_registered_title')}</h2>
+        <p className="text-sm text-muted-foreground mt-2">{t('no_players_registered_desc')}</p>
+      </div>
+    );
+  }
+  
+  const isHybrid = seasonType === 'Hybrid';
+
+  return (
+    <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20">
+        {isHybrid ? (
+             <Tabs defaultValue="group_a">
+                <TabsList className="grid w-full grid-cols-2 rounded-b-none rounded-t-lg">
+                    <TabsTrigger value="group_a" className="rounded-tl-md">Grup A ({groupA.length})</TabsTrigger>
+                    <TabsTrigger value="group_b" className="rounded-tr-md">Grup B ({groupB.length})</TabsTrigger>
+                </TabsList>
+                <TabsContent value="group_a">
+                     <SingleTable 
+                        tableData={groupA} 
+                        totalPlayers={groupA.length}
+                        {...{ isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }}
+                     />
+                </TabsContent>
+                <TabsContent value="group_b">
+                     <SingleTable 
+                        tableData={groupB} 
+                        totalPlayers={groupB.length}
+                        {...{ isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }}
+                     />
+                </TabsContent>
+            </Tabs>
+        ) : (
+            <SingleTable 
+                tableData={tableData}
+                isCoop={seasonType === 'Co-Op'}
+                totalPlayers={tableData.length}
+                {...{ isLoading, onRemovePlayer, onSelectPlayer, seasonStatus, isAdmin, defendingChampionId }}
+             />
+        )}
     </div>
   );
 }

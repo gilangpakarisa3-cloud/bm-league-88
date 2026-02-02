@@ -31,7 +31,7 @@ export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
-  type?: 'Single' | 'Co-Op';
+  type?: 'Single' | 'Co-Op' | 'Hybrid';
   startDate?: Timestamp;
   endDate?: Timestamp;
   registrationFee?: number;
@@ -54,6 +54,7 @@ export type LeagueEntry = {
   goalDifference: number;
   points: number;
   hasPaid?: boolean;
+  group?: 'A' | 'B';
 };
 
 export type CoOpLeagueEntry = {
@@ -82,6 +83,7 @@ export type Match = {
   player2Score: number | null;
   matchDate: Timestamp;
   isCompleted: boolean;
+  round?: 'Group' | 'Quarter-Final' | 'Semi-Final' | 'Final';
 }
 
 export type Notice = {

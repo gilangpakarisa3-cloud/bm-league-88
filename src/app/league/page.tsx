@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator, Group } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -54,6 +54,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CoopDrawDialog } from '@/components/coop-draw-dialog';
+import { GroupDrawDialog } from '@/components/group-draw-dialog';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -73,6 +74,7 @@ export default function LeaguePage() {
   const [showCreateSeason, setShowCreateSeason] = useState(false);
   const [showRegisterPlayers, setShowRegisterPlayers] = useState(false);
   const [showDrawDialog, setShowDrawDialog] = useState(false);
+  const [showGroupDrawDialog, setShowGroupDrawDialog] = useState(false);
   
   // Create/Edit Season State
   const [newSeasonName, setNewSeasonName] = useState('');
@@ -102,7 +104,7 @@ export default function LeaguePage() {
 
   const leagueTableCollection = useMemoFirebase(
     () =>
-      firestore && activeSeasonId && (!activeSeason?.type || activeSeason?.type === 'Single')
+      firestore && activeSeasonId && (activeSeason?.type || 'Single') !== 'Co-Op'
         ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
         : null,
     [firestore, activeSeasonId, activeSeason]
@@ -185,7 +187,7 @@ export default function LeaguePage() {
 
 
   const sortedTable = useMemo(() => {
-    const tableData = (!activeSeason?.type || activeSeason?.type === 'Single') ? singleLeagueTable : coopLeagueTable;
+    const tableData = (activeSeason?.type || 'Single') !== 'Co-Op' ? singleLeagueTable : coopLeagueTable;
     if (!tableData) return [];
     
     let enrichedTable: any[];
@@ -297,7 +299,7 @@ export default function LeaguePage() {
        return;
     }
 
-    const tableToUse = activeSeason.type === 'Co-Op' ? coopLeagueTable : singleLeagueTable;
+    const tableToUse = (activeSeason.type || 'Single') !== 'Co-Op' ? singleLeagueTable : coopLeagueTable;
 
     if (!tableToUse || tableToUse.length < 2) {
       toast({ variant: 'destructive', title: t('error'), description: t('generate_fixtures_error_min_players') });
@@ -312,35 +314,62 @@ export default function LeaguePage() {
     existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
 
     // 2. Generate new fixtures
-    const meetings = activeSeason.type === 'Co-Op' ? 1 : 2;
+    const seasonType = activeSeason.type || 'Single';
 
-    for (let i = 0; i < tableToUse.length; i++) {
-      for (let j = i + 1; j < tableToUse.length; j++) {
-        const entry1 = tableToUse[i];
-        const entry2 = tableToUse[j];
-        
-        const id1 = activeSeason.type === 'Co-Op' ? entry1.id : (entry1 as WithId<LeagueEntry>).playerId;
-        const id2 = activeSeason.type === 'Co-Op' ? entry2.id : (entry2 as WithId<LeagueEntry>).playerId;
-        
-        for (let k = 0; k < meetings; k++) {
-            const player1Id = k === 0 ? id1 : id2;
-            const player2Id = k === 0 ? id2 : id1;
+    if (seasonType === 'Hybrid' && singleLeagueTable) {
+        const groupA = singleLeagueTable.filter(p => p.group === 'A');
+        const groupB = singleLeagueTable.filter(p => p.group === 'B');
 
-            const matchData: Omit<Match, 'id'> = {
-                seasonId: activeSeasonId,
-                player1Id: player1Id,
-                player2Id: player2Id,
-                player1Score: null,
-                player2Score: null,
-                player1Wins: null,
-                player2Wins: null,
-                isCompleted: false,
-                matchDate: Timestamp.now(),
-            };
-            const matchRef = doc(matchesCollectionRef);
-            batch.set(matchRef, matchData);
+        const generateGroupMatches = (group: WithId<LeagueEntry>[]) => {
+            for (let i = 0; i < group.length; i++) {
+                for (let j = i + 1; j < group.length; j++) {
+                    const player1Id = group[i].playerId;
+                    const player2Id = group[j].playerId;
+                    const matchData: Omit<Match, 'id'> = {
+                        seasonId: activeSeasonId,
+                        player1Id: player1Id,
+                        player2Id: player2Id,
+                        player1Score: null, player2Score: null,
+                        player1Wins: null, player2Wins: null,
+                        isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
+                    };
+                    batch.set(doc(matchesCollectionRef), matchData);
+                }
+            }
         }
-      }
+        generateGroupMatches(groupA);
+        generateGroupMatches(groupB);
+        
+    } else {
+        const meetings = seasonType === 'Co-Op' ? 1 : 2;
+        for (let i = 0; i < tableToUse.length; i++) {
+          for (let j = i + 1; j < tableToUse.length; j++) {
+            const entry1 = tableToUse[i];
+            const entry2 = tableToUse[j];
+            
+            const id1 = seasonType === 'Co-Op' ? entry1.id : (entry1 as WithId<LeagueEntry>).playerId;
+            const id2 = seasonType === 'Co-Op' ? entry2.id : (entry2 as WithId<LeagueEntry>).playerId;
+            
+            for (let k = 0; k < meetings; k++) {
+                const player1Id = k === 0 ? id1 : id2;
+                const player2Id = k === 0 ? id2 : id1;
+
+                const matchData: Omit<Match, 'id'> = {
+                    seasonId: activeSeasonId,
+                    player1Id: player1Id,
+                    player2Id: player2Id,
+                    player1Score: null,
+                    player2Score: null,
+                    player1Wins: null,
+                    player2Wins: null,
+                    isCompleted: false,
+                    matchDate: Timestamp.now(),
+                };
+                const matchRef = doc(matchesCollectionRef);
+                batch.set(matchRef, matchData);
+            }
+          }
+        }
     }
     
     try {
@@ -459,7 +488,7 @@ export default function LeaguePage() {
   const handleDeleteEntry = () => {
     if (!firestore || !activeSeasonId || !deletingEntry) return;
 
-    const collectionName = activeSeason?.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+    const collectionName = (activeSeason?.type || 'Single') === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
     const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${collectionName}`, deletingEntry.id);
     deleteDocumentNonBlocking(entryRef);
 
@@ -556,6 +585,29 @@ export default function LeaguePage() {
     }
   };
 
+  const handleSaveGroups = useCallback(async (groups: { groupA: WithId<LeagueEntry>[], groupB: WithId<LeagueEntry>[] }) => {
+    if (!firestore || !activeSeasonId) return;
+
+    const batch = writeBatch(firestore);
+    const targetCollection = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
+
+    groups.groupA.forEach(player => {
+        batch.update(doc(targetCollection, player.id), { group: 'A' });
+    });
+    groups.groupB.forEach(player => {
+        batch.update(doc(targetCollection, player.id), { group: 'B' });
+    });
+
+    try {
+        await batch.commit();
+        toast({ title: 'Grup Disimpan!', description: 'Pembagian grup telah disimpan untuk musim ini.' });
+        setShowGroupDrawDialog(false);
+    } catch (error) {
+        console.error("Error saving groups:", error);
+        toast({ variant: 'destructive', title: 'Gagal Menyimpan Grup', description: 'Terjadi kesalahan saat menyimpan pembagian grup.'});
+    }
+  }, [firestore, activeSeasonId, toast]);
+
   const handleRemovePlayerFromRegistration = useCallback((leagueEntryId: string, playerName: string) => {
     if (!firestore || !activeSeasonId || !isAdmin) return;
 
@@ -591,7 +643,7 @@ export default function LeaguePage() {
     let bestAttacker = null;
     let worstDefender = null;
 
-    if (activeSeason.type !== 'Co-Op') {
+    if ((activeSeason.type || 'Single') !== 'Co-Op') {
       const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
       const bestAttackerPlayer = playersWhoPlayed.find(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
       if (bestAttackerPlayer) {
@@ -750,6 +802,12 @@ export default function LeaguePage() {
                             <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started' || (registeredPlayers?.length ?? 0) < 2}>
                                 <Shuffle className="mr-2 h-4 w-4" />
                                 Undi Pasangan
+                            </Button>
+                         )}
+                         {activeSeason?.type === 'Hybrid' && (
+                            <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started' || (registeredPlayers?.length ?? 0) < 2}>
+                                <Group className="mr-2 h-4 w-4" />
+                                Undi Grup
                             </Button>
                          )}
                         <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={!activeSeason || activeSeason.status !== 'Not Started' || ((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2}>
@@ -911,6 +969,10 @@ export default function LeaguePage() {
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="Co-Op" id="co-op"/>
                         <Label htmlFor="co-op">Co-Op (2v2)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Hybrid" id="hybrid"/>
+                        <Label htmlFor="hybrid">Hybrid (Liga+Piala)</Label>
                     </div>
                 </RadioGroup>
             </div>
@@ -1082,6 +1144,15 @@ export default function LeaguePage() {
         onSavePairs={handleSavePairs}
         isAdmin={isAdmin}
         onRemovePlayer={handleRemovePlayerFromRegistration}
+      />
+
+       {/* Group Draw Dialog */}
+      <GroupDrawDialog
+        open={showGroupDrawDialog}
+        onOpenChange={setShowGroupDrawDialog}
+        season={activeSeason}
+        registeredPlayers={registeredPlayers || []}
+        onSaveGroups={handleSaveGroups}
       />
       
        {/* Share Dialog */}

@@ -136,7 +136,7 @@
         "type": {
             "type": "string",
             "description": "The format of the league for this season.",
-            "enum": ["Single", "Co-Op"],
+            "enum": ["Single", "Co-Op", "Hybrid"],
             "default": "Single"
         },
         "createdAt": {
@@ -211,6 +211,11 @@
         "isCompleted": {
           "type": "boolean",
           "description": "Flag indicating if the match has been played."
+        },
+        "round": {
+            "type": "string",
+            "description": "The stage of the match in a hybrid season.",
+            "enum": ["Group", "Quarter-Final", "Semi-Final", "Final"]
         }
       },
       "required": [
@@ -266,6 +271,11 @@
         "hasPaid": {
           "type": "boolean",
           "description": "Indicates if the player has paid the registration fee for the season."
+        },
+        "group": {
+          "type": "string",
+          "enum": ["A", "B"],
+          "description": "The group the player belongs to in a hybrid season."
         }
       }
     },
