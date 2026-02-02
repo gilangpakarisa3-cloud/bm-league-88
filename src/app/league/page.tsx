@@ -95,7 +95,7 @@ export default function LeaguePage() {
 
   // --- Firestore Data Hooks ---
   const seasonsCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, `leagues/${LEAGUE_ID}/seasons`) : null),
+    () => (firestore ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc')) : null),
     [firestore]
   );
   const { data: seasons, isLoading: isLoadingSeasons } = useCollection<Season>(seasonsCollection);
@@ -105,7 +105,7 @@ export default function LeaguePage() {
   const leagueTableCollection = useMemoFirebase(
     () =>
       firestore && activeSeasonId && (activeSeason?.type || 'Single') !== 'Co-Op'
-        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
+        ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`))
         : null,
     [firestore, activeSeasonId, activeSeason]
   );
@@ -114,7 +114,7 @@ export default function LeaguePage() {
   const coopLeagueTableCollection = useMemoFirebase(
     () =>
       firestore && activeSeasonId && activeSeason?.type === 'Co-Op'
-        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`)
+        ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`))
         : null,
     [firestore, activeSeasonId, activeSeason]
   );
@@ -299,12 +299,10 @@ export default function LeaguePage() {
   // --- Effects ---
   useEffect(() => {
     if (seasons && !activeSeasonId && seasons.length > 0) {
-      const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-      setActiveSeasonId(sortedSeasons[0].id);
+      setActiveSeasonId(seasons[0].id);
     }
     if (seasons && activeSeasonId && !seasons.find(s => s.id === activeSeasonId)) {
-        const sortedSeasons = [...seasons].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-        setActiveSeasonId(sortedSeasons.length > 0 ? sortedSeasons[0].id : null);
+        setActiveSeasonId(seasons.length > 0 ? seasons[0].id : null);
     }
   }, [seasons, activeSeasonId]);
 
@@ -501,11 +499,18 @@ export default function LeaguePage() {
     if (!firestore || !activeSeasonId || !activeSeason || activeSeason.type !== 'Hybrid') return;
 
     const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+    
+    // Fetch all matches and filter on the client to avoid index issues
+    const allMatchesSnap = await getDocs(matchesCollectionRef);
+    const allMatches = allMatchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
+
+    const quarterFinalsMatches = allMatches
+        .filter(m => m.round === 'Quarter-Final')
+        .sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
 
     // Check if semi-finals already exist
-    const semiFinalsQuery = query(matchesCollectionRef, where('round', '==', 'Semi-Final'));
-    const existingSemiFinalsSnap = await getDocs(semiFinalsQuery);
-    if (!existingSemiFinalsSnap.empty) {
+    const existingSemiFinals = allMatches.filter(m => m.round === 'Semi-Final');
+    if (existingSemiFinals.length > 0) {
         toast({
             variant: 'destructive',
             title: 'Babak Semi Final Sudah Ada',
@@ -514,11 +519,7 @@ export default function LeaguePage() {
         return;
     }
 
-    // Get completed quarter-final matches, ordered by how they were created
-    const quarterFinalsQuery = query(matchesCollectionRef, where('round', '==', 'Quarter-Final'), orderBy('matchDate', 'asc'));
-    const quarterFinalsSnap = await getDocs(quarterFinalsQuery);
-
-    if (quarterFinalsSnap.size !== 4 || quarterFinalsSnap.docs.some(doc => !doc.data().isCompleted)) {
+    if (quarterFinalsMatches.length !== 4 || quarterFinalsMatches.some(m => !m.isCompleted)) {
         toast({
             variant: 'destructive',
             title: 'Perempat Final Belum Selesai',
@@ -529,8 +530,7 @@ export default function LeaguePage() {
 
     const getWinner = (match: Match) => (match.player1Score! > match.player2Score!) ? match.player1Id : match.player2Id;
     
-    const qfMatches = quarterFinalsSnap.docs.map(doc => doc.data() as Match);
-    const winners = qfMatches.map(getWinner);
+    const winners = quarterFinalsMatches.map(getWinner);
 
     const semiFinalPairings = [
         { p1: winners[0], p2: winners[2] }, // Winner(1A vs 4B) vs Winner(2A vs 3B)
@@ -561,25 +561,27 @@ export default function LeaguePage() {
     
     const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
 
+    // Fetch all matches and filter on the client
+    const allMatchesSnap = await getDocs(matchesCollectionRef);
+    const allMatches = allMatchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
+
     // Check if final already exists
-    const finalQuery = query(matchesCollectionRef, where('round', '==', 'Final'));
-    const existingFinalSnap = await getDocs(finalQuery);
-    if (!existingFinalSnap.empty) {
+    const existingFinal = allMatches.find(m => m.round === 'Final');
+    if (existingFinal) {
         toast({ variant: 'destructive', title: 'Babak Final Sudah Ada', description: 'Jadwal untuk babak final sudah dibuat sebelumnya.'});
         return;
     }
 
     // Get completed semi-final matches
-    const semiFinalsQuery = query(matchesCollectionRef, where('round', '==', 'Semi-Final'));
-    const semiFinalsSnap = await getDocs(semiFinalsQuery);
+    const semiFinalsMatches = allMatches.filter(m => m.round === 'Semi-Final');
 
-    if (semiFinalsSnap.size !== 2 || semiFinalsSnap.docs.some(doc => !doc.data().isCompleted)) {
+    if (semiFinalsMatches.length !== 2 || semiFinalsMatches.some(m => !m.isCompleted)) {
         toast({ variant: 'destructive', title: 'Semi Final Belum Selesai', description: 'Semua pertandingan semi final harus diselesaikan sebelum membuat final.'});
         return;
     }
 
     const getWinner = (match: Match) => (match.player1Score! > match.player2Score!) ? match.player1Id : match.player2Id;
-    const winners = semiFinalsSnap.docs.map(doc => getWinner(doc.data() as Match));
+    const winners = semiFinalsMatches.map(getWinner);
 
     const batch = writeBatch(firestore);
     const matchData: Omit<Match, 'id'> = {
