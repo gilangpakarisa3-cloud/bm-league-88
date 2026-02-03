@@ -6,7 +6,7 @@ import { WinnerDisplay } from '@/components/winner-display';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc, query, orderBy, limit, getDocs, where, getDoc } from 'firebase/firestore';
-import type { LeagueEntry, Season, WithId, Player, Team, Match } from '@/lib/types';
+import type { LeagueEntry, Season, WithId, Player, Team, Match, CoOpLeagueEntry } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,7 @@ function LeagueWinnerPageContents() {
 
     const seasonId = searchParams.get('seasonId');
     const [winner, setWinner] = useState<WithId<LeagueEntry> | null>(null);
+    const [aggregatedStats, setAggregatedStats] = useState<{ win: number, loss: number, points: number } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const seasonRef = useMemoFirebase(
@@ -52,57 +53,106 @@ function LeagueWinnerPageContents() {
             return;
         }
 
-        const findWinner = async () => {
+        const findWinnerAndStats = async () => {
             setIsLoading(true);
             
             try {
                 let winnerPlayerId = '';
+                const matchesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/matches`);
+                const allMatchesSnap = await getDocs(matchesRef);
+                const allMatches = allMatchesSnap.docs.map(d => d.data() as Match);
                 
-                // --- REVISI: For Hybrid, look for the winner of the Grand Final first ---
+                // 1. Identify Winner
                 if (season.type === 'Hybrid') {
-                    const matchesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/matches`);
-                    const qFinal = query(matchesRef, where('round', '==', 'Final'));
-                    const finalSnap = await getDocs(qFinal);
-                    
-                    const finalMatchDoc = finalSnap.docs.find(d => d.data().isCompleted);
-                    if (finalMatchDoc) {
-                        const finalMatch = finalMatchDoc.data() as Match;
+                    const finalMatch = allMatches.find(m => m.round === 'Final' && m.isCompleted);
+                    if (finalMatch) {
                         const s1 = finalMatch.player1Wins !== null ? finalMatch.player1Wins : (finalMatch.player1Score ?? 0);
                         const s2 = finalMatch.player2Wins !== null ? finalMatch.player2Wins : (finalMatch.player2Score ?? 0);
                         winnerPlayerId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
                     }
                 }
                 
-                const leagueTableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/leagueTable`);
+                const isCoop = season.type === 'Co-Op';
+                const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
+                const tableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/${tableName}`);
                 
+                let winnerData: WithId<LeagueEntry> | null = null;
+
                 if (winnerPlayerId) {
-                    const qWinner = query(leagueTableRef, where('playerId', '==', winnerPlayerId));
+                    const qWinner = query(tableRef, where(isCoop ? '__name__' : 'playerId', '==', winnerPlayerId));
                     const winnerSnapshot = await getDocs(qWinner);
                     if (!winnerSnapshot.empty) {
-                        setWinner({ id: winnerSnapshot.docs[0].id, ...winnerSnapshot.docs[0].data() } as WithId<LeagueEntry>);
+                        const doc = winnerSnapshot.docs[0];
+                        if (isCoop) {
+                            const data = doc.data() as CoOpLeagueEntry;
+                            winnerData = { 
+                                id: doc.id, 
+                                playerName: data.teamName, 
+                                teamName: data.player1TeamName,
+                                teamId: data.player1TeamId,
+                                points: data.points,
+                                win: data.win,
+                                loss: data.loss
+                            } as any;
+                        } else {
+                            winnerData = { id: doc.id, ...doc.data() } as WithId<LeagueEntry>;
+                        }
                     }
                 } else {
-                    // Fallback to table leader (standard points behavior)
-                    const q = query(
-                        leagueTableRef, 
-                        orderBy('points', 'desc'), 
-                        limit(1)
-                    );
+                    // Fallback to table leader
+                    const q = query(tableRef, orderBy('points', 'desc'), limit(1));
                     const winnerSnapshot = await getDocs(q);
-                    
                     if (!winnerSnapshot.empty) {
-                        const winnerDoc = winnerSnapshot.docs[0];
-                        const winnerData = { id: winnerDoc.id, ...winnerDoc.data() } as WithId<LeagueEntry>;
-                        setWinner(winnerData);
+                        const doc = winnerSnapshot.docs[0];
+                        winnerPlayerId = isCoop ? doc.id : (doc.data() as LeagueEntry).playerId;
+                        if (isCoop) {
+                            const data = doc.data() as CoOpLeagueEntry;
+                            winnerData = { 
+                                id: doc.id, 
+                                playerName: data.teamName, 
+                                teamName: data.player1TeamName,
+                                teamId: data.player1TeamId,
+                                points: data.points,
+                                win: data.win,
+                                loss: data.loss
+                            } as any;
+                        } else {
+                            winnerData = { id: doc.id, ...doc.data() } as WithId<LeagueEntry>;
+                        }
                     }
                 }
+
+                if (winnerData) {
+                    setWinner(winnerData);
+                    
+                    // 2. Aggregate Stats across ALL matches
+                    let totalWin = 0, totalLoss = 0;
+                    const relevantMatches = allMatches.filter(m => m.isCompleted && (m.player1Id === winnerPlayerId || m.player2Id === winnerPlayerId));
+                    
+                    relevantMatches.forEach(m => {
+                        const isP1 = m.player1Id === winnerPlayerId;
+                        const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
+                        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+                        const pResult = isP1 ? s1 : s2;
+                        const oResult = isP1 ? s2 : s1;
+                        if (pResult > oResult) totalWin++;
+                        else if (pResult < oResult) totalLoss++;
+                    });
+
+                    setAggregatedStats({
+                        win: totalWin,
+                        loss: totalLoss,
+                        points: winnerData.points // Points remain league-phase specific
+                    });
+                }
+
             } catch (err) {
-                console.error("Error finding winner:", err);
+                console.error("Error finding winner and stats:", err);
             }
             setIsLoading(false);
         };
         
-        findWinner();
+        findWinnerAndStats();
 
     }, [firestore, seasonId, router, season]);
 
@@ -120,7 +170,7 @@ function LeagueWinnerPageContents() {
         )
     }
 
-    if (!winner) {
+    if (!winner || !aggregatedStats) {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
                 <h1 className="text-3xl font-bold">{t('league_not_started')}</h1>
@@ -136,9 +186,9 @@ function LeagueWinnerPageContents() {
     const isSeasonCompleted = season?.status === 'Completed';
 
     const stats = [
-        { label: t('pts'), value: winner.points },
-        { label: t('win_long', {defaultValue: 'Wins'}), value: winner.win },
-        { label: t('l', { defaultValue: 'L'}), value: winner.loss },
+        { label: t('pts'), value: aggregatedStats.points },
+        { label: t('win_long', {defaultValue: 'Wins'}), value: aggregatedStats.win },
+        { label: t('l', { defaultValue: 'K'}), value: aggregatedStats.loss },
     ];
 
     const winnerTitle = isSeasonCompleted && season ? t('winner_of_season', { seasonName: season.name }) : t('current_league_leader');

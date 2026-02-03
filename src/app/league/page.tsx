@@ -242,7 +242,7 @@ export default function LeaguePage() {
         data.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points;
             if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.playerName.localeCompare(b.playerName);
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - b.playerName.localeCompare(b.playerName);
             return 0; // Add this to satisfy TypeScript for consistent return
         }).map((entry, index) => ({...entry, rank: index + 1}));
 
@@ -911,6 +911,32 @@ export default function LeaguePage() {
         }
     }
 
+    // --- AGGREGATE STATS ACROSS ENTIRE SEASON (Grup + Knockout) ---
+    const winnerIdToFilter = (activeSeason.type === 'Co-Op') ? winner.id : winner.playerId;
+    const playerMatches = matches?.filter(m => m.isCompleted && (m.player1Id === winnerIdToFilter || m.player2Id === winnerIdToFilter)) || [];
+    
+    let totalPlayed = 0, totalWin = 0, totalDraw = 0, totalLoss = 0, totalGF = 0, totalGA = 0;
+
+    playerMatches.forEach(m => {
+        totalPlayed++;
+        const isP1 = m.player1Id === winnerIdToFilter;
+        const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
+        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+        
+        const pResult = isP1 ? s1 : s2;
+        const oResult = isP1 ? s2 : s1;
+
+        if (pResult > oResult) totalWin++;
+        else if (pResult < oResult) totalLoss++;
+        else totalDraw++;
+
+        // Only aggregate goals for standard (non-Bo3) matches if available
+        if (m.player1Score !== null) {
+            totalGF += isP1 ? m.player1Score : m.player2Score!;
+            totalGA += isP1 ? m.player2Score : m.player1Score!;
+        }
+    });
+
     const playersWhoPlayed = sortedTable.filter(p => p.played > 0);
     
     let bestAttacker = null;
@@ -937,18 +963,18 @@ export default function LeaguePage() {
         seasonId: activeSeason.id,
         seasonName: activeSeason.name,
         completedAt: Timestamp.now(),
-        winnerPlayerId: winner.playerId,
+        winnerPlayerId: winner.playerId || winner.id,
         winnerPlayerName: winner.playerName,
         winnerTeamName: winner.teamName,
         winnerPhotoUrl: (winner as any).team?.logoUrl, // Using team logo as player photo
         winnerStats: {
-            points: winner.points,
-            win: winner.win,
-            draw: winner.draw,
-            loss: winner.loss,
-            goalsFor: winner.goalsFor,
-            goalsAgainst: winner.goalsAgainst,
-            goalDifference: winner.goalDifference,
+            points: winner.points, // Points are league-specific
+            win: totalWin,
+            draw: totalDraw,
+            loss: totalLoss,
+            goalsFor: totalGF,
+            goalsAgainst: totalGA,
+            goalDifference: totalGF - totalGA,
         },
         funStats: {
             mostWins: mostWinsPlayer ? { playerName: mostWinsPlayer.playerName, value: mostWinsPlayer.win } : null,
