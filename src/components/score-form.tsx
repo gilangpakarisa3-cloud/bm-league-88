@@ -25,19 +25,20 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
 import { CoopScoreChecklist } from "./coop-score-checklist";
 
-const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+// Updated regex to be more flexible with seconds or different browser input behaviors
+const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/;
 
 // Zod schema for Co-Op (Best of 3) matches
 const coopFormSchema = z.object({
   player1Wins: z.coerce.number().min(0).max(2),
   player2Wins: z.coerce.number().min(0).max(2),
-  time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
+  time: z.string().min(1, { message: "Time is required" }),
   date: z.date({ required_error: "A date is required."}),
 }).refine(data => {
     return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
            (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
 }, {
-    message: "Invalid best-of-3 result. One team must have 2 wins.",
+    message: "Skor Best of 3 tidak valid. Salah satu tim harus menang 2 game.",
     path: ["player1Wins"],
 });
 
@@ -45,7 +46,7 @@ const coopFormSchema = z.object({
 const singleFormSchema = z.object({
   player1Score: z.coerce.number().min(0, { message: "Score must be positive." }),
   player2Score: z.coerce.number().min(0, { message: "Score must be positive." }),
-  time: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM." }),
+  time: z.string().min(1, { message: "Time is required" }),
   date: z.date({ required_error: "A date is required."}),
 });
 
@@ -70,6 +71,20 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
         match.round === 'Final' || 
         (hybridGroupMeetings === 2 && (match.round === 'Quarter-Final' || match.round === 'Semi-Final'))
     ));
+
+  // Lifted state for game-by-game winners to prevent "flipping" on re-mounts
+  const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
+    const winners: (string | null)[] = [null, null, null];
+    if (isBestOfThree && match.isCompleted) {
+        let p1w = match.player1Wins ?? 0;
+        let p2w = match.player2Wins ?? 0;
+        for (let i = 0; i < 3; i++) {
+            if (p1w > 0) { winners[i] = 'player1'; p1w--; }
+            else if (p2w > 0) { winners[i] = 'player2'; p2w--; }
+        }
+    }
+    return winners;
+  });
 
   const formSchema = isBestOfThree ? coopFormSchema : singleFormSchema;
 
@@ -119,9 +134,26 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     }
   };
 
-  const handleScoreChangeFromChecklist = (score: {player1Wins: number, player2Wins: number}) => {
-    form.setValue('player1Wins', score.player1Wins, { shouldValidate: true });
-    form.setValue('player2Wins', score.player2Wins, { shouldValidate: true });
+  const handleWinnerChange = (index: number, winner: string) => {
+    const nextWinners = [...gameWinners];
+    // Toggle logic: if clicking the already selected winner, clear it
+    nextWinners[index] = nextWinners[index] === winner ? null : winner;
+
+    // Best of 3 rule: if 2-0, Game 3 is automatically cleared
+    const p1_G12 = nextWinners.slice(0, 2).filter(w => w === 'player1').length;
+    const p2_G12 = nextWinners.slice(0, 2).filter(w => w === 'player2').length;
+    if (p1_G12 === 2 || p2_G12 === 2) {
+        nextWinners[2] = null;
+    }
+
+    setGameWinners(nextWinners);
+
+    // Sync counts to form
+    const p1Total = nextWinners.filter(w => w === 'player1').length;
+    const p2Total = nextWinners.filter(w => w === 'player2').length;
+    
+    form.setValue('player1Wins', p1Total, { shouldValidate: true });
+    form.setValue('player2Wins', p2Total, { shouldValidate: true });
   }
 
   return (
@@ -131,8 +163,8 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
            <CoopScoreChecklist
               player1Name={player1Info.name}
               player2Name={player2Info.name}
-              initialScore={{ player1Wins: (form.getValues('player1Wins') as number), player2Wins: (form.getValues('player2Wins') as number)}}
-              onScoreChange={handleScoreChangeFromChecklist}
+              winners={gameWinners}
+              onWinnerChange={handleWinnerChange}
            />
         ) : (
           <div className="grid grid-cols-2 gap-4 items-end">
