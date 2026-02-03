@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -360,6 +361,8 @@ export default function LeaguePage() {
         const groupB = singleLeagueTable.filter(p => p.group === 'B');
 
         const generateGroupMatches = (group: WithId<LeagueEntry>[]) => {
+            const now = Date.now();
+            let matchCounter = 0;
             for (let i = 0; i < group.length; i++) {
                 for (let j = i + 1; j < group.length; j++) {
                     const player1Id = group[i].playerId;
@@ -372,14 +375,14 @@ export default function LeaguePage() {
                         const matchData1: Omit<Match, 'id'> = {
                             seasonId: activeSeasonId, player1Id, player2Id,
                             player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
-                            isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
+                            isCompleted: false, matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group',
                         };
                         batch.set(doc(matchesCollectionRef), matchData1);
 
                         const matchData2: Omit<Match, 'id'> = {
                             seasonId: activeSeasonId, player1Id: player2Id, player2Id: player1Id,
                             player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
-                            isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
+                            isCompleted: false, matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group',
                         };
                         batch.set(doc(matchesCollectionRef), matchData2);
                     } else {
@@ -392,7 +395,7 @@ export default function LeaguePage() {
                         const matchData: Omit<Match, 'id'> = {
                             seasonId: activeSeasonId, player1Id: p1, player2Id: p2,
                             player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
-                            isCompleted: false, matchDate: Timestamp.now(), round: 'Group',
+                            isCompleted: false, matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group',
                         };
                         batch.set(doc(matchesCollectionRef), matchData);
                     }
@@ -404,6 +407,8 @@ export default function LeaguePage() {
         
     } else {
         const meetings = seasonType === 'Co-Op' ? 1 : ((activeSeason?.type || 'Single') === 'Single' ? 2 : 1);
+        const now = Date.now();
+        let matchCounter = 0;
         for (let i = 0; i < tableToUse.length; i++) {
           for (let j = i + 1; j < tableToUse.length; j++) {
             const entry1 = tableToUse[i];
@@ -430,7 +435,7 @@ export default function LeaguePage() {
                     player1Wins: null,
                     player2Wins: null,
                     isCompleted: false,
-                    matchDate: Timestamp.now(),
+                    matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
                     round: seasonType === 'Hybrid' ? 'Group' : undefined
                 };
                 const matchRef = doc(matchesCollectionRef);
@@ -474,6 +479,7 @@ export default function LeaguePage() {
     }
 
     const batch = writeBatch(firestore);
+    const now = Date.now();
 
     const pairings = [
       { p1: groupA[0], p2: groupB[3] }, // 1A vs 4B
@@ -482,7 +488,7 @@ export default function LeaguePage() {
       { p1: groupB[1], p2: groupA[2] }, // 2B vs 3A
     ];
 
-    pairings.forEach(pairing => {
+    pairings.forEach((pairing, index) => {
       const matchData: Omit<Match, 'id'> = {
         seasonId: activeSeasonId,
         player1Id: pairing.p1.playerId,
@@ -490,7 +496,7 @@ export default function LeaguePage() {
         player1Score: null, player2Score: null,
         player1Wins: null, player2Wins: null,
         isCompleted: false,
-        matchDate: Timestamp.now(),
+        matchDate: Timestamp.fromMillis(now + (index + 1) * 1000), // Ensure sequential timestamps for stable bracket
         round: 'Quarter-Final',
       };
       batch.set(doc(matchesCollectionRef), matchData);
@@ -517,11 +523,22 @@ export default function LeaguePage() {
 
     const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
     
-    const allMatches = allSeasonMatches;
+    // Fetch all matches to ensure we have current data without needing complex index
+    const allMatchesSnap = await getDocs(matchesCollectionRef);
+    const allMatches = allMatchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
 
     const quarterFinalsMatches = allMatches
         .filter(m => m.round === 'Quarter-Final')
         .sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
+
+    if (quarterFinalsMatches.length !== 4 || quarterFinalsMatches.some(m => !m.isCompleted)) {
+        toast({
+            variant: 'destructive',
+            title: 'Perempat Final Belum Selesai',
+            description: 'Semua pertandingan perempat final harus diselesaikan sebelum membuat semi final.',
+        });
+        return;
+    }
 
     // Check if semi-finals already exist
     const existingSemiFinals = allMatches.filter(m => m.round === 'Semi-Final');
@@ -534,35 +551,28 @@ export default function LeaguePage() {
         return;
     }
 
-    if (quarterFinalsMatches.length !== 4 || quarterFinalsMatches.some(m => !m.isCompleted)) {
-        toast({
-            variant: 'destructive',
-            title: 'Perempat Final Belum Selesai',
-            description: 'Semua pertandingan perempat final harus diselesaikan sebelum membuat semi final.',
-        });
-        return;
-    }
-
-    const getWinner = (match: Match) => {
-        const isBo3 = activeSeason.hybridGroupMeetings === 2;
-        const s1 = isBo3 ? match.player1Wins : match.player1Score;
-        const s2 = isBo3 ? match.player2Wins : match.player2Score;
-        return (s1! > s2!) ? match.player1Id : match.player2Id;
+    const getWinnerId = (match: Match) => {
+        // Robust winner identification: check win fields first, then scores
+        const s1 = match.player1Wins !== null ? match.player1Wins : (match.player1Score ?? 0);
+        const s2 = match.player2Wins !== null ? match.player2Wins : (match.player2Score ?? 0);
+        return s1 > s2 ? match.player1Id : match.player2Id;
     };
     
-    const winners = quarterFinalsMatches.map(getWinner);
+    const winners = quarterFinalsMatches.map(getWinnerId);
 
+    // Standard bracket pairings based on our sequential QF creation
     const semiFinalPairings = [
         { p1: winners[0], p2: winners[2] }, // Winner(1A vs 4B) vs Winner(2A vs 3B)
         { p1: winners[1], p2: winners[3] }, // Winner(1B vs 4A) vs Winner(2B vs 3A)
     ];
 
     const batch = writeBatch(firestore);
-    semiFinalPairings.forEach(pairing => {
+    const now = Date.now();
+    semiFinalPairings.forEach((pairing, index) => {
         const matchData: Omit<Match, 'id'> = {
             seasonId: activeSeasonId, player1Id: pairing.p1, player2Id: pairing.p2,
             player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
-            isCompleted: false, matchDate: Timestamp.now(), round: 'Semi-Final',
+            isCompleted: false, matchDate: Timestamp.fromMillis(now + (index + 10) * 1000), round: 'Semi-Final',
         };
         batch.set(doc(matchesCollectionRef), matchData);
     });
@@ -574,14 +584,26 @@ export default function LeaguePage() {
         console.error(e);
         toast({ variant: 'destructive', title: 'Gagal Membuat Jadwal', description: 'Terjadi kesalahan saat membuat jadwal semi final.' });
     }
-  }, [firestore, activeSeasonId, activeSeason, toast, allSeasonMatches]);
+  }, [firestore, activeSeasonId, activeSeason, toast]);
 
   const handleGenerateFinal = useCallback(async () => {
     if (!firestore || !activeSeasonId || !activeSeason || activeSeason.type !== 'Hybrid') return;
     
     const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
 
-    const allMatches = allSeasonMatches;
+    // Fetch all matches to ensure we have current data
+    const allMatchesSnap = await getDocs(matchesCollectionRef);
+    const allMatches = allMatchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Match>));
+
+    // Get semi-final matches
+    const semiFinalsMatches = allMatches
+        .filter(m => m.round === 'Semi-Final')
+        .sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
+
+    if (semiFinalsMatches.length !== 2 || semiFinalsMatches.some(m => !m.isCompleted)) {
+        toast({ variant: 'destructive', title: 'Semi Final Belum Selesai', description: 'Semua pertandingan semi final harus diselesaikan sebelum membuat final.'});
+        return;
+    }
 
     // Check if final already exists
     const existingFinal = allMatches.find(m => m.round === 'Final');
@@ -590,27 +612,18 @@ export default function LeaguePage() {
         return;
     }
 
-    // Get completed semi-final matches
-    const semiFinalsMatches = allMatches.filter(m => m.round === 'Semi-Final');
-
-    if (semiFinalsMatches.length !== 2 || semiFinalsMatches.some(m => !m.isCompleted)) {
-        toast({ variant: 'destructive', title: 'Semi Final Belum Selesai', description: 'Semua pertandingan semi final harus diselesaikan sebelum membuat final.'});
-        return;
-    }
-
-    const getWinner = (match: Match) => {
-        const isBo3 = activeSeason.hybridGroupMeetings === 2 || activeSeason.type === 'Hybrid'; // In Hybrid, Final is always Bo3
-        const s1 = match.round === 'Final' || isBo3 ? match.player1Wins : match.player1Score;
-        const s2 = match.round === 'Final' || isBo3 ? match.player2Wins : match.player2Score;
-        return (s1! > s2!) ? match.player1Id : match.player2Id;
+    const getWinnerId = (match: Match) => {
+        const s1 = match.player1Wins !== null ? match.player1Wins : (match.player1Score ?? 0);
+        const s2 = match.player2Wins !== null ? match.player2Wins : (match.player2Score ?? 0);
+        return s1 > s2 ? match.player1Id : match.player2Id;
     };
-    const winners = semiFinalsMatches.map(getWinner);
+    const winners = semiFinalsMatches.map(getWinnerId);
 
     const batch = writeBatch(firestore);
     const matchData: Omit<Match, 'id'> = {
         seasonId: activeSeasonId, player1Id: winners[0], player2Id: winners[1],
         player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
-        isCompleted: false, matchDate: Timestamp.now(), round: 'Final',
+        isCompleted: false, matchDate: Timestamp.fromMillis(Date.now() + 20000), round: 'Final',
     };
     batch.set(doc(matchesCollectionRef), matchData);
 
@@ -621,7 +634,7 @@ export default function LeaguePage() {
         console.error(e);
         toast({ variant: 'destructive', title: 'Gagal Membuat Jadwal', description: 'Terjadi kesalahan saat membuat jadwal final.'});
     }
-}, [firestore, activeSeasonId, activeSeason, toast, allSeasonMatches]);
+}, [firestore, activeSeasonId, activeSeason, toast]);
 
 
   // --- Event Handlers ---

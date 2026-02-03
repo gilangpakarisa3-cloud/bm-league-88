@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -29,14 +30,9 @@ export function TournamentBracket({ matches, playersById, teamsById, season }: T
         const t1 = p1 ? teamsById[p1.teamId] : null;
         const t2 = p2 ? teamsById[p2.teamId] : null;
 
-        const isBo3 = season?.type === 'Co-Op' || 
-            (season?.type === 'Hybrid' && (
-                match.round === 'Final' || 
-                (season.hybridGroupMeetings === 2 && (match.round === 'Quarter-Final' || match.round === 'Semi-Final'))
-            ));
-
-        const score1 = isBo3 ? match.player1Wins : match.player1Score;
-        const score2 = isBo3 ? match.player2Wins : match.player2Score;
+        // Identification of scores: Prioritize win fields (Bo3) then standard scores (Bo1)
+        const score1 = match.player1Wins !== null ? match.player1Wins : (match.player1Score ?? 0);
+        const score2 = match.player2Wins !== null ? match.player2Wins : (match.player2Score ?? 0);
         
         const isWinner1 = match.isCompleted && (score1 ?? 0) > (score2 ?? 0);
         const isWinner2 = match.isCompleted && (score2 ?? 0) > (score1 ?? 0);
@@ -55,7 +51,7 @@ export function TournamentBracket({ matches, playersById, teamsById, season }: T
       }
     });
 
-    // Sort matches within rounds by date to keep them consistent
+    // Sort matches within rounds by matchDate to keep them sequential as generated
     Object.keys(rounds).forEach(key => {
         rounds[key as keyof typeof rounds].sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
     });
