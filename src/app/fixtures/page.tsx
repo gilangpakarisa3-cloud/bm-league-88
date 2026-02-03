@@ -26,7 +26,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc, updateDoc, increment, DocumentReference } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -613,12 +613,38 @@ export default function FixturesPage() {
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, revertingMatch.id);
 
     try {
+        // --- 1. Cascading Revert Logic ---
+        // If we revert a result that lead to next rounds, those rounds must be deleted.
+        let roundsToDelete: string[] = [];
+        const currentRound = revertingMatch.round || 'Group';
+        
+        if (currentRound === 'Group') {
+            roundsToDelete = ['Quarter-Final', 'Semi-Final', 'Final'];
+        } else if (currentRound === 'Quarter-Final') {
+            roundsToDelete = ['Semi-Final', 'Final'];
+        } else if (currentRound === 'Semi-Final') {
+            roundsToDelete = ['Final'];
+        }
+
+        let matchesToDeleteRefs: DocumentReference[] = [];
+        if (roundsToDelete.length > 0) {
+            const matchesColRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+            const q = query(matchesColRef, where('round', 'in', roundsToDelete));
+            const snap = await getDocs(q);
+            matchesToDeleteRefs = snap.docs.map(d => d.ref);
+        }
+
         await runTransaction(firestore, async (transaction) => {
             const matchDoc = await transaction.get(matchRef);
             if (!matchDoc.exists() || !matchDoc.data().isCompleted) {
                 throw new Error(t('revert_match_error_not_completed', { defaultValue: "Match has not been completed or does not exist."}));
             }
             const matchToRevert = matchDoc.data() as Match;
+
+            // Delete future rounds if any
+            matchesToDeleteRefs.forEach(ref => {
+                transaction.delete(ref);
+            });
 
             // Skip table updates for knockout rounds
             if (matchToRevert.round && matchToRevert.round !== 'Group') {
@@ -708,7 +734,7 @@ export default function FixturesPage() {
             });
         });
 
-        toast({ title: t('match_reverted_title', { defaultValue: 'Match Reverted' }), description: t('match_reverted_desc', { defaultValue: 'The match score and stats have been successfully reverted.' }) });
+        toast({ title: t('match_reverted_title', { defaultValue: 'Match Reverted' }), description: t('match_reverted_desc', { defaultValue: 'Skor pertandingan dikembalikan dan babak selanjutnya yang terdampak telah dihapus.' }) });
     } catch(e) {
         console.error("Revert transaction failed: ", e);
         toast({ variant: 'destructive', title: t('revert_failed_title', { defaultValue: 'Revert Failed' }), description: (e as Error).message });
@@ -809,7 +835,7 @@ export default function FixturesPage() {
                      {revertingMatch && (
                         <AlertDialogDescription>
                            {t('revert_match_confirm_desc', { 
-                               defaultValue: 'Are you sure you want to revert the match between {{player1}} and {{player2}}? The score will be cleared and player stats will be adjusted.',
+                               defaultValue: 'Are you sure you want to revert the match between {{player1}} and {{player2}}? The score will be cleared, player stats adjusted, and subsequent knockout rounds will be deleted.',
                                player1: playersById[revertingMatch.player1Id]?.name,
                                player2: playersById[revertingMatch.player2Id]?.name
                            })}
