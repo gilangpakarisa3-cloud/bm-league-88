@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -544,7 +543,12 @@ export default function LeaguePage() {
         return;
     }
 
-    const getWinner = (match: Match) => (match.player1Score! > match.player2Score!) ? match.player1Id : match.player2Id;
+    const getWinner = (match: Match) => {
+        const isBo3 = activeSeason.hybridGroupMeetings === 2;
+        const s1 = isBo3 ? match.player1Wins : match.player1Score;
+        const s2 = isBo3 ? match.player2Wins : match.player2Score;
+        return (s1! > s2!) ? match.player1Id : match.player2Id;
+    };
     
     const winners = quarterFinalsMatches.map(getWinner);
 
@@ -594,7 +598,12 @@ export default function LeaguePage() {
         return;
     }
 
-    const getWinner = (match: Match) => (match.player1Score! > match.player2Score!) ? match.player1Id : match.player2Id;
+    const getWinner = (match: Match) => {
+        const isBo3 = activeSeason.hybridGroupMeetings === 2 || activeSeason.type === 'Hybrid'; // In Hybrid, Final is always Bo3
+        const s1 = match.round === 'Final' || isBo3 ? match.player1Wins : match.player1Score;
+        const s2 = match.round === 'Final' || isBo3 ? match.player2Wins : match.player2Score;
+        return (s1! > s2!) ? match.player1Id : match.player2Id;
+    };
     const winners = semiFinalsMatches.map(getWinner);
 
     const batch = writeBatch(firestore);
@@ -1111,6 +1120,10 @@ export default function LeaguePage() {
                     seasonType={activeSeason?.type}
                     isAdmin={isAdmin}
                     defendingChampionId={previousWinnerId}
+                    matches={matches || []}
+                    playersById={playersById}
+                    teamsById={teamsById}
+                    activeSeason={activeSeason}
                 />
             </div>
             <div className="lg:col-span-1 space-y-4">
@@ -1451,5 +1464,3 @@ export default function LeaguePage() {
     </div>
   );
 }
-
-    

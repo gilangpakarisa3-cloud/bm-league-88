@@ -6,10 +6,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { LeagueEntry, Season, WithId, Player, Team } from "@/lib/types";
+import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck, Trophy, Award } from "lucide-react";
+import { Trash2, User, ShieldCheck, Trophy, Award, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -17,6 +17,7 @@ import { Badge } from "./ui/badge";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useMemo } from "react";
+import { TournamentBracket } from "./tournament-bracket";
 
 interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
@@ -27,6 +28,10 @@ interface LeagueTableProps {
   seasonType?: Season['type'];
   isAdmin: boolean;
   defendingChampionId?: string;
+  matches?: WithId<Match>[];
+  playersById?: Record<string, WithId<Player>>;
+  teamsById?: Record<string, WithId<Team>>;
+  activeSeason?: WithId<Season> | null;
 }
 
 interface SingleTableProps {
@@ -75,7 +80,6 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
           </TableHeader>
           <TableBody>
             {tableData.map((entry) => {
-              // Normalize seasonType to default to 'Single'
               const currentType = seasonType || 'Single';
               
               const isFirst = entry.rank === 1 && currentType === 'Single';
@@ -83,7 +87,6 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                   (currentType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
                   (currentType === 'Single' && entry.rank > 1 && entry.rank <= 4);
               
-              // Bottom 3 highlight for Single mode
               const isRelegationZone = currentType === 'Single' && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
               
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
@@ -214,7 +217,20 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
     )
 }
 
-export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSelectPlayer, seasonStatus, seasonType, isAdmin, defendingChampionId }: LeagueTableProps) {
+export function LeagueTable({ 
+    tableData, 
+    isLoading = false, 
+    onRemovePlayer, 
+    onSelectPlayer, 
+    seasonStatus, 
+    seasonType, 
+    isAdmin, 
+    defendingChampionId,
+    matches = [],
+    playersById = {},
+    teamsById = {},
+    activeSeason = null
+}: LeagueTableProps) {
   const { t } = useTranslation();
   
   const { groupA, groupB } = useMemo(() => {
@@ -254,9 +270,12 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
     <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20">
         {isHybrid ? (
              <Tabs defaultValue="group_a">
-                <TabsList className="grid w-full grid-cols-2 rounded-b-none rounded-t-lg">
+                <TabsList className="grid w-full grid-cols-3 rounded-b-none rounded-t-lg">
                     <TabsTrigger value="group_a" className="rounded-tl-md">Grup A ({groupA.length})</TabsTrigger>
-                    <TabsTrigger value="group_b" className="rounded-tr-md">Grup B ({groupB.length})</TabsTrigger>
+                    <TabsTrigger value="group_b">Grup B ({groupB.length})</TabsTrigger>
+                    <TabsTrigger value="playoff" className="rounded-tr-md flex items-center gap-2">
+                        <LayoutGrid className="h-4 w-4" /> Bagan Playoff
+                    </TabsTrigger>
                 </TabsList>
                 <TabsContent value="group_a">
                      <SingleTable 
@@ -283,6 +302,14 @@ export function LeagueTable({ tableData, isLoading = false, onRemovePlayer, onSe
                         isAdmin={isAdmin}
                         defendingChampionId={defendingChampionId}
                      />
+                </TabsContent>
+                <TabsContent value="playoff">
+                    <TournamentBracket 
+                        matches={matches} 
+                        playersById={playersById} 
+                        teamsById={teamsById} 
+                        season={activeSeason}
+                    />
                 </TabsContent>
             </Tabs>
         ) : (
