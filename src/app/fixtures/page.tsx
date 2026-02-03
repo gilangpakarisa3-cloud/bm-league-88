@@ -57,7 +57,13 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const { t } = useTranslation();
     
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
-    const isBestOfThree = activeSeason?.type === 'Co-Op' || (activeSeason?.type === 'Hybrid' && match.round === 'Final');
+    
+    // Best of 3 logic for Hybrid mode: Final is always Bo3. QF/SF are Bo3 only if group stage was Home & Away.
+    const isBestOfThree = activeSeason?.type === 'Co-Op' || 
+        (activeSeason?.type === 'Hybrid' && (
+            match.round === 'Final' || 
+            (activeSeason.hybridGroupMeetings === 2 && (match.round === 'Quarter-Final' || match.round === 'Semi-Final'))
+        ));
 
     const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
@@ -453,8 +459,16 @@ export default function FixturesPage() {
             const originalMatch = matchDoc.data() as Match;
 
             const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
-            const isCoop = (seasonDoc.data()?.type || 'Single') === 'Co-Op';
+            const seasonData = seasonDoc.data() as Season;
+            const isCoop = (seasonData.type || 'Single') === 'Co-Op';
             const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
+
+            // Best of 3 check for dynamic cleanup
+            const isMatchBo3 = seasonData.type === 'Co-Op' || 
+                (seasonData.type === 'Hybrid' && (
+                    originalMatch.round === 'Final' || 
+                    (seasonData.hybridGroupMeetings === 2 && (originalMatch.round === 'Quarter-Final' || originalMatch.round === 'Semi-Final'))
+                ));
 
             // Skip table updates for knockout rounds
             if (originalMatch.round && originalMatch.round !== 'Group') {
@@ -464,7 +478,9 @@ export default function FixturesPage() {
                 const matchUpdateData = { 
                     ...values,
                     matchDate: newTimestamp,
-                    isCompleted: true
+                    isCompleted: true,
+                    // Clean up unused score fields
+                    ...(isMatchBo3 ? { player1Score: null, player2Score: null } : { player1Wins: null, player2Wins: null })
                 };
                 transaction.update(matchRef, matchUpdateData);
                 return;
@@ -575,7 +591,9 @@ export default function FixturesPage() {
             const matchUpdateData = { 
                 ...values,
                 matchDate: newTimestamp,
-                isCompleted: true
+                isCompleted: true,
+                // Clean up unused score fields
+                ...(isMatchBo3 ? { player1Score: null, player2Score: null } : { player1Wins: null, player2Wins: null })
             };
             transaction.update(matchRef, matchUpdateData);
         });
@@ -776,6 +794,7 @@ export default function FixturesPage() {
                     match={editingMatch} 
                     onSave={(values) => handleUpdateScore(editingMatch.id, values)}
                     seasonType={activeSeason.type}
+                    hybridGroupMeetings={activeSeason.hybridGroupMeetings}
                     player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }}
                     player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }}
                 />
@@ -837,5 +856,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-    

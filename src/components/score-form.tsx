@@ -55,15 +55,22 @@ interface ScoreFormProps {
   match: WithId<Match>;
   onSave: (data: ScoreFormValues) => void;
   seasonType?: Season['type'];
+  hybridGroupMeetings?: number;
   player1Info: { name: string; team?: WithId<Team> | null };
   player2Info: { name: string; team?: WithId<Team> | null };
 }
 
-export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info }: ScoreFormProps) {
+export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, player1Info, player2Info }: ScoreFormProps) {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  const isBestOfThree = seasonType === 'Co-Op' || (seasonType === 'Hybrid' && match.round === 'Final');
+  // Determine if this match is Best of 3 based on season and round
+  const isBestOfThree = seasonType === 'Co-Op' || 
+    (seasonType === 'Hybrid' && (
+        match.round === 'Final' || 
+        (hybridGroupMeetings === 2 && (match.round === 'Quarter-Final' || match.round === 'Semi-Final'))
+    ));
+
   const formSchema = isBestOfThree ? coopFormSchema : singleFormSchema;
 
   const getInitialValues = (match: WithId<Match>) => {
