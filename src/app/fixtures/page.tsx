@@ -508,7 +508,9 @@ export default function FixturesPage() {
             if (isCoop) {
                 p1EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player1Id);
                 p2EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player2Id);
-                const [p1Doc, p2Doc] = await transaction.get(p1EntryRef), transaction.get(p2EntryRef);
+                // Fix syntax error here
+                const p1Doc = await transaction.get(p1EntryRef);
+                const p2Doc = await transaction.get(p2EntryRef);
                 p1EntrySnap = { docs: p1Doc.exists() ? [p1Doc] : [] };
                 p2EntrySnap = { docs: p2Doc.exists() ? [p2Doc] : [] };
             } else {
@@ -588,7 +590,7 @@ export default function FixturesPage() {
                     p1LeagueData.win += 1; p1LeagueData.points += 3;
                     p2LeagueData.loss += 1;
                 } else if (values.player2Score > values.player1Score) { // P2 wins
-                    p2LeagueData.win += 1; p2LeagueData.points += 3;
+                    p2EntryData.win += 1; p2EntryData.points += 3;
                     p1LeagueData.loss += 1;
                 } else { // Draw
                     p1LeagueData.draw += 1; p1LeagueData.points += 1;
@@ -684,7 +686,8 @@ export default function FixturesPage() {
             if (isCoop) {
                 p1EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, matchToRevert.player1Id);
                 p2EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, matchToRevert.player2Id);
-                const [p1Doc, p2Doc] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
+                const p1Doc = await transaction.get(p1EntryRef);
+                const p2Doc = await transaction.get(p2EntryRef);
                 p1EntrySnap = { docs: p1Doc.exists() ? [p1Doc] : [] };
                 p2EntrySnap = { docs: p2Doc.exists() ? [p2Doc] : [] };
             } else {
