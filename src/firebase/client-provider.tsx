@@ -2,7 +2,7 @@
 
 import React, { useMemo, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase } from './init'; // Direct import from init.ts to break circular dependency
 
 interface FirebaseClientProviderProps {
   children: ReactNode;

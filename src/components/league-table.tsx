@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -10,7 +9,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck, Trophy, Award, Users } from "lucide-react";
+import { Trash2, User, ShieldCheck, Trophy, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -76,13 +75,14 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
           </TableHeader>
           <TableBody>
             {tableData.map((entry) => {
-              // Normalize seasonType to default to 'Single' if undefined for visual cues
+              // Normalize seasonType to default to 'Single'
               const currentType = seasonType || 'Single';
               
               const isFirst = entry.rank === 1 && currentType === 'Single';
               const isQualificationZone =
                   (currentType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
                   (currentType === 'Single' && entry.rank > 1 && entry.rank <= 4);
+              
               // Bottom 3 highlight for Single mode
               const isRelegationZone = currentType === 'Single' && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
               
@@ -107,7 +107,9 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                   </TableCell>
                   <TableCell className={cn(
                     "text-center font-bold text-lg",
-                    isFirst ? "text-yellow-400 text-xl" : "text-foreground"
+                    isFirst ? "text-yellow-400 text-xl" : 
+                    isQualificationZone ? "text-green-400" :
+                    isRelegationZone ? "text-destructive" : "text-foreground"
                     )}>
                     {entry.rank}
                   </TableCell>
