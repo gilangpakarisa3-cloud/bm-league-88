@@ -122,10 +122,10 @@ function LeagueWinnerPageContents() {
                     }
                 }
 
-                if (winnerData) {
+                if (winnerData && winnerPlayerId) {
                     setWinner(winnerData);
                     
-                    // 2. Aggregate Stats across ALL matches
+                    // 2. Aggregate Stats across ALL matches (League + Knockout)
                     let totalWin = 0, totalLoss = 0;
                     const relevantMatches = allMatches.filter(m => m.isCompleted && (m.player1Id === winnerPlayerId || m.player2Id === winnerPlayerId));
                     
@@ -142,7 +142,7 @@ function LeagueWinnerPageContents() {
                     setAggregatedStats({
                         win: totalWin,
                         loss: totalLoss,
-                        points: winnerData.points // Points remain league-phase specific
+                        points: winnerData.points 
                     });
                 }
 
@@ -187,8 +187,8 @@ function LeagueWinnerPageContents() {
 
     const stats = [
         { label: t('pts'), value: aggregatedStats.points },
-        { label: t('win_long', {defaultValue: 'Wins'}), value: aggregatedStats.win },
-        { label: t('l', { defaultValue: 'K'}), value: aggregatedStats.loss },
+        { label: t('win_long', {defaultValue: 'Menang'}), value: aggregatedStats.win },
+        { label: t('l_short', { defaultValue: 'Kalah'}), value: aggregatedStats.loss },
     ];
 
     const winnerTitle = isSeasonCompleted && season ? t('winner_of_season', { seasonName: season.name }) : t('current_league_leader');

@@ -897,7 +897,7 @@ export default function LeaguePage() {
 
     let winner = sortedTable[0]; // Default to table leader
 
-    // --- REVISI: For Hybrid seasons, determine winner from the Grand Final match ---
+    // --- FOR HYBRID: Winner is the one who won the Final match ---
     if (activeSeason.type === 'Hybrid') {
         const finalMatch = matches?.find(m => m.round === 'Final' && m.isCompleted);
         if (finalMatch) {
@@ -911,7 +911,7 @@ export default function LeaguePage() {
         }
     }
 
-    // --- AGGREGATE STATS ACROSS ENTIRE SEASON (Grup + Knockout) ---
+    // --- AGGREGATE STATS: Loop through ALL matches to get total stats (League + Knockout) ---
     const winnerIdToFilter = (activeSeason.type === 'Co-Op') ? winner.id : winner.playerId;
     const playerMatches = matches?.filter(m => m.isCompleted && (m.player1Id === winnerIdToFilter || m.player2Id === winnerIdToFilter)) || [];
     
@@ -920,6 +920,8 @@ export default function LeaguePage() {
     playerMatches.forEach(m => {
         totalPlayed++;
         const isP1 = m.player1Id === winnerIdToFilter;
+        
+        // Use Wins for Bo3 rounds, Score for Bo1 rounds
         const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
         const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
         
@@ -930,10 +932,10 @@ export default function LeaguePage() {
         else if (pResult < oResult) totalLoss++;
         else totalDraw++;
 
-        // Only aggregate goals for standard (non-Bo3) matches if available
-        if (m.player1Score !== null) {
-            totalGF += isP1 ? m.player1Score : m.player2Score!;
-            totalGA += isP1 ? m.player2Score : m.player1Score!;
+        // Only add up actual goal counts for standard score matches (if available)
+        if (m.player1Score !== null && m.player2Score !== null) {
+            totalGF += isP1 ? m.player1Score : m.player2Score;
+            totalGA += isP1 ? m.player2Score : m.player1Score;
         }
     });
 
@@ -966,9 +968,9 @@ export default function LeaguePage() {
         winnerPlayerId: winner.playerId || winner.id,
         winnerPlayerName: winner.playerName,
         winnerTeamName: winner.teamName,
-        winnerPhotoUrl: (winner as any).team?.logoUrl, // Using team logo as player photo
+        winnerPhotoUrl: (winner as any).team?.logoUrl, 
         winnerStats: {
-            points: winner.points, // Points are league-specific
+            points: winner.points, // Points remain from league table phase
             win: totalWin,
             draw: totalDraw,
             loss: totalLoss,
