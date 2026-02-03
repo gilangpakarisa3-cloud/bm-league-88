@@ -76,11 +76,16 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
           </TableHeader>
           <TableBody>
             {tableData.map((entry) => {
-              const isFirst = entry.rank === 1 && seasonType === 'Single';
+              // Normalize seasonType to default to 'Single' if undefined for visual cues
+              const currentType = seasonType || 'Single';
+              
+              const isFirst = entry.rank === 1 && currentType === 'Single';
               const isQualificationZone =
-                  (seasonType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
-                  (seasonType === 'Single' && entry.rank > 1 && entry.rank <= 4);
-              const isRelegationZone = seasonType === 'Single' && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
+                  (currentType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
+                  (currentType === 'Single' && entry.rank > 1 && entry.rank <= 4);
+              // Bottom 3 highlight for Single mode
+              const isRelegationZone = currentType === 'Single' && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
+              
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
 
