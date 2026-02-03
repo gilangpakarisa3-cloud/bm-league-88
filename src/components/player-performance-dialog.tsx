@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -33,9 +32,24 @@ interface PlayerPerformanceDialogProps {
   isAdmin: boolean;
   activeSeason: WithId<Season> | null;
   coopLeagueTable: WithId<CoOpLeagueEntry>[];
+  singleLeagueTable: WithId<LeagueEntry>[];
 }
 
-export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams, totalPlayersInSeason, open, onOpenChange, defendingChampionId, previousSeasonName, isAdmin, activeSeason, coopLeagueTable }: PlayerPerformanceDialogProps) {
+export function PlayerPerformanceDialog({ 
+    player, 
+    matches, 
+    allPlayers, 
+    allTeams, 
+    totalPlayersInSeason, 
+    open, 
+    onOpenChange, 
+    defendingChampionId, 
+    previousSeasonName, 
+    isAdmin, 
+    activeSeason, 
+    coopLeagueTable,
+    singleLeagueTable
+}: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
   
   const [activeTab, setActiveTab] = useState('history');
@@ -72,6 +86,11 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         return acc;
     }, {} as Record<string, WithId<CoOpLeagueEntry>>);
 
+    const singleTableByPlayerId = (singleLeagueTable || []).reduce((acc, entry) => {
+        acc[entry.playerId] = entry;
+        return acc;
+    }, {} as Record<string, WithId<LeagueEntry>>);
+
     const playerMatches = matches.filter(m => (m.player1Id === playerIdToFilter || m.player2Id === playerIdToFilter));
 
     const completedMatches = playerMatches
@@ -91,10 +110,17 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                 opponentTeam = teamsById[opponentEntry.player1TeamId] || null;
             }
         } else {
-            const opponentPlayer = playersById[opponentId];
-            if(opponentPlayer){
-                opponent = { name: opponentPlayer.name };
-                opponentTeam = teamsById[opponentPlayer.teamId];
+            const opponentEntry = singleTableByPlayerId[opponentId];
+            if (opponentEntry) {
+                opponent = { name: opponentEntry.playerName };
+                opponentTeam = teamsById[opponentEntry.teamId];
+            } else {
+                // Fallback to master list if entry not found (historical matches in hybrid mode might need this)
+                const opponentPlayer = playersById[opponentId];
+                if(opponentPlayer){
+                    opponent = { name: opponentPlayer.name };
+                    opponentTeam = teamsById[opponentPlayer.teamId];
+                }
             }
         }
 
@@ -142,10 +168,16 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
                 opponentTeam = teamsById[opponentEntry.player1TeamId] || null;
             }
           } else {
-              const opponentPlayer = playersById[opponentId];
-              if (opponentPlayer) {
-                opponent = { name: opponentPlayer.name };
-                opponentTeam = teamsById[opponentPlayer.teamId];
+              const opponentEntry = singleTableByPlayerId[opponentId];
+              if (opponentEntry) {
+                  opponent = { name: opponentEntry.playerName };
+                  opponentTeam = teamsById[opponentEntry.teamId];
+              } else {
+                  const opponentPlayer = playersById[opponentId];
+                  if (opponentPlayer) {
+                    opponent = { name: opponentPlayer.name };
+                    opponentTeam = teamsById[opponentPlayer.teamId];
+                  }
               }
           }
           return {
@@ -202,7 +234,7 @@ export function PlayerPerformanceDialog({ player, matches, allPlayers, allTeams,
         performanceStatus,
     }
 
-  }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable]);
+  }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable]);
 
   if (!player || !performanceStats) return null;
 

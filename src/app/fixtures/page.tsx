@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -193,6 +192,14 @@ const FixtureContent = memo(function FixtureContent({
         }, {} as Record<string, WithId<Team>>);
     }, [allTeams]);
 
+    const leagueTableByPlayerId = useMemo(() => {
+        if (!singleLeagueTable) return {};
+        return singleLeagueTable.reduce((acc, entry) => {
+            acc[entry.playerId] = entry;
+            return acc;
+        }, {} as Record<string, LeagueEntry>);
+    }, [singleLeagueTable]);
+
     const coopTableById = useMemo(() => {
         if (!coopLeagueTable) return {};
         return coopLeagueTable.reduce((acc, e) => { acc[e.id] = e; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>);
@@ -218,12 +225,21 @@ const FixtureContent = memo(function FixtureContent({
                     team2 = teamsById[teamEntry2.player1TeamId] || null;
 
                 } else {
-                    player1 = playersById[match.player1Id] || null;
-                    player2 = playersById[match.player2Id] || null;
+                    const entry1 = leagueTableByPlayerId[match.player1Id];
+                    const entry2 = leagueTableByPlayerId[match.player2Id];
+                    
+                    // Fallback to master player list only if entry not found (shouldn't happen for active seasons)
+                    player1 = entry1 ? { name: entry1.playerName, id: entry1.playerId } : (playersById[match.player1Id] || null);
+                    player2 = entry2 ? { name: entry2.playerName, id: entry2.playerId } : (playersById[match.player2Id] || null);
+                    
                     if (!player1 || !player2) return null;
 
-                    team1 = teamsById[player1.teamId] || null;
-                    team2 = teamsById[player2.teamId] || null;
+                    // Use the team assigned in the league entry for historical consistency
+                    const teamId1 = entry1 ? entry1.teamId : (playersById[match.player1Id]?.teamId);
+                    const teamId2 = entry2 ? entry2.teamId : (playersById[match.player2Id]?.teamId);
+
+                    team1 = teamsById[teamId1] || null;
+                    team2 = teamsById[teamId2] || null;
                 }
 
                 return { ...match, player1, player2, team1, team2 };
@@ -279,7 +295,7 @@ const FixtureContent = memo(function FixtureContent({
             totalMatchesForDisplay: totalForProgress,
             completedMatchesForDisplay: completedForProgress
         };
-    }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById]);
+    }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId]);
 
     const upcomingCount = Object.values(groupedMatches.upcoming).reduce((sum, arr) => sum + arr.length, 0);
     const completedCount = Object.values(groupedMatches.completed).reduce((sum, arr) => sum + arr.length, 0);
@@ -492,7 +508,7 @@ export default function FixturesPage() {
             if (isCoop) {
                 p1EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player1Id);
                 p2EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player2Id);
-                const [p1Doc, p2Doc] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
+                const [p1Doc, p2Doc] = await transaction.get(p1EntryRef), transaction.get(p2EntryRef);
                 p1EntrySnap = { docs: p1Doc.exists() ? [p1Doc] : [] };
                 p2EntrySnap = { docs: p2Doc.exists() ? [p2Doc] : [] };
             } else {

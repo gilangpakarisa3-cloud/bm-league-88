@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useMemo } from 'react';
-import type { Match, Season, Team, Player, WithId } from '@/lib/types';
+import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -12,10 +11,11 @@ interface TournamentBracketProps {
   matches: WithId<Match>[];
   playersById: Record<string, WithId<Player>>;
   teamsById: Record<string, WithId<Team>>;
+  leagueTable: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
   season: WithId<Season> | null;
 }
 
-export function TournamentBracket({ matches, playersById, teamsById, season }: TournamentBracketProps) {
+export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season }: TournamentBracketProps) {
   const bracketData = useMemo(() => {
     const rounds = {
       'Quarter-Final': [] as any[],
@@ -23,12 +23,26 @@ export function TournamentBracket({ matches, playersById, teamsById, season }: T
       'Final': [] as any[],
     };
 
+    // Create a mapping of player ID to their specific team info for this season
+    const leagueEntryMap = leagueTable.reduce((acc, entry) => {
+        acc[entry.playerId] = entry;
+        return acc;
+    }, {} as Record<string, LeagueEntry>);
+
     matches.forEach(match => {
       if (match.round && rounds[match.round as keyof typeof rounds]) {
-        const p1 = playersById[match.player1Id];
-        const p2 = playersById[match.player2Id];
-        const t1 = p1 ? teamsById[p1.teamId] : null;
-        const t2 = p2 ? teamsById[p2.teamId] : null;
+        const entry1 = leagueEntryMap[match.player1Id];
+        const entry2 = leagueEntryMap[match.player2Id];
+
+        const p1 = entry1 ? { name: entry1.playerName, id: entry1.playerId } : (playersById[match.player1Id] || null);
+        const p2 = entry2 ? { name: entry2.playerName, id: entry2.playerId } : (playersById[match.player2Id] || null);
+        
+        // Use the team ID assigned in the league table for historical consistency
+        const teamId1 = entry1 ? entry1.teamId : (playersById[match.player1Id]?.teamId);
+        const teamId2 = entry2 ? entry2.teamId : (playersById[match.player2Id]?.teamId);
+
+        const t1 = teamsById[teamId1] || null;
+        const t2 = teamsById[teamId2] || null;
 
         // Identification of scores: Prioritize win fields (Bo3) then standard scores (Bo1)
         const score1 = match.player1Wins !== null ? match.player1Wins : (match.player1Score ?? 0);
@@ -57,7 +71,7 @@ export function TournamentBracket({ matches, playersById, teamsById, season }: T
     });
 
     return rounds;
-  }, [matches, playersById, teamsById, season]);
+  }, [matches, playersById, teamsById, leagueTable, season]);
 
   const MatchCard = ({ match }: { match: any }) => (
     <Card className={cn(

@@ -307,7 +307,8 @@ export function LeagueTable({
                     <TournamentBracket 
                         matches={matches} 
                         playersById={playersById} 
-                        teamsById={teamsById} 
+                        teamsById={teamsById}
+                        leagueTable={tableData}
                         season={activeSeason}
                     />
                 </TabsContent>

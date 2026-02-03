@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -1508,6 +1507,7 @@ export default function LeaguePage() {
         allPlayers={allPlayers || []}
         allTeams={allTeams || []}
         coopLeagueTable={coopLeagueTable || []}
+        singleLeagueTable={singleLeagueTable || []}
         activeSeason={activeSeason}
         totalPlayersInSeason={(activeSeason?.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) || 0}
         open={!!selectedPlayerForStats}
