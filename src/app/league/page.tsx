@@ -895,7 +895,22 @@ export default function LeaguePage() {
    const handleFinishSeason = () => {
     if (!firestore || !activeSeason || sortedTable.length === 0) return;
 
-    const winner = sortedTable[0];
+    let winner = sortedTable[0]; // Default to table leader
+
+    // --- REVISI: For Hybrid seasons, determine winner from the Grand Final match ---
+    if (activeSeason.type === 'Hybrid') {
+        const finalMatch = matches?.find(m => m.round === 'Final' && m.isCompleted);
+        if (finalMatch) {
+            const s1 = finalMatch.player1Wins !== null ? finalMatch.player1Wins : (finalMatch.player1Score ?? 0);
+            const s2 = finalMatch.player2Wins !== null ? finalMatch.player2Wins : (finalMatch.player2Score ?? 0);
+            const winnerId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
+            const winnerEntry = sortedTable.find(p => p.playerId === winnerId);
+            if (winnerEntry) {
+                winner = winnerEntry;
+            }
+        }
+    }
+
     const playersWhoPlayed = sortedTable.filter(p => p.played > 0);
     
     let bestAttacker = null;

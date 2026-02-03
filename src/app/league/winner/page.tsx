@@ -1,11 +1,12 @@
+
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { WinnerDisplay } from '@/components/winner-display';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { collection, doc, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
-import type { LeagueEntry, Season, WithId, Player, Team } from '@/lib/types';
+import { collection, doc, query, orderBy, limit, getDocs, where, getDoc } from 'firebase/firestore';
+import type { LeagueEntry, Season, WithId, Player, Team, Match } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -46,33 +47,64 @@ function LeagueWinnerPageContents() {
     }, [allTeams]);
     
     useEffect(() => {
-        if (!firestore || !seasonId) {
+        if (!firestore || !seasonId || !season) {
             if (!seasonId) router.push('/league');
             return;
         }
 
         const findWinner = async () => {
             setIsLoading(true);
-            const leagueTableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/leagueTable`);
-            const q = query(
-                leagueTableRef, 
-                orderBy('points', 'desc'), 
-                limit(1)
-            );
-            const winnerSnapshot = await getDocs(q);
             
-            if (!winnerSnapshot.empty) {
-                const winnerDoc = winnerSnapshot.docs[0];
-                const winnerData = { id: winnerDoc.id, ...winnerDoc.data() } as WithId<LeagueEntry>;
-                setWinner(winnerData);
+            try {
+                let winnerPlayerId = '';
+                
+                // --- REVISI: For Hybrid, look for the winner of the Grand Final first ---
+                if (season.type === 'Hybrid') {
+                    const matchesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/matches`);
+                    const qFinal = query(matchesRef, where('round', '==', 'Final'));
+                    const finalSnap = await getDocs(qFinal);
+                    
+                    const finalMatchDoc = finalSnap.docs.find(d => d.data().isCompleted);
+                    if (finalMatchDoc) {
+                        const finalMatch = finalMatchDoc.data() as Match;
+                        const s1 = finalMatch.player1Wins !== null ? finalMatch.player1Wins : (finalMatch.player1Score ?? 0);
+                        const s2 = finalMatch.player2Wins !== null ? finalMatch.player2Wins : (finalMatch.player2Score ?? 0);
+                        winnerPlayerId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
+                    }
+                }
+                
+                const leagueTableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/leagueTable`);
+                
+                if (winnerPlayerId) {
+                    const qWinner = query(leagueTableRef, where('playerId', '==', winnerPlayerId));
+                    const winnerSnapshot = await getDocs(qWinner);
+                    if (!winnerSnapshot.empty) {
+                        setWinner({ id: winnerSnapshot.docs[0].id, ...winnerSnapshot.docs[0].data() } as WithId<LeagueEntry>);
+                    }
+                } else {
+                    // Fallback to table leader (standard points behavior)
+                    const q = query(
+                        leagueTableRef, 
+                        orderBy('points', 'desc'), 
+                        limit(1)
+                    );
+                    const winnerSnapshot = await getDocs(q);
+                    
+                    if (!winnerSnapshot.empty) {
+                        const winnerDoc = winnerSnapshot.docs[0];
+                        const winnerData = { id: winnerDoc.id, ...winnerDoc.data() } as WithId<LeagueEntry>;
+                        setWinner(winnerData);
+                    }
+                }
+            } catch (err) {
+                console.error("Error finding winner:", err);
             }
             setIsLoading(false);
         };
         
-        // Always try to find the leader, regardless of season status
         findWinner();
 
-    }, [firestore, seasonId, router]);
+    }, [firestore, seasonId, router, season]);
 
     if (isLoading) {
         return <WinnerSkeleton title={t('league_champion')} />;
