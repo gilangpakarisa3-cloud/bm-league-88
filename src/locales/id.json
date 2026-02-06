@@ -1,4 +1,3 @@
-
 {
   "header_league": "Liga",
   "header_fixtures": "Jadwal",
@@ -252,7 +251,8 @@
   "fun_stats_best_attacker_desc": "Pemain dengan gol terbanyak.",
   "fun_stats_worst_defense_desc": "Pemain dengan jumlah kebobolan terbanyak.",
   "fun_stats_unbeaten": "Tak Terkalahkan",
-  "fun_stats_unbeaten_desc": "Pemain yang belum pernah kalah di musim ini."
+  "fun_stats_unbeaten_desc": "Pemain yang belum pernah kalah di musim ini.",
+  "home_format_single": "Format: Single (1v1)",
+  "home_format_coop": "Format: Co-Op (2v2)",
+  "home_format_hybrid": "Format: Hybrid (Grup + Playoff)"
 }
-
-    

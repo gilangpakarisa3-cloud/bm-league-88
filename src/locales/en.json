@@ -1,4 +1,3 @@
-
 {
   "header_league": "League",
   "header_fixtures": "Fixtures",
@@ -252,7 +251,8 @@
   "fun_stats_best_attacker_desc": "Player with the most goals scored.",
   "fun_stats_worst_defense_desc": "Player with the most goals conceded.",
   "fun_stats_unbeaten": "Unbeaten",
-  "fun_stats_unbeaten_desc": "Players who have not lost a match this season."
+  "fun_stats_unbeaten_desc": "Players who have not lost a match this season.",
+  "home_format_single": "Format: Single (1v1)",
+  "home_format_coop": "Format: Co-Op (2v2)",
+  "home_format_hybrid": "Format: Hybrid (Group + Playoff)"
 }
-
-    

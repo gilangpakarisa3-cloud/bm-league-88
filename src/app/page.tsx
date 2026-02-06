@@ -1,11 +1,10 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Shield, ArrowRight, Info, User, Skull } from 'lucide-react';
+import { Trophy, Shield, ArrowRight, Info, User, Skull, LayoutGrid } from 'lucide-react';
 import { EditableNotice } from '@/components/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -17,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { PlayerMarquee } from '@/components/player-marquee';
 import { LiveClock } from '@/components/live-clock';
+import { Badge } from '@/components/ui/badge';
 
 
 const LEAGUE_ID = 'main-league';
@@ -47,6 +47,7 @@ function LeaderboardSection() {
 
   const activeSeason = useMemo(() => seasons?.find(s => s.id === activeSeasonId), [seasons, activeSeasonId]);
   const isCoop = activeSeason?.type === 'Co-Op';
+  const isHybrid = activeSeason?.type === 'Hybrid';
 
   const leagueTableQuery = useMemoFirebase(
     () => {
@@ -82,13 +83,13 @@ function LeaderboardSection() {
     }, {} as Record<string, WithId<Team>>);
   }, [allTeams]);
   
-  const { topPlayers, bottomPlayers } = useMemo(() => {
-    if (!allLeaguePlayers) return { topPlayers: [], bottomPlayers: [] };
+  const leaderboardData = useMemo(() => {
+    if (!allLeaguePlayers || !activeSeason) return null;
 
     let enrichedTable: any[];
     if (isCoop) {
         enrichedTable = allLeaguePlayers.map(entry => {
-            const coopEntry = entry as any; // Cast to access CoOpLeagueEntry fields
+            const coopEntry = entry as any;
             return {
                 ...coopEntry,
                 playerName: coopEntry.teamName,
@@ -103,64 +104,98 @@ function LeaderboardSection() {
         }));
     }
     
-    // Add rank
-    const sorted = enrichedTable.map((entry, index) => ({...entry, rank: index + 1}));
-    
-    const top = sorted.slice(0, 3);
-    
-    let bottom = [];
-    if(sorted.length > 3) {
-      bottom = sorted.slice(-3);
+    if (isHybrid) {
+        const groupA = enrichedTable.filter(p => p.group === 'A').sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference);
+        const groupB = enrichedTable.filter(p => p.group === 'B').sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference);
+        
+        return {
+            top: [
+                { label: 'Top Group A', players: groupA.slice(0, 2).map((p, i) => ({ ...p, rank: i + 1 })) },
+                { label: 'Top Group B', players: groupB.slice(0, 2).map((p, i) => ({ ...p, rank: i + 1 })) }
+            ],
+            bottom: [
+                ...groupA.slice(-1).map(p => ({ ...p, rank: 'G-A' })),
+                ...groupB.slice(-1).map(p => ({ ...p, rank: 'G-B' }))
+            ]
+        };
     }
-    
-    return { topPlayers: top, bottomPlayers: bottom };
-  }, [allLeaguePlayers, teamsById, isCoop]);
+
+    const sorted = enrichedTable.map((entry, index) => ({...entry, rank: index + 1}));
+    return {
+        top: [{ label: t('home_top_players'), players: sorted.slice(0, 3) }],
+        bottom: sorted.length > 3 ? sorted.slice(-3) : []
+    };
+  }, [allLeaguePlayers, teamsById, isCoop, isHybrid, activeSeason, t]);
 
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams;
 
   return (
-     <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="flex flex-col">
-            <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
-            <Trophy className="w-5 h-5"/>{t('home_top_players')}
-            </h2>
-            <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden">
-            {isLoading ? (
-                <LeaderboardSkeleton />
-            ) : topPlayers.length > 0 ? (
-                <LeaderboardTable players={topPlayers} />
-            ) : (
-                <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
-                {t('no_players_yet')}
-                </div>
-            )}
-            </Card>
-        </div>
+     <section className="space-y-8">
+        {activeSeason && (
+            <div className="flex flex-col items-center gap-2 mb-2">
+                <Badge variant="outline" className="text-primary border-primary bg-primary/5 px-4 py-1">
+                    {t(`home_format_${activeSeason.type?.toLowerCase() || 'single'}`)}
+                </Badge>
+                <h2 className="text-2xl font-bold text-center tracking-tight">{activeSeason.name}</h2>
+            </div>
+        )}
 
-        <div className="flex flex-col">
-          <h2 className="text-xl font-bold mb-4 text-destructive flex items-center justify-center gap-2"><Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan</h2>
-          <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10 overflow-hidden">
-              {isLoading ? (
-                  <LeaderboardSkeleton isBottom />
-              ) : bottomPlayers.length > 0 ? (
-                  <LeaderboardTable players={bottomPlayers} isBottom />
-              ) : (
-                <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
-                    {t('no_players_yet')}
-                </div>
-              )}
-          </Card>
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="flex flex-col">
+                <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                    <Trophy className="w-5 h-5"/>{t('home_top_players')}
+                </h2>
+                <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                    {isLoading ? (
+                        <LeaderboardSkeleton />
+                    ) : leaderboardData && leaderboardData.top.length > 0 ? (
+                        <div className="divide-y divide-border">
+                            {leaderboardData.top.map((section, idx) => (
+                                <div key={idx}>
+                                    {isHybrid && (
+                                        <div className="bg-muted/30 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground border-b">
+                                            {section.label}
+                                        </div>
+                                    )}
+                                    <LeaderboardTable players={section.players} />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
+                            {t('no_players_yet')}
+                        </div>
+                    )}
+                </Card>
+            </div>
+
+            <div className="flex flex-col">
+                <h2 className="text-xl font-bold mb-4 text-destructive flex items-center justify-center gap-2">
+                    <Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan
+                </h2>
+                <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10 overflow-hidden bg-card">
+                    {isLoading ? (
+                        <LeaderboardSkeleton isBottom />
+                    ) : leaderboardData && leaderboardData.bottom.length > 0 ? (
+                        <LeaderboardTable players={leaderboardData.bottom} isBottom />
+                    ) : (
+                        <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
+                            {t('no_players_yet')}
+                        </div>
+                    )}
+                </Card>
+            </div>
+        </div>
     </section>
   )
 }
 
-const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<LeagueEntry> & { rank: number, team?: WithId<Team> })[], isBottom?: boolean }) => {
+const LeaderboardTable = ({ players, isBottom = false }: { players: any[], isBottom?: boolean }) => {
   const { t } = useTranslation();
   return (
      <Table>
       <TableHeader>
-          <TableRow className="hover:bg-transparent">
+          <TableRow className="hover:bg-transparent border-b-muted/20">
           <TableHead className="w-1 p-0"></TableHead>
           <TableHead className="w-[50px] pl-4">#</TableHead>
           <TableHead>{t('player')}</TableHead>
@@ -172,29 +207,30 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: (WithId<Leag
             const isFirst = entry.rank === 1 && !isBottom;
             return (
               <TableRow key={entry.id} className={cn(
-                  isFirst && "bg-yellow-400/10 hover:bg-yellow-400/20",
-                  isBottom && "bg-destructive/10 hover:bg-destructive/20"
+                  "border-b-muted/10",
+                  isFirst && "bg-yellow-400/5 hover:bg-yellow-400/10",
+                  isBottom && "bg-destructive/5 hover:bg-destructive/10"
                 )}>
                   <TableCell className={cn("p-0 w-1", 
                     isFirst ? 'bg-yellow-400' :
                     isBottom ? 'bg-destructive' : 'bg-transparent'
                   )}></TableCell>
                   <TableCell className={cn("font-bold text-lg pl-4", 
-                    isFirst ? "text-yellow-400 text-xl" : (isBottom ? "text-destructive" : "text-foreground")
+                    isFirst ? "text-yellow-400 text-xl" : (isBottom ? "text-destructive text-sm" : "text-foreground")
                   )}>{entry.rank}</TableCell>
                   <TableCell>
                   <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-8 w-8 border">
                           <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
                           <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
                       </Avatar>
-                      <div>
-                      <div className="font-bold">{entry.playerName}</div>
-                      <div className="text-xs sm:text-sm text-muted-foreground">{entry.team?.name}</div>
+                      <div className="overflow-hidden">
+                        <div className="font-bold truncate text-sm sm:text-base">{entry.playerName}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground truncate uppercase font-semibold">{entry.team?.name || entry.teamName}</div>
                       </div>
                   </div>
                   </TableCell>
-                  <TableCell className="text-right font-semibold">{entry.points}</TableCell>
+                  <TableCell className="text-right font-bold text-primary">{entry.points}</TableCell>
               </TableRow>
             )
           })}
@@ -247,7 +283,7 @@ export default function Home() {
           <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-primary">
             BM League EightyEight
           </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground">
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground opacity-90">
             {t('home_welcome')}
           </p>
         </section>
@@ -261,7 +297,9 @@ export default function Home() {
         </section>
         
         <section className="mb-12 space-y-4">
-            <h2 className="text-xl font-bold text-primary text-center">Participants</h2>
+            <h2 className="text-sm font-bold text-primary text-center uppercase tracking-widest flex items-center justify-center gap-2">
+                <LayoutGrid className="w-4 h-4"/> Participants
+            </h2>
             <PlayerMarquee />
         </section>
 
