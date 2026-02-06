@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Shield, ArrowRight, Info, User, Skull, LayoutGrid } from 'lucide-react';
+import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid } from 'lucide-react';
 import { EditableNotice } from '@/components/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -105,27 +105,26 @@ function LeaderboardSection() {
     }
     
     if (isHybrid) {
-        const groupA = enrichedTable.filter(p => p.group === 'A').sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference);
-        const groupB = enrichedTable.filter(p => p.group === 'B').sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference);
+        const groupA = enrichedTable
+            .filter(p => p.group === 'A')
+            .sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
+        const groupB = enrichedTable
+            .filter(p => p.group === 'B')
+            .sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
         
         return {
-            top: [
-                { label: 'Top Group A', players: groupA.slice(0, 2).map((p, i) => ({ ...p, rank: i + 1 })) },
-                { label: 'Top Group B', players: groupB.slice(0, 2).map((p, i) => ({ ...p, rank: i + 1 })) }
-            ],
-            bottom: [
-                ...groupA.slice(-1).map(p => ({ ...p, rank: 'G-A' })),
-                ...groupB.slice(-1).map(p => ({ ...p, rank: 'G-B' }))
-            ]
+            groupA: groupA.slice(0, 4).map((p, i) => ({ ...p, rank: i + 1 })),
+            groupB: groupB.slice(0, 4).map((p, i) => ({ ...p, rank: i + 1 })),
+            isHybrid: true
         };
     }
 
     const sorted = enrichedTable.map((entry, index) => ({...entry, rank: index + 1}));
     return {
-        top: [{ label: t('home_top_players'), players: sorted.slice(0, 3) }],
-        bottom: sorted.length > 3 ? sorted.slice(-3) : []
+        top: sorted.slice(0, 10),
+        isHybrid: false
     };
-  }, [allLeaguePlayers, teamsById, isCoop, isHybrid, activeSeason, t]);
+  }, [allLeaguePlayers, teamsById, isCoop, isHybrid, activeSeason]);
 
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams;
 
@@ -141,50 +140,72 @@ function LeaderboardSection() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="flex flex-col">
-                <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
-                    <Trophy className="w-5 h-5"/>{t('home_top_players')}
-                </h2>
-                <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
-                    {isLoading ? (
-                        <LeaderboardSkeleton />
-                    ) : leaderboardData && leaderboardData.top.length > 0 ? (
-                        <div className="divide-y divide-border">
-                            {leaderboardData.top.map((section, idx) => (
-                                <div key={idx}>
-                                    {isHybrid && (
-                                        <div className="bg-muted/30 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground border-b">
-                                            {section.label}
-                                        </div>
-                                    )}
-                                    <LeaderboardTable players={section.players} />
-                                </div>
-                            ))}
+            {isLoading ? (
+                <>
+                    <div className="flex flex-col">
+                        <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                            <Trophy className="w-5 h-5"/>{isHybrid ? "Top Grup A" : t('home_top_players')}
+                        </h2>
+                        <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                            <LeaderboardSkeleton />
+                        </Card>
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                            <Trophy className="w-5 h-5"/>{isHybrid ? "Top Grup B" : ""}
+                        </h2>
+                        <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                            <LeaderboardSkeleton />
+                        </Card>
+                    </div>
+                </>
+            ) : leaderboardData ? (
+                isHybrid ? (
+                    <>
+                        <div className="flex flex-col">
+                            <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                                <Trophy className="w-5 h-5"/>4 Besar Grup A
+                            </h2>
+                            <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                                {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
+                                    <LeaderboardTable players={leaderboardData.groupA} />
+                                ) : (
+                                    <div className="p-8 text-center text-muted-foreground">Belum ada data grup A</div>
+                                )}
+                            </Card>
                         </div>
-                    ) : (
-                        <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
-                            {t('no_players_yet')}
+                        <div className="flex flex-col">
+                            <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                                <Trophy className="w-5 h-5"/>4 Besar Grup B
+                            </h2>
+                            <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                                {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
+                                    <LeaderboardTable players={leaderboardData.groupB} />
+                                ) : (
+                                    <div className="p-8 text-center text-muted-foreground">Belum ada data grup B</div>
+                                )}
+                            </Card>
                         </div>
-                    )}
-                </Card>
-            </div>
-
-            <div className="flex flex-col">
-                <h2 className="text-xl font-bold mb-4 text-destructive flex items-center justify-center gap-2">
-                    <Skull className="w-5 h-5"/>Pemain terancam piket Loker 1 Bulan
-                </h2>
-                <Card className="border-2 border-destructive/50 shadow-lg shadow-destructive/10 overflow-hidden bg-card">
-                    {isLoading ? (
-                        <LeaderboardSkeleton isBottom />
-                    ) : leaderboardData && leaderboardData.bottom.length > 0 ? (
-                        <LeaderboardTable players={leaderboardData.bottom} isBottom />
-                    ) : (
-                        <div className="p-8 text-center text-muted-foreground h-full flex items-center justify-center">
-                            {t('no_players_yet')}
-                        </div>
-                    )}
-                </Card>
-            </div>
+                    </>
+                ) : (
+                    <div className="lg:col-span-2 flex flex-col max-w-3xl mx-auto w-full">
+                        <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                            <Trophy className="w-5 h-5"/>{t('home_top_players')}
+                        </h2>
+                        <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                            {leaderboardData.top && leaderboardData.top.length > 0 ? (
+                                <LeaderboardTable players={leaderboardData.top} />
+                            ) : (
+                                <div className="p-8 text-center text-muted-foreground">Belum ada pemain di liga.</div>
+                            )}
+                        </Card>
+                    </div>
+                )
+            ) : (
+                <div className="lg:col-span-2 p-8 text-center text-muted-foreground h-full flex items-center justify-center">
+                    {t('no_players_yet')}
+                </div>
+            )}
         </div>
     </section>
   )
@@ -252,7 +273,7 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {[...Array(3)].map((_, i) => (
+        {[...Array(4)].map((_, i) => (
              <TableRow key={i} className={cn(isBottom && "bg-destructive/10")}>
                 <TableCell className="w-1 p-0"></TableCell>
                 <TableCell><Skeleton className="h-5 w-5"/></TableCell>
