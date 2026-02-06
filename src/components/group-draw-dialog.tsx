@@ -186,12 +186,14 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                                 players={drawnGroups.groupA} 
                                 revealedCount={revealedCount}
                                 groupIndex={0} // Index 0 for A (reveals at 1, 3, 5...)
+                                variant="primary"
                              />
                              <GroupDisplay 
                                 title="Grup B" 
                                 players={drawnGroups.groupB} 
                                 revealedCount={revealedCount}
                                 groupIndex={1} // Index 1 for B (reveals at 2, 4, 6...)
+                                variant="gold"
                              />
                         </div>
                     )}
@@ -247,16 +249,22 @@ const PotDisplay = ({ title, players }: { title: string; players: PlayerInPot[];
     </Card>
 );
 
-const GroupDisplay = ({ title, players, revealedCount, groupIndex }: { 
+const GroupDisplay = ({ title, players, revealedCount, groupIndex, variant = 'primary' }: { 
     title: string; 
     players: PlayerInPot[]; 
     revealedCount: number;
     groupIndex: number;
+    variant?: 'primary' | 'gold';
 }) => {
+    const isGold = variant === 'gold';
+
     return (
-        <Card className="border-primary overflow-hidden">
-            <CardHeader className="bg-primary/5 py-3">
-                <CardTitle className="text-center text-primary text-lg">{title}</CardTitle>
+        <Card className={cn(
+            "overflow-hidden border-2 transition-all duration-500", 
+            isGold ? "border-yellow-400 shadow-lg shadow-yellow-400/10" : "border-primary"
+        )}>
+            <CardHeader className={cn("py-3", isGold ? "bg-yellow-400/10" : "bg-primary/5")}>
+                <CardTitle className={cn("text-center text-lg", isGold ? "text-yellow-400" : "text-primary")}>{title}</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
                 <div className="space-y-2">
@@ -273,20 +281,22 @@ const GroupDisplay = ({ title, players, revealedCount, groupIndex }: {
                                 className={cn(
                                     "flex items-center text-sm font-bold p-3 rounded-md border-2 transition-all duration-500",
                                     isRevealed 
-                                        ? "bg-primary/10 border-primary/50 text-foreground animate-in zoom-in-95 fade-in duration-500" 
+                                        ? isGold 
+                                            ? "bg-yellow-400/10 border-yellow-400/50 text-foreground animate-in zoom-in-95 fade-in duration-500"
+                                            : "bg-primary/10 border-primary/50 text-foreground animate-in zoom-in-95 fade-in duration-500" 
                                         : isNextToReveal
-                                            ? "bg-muted animate-pulse border-dashed border-primary/20 text-muted-foreground h-11"
+                                            ? cn("bg-muted animate-pulse border-dashed text-muted-foreground h-11", isGold ? "border-yellow-400/20" : "border-primary/20")
                                             : "bg-muted/30 border-muted text-transparent h-11"
                                 )}
                             >
                                 {isRevealed ? (
                                     <>
-                                        <span className="mr-2 text-primary opacity-50">#{i + 1}</span>
+                                        <span className={cn("mr-2 opacity-50", isGold ? "text-yellow-400" : "text-primary")}>#{i + 1}</span>
                                         {player.playerName}
                                     </>
                                 ) : isNextToReveal ? (
                                     <div className="flex items-center justify-center w-full gap-2">
-                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                        <Loader2 className={cn("h-3 w-3 animate-spin", isGold ? "text-yellow-400" : "text-primary")} />
                                         <span className="text-[10px] uppercase tracking-tighter">Menunggu...</span>
                                     </div>
                                 ) : null}
