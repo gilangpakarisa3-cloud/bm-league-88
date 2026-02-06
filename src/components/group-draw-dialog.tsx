@@ -8,9 +8,10 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import type { WithId, Season, Player, LeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Users, Swords, Group } from 'lucide-react';
+import { Loader2, Shuffle, Users, Swords, Group, Loader } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 const LEAGUE_ID = 'main-league';
 
@@ -41,6 +42,10 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
   const [pot1, setPot1] = useState<PlayerInPot[]>([]);
   const [pot2, setPot2] = useState<PlayerInPot[]>([]);
   const [drawnGroups, setDrawnGroups] = useState<{ groupA: PlayerInPot[], groupB: PlayerInPot[] } | null>(null);
+  
+  // Reveal state
+  const [revealedCount, setRevealedCount] = useState(0);
+  const [isRevealing, setIsRevealing] = useState(false);
 
   useEffect(() => {
     if (!open || !firestore) return;
@@ -48,6 +53,8 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
     const findPreviousSeason = async () => {
         setIsLoading(true);
         setDrawnGroups(null);
+        setRevealedCount(0);
+        setIsRevealing(false);
         
         const seasonsQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc'));
         const seasonsSnap = await getDocs(seasonsQuery);
@@ -123,24 +130,40 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
         }
     });
 
-    setDrawnGroups({ groupA, groupB });
-    toast({ title: "Grup Telah Diundi!", description: "Periksa pembagian grup di bawah. Tekan simpan untuk mengkonfirmasi." });
+    const results = { groupA, groupB };
+    setDrawnGroups(results);
+    setRevealedCount(0);
+    setIsRevealing(true);
+
+    const totalToReveal = groupA.length + groupB.length;
+    let current = 0;
+
+    const interval = setInterval(() => {
+        current++;
+        setRevealedCount(current);
+        if (current >= totalToReveal) {
+            clearInterval(interval);
+            setIsRevealing(false);
+            toast({ title: "Grup Telah Diundi!", description: "Seluruh tim telah berhasil diundi ke dalam grup." });
+        }
+    }, 1200); // 1.2s per reveal for suspense
+
   }, [pot1, pot2, toast]);
   
   const handleFinalSave = () => {
-    if (!drawnGroups) return;
+    if (!drawnGroups || isRevealing) return;
     onSaveGroups(drawnGroups);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden">
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
             <DialogHeader>
               <DialogTitle>Undian Grup: {season?.name}</DialogTitle>
               <DialogDescription>
-                Pemain dibagi menjadi Pot Unggulan dan Non-Unggulan berdasarkan performa musim lalu.
+                Pemain dibagi menjadi Pot Unggulan dan Non-Unggulan berdasarkan performa musim lalu. Tim akan diundi satu per satu secara bergantian antara Grup A dan Grup B.
               </DialogDescription>
             </DialogHeader>
             
@@ -158,8 +181,18 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <GroupDisplay title="Grup A" players={drawnGroups.groupA} />
-                             <GroupDisplay title="Grup B" players={drawnGroups.groupB} />
+                             <GroupDisplay 
+                                title="Grup A" 
+                                players={drawnGroups.groupA} 
+                                revealedCount={revealedCount}
+                                groupIndex={0} // Index 0 for A (reveals at 1, 3, 5...)
+                             />
+                             <GroupDisplay 
+                                title="Grup B" 
+                                players={drawnGroups.groupB} 
+                                revealedCount={revealedCount}
+                                groupIndex={1} // Index 1 for B (reveals at 2, 4, 6...)
+                             />
                         </div>
                     )}
                 </div>
@@ -167,14 +200,23 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
 
             <DialogFooter className="mt-4">
                 {drawnGroups ? (
-                    <Button onClick={handleFinalSave} className="w-full sm:w-auto" disabled={isLoading}>
-                        <Group className="mr-2 h-4 w-4"/>
-                        Simpan Grup
+                    <Button onClick={handleFinalSave} className="w-full sm:w-auto" disabled={isLoading || isRevealing}>
+                        {isRevealing ? (
+                            <>
+                                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                Mengundi... ({revealedCount} / {drawnGroups.groupA.length + drawnGroups.groupB.length})
+                            </>
+                        ) : (
+                            <>
+                                <Group className="mr-2 h-4 w-4"/>
+                                Simpan Grup
+                            </>
+                        )}
                     </Button>
                 ) : (
                     <Button onClick={handleDraw} className="w-full sm:w-auto" disabled={isLoading || registeredPlayers.length < 2}>
                         <Shuffle className="mr-2 h-4 w-4"/>
-                        Undi Grup
+                        Mulai Undian
                     </Button>
                 )}
             </DialogFooter>
@@ -205,19 +247,54 @@ const PotDisplay = ({ title, players }: { title: string; players: PlayerInPot[];
     </Card>
 );
 
-const GroupDisplay = ({ title, players }: { title: string; players: PlayerInPot[]; }) => (
-     <Card className="border-primary">
-        <CardHeader>
-            <CardTitle className="text-center text-primary">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-             <div className="space-y-2">
-                {players.map(player => (
-                    <div key={player.id} className="flex items-center text-sm font-medium p-2 bg-card rounded-md border gap-2">
-                       {player.playerName}
-                    </div>
-                ))}
-            </div>
-        </CardContent>
-    </Card>
-);
+const GroupDisplay = ({ title, players, revealedCount, groupIndex }: { 
+    title: string; 
+    players: PlayerInPot[]; 
+    revealedCount: number;
+    groupIndex: number;
+}) => {
+    return (
+        <Card className="border-primary overflow-hidden">
+            <CardHeader className="bg-primary/5 py-3">
+                <CardTitle className="text-center text-primary text-lg">{title}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+                <div className="space-y-2">
+                    {players.map((player, i) => {
+                        // Sequence logic: A0=1, B0=2, A1=3, B1=4...
+                        // General: GroupIndex (0 or 1) + (PlayerIndex * 2) + 1
+                        const sequenceNumber = groupIndex + (i * 2) + 1;
+                        const isRevealed = revealedCount >= sequenceNumber;
+                        const isNextToReveal = revealedCount === sequenceNumber - 1;
+
+                        return (
+                            <div 
+                                key={player.id} 
+                                className={cn(
+                                    "flex items-center text-sm font-bold p-3 rounded-md border-2 transition-all duration-500",
+                                    isRevealed 
+                                        ? "bg-primary/10 border-primary/50 text-foreground animate-in zoom-in-95 fade-in duration-500" 
+                                        : isNextToReveal
+                                            ? "bg-muted animate-pulse border-dashed border-primary/20 text-muted-foreground h-11"
+                                            : "bg-muted/30 border-muted text-transparent h-11"
+                                )}
+                            >
+                                {isRevealed ? (
+                                    <>
+                                        <span className="mr-2 text-primary opacity-50">#{i + 1}</span>
+                                        {player.playerName}
+                                    </>
+                                ) : isNextToReveal ? (
+                                    <div className="flex items-center justify-center w-full gap-2">
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                        <span className="text-[10px] uppercase tracking-tighter">Menunggu...</span>
+                                    </div>
+                                ) : null}
+                            </div>
+                        );
+                    })}
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
