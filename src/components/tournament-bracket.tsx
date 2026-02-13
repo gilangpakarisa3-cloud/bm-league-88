@@ -94,15 +94,25 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
+        
+        // Filter: Include all completed matches for this season (including previous playoff rounds)
         const playerMatches = matches
-            .filter(m => (m.round === 'Group' || !m.round) && m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
+            .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
             .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
 
         let currentTrend = 0;
         const analyzedMatches = playerMatches.map(m => {
             const isP1 = m.player1Id === playerId;
-            const pScore = isP1 ? (m.player1Score ?? m.player1Wins ?? 0) : (m.player2Score ?? m.player2Wins ?? 0);
-            const oScore = isP1 ? (m.player2Score ?? m.player2Wins ?? 0) : (m.player1Score ?? m.player1Wins ?? 0);
+            
+            // Playoff wins field first, then falling back to regular scores
+            const pScore = isP1 
+                ? (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0))
+                : (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0));
+            
+            const oScore = isP1
+                ? (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0))
+                : (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0));
+
             const result = pScore > oScore ? 'W' : pScore < oScore ? 'L' : 'D';
             
             if (result === 'W') currentTrend += 1;
@@ -243,10 +253,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         <div className="space-y-1.5">
             <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                <History className="w-3 h-3" /> Laga Terakhir
+                <History className="w-3 h-3" /> Perjalanan Musim
             </p>
             <div className="flex flex-wrap gap-1">
-                {[...stats.matches].reverse().map((m: any, i: number) => (
+                {stats.matches.map((m: any, i: number) => (
                     <Badge 
                         key={i} 
                         variant="outline" 
@@ -256,6 +266,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             m.result === 'L' ? "bg-red-500/10 text-red-400 border-red-500/50" :
                             "bg-yellow-500/10 text-yellow-400 border-yellow-500/50"
                         )}
+                        title={m.round || 'Grup'}
                     >
                         {m.result}
                     </Badge>
@@ -374,7 +385,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             })
                         </DialogTitle>
                         <DialogDescription>
-                            Perbandingan stabilitas hasil pertandingan masing-masing peserta selama fase grup.
+                            Perbandingan stabilitas hasil seluruh pertandingan (Grup + Playoff) masing-masing peserta.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -398,7 +409,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                             <div className="space-y-4 pt-4 border-t">
                                 <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest">
-                                    <LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Individu
+                                    <LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Musim
                                 </h4>
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -417,12 +428,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </div>
                                 
                                 <p className="text-[9px] text-yellow-400 italic text-center leading-tight">
-                                    *Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.
+                                    *Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah) sepanjang kompetisi. Garis yang terus naik menandakan stabilitas performa yang tinggi.
                                 </p>
                             </div>
 
                             <div className="pt-2 border-t border-border flex justify-between items-center text-[10px] font-bold">
-                                <span className="text-muted-foreground uppercase tracking-tighter">Babak Kompetisi:</span>
+                                <span className="text-muted-foreground uppercase tracking-tighter">Babak Kompetisi Saat Ini:</span>
                                 <Badge variant="outline" className="border-primary text-primary text-[10px] h-5">{selectedMatch.round}</Badge>
                             </div>
                         </div>
