@@ -201,7 +201,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         })();
 
         const playingStyle = (() => {
-            if (totalPlayed === 0) return { text: "Belum Terdeteksi", color: "bg-muted/20 text-muted-foreground border-muted", icon: Target };
+            if (totalPlayed === 0) return { text: "Balanced", color: "bg-primary/20 text-primary border-primary/50", icon: Target };
             if (avgGF >= 1.5) return { text: "Attacking", color: "bg-red-500/20 text-red-400 border-red-500/50", icon: Zap };
             if (avgGA <= 1.2 && winRate >= 40) return { text: "Defensive & Counter", color: "bg-blue-500/20 text-blue-400 border-blue-500/50", icon: ShieldAlert };
             return { text: "Balanced", color: "bg-primary/20 text-primary border-primary/50", icon: Target };
@@ -461,7 +461,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <ScrollArea className="max-h-[90vh]">
                 <div className="p-6 space-y-6">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-xl font-black italic uppercase tracking-tighter">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tighter text-primary">
                             <TrendingUp className="w-6 h-6 text-primary" />
                             Analisis Tren & Momentum ({
                                 selectedMatch?.round === 'Quarter-Final' ? 'Perempat Final' :
