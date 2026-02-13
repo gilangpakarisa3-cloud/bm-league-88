@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -347,7 +348,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     {showScore && matchScore !== null && (
                         <div className={cn(
                             "absolute inset-0 flex items-center justify-center pointer-events-none -z-10 select-none transition-all duration-500",
-                            side === 'left' ? "-translate-x-12" : "translate-x-12"
+                            side === 'left' ? "-translate-x-20" : "translate-x-20"
                         )}>
                             <span className="text-9xl font-black opacity-20 text-white italic">
                                 {matchScore}

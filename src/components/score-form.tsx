@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Match, Season, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, User, Clock, Swords, Save } from "lucide-react";
+import { CalendarIcon, User, Clock, Swords, Save, Shield } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -143,11 +143,117 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     form.setValue('player2Wins', p2Total, { shouldValidate: true });
   }
 
+  const p1Value = isBestOfThree ? form.watch('player1Wins') : form.watch('player1Score');
+  const p2Value = isBestOfThree ? form.watch('player2Wins') : form.watch('player2Score');
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-8">
-        {isBestOfThree ? (
-           <div className="bg-muted/20 p-4 rounded-xl border border-primary/20">
+        
+        <div className="relative">
+            {/* VS Background Logo */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden sm:flex items-center justify-center">
+                <div className="bg-background border-4 border-primary rounded-full w-16 h-16 flex items-center justify-center shadow-[0_0_30px_rgba(204,253,1,0.4)] ring-8 ring-background">
+                    <span className="text-primary font-black italic text-2xl tracking-tighter pr-0.5">VS</span>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+              {/* Player 1 Section */}
+              <div className="bg-card border-2 border-primary/10 rounded-2xl p-6 flex flex-col items-center gap-4 text-center relative overflow-hidden">
+                {/* Watermark Score Left */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-0 opacity-20 -translate-x-20">
+                    <span className="text-9xl font-black text-white italic">{p1Value ?? 0}</span>
+                </div>
+
+                <div className="relative z-10">
+                    <Avatar className="h-20 w-20 border-4 border-primary shadow-lg shadow-primary/20">
+                        <AvatarImage src={player1Info.team?.logoUrl} />
+                        <AvatarFallback><Shield className="h-10 w-10 text-muted-foreground" /></AvatarFallback>
+                    </Avatar>
+                </div>
+                <div className="space-y-1 relative z-10">
+                  <p className="text-sm font-black uppercase tracking-tight truncate max-w-[160px]">{player1Info.name}</p>
+                  <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{player1Info.team?.name || 'Tanpa Tim'}</p>
+                </div>
+                
+                <div className="w-full relative z-10">
+                    {isBestOfThree ? (
+                        <div className="h-24 flex items-center justify-center">
+                            <span className="text-7xl font-black text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]">{p1Value}</span>
+                        </div>
+                    ) : (
+                        <FormField
+                            control={form.control}
+                            name="player1Score"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormControl>
+                                    <Input 
+                                    type="number" 
+                                    {...field} 
+                                    className="h-24 text-7xl font-black text-center bg-background border-primary/30 focus:border-primary focus:ring-primary/20 p-0"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
+              </div>
+
+              {/* Player 2 Section */}
+              <div className="bg-card border-2 border-primary/10 rounded-2xl p-6 flex flex-col items-center gap-4 text-center relative overflow-hidden">
+                {/* Watermark Score Right */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-0 opacity-20 translate-x-20">
+                    <span className="text-9xl font-black text-white italic">{p2Value ?? 0}</span>
+                </div>
+
+                <div className="relative z-10">
+                    <Avatar className="h-20 w-20 border-4 border-primary shadow-lg shadow-primary/20">
+                        <AvatarImage src={player2Info.team?.logoUrl} />
+                        <AvatarFallback><Shield className="h-10 w-10 text-muted-foreground" /></AvatarFallback>
+                    </Avatar>
+                </div>
+                <div className="space-y-1 relative z-10">
+                  <p className="text-sm font-black uppercase tracking-tight truncate max-w-[160px]">{player2Info.name}</p>
+                  <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{player2Info.team?.name || 'Tanpa Tim'}</p>
+                </div>
+
+                <div className="w-full relative z-10">
+                    {isBestOfThree ? (
+                        <div className="h-24 flex items-center justify-center">
+                            <span className="text-7xl font-black text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]">{p2Value}</span>
+                        </div>
+                    ) : (
+                        <FormField
+                            control={form.control}
+                            name="player2Score"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormControl>
+                                    <Input 
+                                    type="number" 
+                                    {...field} 
+                                    className="h-24 text-7xl font-black text-center bg-background border-primary/30 focus:border-primary focus:ring-primary/20 p-0"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
+              </div>
+            </div>
+        </div>
+
+        {isBestOfThree && (
+           <div className="bg-muted/20 p-6 rounded-2xl border border-primary/20 shadow-inner">
+             <div className="mb-4 text-center">
+                <Badge className="bg-primary text-primary-foreground font-black px-4 py-1 uppercase italic tracking-tighter">Format Best of 3</Badge>
+             </div>
              <CoopScoreChecklist
                 player1Name={player1Info.name}
                 player2Name={player2Info.name}
@@ -155,72 +261,6 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                 onWinnerChange={handleWinnerChange}
              />
            </div>
-        ) : (
-          <div className="relative">
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden sm:flex items-center justify-center">
-                <div className="bg-background border-2 border-primary rounded-full w-12 h-12 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.3)] ring-4 ring-background">
-                    <span className="text-primary font-black italic text-xl tracking-tighter pr-0.5">VS</span>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              {/* Player 1 Section */}
-              <div className="bg-card border-2 border-primary/10 rounded-2xl p-6 flex flex-col items-center gap-4 text-center">
-                <Avatar className="h-16 w-16 border-2 border-primary">
-                  <AvatarImage src={player1Info.team?.logoUrl} />
-                  <AvatarFallback><User className="h-8 w-8" /></AvatarFallback>
-                </Avatar>
-                <div className="space-y-1">
-                  <p className="text-sm font-black uppercase tracking-tight truncate max-w-[140px]">{player1Info.name}</p>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase">{player1Info.team?.name || 'Tanpa Tim'}</p>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="player1Score"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          className="h-16 text-3xl font-black text-center bg-background border-primary/30 focus:border-primary focus:ring-primary/20"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Player 2 Section */}
-              <div className="bg-card border-2 border-primary/10 rounded-2xl p-6 flex flex-col items-center gap-4 text-center">
-                <Avatar className="h-16 w-16 border-2 border-primary">
-                  <AvatarImage src={player2Info.team?.logoUrl} />
-                  <AvatarFallback><User className="h-8 w-8" /></AvatarFallback>
-                </Avatar>
-                <div className="space-y-1">
-                  <p className="text-sm font-black uppercase tracking-tight truncate max-w-[140px]">{player2Info.name}</p>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase">{player2Info.team?.name || 'Tanpa Tim'}</p>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="player2Score"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          className="h-16 text-3xl font-black text-center bg-background border-primary/30 focus:border-primary focus:ring-primary/20"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </div>
         )}
 
         <div className="bg-muted/30 p-6 rounded-2xl border border-dashed border-primary/20 space-y-4">
