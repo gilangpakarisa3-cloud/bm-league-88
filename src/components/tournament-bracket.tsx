@@ -282,7 +282,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </Card>
   );
 
-  const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary' }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold' }) => {
+  const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary', side }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold', side: 'left' | 'right' }) => {
     const StyleIcon = stats.playingStyle.icon;
     
     // Determine color class for the watermark based on the style text
@@ -293,9 +293,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     
     return (
         <div className="space-y-4 relative overflow-hidden rounded-xl py-2 px-1">
-            {/* Background Watermark for all styles */}
-            <div className="absolute -top-2 -right-2 pointer-events-none opacity-[0.08] -z-0">
-                <StyleIcon className={cn("w-24 h-24 rotate-12", watermarkColorClass)} strokeWidth={1.5} />
+            {/* Background Watermark for all styles - Positioned to face the opponent */}
+            <div className={cn(
+                "absolute -top-4 pointer-events-none opacity-[0.12] -z-0 transition-all duration-700",
+                side === 'left' ? "-right-6" : "-left-6"
+            )}>
+                <StyleIcon 
+                    className={cn(
+                        "w-32 h-32", 
+                        watermarkColorClass,
+                        side === 'left' ? "rotate-[25deg]" : "-rotate-[25deg]"
+                    )} 
+                    strokeWidth={1.5} 
+                />
             </div>
 
             <div className="flex flex-col items-center gap-2 text-center relative z-10">
@@ -509,8 +519,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                             <div className="grid grid-cols-2 gap-8 relative">
                                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
-                                <PlayerAnalysisColumn stats={analysisData?.p1Stats} playerInfo={selectedMatch.player1} team={selectedMatch.team1} variant="primary" />
-                                <PlayerAnalysisColumn stats={analysisData?.p2Stats} playerInfo={selectedMatch.player2} team={selectedMatch.team2} variant="gold" />
+                                <PlayerAnalysisColumn stats={analysisData?.p1Stats} playerInfo={selectedMatch.player1} team={selectedMatch.team1} variant="primary" side="left" />
+                                <PlayerAnalysisColumn stats={analysisData?.p2Stats} playerInfo={selectedMatch.player2} team={selectedMatch.team2} variant="gold" side="right" />
                             </div>
 
                             <div className="space-y-4 pt-4 border-t">
