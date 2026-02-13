@@ -147,6 +147,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         
+        // Calculate rank within the group for Hybrid seasons
+        const groupRank = (entry && entry.group)
+            ? leagueTable
+                .filter(e => e.group === entry.group)
+                .sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                    if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+                    return 0;
+                })
+                .findIndex(e => e.playerId === playerId) + 1
+            : entry?.rank;
+
         const playerMatches = matches
             .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
             .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
@@ -207,7 +220,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             return { text: "Balanced", color: "bg-primary/20 text-primary border-primary/50", icon: Target };
         })();
 
-        return { entry, matches: analyzedMatches, winRate, finalTrend: currentTrend, chartData, status: performanceStatus, playingStyle };
+        return { entry: entry ? { ...entry, groupRank } : null, matches: analyzedMatches, winRate, finalTrend: currentTrend, chartData, status: performanceStatus, playingStyle };
     };
 
     return {
@@ -320,7 +333,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 "text-[9px] font-black h-4 px-1.5 uppercase",
                                 variant === 'gold' ? "border-yellow-400/50 text-yellow-400 bg-yellow-400/5" : "border-primary/50 text-primary bg-primary/5"
                             )}>
-                                Grup {stats.entry.group}
+                                Grup {stats.entry.group} #{stats.entry.groupRank}
                             </Badge>
                         )}
                         <Badge variant="outline" className={cn("text-[8px] font-bold h-4 px-1.5 uppercase border flex items-center gap-1", stats.playingStyle.color)}>
@@ -461,9 +474,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <ScrollArea className="max-h-[90vh]">
                 <div className="p-6 space-y-6">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tighter text-foreground">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tighter">
                             <TrendingUp className="w-6 h-6 text-primary" />
-                            <span>Analisis Tren & Momentum</span>
+                            <span className="text-white">Analisis Tren & Momentum</span>
                             <span className="text-primary ml-1">
                                 ({
                                     selectedMatch?.round === 'Quarter-Final' ? 'Perempat Final' :
