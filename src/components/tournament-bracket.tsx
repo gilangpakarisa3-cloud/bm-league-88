@@ -520,7 +520,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 
                                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center">
                                     <div className="bg-background border-4 border-primary rounded-full w-24 h-24 flex items-center justify-center shadow-[0_0_40px_rgba(204,253,1,0.5)] ring-8 ring-background">
-                                        <span className="text-primary font-black italic text-4xl tracking-tighter">VS</span>
+                                        <span className="text-primary font-black italic text-4xl tracking-tighter pr-1.5">VS</span>
                                     </div>
                                 </div>
 
