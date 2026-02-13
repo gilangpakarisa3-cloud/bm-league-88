@@ -333,7 +333,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 "text-[9px] font-black h-4 px-1.5 uppercase",
                                 variant === 'gold' ? "border-yellow-400/50 text-yellow-400 bg-yellow-400/5" : "border-primary/50 text-primary bg-primary/5"
                             )}>
-                                Grup {stats.entry.group} #{stats.entry.groupRank}
+                                Grup {stats.entry.group} Rank : {stats.entry.groupRank}
                             </Badge>
                         )}
                         <Badge variant="outline" className={cn("text-[8px] font-bold h-4 px-1.5 uppercase border flex items-center gap-1", stats.playingStyle.color)}>
