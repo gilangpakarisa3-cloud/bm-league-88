@@ -272,14 +272,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <History className="w-3 h-3" /> Perjalanan Musim
             </p>
             <div className="flex flex-wrap gap-1">
-                <TooltipProvider>
+                <TooltipProvider delayDuration={0}>
                     {stats.matches.map((m: any, i: number) => (
                         <Tooltip key={i}>
                             <TooltipTrigger asChild>
                                 <Badge 
                                     variant="outline" 
                                     className={cn(
-                                        "w-6 h-6 p-0 flex items-center justify-center text-[10px] font-black border-2 cursor-help",
+                                        "w-6 h-6 p-0 flex items-center justify-center text-[10px] font-black border-2 cursor-help transition-transform hover:scale-110 active:scale-95",
                                         m.result === 'W' ? "bg-green-500/10 text-green-400 border-green-500/50" :
                                         m.result === 'L' ? "bg-red-500/10 text-red-400 border-red-500/50" :
                                         "bg-yellow-500/10 text-yellow-400 border-yellow-500/50"
@@ -288,7 +288,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     {m.result}
                                 </Badge>
                             </TooltipTrigger>
-                            <TooltipContent className="text-center p-2">
+                            <TooltipContent className="text-center p-2 backdrop-blur-md bg-background/90 border-primary/50 shadow-xl">
                                 <p className="text-[10px] font-black uppercase text-primary mb-1">{m.round || 'Babak Grup'}</p>
                                 <p className="text-xs font-bold">vs {m.opponentName}</p>
                                 <p className="text-sm font-black mt-1 text-yellow-400">{m.pScore} - {m.oScore}</p>
