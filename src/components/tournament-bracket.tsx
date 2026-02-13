@@ -113,46 +113,29 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         const winRate = entry && entry.played > 0 ? (entry.win / entry.played) * 100 : 0;
 
+        // Individual chart data starting from 0
+        const chartData = [{ match: 0, trend: 0 }, ...analyzedMatches.map((m, i) => ({
+            match: i + 1,
+            trend: m.trendAtMatch
+        }))];
+
         return {
             entry,
-            matches: analyzedMatches, // Order: oldest to newest for chart
+            matches: analyzedMatches,
             winRate,
-            finalTrend: currentTrend
+            finalTrend: currentTrend,
+            chartData
         };
     };
 
     const p1Stats = getPlayerStats(id1);
     const p2Stats = getPlayerStats(id2);
 
-    // Combine trends for chart
-    const maxMatches = Math.max(p1Stats.matches.length, p2Stats.matches.length);
-    const chartData = [{ match: 0, p1: 0, p2: 0 }];
-    
-    for (let i = 0; i < maxMatches; i++) {
-        chartData.push({
-            match: i + 1,
-            p1: p1Stats.matches[i]?.trendAtMatch ?? (i > 0 ? chartData[i].p1 : 0),
-            p2: p2Stats.matches[i]?.trendAtMatch ?? (i > 0 ? chartData[i].p2 : 0)
-        });
-    }
-
     return {
         p1Stats,
         p2Stats,
-        chartData
     };
   }, [selectedMatch, matches, leagueTable]);
-
-  const chartConfig = {
-    p1: {
-      label: selectedMatch?.player1?.name || "Pemain 1",
-      color: "hsl(var(--primary))",
-    },
-    p2: {
-      label: selectedMatch?.player2?.name || "Pemain 2",
-      color: "#FACC15", // Vibrant Gold
-    },
-  } satisfies ChartConfig;
 
   const MatchCard = ({ match }: { match: any }) => (
     <Card 
@@ -262,6 +245,57 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </div>
   );
 
+  const TrendChartBox = ({ data, color, playerName }: { data: any[], color: string, playerName: string }) => (
+    <div className="bg-muted/20 rounded-lg border p-4 space-y-3">
+        <div className="flex items-center justify-between border-b pb-2">
+            <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest flex items-center gap-2">
+                <LineChartIcon className="w-3.5 h-3.5" style={{ color }} />
+                Tren {playerName}
+            </h4>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-background border" style={{ color }}>
+                {data[data.length-1]?.trend > 0 ? `+${data[data.length-1]?.trend}` : data[data.length-1]?.trend} PTS
+            </span>
+        </div>
+        <div className="h-32 w-full">
+            <ChartContainer 
+                config={{ trend: { label: "Trend", color } }} 
+                className="h-full w-full"
+            >
+                <LineChart data={data} margin={{ left: -30, right: 10, top: 10, bottom: 0 }}>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" />
+                    <XAxis
+                        dataKey="match"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fontSize: 9 }}
+                        tickFormatter={(value) => value === 0 ? 'Start' : `M${value}`}
+                    />
+                    <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fontSize: 9 }}
+                        allowDecimals={false}
+                    />
+                    <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <Line
+                        dataKey="trend"
+                        type="monotone"
+                        stroke={color}
+                        strokeWidth={3}
+                        dot={{ fill: color, r: 3 }}
+                        activeDot={{ r: 5 }}
+                    />
+                </LineChart>
+            </ChartContainer>
+        </div>
+    </div>
+  );
+
   return (
     <div className="w-full overflow-x-auto pb-8 pt-4">
       <div className="min-w-[700px] flex justify-between items-start gap-8 px-4">
@@ -321,7 +355,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </DialogHeader>
 
                     {selectedMatch && analysisData && (
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             <div className="grid grid-cols-2 gap-8 relative">
                                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
                                 <PlayerAnalysisColumn 
@@ -338,61 +372,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 />
                             </div>
 
-                            <Separator className="bg-primary/20" />
-
-                            <div className="space-y-4">
-                                <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest bg-primary/5 p-2 rounded border border-primary/20">
-                                    <LineChartIcon className="w-4 h-4" /> Grafik Momentum Akumulatif
+                            <div className="space-y-4 pt-4 border-t">
+                                <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest">
+                                    <LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Individu
                                 </h4>
                                 
-                                <div className="h-48 w-full mt-4">
-                                    <ChartContainer config={chartConfig} className="h-full w-full">
-                                        <LineChart
-                                            data={analysisData.chartData}
-                                            margin={{ left: -20, right: 10, top: 10, bottom: 0 }}
-                                        >
-                                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-                                            <XAxis
-                                                dataKey="match"
-                                                tickLine={false}
-                                                axisLine={false}
-                                                tickMargin={8}
-                                                tickFormatter={(value) => value === 0 ? 'Start' : `M${value}`}
-                                            />
-                                            <YAxis
-                                                tickLine={false}
-                                                axisLine={false}
-                                                tickMargin={8}
-                                                allowDecimals={false}
-                                            />
-                                            <ChartTooltip
-                                                cursor={false}
-                                                content={
-                                                    <ChartTooltipContent
-                                                        indicator="dot"
-                                                        labelFormatter={(value) => value === 0 ? "Awal Musim" : `Match ${value}`}
-                                                    />
-                                                }
-                                            />
-                                            <Line
-                                                dataKey="p1"
-                                                type="monotone"
-                                                stroke="hsl(var(--primary))"
-                                                strokeWidth={3}
-                                                dot={{ fill: "hsl(var(--primary))", r: 4 }}
-                                                activeDot={{ r: 6 }}
-                                            />
-                                            <Line
-                                                dataKey="p2"
-                                                type="monotone"
-                                                stroke="#FACC15"
-                                                strokeWidth={3}
-                                                dot={{ fill: "#FACC15", r: 4 }}
-                                                activeDot={{ r: 6 }}
-                                            />
-                                        </LineChart>
-                                    </ChartContainer>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <TrendChartBox 
+                                        data={analysisData.p1Stats.chartData} 
+                                        color="hsl(var(--primary))" 
+                                        playerName={selectedMatch.player1?.name || 'Pemain 1'}
+                                    />
+                                    <TrendChartBox 
+                                        data={analysisData.p2Stats.chartData} 
+                                        color="#FACC15" 
+                                        playerName={selectedMatch.player2?.name || 'Pemain 2'}
+                                    />
                                 </div>
+                                
                                 <p className="text-[9px] text-muted-foreground italic text-center leading-tight">
                                     *Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.
                                 </p>
