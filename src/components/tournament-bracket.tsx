@@ -130,9 +130,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         const winRate = entry && entry.played > 0 ? (entry.win / entry.played) * 100 : 0;
 
         // Individual chart data starting from 0
-        const chartData = [{ match: 0, trend: 0 }, ...analyzedMatches.map((m, i) => ({
+        const chartData = [{ match: 0, trend: 0, tooltip: 'Awal Musim' }, ...analyzedMatches.map((m, i) => ({
             match: i + 1,
-            trend: m.trendAtMatch
+            trend: m.trendAtMatch,
+            tooltip: `vs ${m.opponentName}: ${m.pScore} - ${m.oScore} (${m.result})`
         }))];
 
         // Mental performance status logic
@@ -344,7 +345,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     />
                     <ChartTooltip
                         cursor={false}
-                        content={<ChartTooltipContent indicator="dot" />}
+                        content={
+                            <ChartTooltipContent 
+                                indicator="dot" 
+                                labelFormatter={(value, payload) => payload?.[0]?.payload.match === 0 ? "Awal Musim" : `Match ${payload?.[0]?.payload.match}`}
+                                formatter={(value, name, item) => (
+                                    <div className="text-left">
+                                        <p className="text-[10px] text-muted-foreground font-bold">{item.payload.tooltip}</p>
+                                        <p className="font-black text-xs mt-1">Nilai Tren: {item.payload.trend > 0 ? `+${item.payload.trend}` : item.payload.trend}</p>
+                                    </div>
+                                )}
+                            />
+                        }
                     />
                     <Line
                         dataKey="trend"
