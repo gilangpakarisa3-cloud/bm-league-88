@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, History, Info, Calendar, Percent, TrendingUp, CheckCircle2, XCircle, MinusCircle, LineChart as LineChartIcon, Clock, Save } from 'lucide-react';
+import { Swords, Trophy, User, History, Info, Calendar, Percent, TrendingUp, CheckCircle2, XCircle, MinusCircle, LineChart as LineChartIcon, Clock, Save, Zap, ShieldAlert, Target } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -147,11 +147,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         
+        // Include ALL completed matches from the season (Group + Playoff) for comprehensive analysis
         const playerMatches = matches
             .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
             .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
 
         let currentTrend = 0;
+        let totalGF = 0;
+        let totalGA = 0;
+
         const analyzedMatches = playerMatches.map(m => {
             const isP1 = m.player1Id === playerId;
             const opponentId = isP1 ? m.player2Id : m.player1Id;
@@ -163,8 +167,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 : (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0));
             
             const oScore = isP1
-                ? (m.player2Wins !== null ? m.player2Wins : (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0)))
+                ? (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0))
                 : (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0));
+
+            // Goal tracking for Play Style analysis
+            totalGF += pScore;
+            totalGA += oScore;
 
             const result = pScore > oScore ? 'W' : pScore < oScore ? 'L' : 'D';
             if (result === 'W') currentTrend += 1;
@@ -176,6 +184,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         const totalPlayed = analyzedMatches.length;
         const totalWins = analyzedMatches.filter(m => m.result === 'W').length;
         const winRate = totalPlayed > 0 ? (totalWins / totalPlayed) * 100 : 0;
+        
+        const avgGF = totalPlayed > 0 ? totalGF / totalPlayed : 0;
+        const avgGA = totalPlayed > 0 ? totalGA / totalPlayed : 0;
 
         const chartData = [{ match: 0, trend: 0, tooltip: 'Awal Musim' }, ...analyzedMatches.map((m, i) => ({
             match: i + 1,
@@ -191,13 +202,35 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             return { text: "Mental Stabil", color: "text-muted-foreground" };
         })();
 
+        const playingStyle = (() => {
+            if (totalPlayed === 0) return { text: "Belum Terdeteksi", color: "bg-muted/20 text-muted-foreground border-muted", icon: Target };
+            
+            // Masih Belajar: Low win rate and negative goal difference
+            if (winRate < 30 || (totalGA > totalGF && winRate < 40)) {
+                return { text: "Masih Belajar", color: "bg-orange-500/20 text-orange-400 border-orange-500/50", icon: Target };
+            }
+            
+            // Attacking: High average goals per game
+            if (avgGF >= 2.0) {
+                return { text: "Attacking", color: "bg-red-500/20 text-red-400 border-red-500/50", icon: Zap };
+            }
+            
+            // Defensive & Counter: Hard to beat, low goals conceded
+            if (avgGA <= 1.2 && winRate >= 40) {
+                return { text: "Defensive & Counter", color: "bg-blue-500/20 text-blue-400 border-blue-500/50", icon: ShieldAlert };
+            }
+            
+            return { text: "Balanced", color: "bg-primary/20 text-primary border-primary/50", icon: Target };
+        })();
+
         return {
             entry,
             matches: analyzedMatches,
             winRate,
             finalTrend: currentTrend,
             chartData,
-            status: performanceStatus
+            status: performanceStatus,
+            playingStyle
         };
     };
 
@@ -273,76 +306,86 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </Card>
   );
 
-  const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary' }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold' }) => (
-    <div className="space-y-4">
-        <div className="flex flex-col items-center gap-2 text-center">
-            <Avatar className={cn("h-12 w-12 border-2", variant === 'gold' ? "border-yellow-400/50" : "border-primary/50")}>
-                <AvatarImage src={team?.logoUrl} />
-                <AvatarFallback><User /></AvatarFallback>
-            </Avatar>
-            <div>
-                <p className="text-sm font-bold truncate max-w-[120px]">{playerInfo?.name || 'TBD'}</p>
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold">{team?.name}</p>
-                {stats.entry?.group && (
-                    <Badge variant="outline" className={cn(
-                        "mt-1 text-[9px] font-black h-4 px-1.5 uppercase",
-                        variant === 'gold' ? "border-yellow-400/50 text-yellow-400 bg-yellow-400/5" : "border-primary/50 text-primary bg-primary/5"
-                    )}>
-                        Grup {stats.entry.group}
-                    </Badge>
-                )}
-            </div>
-        </div>
-
-        {stats.entry && (
-            <div className="grid grid-cols-2 gap-2">
-                <div className="bg-muted/30 p-2 rounded-md border text-center">
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Win Rate</p>
-                    <div className="flex items-center justify-center gap-1">
-                        <Percent className={cn("w-3 h-3", variant === 'gold' ? "text-yellow-400" : "text-primary")} />
-                        <p className={cn("text-sm font-black", variant === 'gold' ? "text-yellow-400" : "text-primary")}>{stats.winRate.toFixed(0)}%</p>
+  const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary' }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold' }) => {
+    const StyleIcon = stats.playingStyle.icon;
+    
+    return (
+        <div className="space-y-4">
+            <div className="flex flex-col items-center gap-2 text-center">
+                <Avatar className={cn("h-12 w-12 border-2", variant === 'gold' ? "border-yellow-400/50" : "border-primary/50")}>
+                    <AvatarImage src={team?.logoUrl} />
+                    <AvatarFallback><User /></AvatarFallback>
+                </Avatar>
+                <div>
+                    <p className="text-sm font-bold truncate max-w-[120px]">{playerInfo?.name || 'TBD'}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">{team?.name}</p>
+                    <div className="flex flex-col items-center gap-1 mt-1">
+                        {stats.entry?.group && (
+                            <Badge variant="outline" className={cn(
+                                "text-[9px] font-black h-4 px-1.5 uppercase",
+                                variant === 'gold' ? "border-yellow-400/50 text-yellow-400 bg-yellow-400/5" : "border-primary/50 text-primary bg-primary/5"
+                            )}>
+                                Grup {stats.entry.group}
+                            </Badge>
+                        )}
+                        <Badge variant="outline" className={cn("text-[8px] font-bold h-4 px-1.5 uppercase border flex items-center gap-1", stats.playingStyle.color)}>
+                            <StyleIcon className="w-2.5 h-2.5" />
+                            {stats.playingStyle.text}
+                        </Badge>
                     </div>
                 </div>
-                <div className="bg-muted/30 p-2 rounded-md border text-center">
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Poin Grup</p>
-                    <p className={cn("text-sm font-black", variant === 'gold' ? "text-yellow-400" : "text-primary")}>{stats.entry.points}</p>
+            </div>
+
+            {stats.entry && (
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-muted/30 p-2 rounded-md border text-center">
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase">Win Rate</p>
+                        <div className="flex items-center justify-center gap-1">
+                            <Percent className={cn("w-3 h-3", variant === 'gold' ? "text-yellow-400" : "text-primary")} />
+                            <p className={cn("text-sm font-black", variant === 'gold' ? "text-yellow-400" : "text-primary")}>{stats.winRate.toFixed(0)}%</p>
+                        </div>
+                    </div>
+                    <div className="bg-muted/30 p-2 rounded-md border text-center">
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase">Poin Grup</p>
+                        <p className={cn("text-sm font-black", variant === 'gold' ? "text-yellow-400" : "text-primary")}>{stats.entry.points}</p>
+                    </div>
+                </div>
+            )}
+
+            <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                    <History className="w-3 h-3" /> Laga Terakhir
+                </p>
+                <div className="flex flex-wrap gap-1">
+                    <TooltipProvider delayDuration={0}>
+                        {stats.matches.map((m: any, i: number) => (
+                            <Tooltip key={i}>
+                                <TooltipTrigger asChild>
+                                    <Badge 
+                                        variant="outline" 
+                                        className={cn(
+                                            "w-6 h-6 p-0 flex items-center justify-center text-[10px] font-black border-2 cursor-help transition-transform hover:scale-110 active:scale-95",
+                                            m.result === 'W' ? "bg-green-500/10 text-green-400 border-green-500/50" :
+                                            m.result === 'L' ? "bg-red-500/10 text-red-400 border-red-500/50" :
+                                            "bg-yellow-500/10 text-yellow-400 border-yellow-500/50"
+                                        )}
+                                    >
+                                        {m.result}
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent className="text-center p-2 backdrop-blur-md bg-background/90 border-primary/50 shadow-xl">
+                                    <p className="text-[10px] font-black uppercase text-primary mb-1">{m.round || 'Babak Grup'}</p>
+                                    <p className="text-xs font-bold">vs {m.opponentName}</p>
+                                    <p className="text-sm font-black mt-1 text-yellow-400">{m.pScore} - {m.oScore}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        ))}
+                    </TooltipProvider>
                 </div>
             </div>
-        )}
-
-        <div className="space-y-1.5">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                <History className="w-3 h-3" /> Laga Terakhir
-            </p>
-            <div className="flex flex-wrap gap-1">
-                <TooltipProvider delayDuration={0}>
-                    {stats.matches.map((m: any, i: number) => (
-                        <Tooltip key={i}>
-                            <TooltipTrigger asChild>
-                                <Badge 
-                                    variant="outline" 
-                                    className={cn(
-                                        "w-6 h-6 p-0 flex items-center justify-center text-[10px] font-black border-2 cursor-help transition-transform hover:scale-110 active:scale-95",
-                                        m.result === 'W' ? "bg-green-500/10 text-green-400 border-green-500/50" :
-                                        m.result === 'L' ? "bg-red-500/10 text-red-400 border-red-500/50" :
-                                        "bg-yellow-500/10 text-yellow-400 border-yellow-500/50"
-                                    )}
-                                >
-                                    {m.result}
-                                </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent className="text-center p-2 backdrop-blur-md bg-background/90 border-primary/50 shadow-xl">
-                                <p className="text-[10px] font-black uppercase text-primary mb-1">{m.round || 'Babak Grup'}</p>
-                                <p className="text-xs font-bold">vs {m.opponentName}</p>
-                                <p className="text-sm font-black mt-1 text-yellow-400">{m.pScore} - {m.oScore}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    ))}
-                </TooltipProvider>
-            </div>
         </div>
-    </div>
-  );
+    );
+  };
 
   const TrendChartBox = ({ data, color, playerName, yDomain, status }: { data: any[], color: string, playerName: string, yDomain: number[], status: any }) => (
     <div className="bg-muted/20 rounded-lg border p-4 space-y-3">
@@ -479,64 +522,66 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                     {selectedMatch && (
                         <div className="space-y-6">
-                            {/* Compact Schedule info at the top */}
+                            {/* Rencana Pertandingan (Hanya jika admin atau info tersedia) */}
                             {(isAdmin || hasScheduleInfo) && (
-                                <div className="bg-card border-2 border-primary/20 rounded-lg p-1.5 space-y-1.5 w-fit mx-auto">
-                                    <div className="flex items-center justify-center gap-2 text-primary font-bold text-[9px] uppercase tracking-widest px-2">
-                                        <Calendar className="w-3 h-3" /> Rencana Pertandingan (Informasi Saja)
+                                <div className="flex justify-center">
+                                    <div className="bg-card border-2 border-primary/20 rounded-lg p-1.5 space-y-1.5 w-fit">
+                                        <div className="flex items-center justify-center gap-2 text-primary font-bold text-[9px] uppercase tracking-widest px-2">
+                                            <Calendar className="w-3 h-3" /> Rencana Pertandingan (Informasi Saja)
+                                        </div>
+                                        
+                                        {isAdmin && (
+                                            <div className="grid grid-cols-1 sm:flex sm:items-end gap-2 px-2 pb-1">
+                                                <div className="space-y-1">
+                                                    <Label className="text-[9px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant="outline" size="sm" className="w-full justify-start font-normal text-[10px] h-8 px-2">
+                                                                <Calendar className="mr-1.5 h-3 w-3" />
+                                                                {tempDate ? format(tempDate, "eeee, d MMM yyyy", { locale: localeId }) : "Pilih Tanggal"}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-auto p-0" align="start">
+                                                            <CalendarComponent
+                                                                mode="single"
+                                                                selected={tempDate}
+                                                                onSelect={setTempDate}
+                                                                initialFocus
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-[9px] font-bold uppercase text-muted-foreground">Waktu (HH:mm)</Label>
+                                                    <Input 
+                                                        placeholder="HH:mm" 
+                                                        value={tempTime} 
+                                                        onChange={(e) => setTempTime(e.target.value)}
+                                                        className="h-8 text-[10px] px-2 w-20"
+                                                    />
+                                                </div>
+                                                <Button size="sm" onClick={handleSaveInfoSchedule} className="h-8 text-[10px] gap-1.5 px-3">
+                                                    <Save className="w-3 h-3" /> Simpan Info
+                                                </Button>
+                                            </div>
+                                        )}
+                                        
+                                        {hasScheduleInfo && (
+                                            <div className="flex justify-center py-0.5">
+                                                <div className="px-4 py-1.5 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic w-fit">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Calendar className="w-3.5 h-3.5" />
+                                                        {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
+                                                    </div>
+                                                    <div className="w-px h-3 bg-primary/20" />
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Clock className="w-3.5 h-3.5" />
+                                                        {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    
-                                    {isAdmin && (
-                                        <div className="grid grid-cols-1 sm:flex sm:items-end gap-2 px-2 pb-1">
-                                            <div className="space-y-1">
-                                                <Label className="text-[9px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="w-full justify-start font-normal text-[10px] h-8 px-2">
-                                                            <Calendar className="mr-1.5 h-3 w-3" />
-                                                            {tempDate ? format(tempDate, "eeee, d MMM yyyy", { locale: localeId }) : "Pilih Tanggal"}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <CalendarComponent
-                                                            mode="single"
-                                                            selected={tempDate}
-                                                            onSelect={setTempDate}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label className="text-[9px] font-bold uppercase text-muted-foreground">Waktu (HH:mm)</Label>
-                                                <Input 
-                                                    placeholder="HH:mm" 
-                                                    value={tempTime} 
-                                                    onChange={(e) => setTempTime(e.target.value)}
-                                                    className="h-8 text-[10px] px-2 w-20"
-                                                />
-                                            </div>
-                                            <Button size="sm" onClick={handleSaveInfoSchedule} className="h-8 text-[10px] gap-1.5 px-3">
-                                                <Save className="w-3 h-3" /> Simpan Info
-                                            </Button>
-                                        </div>
-                                    )}
-                                    
-                                    {hasScheduleInfo && (
-                                        <div className="flex justify-center py-0.5">
-                                            <div className="px-4 py-1.5 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic w-fit">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Calendar className="w-3.5 h-3.5" />
-                                                    {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
-                                                </div>
-                                                <div className="w-px h-3 bg-primary/20" />
-                                                <div className="flex items-center gap-1.5">
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                    {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
