@@ -147,6 +147,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         
+        // Take ALL matches in the season for full momentum analysis
         const playerMatches = matches
             .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
             .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
@@ -163,7 +164,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 : (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0));
             
             const oScore = isP1
-                ? (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0))
+                ? (m.player2Wins !== null ? m.player2Wins : (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0)))
                 : (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0));
 
             const result = pScore > oScore ? 'W' : pScore < oScore ? 'L' : 'D';
@@ -312,7 +313,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         <div className="space-y-1.5">
             <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                <History className="w-3 h-3" /> Perjalanan Musim
+                <History className="w-3 h-3" /> Laga Terakhir
             </p>
             <div className="flex flex-wrap gap-1">
                 <TooltipProvider delayDuration={0}>
@@ -479,21 +480,21 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                     {selectedMatch && (
                         <div className="space-y-6">
-                            {/* Schedule info at the top */}
+                            {/* Compact Schedule info at the top */}
                             {(isAdmin || hasScheduleInfo) && (
-                                <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-4">
-                                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
-                                        <Calendar className="w-4 h-4" /> Rencana Pertandingan (Informasi Saja)
+                                <div className="bg-card border-2 border-primary/20 rounded-lg p-2.5 space-y-2">
+                                    <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
+                                        <Calendar className="w-3 h-3" /> Rencana Pertandingan (Informasi Saja)
                                     </div>
                                     
                                     {isAdmin && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
+                                            <div className="space-y-1">
+                                                <Label className="text-[9px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="w-full justify-start font-normal text-xs h-9">
-                                                            <Calendar className="mr-2 h-3 w-3" />
+                                                        <Button variant="outline" size="sm" className="w-full justify-start font-normal text-[10px] h-8 px-2">
+                                                            <Calendar className="mr-1.5 h-3 w-3" />
                                                             {tempDate ? format(tempDate, "eeee, d MMM yyyy", { locale: localeId }) : "Pilih Tanggal"}
                                                         </Button>
                                                     </PopoverTrigger>
@@ -507,30 +508,30 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                     </PopoverContent>
                                                 </Popover>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Waktu (e.g. 19:30)</Label>
+                                            <div className="space-y-1">
+                                                <Label className="text-[9px] font-bold uppercase text-muted-foreground">Waktu (HH:mm)</Label>
                                                 <Input 
                                                     placeholder="HH:mm" 
                                                     value={tempTime} 
                                                     onChange={(e) => setTempTime(e.target.value)}
-                                                    className="h-9 text-xs"
+                                                    className="h-8 text-[10px] px-2"
                                                 />
                                             </div>
-                                            <Button size="sm" onClick={handleSaveInfoSchedule} className="h-9 gap-2">
-                                                <Save className="w-3.5 h-3.5" /> Simpan Info
+                                            <Button size="sm" onClick={handleSaveInfoSchedule} className="h-8 text-[10px] gap-1.5 px-3">
+                                                <Save className="w-3 h-3" /> Simpan Info
                                             </Button>
                                         </div>
                                     )}
                                     
                                     {hasScheduleInfo && (
-                                        <div className="mt-2 p-3 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-4 text-sm font-black text-primary italic">
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4" />
+                                        <div className="p-2 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic">
+                                            <div className="flex items-center gap-1.5">
+                                                <Calendar className="w-3.5 h-3.5" />
                                                 {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
                                             </div>
-                                            <div className="w-px h-4 bg-primary/20" />
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="w-4 h-4" />
+                                            <div className="w-px h-3 bg-primary/20" />
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock className="w-3.5 h-3.5" />
                                                 {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
                                             </div>
                                         </div>
