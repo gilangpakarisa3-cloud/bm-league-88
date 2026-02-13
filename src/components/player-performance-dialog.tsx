@@ -55,7 +55,6 @@ export function PlayerPerformanceDialog({
   const [activeTab, setActiveTab] = useState('history');
   
   useEffect(() => {
-    // Reset the active tab to 'history' whenever the player prop changes.
     if (player) {
       setActiveTab('history');
     }
@@ -115,7 +114,6 @@ export function PlayerPerformanceDialog({
                 opponent = { name: opponentEntry.playerName };
                 opponentTeam = teamsById[opponentEntry.teamId];
             } else {
-                // Fallback to master list if entry not found (historical matches in hybrid mode might need this)
                 const opponentPlayer = playersById[opponentId];
                 if(opponentPlayer){
                     opponent = { name: opponentPlayer.name };
@@ -188,10 +186,18 @@ export function PlayerPerformanceDialog({
           }
       });
 
+    // Calculate detailed stats from actual matches
+    const stats = completedMatches.reduce((acc, m) => {
+        acc.played++;
+        if (m.result === 'W') acc.win++;
+        else if (m.result === 'L') acc.loss++;
+        else acc.draw++;
+        return acc;
+    }, { played: 0, win: 0, draw: 0, loss: 0 });
 
-    const winRate = player.played > 0 ? (player.win / player.played) * 100 : 0;
-    const totalMatches = isCoop ? (totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) : 0) : (totalPlayersInSeason > 1 ? (totalPlayersInSeason - 1) * 2 : 0);
-    const seasonProgress = totalMatches > 0 ? (player.played / totalMatches) * 100 : 0;
+    const totalMatchesCount = playerMatches.length;
+    const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
+    const winRate = stats.played > 0 ? (stats.win / stats.played) * 100 : 0;
 
     let trendScore = 0;
     const chartData = [{ match: 0, points: 0, tooltip: 'Awal Musim' }, ...[...completedMatches].reverse().map((match, index) => {
@@ -222,16 +228,22 @@ export function PlayerPerformanceDialog({
         else if (last5TrendScore === -5) performanceStatus = { text: "Pemain sedang ketakutan", color: "text-red-400" };
     }
 
+    // Compute effective group size for rank highlighting
+    const groupSize = activeSeason.type === 'Hybrid' 
+        ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
+        : totalPlayersInSeason;
 
     return {
         completedMatches,
         upcomingMatches,
         winRate,
         seasonProgress,
-        totalMatches,
+        totalMatchesCount,
         chartData,
         finalTrendScore,
         performanceStatus,
+        stats,
+        groupSize
     }
 
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable]);
@@ -239,7 +251,7 @@ export function PlayerPerformanceDialog({
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatches, chartData, finalTrendScore, performanceStatus } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize } = performanceStats;
   
    const chartConfig = {
     points: {
@@ -256,8 +268,8 @@ export function PlayerPerformanceDialog({
   );
   
   const isTopRank = player.rank === 1;
-  const isBottomRank = player.rank >= totalPlayersInSeason - 2 && totalPlayersInSeason > 3;
-  const isUnbeaten = player.played > 0 && player.loss === 0;
+  const isBottomRank = player.rank >= groupSize - 2 && groupSize > 3;
+  const isUnbeaten = stats.played > 0 && stats.loss === 0;
   const isDefendingChampion = player.playerId === defendingChampionId;
 
 
@@ -368,13 +380,13 @@ export function PlayerPerformanceDialog({
                         <div>
                             <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
                             <Progress value={seasonProgress} className="h-3" />
-                            <p className="text-xs text-muted-foreground mt-1.5">{player.played} dari {totalMatches} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
+                            <p className="text-xs text-muted-foreground mt-1.5">{stats.played} dari {totalMatchesCount} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
                         </div>
                          <div className={cn("grid gap-2 text-center", isCoop ? 'grid-cols-4' : 'grid-cols-5')}>
-                           <StatDisplay label={t('played', { defaultValue: "P"})} value={player.played} />
-                           <StatDisplay label={t('w', { defaultValue: "W"})} value={player.win} />
-                           {!isCoop && <StatDisplay label={t('d', { defaultValue: "D"})} value={player.draw} />}
-                           <StatDisplay label={t('l', { defaultValue: "L"})} value={player.loss} />
+                           <StatDisplay label={t('played', { defaultValue: "P"})} value={stats.played} />
+                           <StatDisplay label={t('w', { defaultValue: "W"})} value={stats.win} />
+                           {!isCoop && <StatDisplay label={t('d', { defaultValue: "D"})} value={stats.draw} />}
+                           <StatDisplay label={t('l', { defaultValue: "L"})} value={stats.loss} />
                            <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
                         </div>
                          <div className="grid grid-cols-2 gap-2">
@@ -414,10 +426,6 @@ export function PlayerPerformanceDialog({
                                         'text-foreground': match.result !== 'D',
                                         'text-yellow-400': match.result === 'D',
                                 });
-                                
-                                const score = isCoop
-                                    ? `${match.playerResult} - ${match.opponentResult}`
-                                    : `${match.playerResult} - ${match.opponentResult}`;
                                 
                                 return (
                                     <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
