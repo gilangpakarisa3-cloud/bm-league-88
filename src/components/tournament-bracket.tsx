@@ -20,6 +20,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -103,6 +104,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         let currentTrend = 0;
         const analyzedMatches = playerMatches.map(m => {
             const isP1 = m.player1Id === playerId;
+            const opponentId = isP1 ? m.player2Id : m.player1Id;
+
+            // Resolve opponent name from leagueTable or playersById
+            const oppEntry = leagueTable.find(e => e.playerId === opponentId);
+            const opponentName = oppEntry ? oppEntry.playerName : (playersById[opponentId]?.name || 'Unknown');
             
             // Playoff wins field first, then falling back to regular scores
             const pScore = isP1 
@@ -118,7 +124,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             if (result === 'W') currentTrend += 1;
             else if (result === 'L') currentTrend -= 1;
             
-            return { ...m, pScore, oScore, result, trendAtMatch: currentTrend };
+            return { ...m, pScore, oScore, result, opponentName, trendAtMatch: currentTrend };
         });
 
         const winRate = entry && entry.played > 0 ? (entry.win / entry.played) * 100 : 0;
@@ -145,7 +151,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         p1Stats,
         p2Stats,
     };
-  }, [selectedMatch, matches, leagueTable]);
+  }, [selectedMatch, matches, leagueTable, playersById]);
 
   // Synchronized Y-axis domain for visual consistency
   const globalYDomain = useMemo(() => {
@@ -256,21 +262,30 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <History className="w-3 h-3" /> Perjalanan Musim
             </p>
             <div className="flex flex-wrap gap-1">
-                {stats.matches.map((m: any, i: number) => (
-                    <Badge 
-                        key={i} 
-                        variant="outline" 
-                        className={cn(
-                            "w-6 h-6 p-0 flex items-center justify-center text-[10px] font-black border-2",
-                            m.result === 'W' ? "bg-green-500/10 text-green-400 border-green-500/50" :
-                            m.result === 'L' ? "bg-red-500/10 text-red-400 border-red-500/50" :
-                            "bg-yellow-500/10 text-yellow-400 border-yellow-500/50"
-                        )}
-                        title={m.round || 'Grup'}
-                    >
-                        {m.result}
-                    </Badge>
-                ))}
+                <TooltipProvider>
+                    {stats.matches.map((m: any, i: number) => (
+                        <Tooltip key={i}>
+                            <TooltipTrigger asChild>
+                                <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                        "w-6 h-6 p-0 flex items-center justify-center text-[10px] font-black border-2 cursor-help",
+                                        m.result === 'W' ? "bg-green-500/10 text-green-400 border-green-500/50" :
+                                        m.result === 'L' ? "bg-red-500/10 text-red-400 border-red-500/50" :
+                                        "bg-yellow-500/10 text-yellow-400 border-yellow-500/50"
+                                    )}
+                                >
+                                    {m.result}
+                                </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-center p-2">
+                                <p className="text-[10px] font-black uppercase text-primary mb-1">{m.round || 'Babak Grup'}</p>
+                                <p className="text-xs font-bold">vs {m.opponentName}</p>
+                                <p className="text-sm font-black mt-1 text-yellow-400">{m.pScore} - {m.oScore}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    ))}
+                </TooltipProvider>
             </div>
         </div>
     </div>
