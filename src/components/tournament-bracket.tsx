@@ -147,7 +147,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         
-        // Take ALL matches in the season for full momentum analysis
         const playerMatches = matches
             .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
             .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
@@ -524,15 +523,17 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     )}
                                     
                                     {hasScheduleInfo && (
-                                        <div className="p-2 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic">
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
-                                            </div>
-                                            <div className="w-px h-3 bg-primary/20" />
-                                            <div className="flex items-center gap-1.5">
-                                                <Clock className="w-3.5 h-3.5" />
-                                                {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
+                                        <div className="flex justify-center py-1">
+                                            <div className="px-6 py-2 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic w-fit">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Calendar className="w-3.5 h-3.5" />
+                                                    {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
+                                                </div>
+                                                <div className="w-px h-3 bg-primary/20" />
+                                                <div className="flex items-center gap-1.5">
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
