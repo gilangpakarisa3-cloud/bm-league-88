@@ -18,6 +18,7 @@ import { id as localeId } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { Progress } from './ui/progress';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -90,49 +91,37 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const id1 = selectedMatch.player1Id;
     const id2 = selectedMatch.player2Id;
 
-    // 1. Head-to-Head Matches
-    const h2h = matches.filter(m => 
-        (m.round === 'Group' || !m.round) && 
-        m.isCompleted &&
-        ((m.player1Id === id1 && m.player2Id === id2) || (m.player1Id === id2 && m.player2Id === id1))
-    ).map(m => {
-        const isP1Home = m.player1Id === id1;
-        const score1 = m.player1Score ?? m.player1Wins ?? 0;
-        const score2 = m.player2Score ?? m.player2Wins ?? 0;
-        
-        return {
-            ...m,
-            homeScore: isP1Home ? score1 : score2,
-            awayScore: isP1Home ? score2 : score1,
-            isWin: isP1Home ? score1 > score2 : score2 > score1,
-            isDraw: score1 === score2
-        };
-    });
-
-    // 2. Individual Group Stage Performance
+    // 1. Individual Group Stage Performance Analysis
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         const playerMatches = matches
             .filter(m => (m.round === 'Group' || !m.round) && m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
-            .sort((a,b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+            .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
+
+        let currentTrend = 0;
+        const analyzedMatches = playerMatches.map(m => {
+            const isP1 = m.player1Id === playerId;
+            const pScore = isP1 ? (m.player1Score ?? m.player1Wins ?? 0) : (m.player2Score ?? m.player2Wins ?? 0);
+            const oScore = isP1 ? (m.player2Score ?? m.player2Wins ?? 0) : (m.player1Score ?? m.player1Wins ?? 0);
+            const result = pScore > oScore ? 'W' : pScore < oScore ? 'L' : 'D';
+            
+            if (result === 'W') currentTrend += 1;
+            else if (result === 'L') currentTrend -= 1;
+            
+            return { ...m, pScore, oScore, result, trendAtMatch: currentTrend };
+        });
 
         const winRate = entry && entry.played > 0 ? (entry.win / entry.played) * 100 : 0;
 
         return {
             entry,
-            matches: playerMatches.map(m => {
-                const isP1 = m.player1Id === playerId;
-                const pScore = isP1 ? (m.player1Score ?? m.player1Wins ?? 0) : (m.player2Score ?? m.player2Wins ?? 0);
-                const oScore = isP1 ? (m.player2Score ?? m.player2Wins ?? 0) : (m.player1Score ?? m.player1Wins ?? 0);
-                const result = pScore > oScore ? 'W' : pScore < oScore ? 'L' : 'D';
-                return { ...m, pScore, oScore, result };
-            }),
-            winRate
+            matches: [...analyzedMatches].reverse(),
+            winRate,
+            finalTrend: currentTrend
         };
     };
 
     return {
-        h2h,
         p1Stats: getPlayerStats(id1),
         p2Stats: getPlayerStats(id2)
     };
@@ -297,7 +286,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </div>
       </div>
 
-      {/* Head-to-Head & Performance Analysis Dialog */}
+      {/* Analysis Dialog */}
       <Dialog open={!!selectedMatch} onOpenChange={(open) => !open && setSelectedMatch(null)}>
         <DialogContent className="max-w-xl border-primary border-2 p-0 overflow-hidden">
             <ScrollArea className="max-h-[90vh]">
@@ -305,10 +294,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl font-black italic uppercase tracking-tighter">
                             <TrendingUp className="w-6 h-6 text-primary" />
-                            Analisis Kekuatan
+                            Tren & Momentum Performa
                         </DialogTitle>
                         <DialogDescription>
-                            Perbandingan performa fase grup peserta babak gugur.
+                            Analisis kekuatan dan tren hasil pertandingan masing-masing peserta.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -331,46 +320,53 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                             <Separator className="bg-primary/20" />
 
-                            {/* Head-to-Head Section */}
+                            {/* Momentum Summary Section */}
                             <div className="space-y-4">
                                 <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest bg-primary/5 p-2 rounded border border-primary/20">
-                                    <Swords className="w-4 h-4" /> Riwayat Pertemuan Langsung (H2H)
+                                    <Swords className="w-4 h-4" /> Momentum & Stabilitas
                                 </h4>
                                 
-                                {analysisData.h2h.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        {analysisData.h2h.map((m, idx) => (
-                                            <div key={idx} className="flex items-center justify-between p-3 rounded-md bg-card border border-border text-sm">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                                        <Calendar className="w-3 h-3" />
-                                                        {format(m.matchDate.toDate(), 'd MMM yyyy', { locale: localeId })}
-                                                    </span>
-                                                    <span className="font-bold">
-                                                        {m.isWin ? (
-                                                            <span className="text-green-400">Pemenang: {selectedMatch.player1?.name}</span>
-                                                        ) : m.isDraw ? (
-                                                            <span className="text-yellow-400">Seri</span>
-                                                        ) : (
-                                                            <span className="text-red-400">Pemenang: {selectedMatch.player2?.name}</span>
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <div className="text-lg font-mono font-black text-primary bg-primary/5 px-3 py-1 rounded border border-primary/20">
-                                                    {m.homeScore} - {m.awayScore}
-                                                </div>
-                                            </div>
-                                        ))}
+                                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase">
+                                            <span className="truncate max-w-[100px]">{selectedMatch.player1?.name}</span>
+                                            <span className={cn(
+                                                analysisData.p1Stats.finalTrend > 0 ? "text-green-400" : 
+                                                analysisData.p1Stats.finalTrend < 0 ? "text-red-400" : ""
+                                            )}>
+                                                {analysisData.p1Stats.finalTrend > 0 ? `+${analysisData.p1Stats.finalTrend}` : analysisData.p1Stats.finalTrend}
+                                            </span>
+                                        </div>
+                                        <Progress 
+                                            value={Math.max(10, Math.min(100, (analysisData.p1Stats.finalTrend + 5) * 10))} 
+                                            className="h-1.5" 
+                                            color={analysisData.p1Stats.finalTrend > 0 ? "bg-green-500" : analysisData.p1Stats.finalTrend < 0 ? "bg-red-500" : "bg-primary"}
+                                        />
                                     </div>
-                                ) : (
-                                    <div className="text-center py-6 border-2 border-dashed rounded-lg bg-muted/10">
-                                        <p className="text-xs text-muted-foreground italic">Kedua pemain belum pernah bertemu musim ini.</p>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase">
+                                            <span className="truncate max-w-[100px]">{selectedMatch.player2?.name}</span>
+                                            <span className={cn(
+                                                analysisData.p2Stats.finalTrend > 0 ? "text-green-400" : 
+                                                analysisData.p2Stats.finalTrend < 0 ? "text-red-400" : ""
+                                            )}>
+                                                {analysisData.p2Stats.finalTrend > 0 ? `+${analysisData.p2Stats.finalTrend}` : analysisData.p2Stats.finalTrend}
+                                            </span>
+                                        </div>
+                                        <Progress 
+                                            value={Math.max(10, Math.min(100, (analysisData.p2Stats.finalTrend + 5) * 10))} 
+                                            className="h-1.5" 
+                                            color={analysisData.p2Stats.finalTrend > 0 ? "bg-green-500" : analysisData.p2Stats.finalTrend < 0 ? "bg-red-500" : "bg-primary"}
+                                        />
                                     </div>
-                                )}
+                                </div>
+                                <p className="text-[9px] text-muted-foreground italic text-center leading-tight">
+                                    *Momentum bar menunjukkan akumulasi hasil positif vs negatif selama fase grup. Semakin tinggi nilainya, semakin stabil performa pemain tersebut.
+                                </p>
                             </div>
 
                             <div className="pt-2 border-t border-border flex justify-between items-center text-[10px] font-bold">
-                                <span className="text-muted-foreground uppercase tracking-tighter">Status Pertandingan:</span>
+                                <span className="text-muted-foreground uppercase tracking-tighter">Babak Kompetisi:</span>
                                 <Badge variant="outline" className="border-primary text-primary text-[10px] h-5">{selectedMatch.round}</Badge>
                             </div>
                         </div>
