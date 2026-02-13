@@ -519,6 +519,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                             <div className="grid grid-cols-2 gap-8 relative">
                                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
+                                
+                                {/* VS Logo */}
+                                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center">
+                                    <div className="bg-background border-2 border-primary rounded-full w-9 h-9 flex items-center justify-center shadow-[0_0_15px_rgba(204,253,1,0.4)] ring-4 ring-background">
+                                        <span className="text-primary font-black italic text-[10px] tracking-tighter">VS</span>
+                                    </div>
+                                </div>
+
                                 <PlayerAnalysisColumn stats={analysisData?.p1Stats} playerInfo={selectedMatch.player1} team={selectedMatch.team1} variant="primary" side="left" />
                                 <PlayerAnalysisColumn stats={analysisData?.p2Stats} playerInfo={selectedMatch.player2} team={selectedMatch.team2} variant="gold" side="right" />
                             </div>
