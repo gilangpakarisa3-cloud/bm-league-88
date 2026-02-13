@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from "react";
@@ -62,7 +61,8 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         const leaderPoints = tableData.length > 0 ? tableData[0].points : 0;
 
 
-        if ((seasonType || 'Single') === 'Single') {
+        // Enable these stats for Single and Hybrid modes (any mode that isn't Co-Op)
+        if (seasonType !== 'Co-Op') {
             const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
             bestAttacker = playersWhoPlayed.filter(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
             
@@ -143,7 +143,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
-             {(seasonType || 'Single') === 'Single' && stats.kingOfDraws.length > 0 && (
+             {seasonType !== 'Co-Op' && stats.kingOfDraws.length > 0 && (
                 <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
@@ -168,7 +168,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
-            {(seasonType || 'Single') === 'Single' && stats.championshipContenders.length > 0 && (
+            {seasonType !== 'Co-Op' && stats.championshipContenders.length > 0 && (
                 <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
-            {(seasonType || 'Single') === 'Single' && stats.bestAttacker.length > 0 && (
+            {seasonType !== 'Co-Op' && stats.bestAttacker.length > 0 && (
                  <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
-            {(seasonType || 'Single') === 'Single' && stats.bestDefense.length > 0 && (
+            {seasonType !== 'Co-Op' && stats.bestDefense.length > 0 && (
                  <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
@@ -267,7 +267,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
-            {(seasonType || 'Single') === 'Single' && stats.worstDefender.length > 0 && (
+            {seasonType !== 'Co-Op' && stats.worstDefender.length > 0 && (
                  <Card className="bg-card border-2 border-destructive">
                     <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
