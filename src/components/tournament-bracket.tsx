@@ -214,6 +214,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <div>
                 <p className="text-sm font-bold truncate max-w-[120px]">{playerInfo?.name || 'TBD'}</p>
                 <p className="text-[10px] text-muted-foreground uppercase font-semibold">{team?.name}</p>
+                {stats.entry?.group && (
+                    <Badge variant="outline" className={cn(
+                        "mt-1 text-[9px] font-black h-4 px-1.5 uppercase",
+                        variant === 'gold' ? "border-yellow-400/50 text-yellow-400 bg-yellow-400/5" : "border-primary/50 text-primary bg-primary/5"
+                    )}>
+                        Grup {stats.entry.group}
+                    </Badge>
+                )}
             </div>
         </div>
 
