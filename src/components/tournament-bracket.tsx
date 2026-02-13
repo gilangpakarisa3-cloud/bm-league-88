@@ -319,6 +319,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         stats.playingStyle.text === "Defensive & Counter" ? "text-blue-500" :
         "text-primary";
     
+    const StatMinimal = ({ label, value, color }: { label: string, value: any, color: string }) => (
+        <div className="flex flex-col items-center flex-1">
+            <span className="text-[7px] font-black text-muted-foreground uppercase leading-tight">{label}</span>
+            <span className={cn("text-[10px] font-black leading-tight", color)}>{value}</span>
+        </div>
+    );
+
     return (
         <div className="space-y-4 relative overflow-hidden rounded-xl py-2 px-1">
             <div className={cn(
@@ -376,32 +383,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 </div>
             )}
 
-            <div className="grid grid-cols-3 gap-1 relative z-10 pt-2 border-t border-border/30">
-                <div className="flex flex-col items-center">
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Win</span>
-                    <span className="text-xs font-black text-green-400">{stats.totalWins}</span>
-                </div>
-                <div className="flex flex-col items-center">
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Draw</span>
-                    <span className="text-xs font-black text-yellow-400">{stats.totalDraws}</span>
-                </div>
-                <div className="flex flex-col items-center">
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Lose</span>
-                    <span className="text-xs font-black text-red-400">{stats.totalLosses}</span>
-                </div>
-                <div className="flex flex-col items-center">
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">GF</span>
-                    <span className="text-xs font-black text-primary">{stats.totalGF}</span>
-                </div>
-                <div className="flex flex-col items-center">
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">GA</span>
-                    <span className="text-xs font-black text-foreground">{stats.totalGA}</span>
-                </div>
-                <div className="flex flex-col items-center">
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">GD</span>
-                    <span className={cn("text-xs font-black", stats.totalGD >= 0 ? "text-primary" : "text-red-400")}>
-                        {stats.totalGD > 0 ? `+${stats.totalGD}` : stats.totalGD}
-                    </span>
+            <div className="relative z-10 pt-2 border-t border-border/30">
+                <div className="bg-muted/20 border rounded-lg p-1.5 flex justify-between items-center gap-1">
+                    <StatMinimal label="W" value={stats.totalWins} color="text-green-400" />
+                    <StatMinimal label="D" value={stats.totalDraws} color="text-yellow-400" />
+                    <StatMinimal label="L" value={stats.totalLosses} color="text-red-400" />
+                    <div className="w-px h-4 bg-border/50 mx-0.5" />
+                    <StatMinimal label="GF" value={stats.totalGF} color="text-primary" />
+                    <StatMinimal label="GA" value={stats.totalGA} color="text-foreground" />
+                    <StatMinimal label="GD" value={stats.totalGD > 0 ? `+${stats.totalGD}` : stats.totalGD} color={stats.totalGD >= 0 ? "text-primary" : "text-red-400"} />
                 </div>
             </div>
 
