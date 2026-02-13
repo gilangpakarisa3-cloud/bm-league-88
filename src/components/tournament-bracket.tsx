@@ -147,7 +147,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         
-        // Include ALL completed matches from the season (Group + Playoff) for comprehensive analysis
         const playerMatches = matches
             .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
             .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
@@ -170,9 +169,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 ? (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0))
                 : (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0));
 
-            // Goal tracking for Play Style analysis
-            totalGF += pScore;
-            totalGA += oScore;
+            totalGF += (pScore || 0);
+            totalGA += (oScore || 0);
 
             const result = pScore > oScore ? 'W' : pScore < oScore ? 'L' : 'D';
             if (result === 'W') currentTrend += 1;
@@ -202,35 +200,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             return { text: "Mental Stabil", color: "text-muted-foreground" };
         })();
 
-        /**
-         * LOGIKA KARAKTER BERMAIN (PLAY STYLE)
-         * 1. Attacking: Rata-rata gol memasukkan tinggi (>= 1.5 per pertandingan)
-         * 2. Defensive & Counter: Rata-rata kebobolan rendah (<= 1.2 per pertandingan) DAN Win Rate kompetitif (>= 40%)
-         * 3. Balanced: Statistik stabil di tengah tanpa bias menyerang atau bertahan yang ekstrim.
-         */
         const playingStyle = (() => {
             if (totalPlayed === 0) return { text: "Belum Terdeteksi", color: "bg-muted/20 text-muted-foreground border-muted", icon: Target };
-            
-            if (avgGF >= 1.5) {
-                return { text: "Attacking", color: "bg-red-500/20 text-red-400 border-red-500/50", icon: Zap };
-            }
-            
-            if (avgGA <= 1.2 && winRate >= 40) {
-                return { text: "Defensive & Counter", color: "bg-blue-500/20 text-blue-400 border-blue-500/50", icon: ShieldAlert };
-            }
-            
+            if (avgGF >= 1.5) return { text: "Attacking", color: "bg-red-500/20 text-red-400 border-red-500/50", icon: Zap };
+            if (avgGA <= 1.2 && winRate >= 40) return { text: "Defensive & Counter", color: "bg-blue-500/20 text-blue-400 border-blue-500/50", icon: ShieldAlert };
             return { text: "Balanced", color: "bg-primary/20 text-primary border-primary/50", icon: Target };
         })();
 
-        return {
-            entry,
-            matches: analyzedMatches,
-            winRate,
-            finalTrend: currentTrend,
-            chartData,
-            status: performanceStatus,
-            playingStyle
-        };
+        return { entry, matches: analyzedMatches, winRate, finalTrend: currentTrend, chartData, status: performanceStatus, playingStyle };
     };
 
     return {
@@ -307,10 +284,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary' }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold' }) => {
     const StyleIcon = stats.playingStyle.icon;
+    const isAttacking = stats.playingStyle.text === "Attacking";
     
     return (
-        <div className="space-y-4">
-            <div className="flex flex-col items-center gap-2 text-center">
+        <div className="space-y-4 relative overflow-hidden rounded-xl py-2 px-1">
+            {/* Background Watermark for Attacking style */}
+            {isAttacking && (
+                <div className="absolute -top-2 -right-2 pointer-events-none opacity-[0.08] -z-0">
+                    <StyleIcon className="w-24 h-24 text-red-500 rotate-12" strokeWidth={1.5} />
+                </div>
+            )}
+
+            <div className="flex flex-col items-center gap-2 text-center relative z-10">
                 <Avatar className={cn("h-12 w-12 border-2", variant === 'gold' ? "border-yellow-400/50" : "border-primary/50")}>
                     <AvatarImage src={team?.logoUrl} />
                     <AvatarFallback><User /></AvatarFallback>
@@ -336,7 +321,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div>
 
             {stats.entry && (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 relative z-10">
                     <div className="bg-muted/30 p-2 rounded-md border text-center">
                         <p className="text-[10px] text-muted-foreground font-bold uppercase">Win Rate</p>
                         <div className="flex items-center justify-center gap-1">
@@ -351,7 +336,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 </div>
             )}
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 relative z-10">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
                     <History className="w-3 h-3" /> Laga Terakhir
                 </p>
@@ -398,58 +383,16 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     {data[data.length-1]?.trend > 0 ? `+${data[data.length-1]?.trend}` : data[data.length-1]?.trend} PTS
                 </span>
             </div>
-            {status && (
-                <p className={cn("text-[9px] font-bold italic uppercase tracking-wider", status.color)}>
-                    "{status.text}"
-                </p>
-            )}
+            {status && <p className={cn("text-[9px] font-bold italic uppercase tracking-wider", status.color)}>"{status.text}"</p>}
         </div>
         <div className="h-32 w-full">
-            <ChartContainer 
-                config={{ trend: { label: "Trend", color } }} 
-                className="h-full w-full"
-            >
+            <ChartContainer config={{ trend: { label: "Trend", color } }} className="h-full w-full">
                 <LineChart data={data} margin={{ left: -30, right: 10, top: 10, bottom: 0 }}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" />
-                    <XAxis
-                        dataKey="match"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={{ fontSize: 9 }}
-                        tickFormatter={(value) => value === 0 ? 'Start' : `M${value}`}
-                    />
-                    <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={{ fontSize: 9 }}
-                        allowDecimals={false}
-                        domain={yDomain}
-                    />
-                    <ChartTooltip
-                        cursor={false}
-                        content={
-                            <ChartTooltipContent 
-                                indicator="dot" 
-                                labelFormatter={(value, payload) => payload?.[0]?.payload.match === 0 ? "Awal Musim" : `Match ${payload?.[0]?.payload.match}`}
-                                formatter={(value, name, item) => (
-                                    <div className="text-left">
-                                        <p className="text-[10px] text-muted-foreground font-bold">{item.payload.tooltip}</p>
-                                        <p className="font-black text-xs mt-1">Nilai Tren: {item.payload.trend > 0 ? `+${item.payload.trend}` : item.payload.trend}</p>
-                                    </div>
-                                )}
-                            />
-                        }
-                    />
-                    <Line
-                        dataKey="trend"
-                        type="monotone"
-                        stroke={color}
-                        strokeWidth={3}
-                        dot={{ fill: color, r: 3 }}
-                        activeDot={{ r: 5 }}
-                    />
+                    <XAxis dataKey="match" tickLine={false} axisLine={false} tickMargin={8} tick={{ fontSize: 9 }} tickFormatter={(value) => value === 0 ? 'Start' : `M${value}`} />
+                    <YAxis tickLine={false} axisLine={false} tickMargin={8} tick={{ fontSize: 9 }} allowDecimals={false} domain={yDomain} />
+                    <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" labelFormatter={(value, payload) => payload?.[0]?.payload.match === 0 ? "Awal Musim" : `Match ${payload?.[0]?.payload.match}`} formatter={(value, name, item) => (<div className="text-left"><p className="text-[10px] text-muted-foreground font-bold">{item.payload.tooltip}</p><p className="font-black text-xs mt-1">Nilai Tren: {item.payload.trend > 0 ? `+${item.payload.trend}` : item.payload.trend}</p></div>)} />} />
+                    <Line dataKey="trend" type="monotone" stroke={color} strokeWidth={3} dot={{ fill: color, r: 3 }} activeDot={{ r: 5 }} />
                 </LineChart>
             </ChartContainer>
         </div>
@@ -521,14 +464,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                     {selectedMatch && (
                         <div className="space-y-6">
-                            {/* Rencana Pertandingan (Hanya jika admin atau info tersedia) */}
                             {(isAdmin || hasScheduleInfo) && (
                                 <div className="flex justify-center">
                                     <div className="bg-card border-2 border-primary/20 rounded-lg p-1.5 space-y-1.5 w-fit">
                                         <div className="flex items-center justify-center gap-2 text-primary font-bold text-[9px] uppercase tracking-widest px-2">
                                             <Calendar className="w-3 h-3" /> Rencana Pertandingan (Informasi Saja)
                                         </div>
-                                        
                                         {isAdmin && (
                                             <div className="grid grid-cols-1 sm:flex sm:items-end gap-2 px-2 pb-1">
                                                 <div className="space-y-1">
@@ -540,43 +481,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                                 {tempDate ? format(tempDate, "eeee, d MMM yyyy", { locale: localeId }) : "Pilih Tanggal"}
                                                             </Button>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-auto p-0" align="start">
-                                                            <CalendarComponent
-                                                                mode="single"
-                                                                selected={tempDate}
-                                                                onSelect={setTempDate}
-                                                                initialFocus
-                                                            />
-                                                        </PopoverContent>
+                                                        <PopoverContent className="w-auto p-0" align="start"><CalendarComponent mode="single" selected={tempDate} onSelect={setTempDate} initialFocus /></PopoverContent>
                                                     </Popover>
                                                 </div>
                                                 <div className="space-y-1">
                                                     <Label className="text-[9px] font-bold uppercase text-muted-foreground">Waktu (HH:mm)</Label>
-                                                    <Input 
-                                                        placeholder="HH:mm" 
-                                                        value={tempTime} 
-                                                        onChange={(e) => setTempTime(e.target.value)}
-                                                        className="h-8 text-[10px] px-2 w-20"
-                                                    />
+                                                    <Input placeholder="HH:mm" value={tempTime} onChange={(e) => setTempTime(e.target.value)} className="h-8 text-[10px] px-2 w-20" />
                                                 </div>
-                                                <Button size="sm" onClick={handleSaveInfoSchedule} className="h-8 text-[10px] gap-1.5 px-3">
-                                                    <Save className="w-3 h-3" /> Simpan Info
-                                                </Button>
+                                                <Button size="sm" onClick={handleSaveInfoSchedule} className="h-8 text-[10px] gap-1.5 px-3"><Save className="w-3 h-3" /> Simpan Info</Button>
                                             </div>
                                         )}
-                                        
                                         {hasScheduleInfo && (
                                             <div className="flex justify-center py-0.5">
                                                 <div className="px-4 py-1.5 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic w-fit">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Calendar className="w-3.5 h-3.5" />
-                                                        {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
-                                                    </div>
+                                                    <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}</div>
                                                     <div className="w-px h-3 bg-primary/20" />
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock className="w-3.5 h-3.5" />
-                                                        {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
-                                                    </div>
+                                                    <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}</div>
                                                 </div>
                                             </div>
                                         )}
@@ -586,47 +506,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                             <div className="grid grid-cols-2 gap-8 relative">
                                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
-                                <PlayerAnalysisColumn 
-                                    stats={analysisData?.p1Stats} 
-                                    playerInfo={selectedMatch.player1} 
-                                    team={selectedMatch.team1} 
-                                    variant="primary"
-                                />
-                                <PlayerAnalysisColumn 
-                                    stats={analysisData?.p2Stats} 
-                                    playerInfo={selectedMatch.player2} 
-                                    team={selectedMatch.team2} 
-                                    variant="gold"
-                                />
+                                <PlayerAnalysisColumn stats={analysisData?.p1Stats} playerInfo={selectedMatch.player1} team={selectedMatch.team1} variant="primary" />
+                                <PlayerAnalysisColumn stats={analysisData?.p2Stats} playerInfo={selectedMatch.player2} team={selectedMatch.team2} variant="gold" />
                             </div>
 
                             <div className="space-y-4 pt-4 border-t">
-                                <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest">
-                                    <LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Individu
-                                </h4>
-                                
+                                <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest"><LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Individu</h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <TrendChartBox 
-                                        data={analysisData?.p1Stats.chartData} 
-                                        color="hsl(var(--primary))" 
-                                        playerName={selectedMatch.player1?.name || 'Pemain 1'}
-                                        yDomain={globalYDomain}
-                                        status={analysisData?.p1Stats.status}
-                                    />
-                                    <TrendChartBox 
-                                        data={analysisData?.p2Stats.chartData} 
-                                        color="#FACC15" 
-                                        playerName={selectedMatch.player2?.name || 'Pemain 2'}
-                                        yDomain={globalYDomain}
-                                        status={analysisData?.p2Stats.status}
-                                    />
+                                    <TrendChartBox data={analysisData?.p1Stats.chartData} color="hsl(var(--primary))" playerName={selectedMatch.player1?.name || 'Pemain 1'} yDomain={globalYDomain} status={analysisData?.p1Stats.status} />
+                                    <TrendChartBox data={analysisData?.p2Stats.chartData} color="#FACC15" playerName={selectedMatch.player2?.name || 'Pemain 2'} yDomain={globalYDomain} status={analysisData?.p2Stats.status} />
                                 </div>
-                                
-                                <p className="text-[9px] text-yellow-400 italic text-center leading-tight">
-                                    *Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.
-                                </p>
+                                <p className="text-[9px] text-yellow-400 italic text-center leading-tight">*Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.</p>
                             </div>
-
                             <div className="pt-2 border-t border-border flex justify-between items-center text-[10px] font-bold">
                                 <span className="text-muted-foreground uppercase tracking-tighter">Babak Kompetisi Saat Ini:</span>
                                 <Badge variant="outline" className="border-primary text-primary text-[10px] h-5">{selectedMatch.round}</Badge>
