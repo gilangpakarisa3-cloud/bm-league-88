@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
 import { CoopScoreChecklist } from "./coop-score-checklist";
+import { Badge } from "./ui/badge";
 
 // Zod schema for Co-Op (Best of 3) matches
 const coopFormSchema = z.object({
