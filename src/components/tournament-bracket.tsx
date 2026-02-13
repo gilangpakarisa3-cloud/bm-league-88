@@ -284,16 +284,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary' }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold' }) => {
     const StyleIcon = stats.playingStyle.icon;
-    const isAttacking = stats.playingStyle.text === "Attacking";
+    
+    // Determine color class for the watermark based on the style text
+    const watermarkColorClass = 
+        stats.playingStyle.text === "Attacking" ? "text-red-500" :
+        stats.playingStyle.text === "Defensive & Counter" ? "text-blue-500" :
+        "text-primary";
     
     return (
         <div className="space-y-4 relative overflow-hidden rounded-xl py-2 px-1">
-            {/* Background Watermark for Attacking style */}
-            {isAttacking && (
-                <div className="absolute -top-2 -right-2 pointer-events-none opacity-[0.08] -z-0">
-                    <StyleIcon className="w-24 h-24 text-red-500 rotate-12" strokeWidth={1.5} />
-                </div>
-            )}
+            {/* Background Watermark for all styles */}
+            <div className="absolute -top-2 -right-2 pointer-events-none opacity-[0.08] -z-0">
+                <StyleIcon className={cn("w-24 h-24 rotate-12", watermarkColorClass)} strokeWidth={1.5} />
+            </div>
 
             <div className="flex flex-col items-center gap-2 text-center relative z-10">
                 <Avatar className={cn("h-12 w-12 border-2", variant === 'gold' ? "border-yellow-400/50" : "border-primary/50")}>
