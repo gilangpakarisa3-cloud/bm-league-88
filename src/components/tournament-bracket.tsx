@@ -345,8 +345,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <div className="flex flex-col items-center gap-2 text-center relative z-10">
                 <div className="relative">
                     {showScore && matchScore !== null && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10 select-none">
-                            <span className="text-8xl font-black opacity-10 text-white italic">
+                        <div className={cn(
+                            "absolute inset-0 flex items-center justify-center pointer-events-none -z-10 select-none transition-all duration-500",
+                            side === 'left' ? "-translate-x-12" : "translate-x-12"
+                        )}>
+                            <span className="text-9xl font-black opacity-20 text-white italic">
                                 {matchScore}
                             </span>
                         </div>
