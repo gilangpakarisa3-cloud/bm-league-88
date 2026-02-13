@@ -461,12 +461,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <ScrollArea className="max-h-[90vh]">
                 <div className="p-6 space-y-6">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tighter text-primary">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tighter text-foreground">
                             <TrendingUp className="w-6 h-6 text-primary" />
-                            Analisis Tren & Momentum ({
-                                selectedMatch?.round === 'Quarter-Final' ? 'Perempat Final' :
-                                selectedMatch?.round === 'Semi-Final' ? 'Semi Final' : 'Grand Final'
-                            })
+                            <span>Analisis Tren & Momentum</span>
+                            <span className="text-primary ml-1">
+                                ({
+                                    selectedMatch?.round === 'Quarter-Final' ? 'Perempat Final' :
+                                    selectedMatch?.round === 'Semi-Final' ? 'Semi Final' : 'Grand Final'
+                                })
+                            </span>
                         </DialogTitle>
                         <DialogDescription>
                             Perbandingan stabilitas hasil seluruh pertandingan (Grup + Playoff) masing-masing peserta.
