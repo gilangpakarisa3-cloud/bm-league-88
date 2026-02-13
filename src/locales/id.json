@@ -254,5 +254,8 @@
   "fun_stats_unbeaten_desc": "Pemain yang belum pernah kalah di musim ini.",
   "home_format_single": "Format: Single (1v1)",
   "home_format_coop": "Format: Co-Op (2v2)",
-  "home_format_hybrid": "Format: Hybrid (Grup + Playoff)"
+  "home_format_hybrid": "Format: Hybrid (Grup + Playoff)",
+  "finish_group_early_button": "Selesaikan Grup & Lanjut Playoff",
+  "finish_group_early_title": "Selesaikan Fase Grup Lebih Awal?",
+  "finish_group_early_desc": "Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan 4 tim teratas dari masing-masing grup saat ini akan melaju ke babak playoff."
 }

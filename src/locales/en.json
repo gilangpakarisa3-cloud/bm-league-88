@@ -254,5 +254,8 @@
   "fun_stats_unbeaten_desc": "Players who have not lost a match this season.",
   "home_format_single": "Format: Single (1v1)",
   "home_format_coop": "Format: Co-Op (2v2)",
-  "home_format_hybrid": "Format: Hybrid (Group + Playoff)"
+  "home_format_hybrid": "Format: Hybrid (Group + Playoff)",
+  "finish_group_early_button": "Finish Group & Start Playoffs",
+  "finish_group_early_title": "Finish Group Stage Early?",
+  "finish_group_early_desc": "There are still unplayed matches. If you proceed, these matches will be ignored and the current top 4 teams from each group will advance to the playoffs."
 }

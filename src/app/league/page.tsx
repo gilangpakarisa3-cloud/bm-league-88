@@ -86,6 +86,7 @@ export default function LeaguePage() {
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<WithId<LeagueEntry> | null>(null);
   const [showFinishSeasonConfirm, setShowFinishSeasonConfirm] = useState(false);
+  const [showFinishGroupStageConfirm, setShowFinishGroupStageConfirm] = useState(false);
   const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
@@ -241,8 +242,8 @@ export default function LeaguePage() {
         data.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points;
             if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-            if (b.goalsFor !== a.goalsFor) return b.goalsFor - b.playerName.localeCompare(b.playerName);
-            return 0; // Add this to satisfy TypeScript for consistent return
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+            return a.playerName.localeCompare(b.playerName);
         }).map((entry, index) => ({...entry, rank: index + 1}));
 
     const a = sortAndRank(sortedTable.filter(p => p.group === 'A'));
@@ -1122,10 +1123,13 @@ export default function LeaguePage() {
                             <Play className="mr-2 h-4 w-4" />
                             {t('start_season')}
                         </Button>
-                         {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && areGroupStageMatchesComplete && !hasQuarterFinals && (
-                            <Button onClick={() => withAdminCheck(handleGenerateKnockoutFixtures)}>
+                         {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && groupStageMatches.length > 0 && !hasQuarterFinals && (
+                            <Button 
+                                onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateKnockoutFixtures) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))}
+                                variant={areGroupStageMatchesComplete ? "default" : "outline"}
+                            >
                                 <Swords className="mr-2 h-4 w-4" />
-                                Buat Babak Gugur
+                                {areGroupStageMatchesComplete ? t('generate_knockout_fixtures', { defaultValue: 'Buat Babak Gugur' }) : t('finish_group_early_button', { defaultValue: 'Selesaikan Grup & Lanjut Playoff' })}
                             </Button>
                         )}
                         {isAdmin && activeSeason?.type === 'Hybrid' && activeSeason.status === 'In Progress' && areQuarterFinalsComplete && !hasSemiFinals && (
@@ -1434,6 +1438,22 @@ export default function LeaguePage() {
                 <AlertDialogFooter>
                     <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                     <AlertDialogAction onClick={() => { handleUpdateSeasonStatus('Completed'); setShowFinishSeasonConfirm(false); }}>Ya, Selesaikan</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Finish Group Stage Confirmation Dialog */}
+        <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{t('finish_group_early_title', { defaultValue: 'Selesaikan Fase Grup Lebih Awal?' })}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {t('finish_group_early_desc', { defaultValue: 'Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan 4 tim teratas dari masing-masing grup saat ini akan melaju ke babak playoff.' })}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => { handleGenerateKnockoutFixtures(); setShowFinishGroupStageConfirm(false); }}>{t('unlock', { defaultValue: 'Lanjutkan' })}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
