@@ -311,7 +311,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </Card>
   );
 
-  const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary', side }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold', side: 'left' | 'right' }) => {
+  const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary', side, matchScore, showScore }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold', side: 'left' | 'right', matchScore?: number | null, showScore?: boolean }) => {
     const StyleIcon = stats.playingStyle.icon;
     
     const watermarkColorClass = 
@@ -343,10 +343,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div>
 
             <div className="flex flex-col items-center gap-2 text-center relative z-10">
-                <Avatar className={cn("h-12 w-12 border-2", variant === 'gold' ? "border-yellow-400/50" : "border-primary/50")}>
-                    <AvatarImage src={team?.logoUrl} />
-                    <AvatarFallback><User /></AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                    {showScore && matchScore !== null && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10 select-none">
+                            <span className="text-8xl font-black opacity-10 text-white italic">
+                                {matchScore}
+                            </span>
+                        </div>
+                    )}
+                    <Avatar className={cn("h-12 w-12 border-2", variant === 'gold' ? "border-yellow-400/50" : "border-primary/50")}>
+                        <AvatarImage src={team?.logoUrl} />
+                        <AvatarFallback><User /></AvatarFallback>
+                    </Avatar>
+                </div>
                 <div className="flex flex-col items-center w-full">
                     <p className="text-sm font-bold truncate max-w-[120px] mx-auto">{playerInfo?.name || 'TBD'}</p>
                     <p className="text-[10px] text-muted-foreground uppercase font-semibold mx-auto">{team?.name}</p>
@@ -575,8 +584,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 </div>
 
-                                <PlayerAnalysisColumn stats={analysisData?.p1Stats} playerInfo={selectedMatch.player1} team={selectedMatch.team1} variant="primary" side="left" />
-                                <PlayerAnalysisColumn stats={analysisData?.p2Stats} playerInfo={selectedMatch.player2} team={selectedMatch.team2} variant="gold" side="right" />
+                                <PlayerAnalysisColumn 
+                                    stats={analysisData?.p1Stats} 
+                                    playerInfo={selectedMatch.player1} 
+                                    team={selectedMatch.team1} 
+                                    variant="primary" 
+                                    side="left" 
+                                    matchScore={selectedMatch.score1}
+                                    showScore={selectedMatch.isCompleted}
+                                />
+                                <PlayerAnalysisColumn 
+                                    stats={analysisData?.p2Stats} 
+                                    playerInfo={selectedMatch.player2} 
+                                    team={selectedMatch.team2} 
+                                    variant="gold" 
+                                    side="right" 
+                                    matchScore={selectedMatch.score2}
+                                    showScore={selectedMatch.isCompleted}
+                                />
                             </div>
 
                             <div className="space-y-4 pt-4 border-t">
