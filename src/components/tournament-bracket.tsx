@@ -368,7 +368,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl font-black italic uppercase tracking-tighter">
                             <TrendingUp className="w-6 h-6 text-primary" />
-                            Analisis Tren & Momentum Performa
+                            Analisis Tren & Momentum ({
+                                selectedMatch?.round === 'Quarter-Final' ? 'Perempat Final' :
+                                selectedMatch?.round === 'Semi-Final' ? 'Semi Final' : 'Grand Final'
+                            })
                         </DialogTitle>
                         <DialogDescription>
                             Perbandingan stabilitas hasil pertandingan masing-masing peserta selama fase grup.
