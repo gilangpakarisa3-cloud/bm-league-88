@@ -137,6 +137,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     };
   }, [selectedMatch, matches, leagueTable]);
 
+  // Synchronized Y-axis domain for visual consistency
+  const globalYDomain = useMemo(() => {
+    if (!analysisData) return [-2, 2];
+    const allTrendPoints = [
+        ...analysisData.p1Stats.chartData.map(d => d.trend),
+        ...analysisData.p2Stats.chartData.map(d => d.trend)
+    ];
+    const min = Math.min(...allTrendPoints, -1);
+    const max = Math.max(...allTrendPoints, 1);
+    return [min - 1, max + 1];
+  }, [analysisData]);
+
   const MatchCard = ({ match }: { match: any }) => (
     <Card 
         className={cn(
@@ -245,7 +257,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </div>
   );
 
-  const TrendChartBox = ({ data, color, playerName }: { data: any[], color: string, playerName: string }) => (
+  const TrendChartBox = ({ data, color, playerName, yDomain }: { data: any[], color: string, playerName: string, yDomain: number[] }) => (
     <div className="bg-muted/20 rounded-lg border p-4 space-y-3">
         <div className="flex items-center justify-between border-b pb-2">
             <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest flex items-center gap-2">
@@ -277,6 +289,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         tickMargin={8}
                         tick={{ fontSize: 9 }}
                         allowDecimals={false}
+                        domain={yDomain}
                     />
                     <ChartTooltip
                         cursor={false}
@@ -382,11 +395,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         data={analysisData.p1Stats.chartData} 
                                         color="hsl(var(--primary))" 
                                         playerName={selectedMatch.player1?.name || 'Pemain 1'}
+                                        yDomain={globalYDomain}
                                     />
                                     <TrendChartBox 
                                         data={analysisData.p2Stats.chartData} 
                                         color="#FACC15" 
                                         playerName={selectedMatch.player2?.name || 'Pemain 2'}
+                                        yDomain={globalYDomain}
                                     />
                                 </div>
                                 
