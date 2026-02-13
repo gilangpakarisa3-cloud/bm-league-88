@@ -202,20 +202,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             return { text: "Mental Stabil", color: "text-muted-foreground" };
         })();
 
+        /**
+         * LOGIKA KARAKTER BERMAIN (PLAY STYLE)
+         * 1. Masih Belajar: Win rate sangat rendah (<30%) atau sering kebobolan banyak (GA > GF && Win Rate < 40%)
+         * 2. Attacking: Rata-rata gol memasukkan tinggi (>= 2.0 per pertandingan)
+         * 3. Defensive & Counter: Rata-rata kebobolan rendah (<= 1.2 per pertandingan) DAN Win Rate kompetitif (>= 40%)
+         * 4. Balanced: Statistik stabil di tengah tanpa bias menyerang atau bertahan yang ekstrim.
+         */
         const playingStyle = (() => {
             if (totalPlayed === 0) return { text: "Belum Terdeteksi", color: "bg-muted/20 text-muted-foreground border-muted", icon: Target };
             
-            // Masih Belajar: Low win rate and negative goal difference
             if (winRate < 30 || (totalGA > totalGF && winRate < 40)) {
                 return { text: "Masih Belajar", color: "bg-orange-500/20 text-orange-400 border-orange-500/50", icon: Target };
             }
             
-            // Attacking: High average goals per game
             if (avgGF >= 2.0) {
                 return { text: "Attacking", color: "bg-red-500/20 text-red-400 border-red-500/50", icon: Zap };
             }
             
-            // Defensive & Counter: Hard to beat, low goals conceded
             if (avgGA <= 1.2 && winRate >= 40) {
                 return { text: "Defensive & Counter", color: "bg-blue-500/20 text-blue-400 border-blue-500/50", icon: ShieldAlert };
             }
