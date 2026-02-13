@@ -341,7 +341,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       </div>
 
       <Dialog open={!!selectedMatch} onOpenChange={(open) => !open && setSelectedMatch(null)}>
-        <DialogContent className="max-w-xl border-primary border-2 p-0 overflow-hidden">
+        <DialogContent className="max-w-3xl border-primary border-2 p-0 overflow-hidden">
             <ScrollArea className="max-h-[90vh]">
                 <div className="p-6 space-y-6">
                     <DialogHeader>
@@ -377,7 +377,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Individu
                                 </h4>
                                 
-                                <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <TrendChartBox 
                                         data={analysisData.p1Stats.chartData} 
                                         color="hsl(var(--primary))" 
