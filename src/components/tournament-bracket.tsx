@@ -135,12 +135,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             trend: m.trendAtMatch
         }))];
 
+        // Mental performance status logic
+        const performanceStatus = (() => {
+            if (currentTrend >= 3) return { text: "Merasa Tak Terkalahkan", color: "text-green-400" };
+            if (currentTrend >= 1) return { text: "Dalam performa yang bagus", color: "text-green-400" };
+            if (currentTrend <= -3) return { text: "Pemain sedang ketakutan", color: "text-red-400" };
+            if (currentTrend <= -1) return { text: "Performa sedang buruk", color: "text-red-400" };
+            return { text: "Mental Stabil", color: "text-muted-foreground" };
+        })();
+
         return {
             entry,
             matches: analyzedMatches,
             winRate,
             finalTrend: currentTrend,
-            chartData
+            chartData,
+            status: performanceStatus
         };
     };
 
@@ -291,16 +301,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </div>
   );
 
-  const TrendChartBox = ({ data, color, playerName, yDomain }: { data: any[], color: string, playerName: string, yDomain: number[] }) => (
+  const TrendChartBox = ({ data, color, playerName, yDomain, status }: { data: any[], color: string, playerName: string, yDomain: number[], status: any }) => (
     <div className="bg-muted/20 rounded-lg border p-4 space-y-3">
-        <div className="flex items-center justify-between border-b pb-2">
-            <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest flex items-center gap-2">
-                <LineChartIcon className="w-3.5 h-3.5" style={{ color }} />
-                Tren {playerName}
-            </h4>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-background border" style={{ color }}>
-                {data[data.length-1]?.trend > 0 ? `+${data[data.length-1]?.trend}` : data[data.length-1]?.trend} PTS
-            </span>
+        <div className="flex flex-col border-b pb-2 gap-1">
+            <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-foreground uppercase tracking-widest flex items-center gap-2">
+                    <LineChartIcon className="w-3.5 h-3.5" style={{ color }} />
+                    Tren {playerName}
+                </h4>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-background border" style={{ color }}>
+                    {data[data.length-1]?.trend > 0 ? `+${data[data.length-1]?.trend}` : data[data.length-1]?.trend} PTS
+                </span>
+            </div>
+            {status && (
+                <p className={cn("text-[9px] font-bold italic uppercase tracking-wider", status.color)}>
+                    "{status.text}"
+                </p>
+            )}
         </div>
         <div className="h-32 w-full">
             <ChartContainer 
@@ -424,7 +441,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                             <div className="space-y-4 pt-4 border-t">
                                 <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest">
-                                    <LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Musim
+                                    <LineChartIcon className="w-4 h-4" /> Grafik Stabilitas Individu
                                 </h4>
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -433,17 +450,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         color="hsl(var(--primary))" 
                                         playerName={selectedMatch.player1?.name || 'Pemain 1'}
                                         yDomain={globalYDomain}
+                                        status={analysisData.p1Stats.status}
                                     />
                                     <TrendChartBox 
                                         data={analysisData.p2Stats.chartData} 
                                         color="#FACC15" 
                                         playerName={selectedMatch.player2?.name || 'Pemain 2'}
                                         yDomain={globalYDomain}
+                                        status={analysisData.p2Stats.status}
                                     />
                                 </div>
                                 
                                 <p className="text-[9px] text-yellow-400 italic text-center leading-tight">
-                                    *Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah) sepanjang kompetisi. Garis yang terus naik menandakan stabilitas performa yang tinggi.
+                                    *Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.
                                 </p>
                             </div>
 
