@@ -481,13 +481,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="space-y-6">
                             {/* Compact Schedule info at the top */}
                             {(isAdmin || hasScheduleInfo) && (
-                                <div className="bg-card border-2 border-primary/20 rounded-lg p-2.5 space-y-2">
-                                    <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
+                                <div className="bg-card border-2 border-primary/20 rounded-lg p-1.5 space-y-1.5 w-fit mx-auto">
+                                    <div className="flex items-center justify-center gap-2 text-primary font-bold text-[9px] uppercase tracking-widest px-2">
                                         <Calendar className="w-3 h-3" /> Rencana Pertandingan (Informasi Saja)
                                     </div>
                                     
                                     {isAdmin && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
+                                        <div className="grid grid-cols-1 sm:flex sm:items-end gap-2 px-2 pb-1">
                                             <div className="space-y-1">
                                                 <Label className="text-[9px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
                                                 <Popover>
@@ -513,7 +513,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                     placeholder="HH:mm" 
                                                     value={tempTime} 
                                                     onChange={(e) => setTempTime(e.target.value)}
-                                                    className="h-8 text-[10px] px-2"
+                                                    className="h-8 text-[10px] px-2 w-20"
                                                 />
                                             </div>
                                             <Button size="sm" onClick={handleSaveInfoSchedule} className="h-8 text-[10px] gap-1.5 px-3">
@@ -523,8 +523,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     )}
                                     
                                     {hasScheduleInfo && (
-                                        <div className="flex justify-center py-1">
-                                            <div className="px-6 py-2 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic w-fit">
+                                        <div className="flex justify-center py-0.5">
+                                            <div className="px-4 py-1.5 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-3 text-xs font-black text-primary italic w-fit">
                                                 <div className="flex items-center gap-1.5">
                                                     <Calendar className="w-3.5 h-3.5" />
                                                     {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
