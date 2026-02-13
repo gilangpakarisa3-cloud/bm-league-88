@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, History, Info, Calendar, Percent, TrendingUp, CheckCircle2, XCircle, MinusCircle, LineChart as LineChartIcon } from 'lucide-react';
+import { Swords, Trophy, User, History, Info, Calendar, Percent, TrendingUp, CheckCircle2, XCircle, MinusCircle, LineChart as LineChartIcon, Clock, Save } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,11 @@ import { Separator } from './ui/separator';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar as CalendarComponent } from './ui/calendar';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -32,6 +37,52 @@ interface TournamentBracketProps {
 
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season }: TournamentBracketProps) {
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+  const [localSchedules, setLocalSchedules] = useState<Record<string, { date: string, time: string }>>({});
+  
+  // State for the inputs in the dialog
+  const [tempDate, setTempDate] = useState<Date | undefined>(undefined);
+  const [tempTime, setTempTime] = useState<string>("");
+
+  // Load informational schedules from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('playoff_info_schedules');
+    if (saved) {
+      try {
+        setLocalSchedules(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to load local schedules", e);
+      }
+    }
+  }, []);
+
+  // Update temp inputs when a match is selected
+  useEffect(() => {
+    if (selectedMatch) {
+      const schedule = localSchedules[selectedMatch.id];
+      if (schedule) {
+        setTempDate(schedule.date ? new Date(schedule.date) : undefined);
+        setTempTime(schedule.time || "");
+      } else {
+        setTempDate(undefined);
+        setTempTime("");
+      }
+    }
+  }, [selectedMatch, localSchedules]);
+
+  const handleSaveInfoSchedule = () => {
+    if (!selectedMatch) return;
+    
+    const newSchedules = {
+      ...localSchedules,
+      [selectedMatch.id]: {
+        date: tempDate ? tempDate.toISOString() : "",
+        time: tempTime
+      }
+    };
+    
+    setLocalSchedules(newSchedules);
+    localStorage.setItem('playoff_info_schedules', JSON.stringify(newSchedules));
+  };
 
   const bracketData = useMemo(() => {
     const rounds = {
@@ -86,7 +137,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return rounds;
   }, [matches, playersById, teamsById, leagueTable, season]);
 
-  // Comprehensive analysis for the selected match
   const analysisData = useMemo(() => {
     if (!selectedMatch || !selectedMatch.player1 || !selectedMatch.player2) return null;
     
@@ -96,7 +146,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         
-        // Filter: Include all completed matches for this season (including previous playoff rounds)
         const playerMatches = matches
             .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
             .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
@@ -105,12 +154,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         const analyzedMatches = playerMatches.map(m => {
             const isP1 = m.player1Id === playerId;
             const opponentId = isP1 ? m.player2Id : m.player1Id;
-
-            // Resolve opponent name from leagueTable or playersById
             const oppEntry = leagueTable.find(e => e.playerId === opponentId);
             const opponentName = oppEntry ? oppEntry.playerName : (playersById[opponentId]?.name || 'Unknown');
             
-            // Playoff wins field first, then falling back to regular scores
             const pScore = isP1 
                 ? (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0))
                 : (m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0));
@@ -120,26 +166,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 : (m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0));
 
             const result = pScore > oScore ? 'W' : pScore < oScore ? 'L' : 'D';
-            
             if (result === 'W') currentTrend += 1;
             else if (result === 'L') currentTrend -= 1;
             
             return { ...m, pScore, oScore, result, opponentName, trendAtMatch: currentTrend };
         });
 
-        // CALCULATE GLOBAL WIN RATE (Grup + Playoff)
         const totalPlayed = analyzedMatches.length;
         const totalWins = analyzedMatches.filter(m => m.result === 'W').length;
         const winRate = totalPlayed > 0 ? (totalWins / totalPlayed) * 100 : 0;
 
-        // Individual chart data starting from 0
         const chartData = [{ match: 0, trend: 0, tooltip: 'Awal Musim' }, ...analyzedMatches.map((m, i) => ({
             match: i + 1,
             trend: m.trendAtMatch,
             tooltip: `vs ${m.opponentName}: ${m.pScore} - ${m.oScore} (${m.result})`
         }))];
 
-        // Mental performance status logic
         const performanceStatus = (() => {
             if (currentTrend >= 3) return { text: "Merasa Tak Terkalahkan", color: "text-green-400" };
             if (currentTrend >= 1) return { text: "Dalam performa yang bagus", color: "text-green-400" };
@@ -158,16 +200,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         };
     };
 
-    const p1Stats = getPlayerStats(id1);
-    const p2Stats = getPlayerStats(id2);
-
     return {
-        p1Stats,
-        p2Stats,
+        p1Stats: getPlayerStats(id1),
+        p2Stats: getPlayerStats(id2),
     };
   }, [selectedMatch, matches, leagueTable, playersById]);
 
-  // Synchronized Y-axis domain for visual consistency
   const globalYDomain = useMemo(() => {
     if (!analysisData) return [-2, 2];
     const allTrendPoints = [
@@ -436,22 +474,75 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </DialogDescription>
                     </DialogHeader>
 
-                    {selectedMatch && analysisData && (
+                    {selectedMatch && (
                         <div className="space-y-6">
                             <div className="grid grid-cols-2 gap-8 relative">
                                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
                                 <PlayerAnalysisColumn 
-                                    stats={analysisData.p1Stats} 
+                                    stats={analysisData?.p1Stats} 
                                     playerInfo={selectedMatch.player1} 
                                     team={selectedMatch.team1} 
                                     variant="primary"
                                 />
                                 <PlayerAnalysisColumn 
-                                    stats={analysisData.p2Stats} 
+                                    stats={analysisData?.p2Stats} 
                                     playerInfo={selectedMatch.player2} 
                                     team={selectedMatch.team2} 
                                     variant="gold"
                                 />
+                            </div>
+
+                            <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-4">
+                                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
+                                    <Calendar className="w-4 h-4" /> Rencana Pertandingan (Informasi Saja)
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" size="sm" className="w-full justify-start font-normal text-xs h-9">
+                                                    <Calendar className="mr-2 h-3 w-3" />
+                                                    {tempDate ? format(tempDate, "eeee, d MMM yyyy", { locale: localeId }) : "Pilih Tanggal"}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <CalendarComponent
+                                                    mode="single"
+                                                    selected={tempDate}
+                                                    onSelect={setTempDate}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Waktu (e.g. 19:30)</Label>
+                                        <Input 
+                                            placeholder="HH:mm" 
+                                            value={tempTime} 
+                                            onChange={(e) => setTempTime(e.target.value)}
+                                            className="h-9 text-xs"
+                                        />
+                                    </div>
+                                    <Button size="sm" onClick={handleSaveInfoSchedule} className="h-9 gap-2">
+                                        <Save className="w-3.5 h-3.5" /> Simpan Info
+                                    </Button>
+                                </div>
+                                
+                                {localSchedules[selectedMatch.id] && (localSchedules[selectedMatch.id].date || localSchedules[selectedMatch.id].time) && (
+                                    <div className="mt-2 p-3 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-4 text-sm font-black text-primary italic">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-4 h-4" />
+                                            {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
+                                        </div>
+                                        <div className="w-px h-4 bg-primary/20" />
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4" />
+                                            {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-4 pt-4 border-t">
@@ -461,18 +552,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <TrendChartBox 
-                                        data={analysisData.p1Stats.chartData} 
+                                        data={analysisData?.p1Stats.chartData} 
                                         color="hsl(var(--primary))" 
                                         playerName={selectedMatch.player1?.name || 'Pemain 1'}
                                         yDomain={globalYDomain}
-                                        status={analysisData.p1Stats.status}
+                                        status={analysisData?.p1Stats.status}
                                     />
                                     <TrendChartBox 
-                                        data={analysisData.p2Stats.chartData} 
+                                        data={analysisData?.p2Stats.chartData} 
                                         color="#FACC15" 
                                         playerName={selectedMatch.player2?.name || 'Pemain 2'}
                                         yDomain={globalYDomain}
-                                        status={analysisData.p2Stats.status}
+                                        status={analysisData?.p2Stats.status}
                                     />
                                 </div>
                                 
