@@ -347,10 +347,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <AvatarImage src={team?.logoUrl} />
                     <AvatarFallback><User /></AvatarFallback>
                 </Avatar>
-                <div>
-                    <p className="text-sm font-bold truncate max-w-[120px]">{playerInfo?.name || 'TBD'}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">{team?.name}</p>
-                    <div className="flex flex-col items-center gap-1 mt-1">
+                <div className="flex flex-col items-center w-full">
+                    <p className="text-sm font-bold truncate max-w-[120px] mx-auto">{playerInfo?.name || 'TBD'}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-semibold mx-auto">{team?.name}</p>
+                    <div className="flex flex-col items-center gap-1 mt-1 w-full">
                         {stats.entry?.group && (
                             <Badge variant="outline" className={cn(
                                 "text-[9px] font-black h-4 px-1.5 uppercase",
