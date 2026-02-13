@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, History, Info, Calendar, Percent, TrendingUp, CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
+import { Swords, Trophy, User, History, Info, Calendar, Percent, TrendingUp, CheckCircle2, XCircle, MinusCircle, LineChart as LineChartIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,8 @@ import { id as localeId } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
-import { Progress } from './ui/progress';
+import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -91,7 +92,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const id1 = selectedMatch.player1Id;
     const id2 = selectedMatch.player2Id;
 
-    // 1. Individual Group Stage Performance Analysis
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         const playerMatches = matches
@@ -115,17 +115,44 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         return {
             entry,
-            matches: [...analyzedMatches].reverse(),
+            matches: analyzedMatches, // Order: oldest to newest for chart
             winRate,
             finalTrend: currentTrend
         };
     };
 
+    const p1Stats = getPlayerStats(id1);
+    const p2Stats = getPlayerStats(id2);
+
+    // Combine trends for chart
+    const maxMatches = Math.max(p1Stats.matches.length, p2Stats.matches.length);
+    const chartData = [{ match: 0, p1: 0, p2: 0 }];
+    
+    for (let i = 0; i < maxMatches; i++) {
+        chartData.push({
+            match: i + 1,
+            p1: p1Stats.matches[i]?.trendAtMatch ?? (i > 0 ? chartData[i].p1 : 0),
+            p2: p2Stats.matches[i]?.trendAtMatch ?? (i > 0 ? chartData[i].p2 : 0)
+        });
+    }
+
     return {
-        p1Stats: getPlayerStats(id1),
-        p2Stats: getPlayerStats(id2)
+        p1Stats,
+        p2Stats,
+        chartData
     };
   }, [selectedMatch, matches, leagueTable]);
+
+  const chartConfig = {
+    p1: {
+      label: selectedMatch?.player1?.name || "Pemain 1",
+      color: "hsl(var(--primary))",
+    },
+    p2: {
+      label: selectedMatch?.player2?.name || "Pemain 2",
+      color: "#FACC15", // Vibrant Gold
+    },
+  } satisfies ChartConfig;
 
   const MatchCard = ({ match }: { match: any }) => (
     <Card 
@@ -137,7 +164,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     >
       <CardContent className="p-0">
         <div className="flex flex-col divide-y divide-border">
-          {/* Player 1 */}
           <div className={cn(
             "flex items-center justify-between px-3 py-2 bg-card",
             match.isWinner1 && "bg-primary/10"
@@ -158,7 +184,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
               {match.isCompleted ? match.score1 : '-'}
             </span>
           </div>
-          {/* Player 2 */}
           <div className={cn(
             "flex items-center justify-between px-3 py-2 bg-card",
             match.isWinner2 && "bg-primary/10"
@@ -184,10 +209,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </Card>
   );
 
-  const PlayerAnalysisColumn = ({ stats, playerInfo, team }: { stats: any, playerInfo: any, team: any }) => (
+  const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary' }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold' }) => (
     <div className="space-y-4">
         <div className="flex flex-col items-center gap-2 text-center">
-            <Avatar className="h-12 w-12 border-2 border-primary/50">
+            <Avatar className={cn("h-12 w-12 border-2", variant === 'gold' ? "border-yellow-400/50" : "border-primary/50")}>
                 <AvatarImage src={team?.logoUrl} />
                 <AvatarFallback><User /></AvatarFallback>
             </Avatar>
@@ -202,23 +227,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <div className="bg-muted/30 p-2 rounded-md border text-center">
                     <p className="text-[10px] text-muted-foreground font-bold uppercase">Win Rate</p>
                     <div className="flex items-center justify-center gap-1">
-                        <Percent className="w-3 h-3 text-primary" />
-                        <p className="text-sm font-black text-primary">{stats.winRate.toFixed(0)}%</p>
+                        <Percent className={cn("w-3 h-3", variant === 'gold' ? "text-yellow-400" : "text-primary")} />
+                        <p className={cn("text-sm font-black", variant === 'gold' ? "text-yellow-400" : "text-primary")}>{stats.winRate.toFixed(0)}%</p>
                     </div>
                 </div>
                 <div className="bg-muted/30 p-2 rounded-md border text-center">
                     <p className="text-[10px] text-muted-foreground font-bold uppercase">Poin Grup</p>
-                    <p className="text-sm font-black text-primary">{stats.entry.points}</p>
+                    <p className={cn("text-sm font-black", variant === 'gold' ? "text-yellow-400" : "text-primary")}>{stats.entry.points}</p>
                 </div>
             </div>
         )}
 
         <div className="space-y-1.5">
             <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                <History className="w-3 h-3" /> Hasil Laga Grup
+                <History className="w-3 h-3" /> Laga Terakhir
             </p>
             <div className="flex flex-wrap gap-1">
-                {stats.matches.map((m: any, i: number) => (
+                {[...stats.matches].reverse().map((m: any, i: number) => (
                     <Badge 
                         key={i} 
                         variant="outline" 
@@ -232,7 +257,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         {m.result}
                     </Badge>
                 ))}
-                {stats.matches.length === 0 && <p className="text-[10px] italic text-muted-foreground">Belum ada data</p>}
             </div>
         </div>
     </div>
@@ -241,8 +265,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   return (
     <div className="w-full overflow-x-auto pb-8 pt-4">
       <div className="min-w-[700px] flex justify-between items-start gap-8 px-4">
-        
-        {/* Quarter Finals */}
         <div className="flex flex-col gap-8">
           <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground text-center mb-2">Perempat Final</h3>
           <div className="flex flex-col gap-6">
@@ -254,7 +276,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
           </div>
         </div>
 
-        {/* Semi Finals */}
         <div className="flex flex-col gap-8">
           <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground text-center mb-2">Semi Final</h3>
           <div className="flex flex-col justify-around flex-grow gap-24 py-12">
@@ -266,7 +287,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
           </div>
         </div>
 
-        {/* Final */}
         <div className="flex flex-col gap-8 items-center">
           <h3 className="text-sm font-bold uppercase tracking-widest text-primary text-center mb-2 flex items-center gap-2">
             <Trophy className="h-4 w-4" /> Grand Final
@@ -286,7 +306,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </div>
       </div>
 
-      {/* Analysis Dialog */}
       <Dialog open={!!selectedMatch} onOpenChange={(open) => !open && setSelectedMatch(null)}>
         <DialogContent className="max-w-xl border-primary border-2 p-0 overflow-hidden">
             <ScrollArea className="max-h-[90vh]">
@@ -294,74 +313,88 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl font-black italic uppercase tracking-tighter">
                             <TrendingUp className="w-6 h-6 text-primary" />
-                            Tren & Momentum Performa
+                            Analisis Tren & Momentum Performa
                         </DialogTitle>
                         <DialogDescription>
-                            Analisis kekuatan dan tren hasil pertandingan masing-masing peserta.
+                            Perbandingan stabilitas hasil pertandingan masing-masing peserta selama fase grup.
                         </DialogDescription>
                     </DialogHeader>
 
                     {selectedMatch && analysisData && (
                         <div className="space-y-8">
-                            {/* Individual Performance Comparison */}
                             <div className="grid grid-cols-2 gap-8 relative">
                                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
                                 <PlayerAnalysisColumn 
                                     stats={analysisData.p1Stats} 
                                     playerInfo={selectedMatch.player1} 
                                     team={selectedMatch.team1} 
+                                    variant="primary"
                                 />
                                 <PlayerAnalysisColumn 
                                     stats={analysisData.p2Stats} 
                                     playerInfo={selectedMatch.player2} 
                                     team={selectedMatch.team2} 
+                                    variant="gold"
                                 />
                             </div>
 
                             <Separator className="bg-primary/20" />
 
-                            {/* Momentum Summary Section */}
                             <div className="space-y-4">
                                 <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest bg-primary/5 p-2 rounded border border-primary/20">
-                                    <Swords className="w-4 h-4" /> Momentum & Stabilitas
+                                    <LineChartIcon className="w-4 h-4" /> Grafik Momentum Akumulatif
                                 </h4>
                                 
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase">
-                                            <span className="truncate max-w-[100px]">{selectedMatch.player1?.name}</span>
-                                            <span className={cn(
-                                                analysisData.p1Stats.finalTrend > 0 ? "text-green-400" : 
-                                                analysisData.p1Stats.finalTrend < 0 ? "text-red-400" : ""
-                                            )}>
-                                                {analysisData.p1Stats.finalTrend > 0 ? `+${analysisData.p1Stats.finalTrend}` : analysisData.p1Stats.finalTrend}
-                                            </span>
-                                        </div>
-                                        <Progress 
-                                            value={Math.max(10, Math.min(100, (analysisData.p1Stats.finalTrend + 5) * 10))} 
-                                            className="h-1.5" 
-                                            color={analysisData.p1Stats.finalTrend > 0 ? "bg-green-500" : analysisData.p1Stats.finalTrend < 0 ? "bg-red-500" : "bg-primary"}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase">
-                                            <span className="truncate max-w-[100px]">{selectedMatch.player2?.name}</span>
-                                            <span className={cn(
-                                                analysisData.p2Stats.finalTrend > 0 ? "text-green-400" : 
-                                                analysisData.p2Stats.finalTrend < 0 ? "text-red-400" : ""
-                                            )}>
-                                                {analysisData.p2Stats.finalTrend > 0 ? `+${analysisData.p2Stats.finalTrend}` : analysisData.p2Stats.finalTrend}
-                                            </span>
-                                        </div>
-                                        <Progress 
-                                            value={Math.max(10, Math.min(100, (analysisData.p2Stats.finalTrend + 5) * 10))} 
-                                            className="h-1.5" 
-                                            color={analysisData.p2Stats.finalTrend > 0 ? "bg-green-500" : analysisData.p2Stats.finalTrend < 0 ? "bg-red-500" : "bg-primary"}
-                                        />
-                                    </div>
+                                <div className="h-48 w-full mt-4">
+                                    <ChartContainer config={chartConfig} className="h-full w-full">
+                                        <LineChart
+                                            data={analysisData.chartData}
+                                            margin={{ left: -20, right: 10, top: 10, bottom: 0 }}
+                                        >
+                                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
+                                            <XAxis
+                                                dataKey="match"
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickMargin={8}
+                                                tickFormatter={(value) => value === 0 ? 'Start' : `M${value}`}
+                                            />
+                                            <YAxis
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickMargin={8}
+                                                allowDecimals={false}
+                                            />
+                                            <ChartTooltip
+                                                cursor={false}
+                                                content={
+                                                    <ChartTooltipContent
+                                                        indicator="dot"
+                                                        labelFormatter={(value) => value === 0 ? "Awal Musim" : `Match ${value}`}
+                                                    />
+                                                }
+                                            />
+                                            <Line
+                                                dataKey="p1"
+                                                type="monotone"
+                                                stroke="hsl(var(--primary))"
+                                                strokeWidth={3}
+                                                dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                                                activeDot={{ r: 6 }}
+                                            />
+                                            <Line
+                                                dataKey="p2"
+                                                type="monotone"
+                                                stroke="#FACC15"
+                                                strokeWidth={3}
+                                                dot={{ fill: "#FACC15", r: 4 }}
+                                                activeDot={{ r: 6 }}
+                                            />
+                                        </LineChart>
+                                    </ChartContainer>
                                 </div>
                                 <p className="text-[9px] text-muted-foreground italic text-center leading-tight">
-                                    *Momentum bar menunjukkan akumulasi hasil positif vs negatif selama fase grup. Semakin tinggi nilainya, semakin stabil performa pemain tersebut.
+                                    *Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.
                                 </p>
                             </div>
 
