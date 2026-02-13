@@ -479,22 +479,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                     {selectedMatch && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-8 relative">
-                                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
-                                <PlayerAnalysisColumn 
-                                    stats={analysisData?.p1Stats} 
-                                    playerInfo={selectedMatch.player1} 
-                                    team={selectedMatch.team1} 
-                                    variant="primary"
-                                />
-                                <PlayerAnalysisColumn 
-                                    stats={analysisData?.p2Stats} 
-                                    playerInfo={selectedMatch.player2} 
-                                    team={selectedMatch.team2} 
-                                    variant="gold"
-                                />
-                            </div>
-
+                            {/* Schedule info at the top */}
                             {(isAdmin || hasScheduleInfo) && (
                                 <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-4">
                                     <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
@@ -552,6 +537,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     )}
                                 </div>
                             )}
+
+                            <div className="grid grid-cols-2 gap-8 relative">
+                                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/50 hidden sm:block" />
+                                <PlayerAnalysisColumn 
+                                    stats={analysisData?.p1Stats} 
+                                    playerInfo={selectedMatch.player1} 
+                                    team={selectedMatch.team1} 
+                                    variant="primary"
+                                />
+                                <PlayerAnalysisColumn 
+                                    stats={analysisData?.p2Stats} 
+                                    playerInfo={selectedMatch.player2} 
+                                    team={selectedMatch.team2} 
+                                    variant="gold"
+                                />
+                            </div>
 
                             <div className="space-y-4 pt-4 border-t">
                                 <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest">
