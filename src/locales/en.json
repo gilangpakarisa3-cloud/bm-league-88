@@ -222,6 +222,8 @@
   "fun_stats_most_wins_tooltip": "With {{value}} wins",
   "fun_stats_best_attacker": "Best Attacker",
   "fun_stats_best_attacker_tooltip": "Scored {{value}} goals",
+  "fun_stats_best_defense": "Best Defense",
+  "fun_stats_best_defense_desc": "Player with the fewest goals conceded (Min. 3 Matches).",
   "fun_stats_worst_defense": "Worst Defense",
   "fun_stats_worst_defense_tooltip": "Conceded {{value}} goals",
   "match_history": "Match History",

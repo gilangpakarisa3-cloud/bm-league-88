@@ -37,6 +37,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 mostWins: [],
                 unbeaten: [],
                 bestAttacker: [],
+                bestDefense: [],
                 worstDefender: [],
                 kingOfDraws: [],
                 championshipContenders: [],
@@ -45,7 +46,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
 
         const playersWhoPlayed = tableData.filter(p => p.played > 0);
         if (playersWhoPlayed.length === 0) {
-             return { mostWins: [], unbeaten: [], bestAttacker: [], worstDefender: [], kingOfDraws: [], championshipContenders: [] };
+             return { mostWins: [], unbeaten: [], bestAttacker: [], bestDefense: [], worstDefender: [], kingOfDraws: [], championshipContenders: [] };
         }
 
         const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
@@ -54,6 +55,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         const unbeaten = playersWhoPlayed.filter(p => p.loss === 0 && p.played > 0);
         
         let bestAttacker: any[] = [];
+        let bestDefense: any[] = [];
         let worstDefender: any[] = [];
         let kingOfDraws: any[] = [];
         let championshipContenders: any[] = [];
@@ -64,6 +66,13 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
             bestAttacker = playersWhoPlayed.filter(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
             
+            // Best Defense logic: fewest goals conceded with min 3 matches
+            const qualifiedForDefense = playersWhoPlayed.filter(p => p.played >= 3);
+            if (qualifiedForDefense.length > 0) {
+                const minGoalsAgainst = Math.min(...qualifiedForDefense.map(p => p.goalsAgainst || 0));
+                bestDefense = qualifiedForDefense.filter(p => p.goalsAgainst === minGoalsAgainst);
+            }
+
             const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst || 0));
             worstDefender = playersWhoPlayed.filter(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
             
@@ -75,7 +84,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 .map(p => ({...p, pointsBehind: leaderPoints - p.points }));
         }
 
-        return { mostWins, unbeaten, bestAttacker, worstDefender, kingOfDraws, championshipContenders };
+        return { mostWins, unbeaten, bestAttacker, bestDefense, worstDefender, kingOfDraws, championshipContenders };
     }, [tableData, seasonType]);
 
     if (isLoading) {
@@ -91,7 +100,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
     
     const showUnbeaten = stats.unbeaten.length > 0;
 
-    if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.worstDefender.length === 0 && stats.kingOfDraws.length === 0 && stats.championshipContenders.length === 0) {
+    if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.bestDefense.length === 0 && stats.worstDefender.length === 0 && stats.kingOfDraws.length === 0 && stats.championshipContenders.length === 0) {
         return (
              <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
@@ -207,6 +216,29 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 </Card>
             )}
 
+            {(seasonType || 'Single') === 'Single' && stats.bestDefense.length > 0 && (
+                 <Card className="bg-card border-2 border-primary">
+                    <CardHeader className="pb-2">
+                        <div className="flex items-center gap-2">
+                            <ShieldCheck className="text-primary h-5 w-5"/>
+                            <CardTitle className="text-base font-bold text-foreground">{t('fun_stats_best_defense')}</CardTitle>
+                        </div>
+                        <CardDescription className="text-xs pt-1">{t('fun_stats_best_defense_desc')}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-4">
+                        {stats.bestDefense.map(player => (
+                            <div key={player.id} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8"><AvatarImage src={player.team?.logoUrl} alt={player.playerName} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                    <div><p className="text-sm font-semibold">{player.playerName}</p><p className="text-xs text-muted-foreground">{player.teamName}</p></div>
+                                </div>
+                                <span className="text-2xl font-bold text-green-400">{player.goalsAgainst} <span className="text-sm">kebobolan</span></span>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            )}
+
              {showUnbeaten && (
                 <Card className="bg-card border-2 border-primary">
                     <CardHeader className="pb-2">
@@ -260,5 +292,3 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         </div>
     );
 }
-
-    
