@@ -205,7 +205,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         /**
          * LOGIKA KARAKTER BERMAIN (PLAY STYLE)
          * 1. Masih Belajar: Win rate sangat rendah (<30%) atau sering kebobolan banyak (GA > GF && Win Rate < 40%)
-         * 2. Attacking: Rata-rata gol memasukkan tinggi (>= 2.0 per pertandingan)
+         * 2. Attacking: Rata-rata gol memasukkan tinggi (>= 1.5 per pertandingan)
          * 3. Defensive & Counter: Rata-rata kebobolan rendah (<= 1.2 per pertandingan) DAN Win Rate kompetitif (>= 40%)
          * 4. Balanced: Statistik stabil di tengah tanpa bias menyerang atau bertahan yang ekstrim.
          */
@@ -216,7 +216,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 return { text: "Masih Belajar", color: "bg-orange-500/20 text-orange-400 border-orange-500/50", icon: Target };
             }
             
-            if (avgGF >= 2.0) {
+            if (avgGF >= 1.5) {
                 return { text: "Attacking", color: "bg-red-500/20 text-red-400 border-red-500/50", icon: Zap };
             }
             
