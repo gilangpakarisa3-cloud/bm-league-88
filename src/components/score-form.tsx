@@ -227,12 +227,12 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
             <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
                 <Clock className="w-3 h-3" /> Informasi Kick-Off
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                 <FormField
                   control={form.control}
                   name="date"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel className="text-[10px] font-bold uppercase text-muted-foreground">Hari & Tanggal</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -246,7 +246,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             >
                               <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                               {field.value ? (
-                                format(field.value, "eeee, d MMM yyyy", { locale: z.string().includes('id') ? undefined : undefined }) // locale can be added here
+                                format(field.value, "eeee, d MMM yyyy")
                               ) : (
                                 <span>Pilih Tanggal</span>
                               )}
