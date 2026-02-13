@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid } from 'lucide-react';
+import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords } from 'lucide-react';
 import { EditableNotice } from '@/components/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Season, LeagueEntry, WithId, Player, Team } from '@/lib/types';
+import type { Season, LeagueEntry, WithId, Player, Team, Match } from '@/lib/types';
 import { useState, useMemo, useEffect } from 'react';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { PlayerMarquee } from '@/components/player-marquee';
 import { LiveClock } from '@/components/live-clock';
 import { Badge } from '@/components/ui/badge';
+import { TournamentBracket } from '@/components/tournament-bracket';
 
 
 const LEAGUE_ID = 'main-league';
@@ -69,6 +70,18 @@ function LeaderboardSection() {
 
   const { data: allLeaguePlayers, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableQuery);
   
+  const matchesQuery = useMemoFirebase(
+    () => (firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null),
+    [firestore, activeSeasonId]
+  );
+  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesQuery);
+
+  const playersQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'players') : null),
+    [firestore]
+  );
+  const { data: allPlayers } = useCollection<Player>(playersQuery);
+
   const teamsCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'teams') : null),
     [firestore]
@@ -82,7 +95,19 @@ function LeaderboardSection() {
         return acc;
     }, {} as Record<string, WithId<Team>>);
   }, [allTeams]);
+
+  const playersById = useMemo(() => {
+    if (!allPlayers) return {};
+    return allPlayers.reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+    }, {} as Record<string, WithId<Player>>);
+  }, [allPlayers]);
   
+  const hasPlayoffs = useMemo(() => {
+    return matches?.some(m => m.round && m.round !== 'Group') || false;
+  }, [matches]);
+
   const leaderboardData = useMemo(() => {
     if (!allLeaguePlayers || !activeSeason) return null;
 
@@ -126,7 +151,26 @@ function LeaderboardSection() {
     };
   }, [allLeaguePlayers, teamsById, isCoop, isHybrid, activeSeason]);
 
-  const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams;
+  const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams || isLoadingMatches;
+
+  if (isLoading) {
+      return (
+          <section className="space-y-8">
+              <div className="flex flex-col items-center gap-2 mb-2">
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-8 w-64" />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <Card className="border-2 border-primary overflow-hidden bg-card">
+                      <LeaderboardSkeleton />
+                  </Card>
+                  <Card className="border-2 border-primary overflow-hidden bg-card">
+                      <LeaderboardSkeleton />
+                  </Card>
+              </div>
+          </section>
+      )
+  }
 
   return (
      <section className="space-y-8">
@@ -139,74 +183,70 @@ function LeaderboardSection() {
             </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {isLoading ? (
-                <>
-                    <div className="flex flex-col">
-                        <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
-                            <Trophy className="w-5 h-5"/>{isHybrid ? "Top Grup A" : t('home_top_players')}
-                        </h2>
-                        <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
-                            <LeaderboardSkeleton />
-                        </Card>
-                    </div>
-                    <div className="flex flex-col">
-                        <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
-                            <Trophy className="w-5 h-5"/>{isHybrid ? "Top Grup B" : ""}
-                        </h2>
-                        <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
-                            <LeaderboardSkeleton />
-                        </Card>
-                    </div>
-                </>
-            ) : leaderboardData ? (
-                isHybrid ? (
-                    <>
-                        <div className="flex flex-col">
+        {hasPlayoffs ? (
+            <div className="w-full overflow-hidden rounded-lg border-2 border-primary bg-card shadow-lg shadow-primary/20 p-4">
+                <h2 className="text-xl font-bold mb-6 text-primary flex items-center justify-center gap-2">
+                    <Swords className="w-5 h-5"/> Bagan Babak Playoff
+                </h2>
+                <TournamentBracket 
+                    matches={matches || []}
+                    playersById={playersById}
+                    teamsById={teamsById}
+                    leagueTable={allLeaguePlayers || []}
+                    season={activeSeason || null}
+                />
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {leaderboardData ? (
+                    isHybrid ? (
+                        <>
+                            <div className="flex flex-col">
+                                <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                                    <Trophy className="w-5 h-5"/>4 Besar Grup A
+                                </h2>
+                                <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                                    {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
+                                        <LeaderboardTable players={leaderboardData.groupA} />
+                                    ) : (
+                                        <div className="p-8 text-center text-muted-foreground">Belum ada data grup A</div>
+                                    )}
+                                </Card>
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
+                                    <Trophy className="w-5 h-5"/>4 Besar Grup B
+                                </h2>
+                                <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
+                                    {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
+                                        <LeaderboardTable players={leaderboardData.groupB} />
+                                    ) : (
+                                        <div className="p-8 text-center text-muted-foreground">Belum ada data grup B</div>
+                                    )}
+                                </Card>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="lg:col-span-2 flex flex-col max-w-3xl mx-auto w-full">
                             <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
-                                <Trophy className="w-5 h-5"/>4 Besar Grup A
+                                <Trophy className="w-5 h-5"/>{t('home_top_players')}
                             </h2>
                             <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
-                                {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
-                                    <LeaderboardTable players={leaderboardData.groupA} />
+                                {leaderboardData.top && leaderboardData.top.length > 0 ? (
+                                    <LeaderboardTable players={leaderboardData.top} />
                                 ) : (
-                                    <div className="p-8 text-center text-muted-foreground">Belum ada data grup A</div>
+                                    <div className="p-8 text-center text-muted-foreground">Belum ada pemain di liga.</div>
                                 )}
                             </Card>
                         </div>
-                        <div className="flex flex-col">
-                            <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
-                                <Trophy className="w-5 h-5"/>4 Besar Grup B
-                            </h2>
-                            <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
-                                {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
-                                    <LeaderboardTable players={leaderboardData.groupB} />
-                                ) : (
-                                    <div className="p-8 text-center text-muted-foreground">Belum ada data grup B</div>
-                                )}
-                            </Card>
-                        </div>
-                    </>
+                    )
                 ) : (
-                    <div className="lg:col-span-2 flex flex-col max-w-3xl mx-auto w-full">
-                        <h2 className="text-xl font-bold mb-4 text-primary flex items-center justify-center gap-2">
-                            <Trophy className="w-5 h-5"/>{t('home_top_players')}
-                        </h2>
-                        <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
-                            {leaderboardData.top && leaderboardData.top.length > 0 ? (
-                                <LeaderboardTable players={leaderboardData.top} />
-                            ) : (
-                                <div className="p-8 text-center text-muted-foreground">Belum ada pemain di liga.</div>
-                            )}
-                        </Card>
+                    <div className="lg:col-span-2 p-8 text-center text-muted-foreground h-full flex items-center justify-center">
+                        {t('no_players_yet')}
                     </div>
-                )
-            ) : (
-                <div className="lg:col-span-2 p-8 text-center text-muted-foreground h-full flex items-center justify-center">
-                    {t('no_players_yet')}
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        )}
     </section>
   )
 }
