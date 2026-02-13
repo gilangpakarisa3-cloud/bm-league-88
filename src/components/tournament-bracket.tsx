@@ -147,7 +147,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const getPlayerStats = (playerId: string) => {
         const entry = leagueTable.find(e => e.playerId === playerId);
         
-        // Calculate rank within the group for Hybrid seasons
         const groupRank = (entry && entry.group)
             ? leagueTable
                 .filter(e => e.group === entry.group)
@@ -194,6 +193,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         const totalPlayed = analyzedMatches.length;
         const totalWins = analyzedMatches.filter(m => m.result === 'W').length;
+        const totalLosses = analyzedMatches.filter(m => m.result === 'L').length;
+        const totalDraws = analyzedMatches.filter(m => m.result === 'D').length;
         const winRate = totalPlayed > 0 ? (totalWins / totalPlayed) * 100 : 0;
         
         const avgGF = totalPlayed > 0 ? totalGF / totalPlayed : 0;
@@ -220,7 +221,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             return { text: "Balanced", color: "bg-primary/20 text-primary border-primary/50", icon: Target };
         })();
 
-        return { entry: entry ? { ...entry, groupRank } : null, matches: analyzedMatches, winRate, finalTrend: currentTrend, chartData, status: performanceStatus, playingStyle };
+        return { 
+            entry: entry ? { ...entry, groupRank } : null, 
+            matches: analyzedMatches, 
+            winRate, 
+            finalTrend: currentTrend, 
+            chartData, 
+            status: performanceStatus, 
+            playingStyle,
+            totalWins,
+            totalLosses,
+            totalDraws,
+            totalPlayed,
+            totalGF,
+            totalGA,
+            totalGD: totalGF - totalGA
+        };
     };
 
     return {
@@ -359,6 +375,35 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
                 </div>
             )}
+
+            <div className="grid grid-cols-3 gap-1 relative z-10 pt-2 border-t border-border/30">
+                <div className="flex flex-col items-center">
+                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Win</span>
+                    <span className="text-xs font-black text-green-400">{stats.totalWins}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Draw</span>
+                    <span className="text-xs font-black text-yellow-400">{stats.totalDraws}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Lose</span>
+                    <span className="text-xs font-black text-red-400">{stats.totalLosses}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <span className="text-[8px] font-bold text-muted-foreground uppercase">GF</span>
+                    <span className="text-xs font-black text-primary">{stats.totalGF}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <span className="text-[8px] font-bold text-muted-foreground uppercase">GA</span>
+                    <span className="text-xs font-black text-foreground">{stats.totalGA}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <span className="text-[8px] font-bold text-muted-foreground uppercase">GD</span>
+                    <span className={cn("text-xs font-black", stats.totalGD >= 0 ? "text-primary" : "text-red-400")}>
+                        {stats.totalGD > 0 ? `+${stats.totalGD}` : stats.totalGD}
+                    </span>
+                </div>
+            </div>
 
             <div className="space-y-1.5 relative z-10">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
