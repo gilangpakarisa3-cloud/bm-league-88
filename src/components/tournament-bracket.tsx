@@ -33,9 +33,10 @@ interface TournamentBracketProps {
   teamsById: Record<string, WithId<Team>>;
   leagueTable: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
   season: WithId<Season> | null;
+  isAdmin?: boolean;
 }
 
-export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season }: TournamentBracketProps) {
+export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false }: TournamentBracketProps) {
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   const [localSchedules, setLocalSchedules] = useState<Record<string, { date: string, time: string }>>({});
   
@@ -413,6 +414,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </div>
   );
 
+  const hasScheduleInfo = selectedMatch && localSchedules[selectedMatch.id] && (localSchedules[selectedMatch.id].date || localSchedules[selectedMatch.id].time);
+
   return (
     <div className="w-full overflow-x-auto pb-8 pt-4">
       <div className="min-w-[700px] flex justify-between items-start gap-8 px-4">
@@ -492,58 +495,63 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 />
                             </div>
 
-                            <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-4">
-                                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
-                                    <Calendar className="w-4 h-4" /> Rencana Pertandingan (Informasi Saja)
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" size="sm" className="w-full justify-start font-normal text-xs h-9">
-                                                    <Calendar className="mr-2 h-3 w-3" />
-                                                    {tempDate ? format(tempDate, "eeee, d MMM yyyy", { locale: localeId }) : "Pilih Tanggal"}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <CalendarComponent
-                                                    mode="single"
-                                                    selected={tempDate}
-                                                    onSelect={setTempDate}
-                                                    initialFocus
+                            {(isAdmin || hasScheduleInfo) && (
+                                <div className="bg-card border-2 border-primary/20 rounded-lg p-4 space-y-4">
+                                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
+                                        <Calendar className="w-4 h-4" /> Rencana Pertandingan (Informasi Saja)
+                                    </div>
+                                    
+                                    {isAdmin && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                            <div className="space-y-2">
+                                                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Pilih Hari/Tanggal</Label>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="outline" size="sm" className="w-full justify-start font-normal text-xs h-9">
+                                                            <Calendar className="mr-2 h-3 w-3" />
+                                                            {tempDate ? format(tempDate, "eeee, d MMM yyyy", { locale: localeId }) : "Pilih Tanggal"}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <CalendarComponent
+                                                            mode="single"
+                                                            selected={tempDate}
+                                                            onSelect={setTempDate}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Waktu (e.g. 19:30)</Label>
+                                                <Input 
+                                                    placeholder="HH:mm" 
+                                                    value={tempTime} 
+                                                    onChange={(e) => setTempTime(e.target.value)}
+                                                    className="h-9 text-xs"
                                                 />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Waktu (e.g. 19:30)</Label>
-                                        <Input 
-                                            placeholder="HH:mm" 
-                                            value={tempTime} 
-                                            onChange={(e) => setTempTime(e.target.value)}
-                                            className="h-9 text-xs"
-                                        />
-                                    </div>
-                                    <Button size="sm" onClick={handleSaveInfoSchedule} className="h-9 gap-2">
-                                        <Save className="w-3.5 h-3.5" /> Simpan Info
-                                    </Button>
+                                            </div>
+                                            <Button size="sm" onClick={handleSaveInfoSchedule} className="h-9 gap-2">
+                                                <Save className="w-3.5 h-3.5" /> Simpan Info
+                                            </Button>
+                                        </div>
+                                    )}
+                                    
+                                    {hasScheduleInfo && (
+                                        <div className="mt-2 p-3 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-4 text-sm font-black text-primary italic">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="w-4 h-4" />
+                                                {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
+                                            </div>
+                                            <div className="w-px h-4 bg-primary/20" />
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4" />
+                                                {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                
-                                {localSchedules[selectedMatch.id] && (localSchedules[selectedMatch.id].date || localSchedules[selectedMatch.id].time) && (
-                                    <div className="mt-2 p-3 bg-primary/5 rounded border border-primary/20 flex items-center justify-center gap-4 text-sm font-black text-primary italic">
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4" />
-                                            {localSchedules[selectedMatch.id].date ? format(new Date(localSchedules[selectedMatch.id].date), "eeee, d MMMM yyyy", { locale: localeId }) : "Hari belum ditentukan"}
-                                        </div>
-                                        <div className="w-px h-4 bg-primary/20" />
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4" />
-                                            {localSchedules[selectedMatch.id].time || "Jam belum ditentukan"}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            )}
 
                             <div className="space-y-4 pt-4 border-t">
                                 <h4 className="text-xs font-bold flex items-center gap-2 text-primary uppercase tracking-widest">

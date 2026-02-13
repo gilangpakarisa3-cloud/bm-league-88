@@ -310,6 +310,7 @@ export function LeagueTable({
                         teamsById={teamsById}
                         leagueTable={tableData}
                         season={activeSeason}
+                        isAdmin={isAdmin}
                     />
                 </TabsContent>
             </Tabs>
