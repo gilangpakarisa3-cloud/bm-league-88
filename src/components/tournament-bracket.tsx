@@ -127,7 +127,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             return { ...m, pScore, oScore, result, opponentName, trendAtMatch: currentTrend };
         });
 
-        const winRate = entry && entry.played > 0 ? (entry.win / entry.played) * 100 : 0;
+        // CALCULATE GLOBAL WIN RATE (Grup + Playoff)
+        const totalPlayed = analyzedMatches.length;
+        const totalWins = analyzedMatches.filter(m => m.result === 'W').length;
+        const winRate = totalPlayed > 0 ? (totalWins / totalPlayed) * 100 : 0;
 
         // Individual chart data starting from 0
         const chartData = [{ match: 0, trend: 0, tooltip: 'Awal Musim' }, ...analyzedMatches.map((m, i) => ({
