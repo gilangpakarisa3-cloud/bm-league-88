@@ -1,11 +1,21 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User } from 'lucide-react';
+import { Swords, Trophy, User, History, Info, Calendar } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { format } from 'date-fns';
+import { id as localeId } from 'date-fns/locale';
+import { Badge } from './ui/badge';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -16,6 +26,8 @@ interface TournamentBracketProps {
 }
 
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season }: TournamentBracketProps) {
+  const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+
   const bracketData = useMemo(() => {
     const rounds = {
       'Quarter-Final': [] as any[],
@@ -23,7 +35,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       'Final': [] as any[],
     };
 
-    // Create a mapping of player ID to their specific team info for this season
     const leagueEntryMap = leagueTable.reduce((acc, entry) => {
         acc[entry.playerId] = entry;
         return acc;
@@ -37,14 +48,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         const p1 = entry1 ? { name: entry1.playerName, id: entry1.playerId } : (playersById[match.player1Id] || null);
         const p2 = entry2 ? { name: entry2.playerName, id: entry2.playerId } : (playersById[match.player2Id] || null);
         
-        // Use the team ID assigned in the league table for historical consistency
         const teamId1 = entry1 ? entry1.teamId : (playersById[match.player1Id]?.teamId);
         const teamId2 = entry2 ? entry2.teamId : (playersById[match.player2Id]?.teamId);
 
         const t1 = teamsById[teamId1] || null;
         const t2 = teamsById[teamId2] || null;
 
-        // Identification of scores: Prioritize win fields (Bo3) then standard scores (Bo1)
         const score1 = match.player1Wins !== null ? match.player1Wins : (match.player1Score ?? 0);
         const score2 = match.player2Wins !== null ? match.player2Wins : (match.player2Score ?? 0);
         
@@ -65,7 +74,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       }
     });
 
-    // Sort matches within rounds by matchDate to keep them sequential as generated
     Object.keys(rounds).forEach(key => {
         rounds[key as keyof typeof rounds].sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
     });
@@ -73,11 +81,40 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return rounds;
   }, [matches, playersById, teamsById, leagueTable, season]);
 
+  // Find head-to-head group stage matches between the two players in the selected match
+  const h2hMatches = useMemo(() => {
+    if (!selectedMatch || !selectedMatch.player1 || !selectedMatch.player2) return [];
+    
+    const id1 = selectedMatch.player1Id;
+    const id2 = selectedMatch.player2Id;
+
+    return matches.filter(m => 
+        (m.round === 'Group' || !m.round) && 
+        m.isCompleted &&
+        ((m.player1Id === id1 && m.player2Id === id2) || (m.player1Id === id2 && m.player2Id === id1))
+    ).map(m => {
+        const isP1Home = m.player1Id === id1;
+        const score1 = m.player1Score ?? m.player1Wins ?? 0;
+        const score2 = m.player2Score ?? m.player2Wins ?? 0;
+        
+        return {
+            ...m,
+            homeScore: isP1Home ? score1 : score2,
+            awayScore: isP1Home ? score2 : score1,
+            isWin: isP1Home ? score1 > score2 : score2 > score1,
+            isDraw: score1 === score2
+        };
+    });
+  }, [selectedMatch, matches]);
+
   const MatchCard = ({ match }: { match: any }) => (
-    <Card className={cn(
-        "w-48 sm:w-56 overflow-hidden border-2 transition-all",
-        match.isCompleted ? "border-primary/30" : "border-muted border-dashed"
-    )}>
+    <Card 
+        className={cn(
+            "w-48 sm:w-56 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50",
+            match.isCompleted ? "border-primary/30" : "border-muted border-dashed"
+        )}
+        onClick={() => setSelectedMatch(match)}
+    >
       <CardContent className="p-0">
         <div className="flex flex-col divide-y divide-border">
           {/* Player 1 */}
@@ -173,8 +210,88 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             )}
           </div>
         </div>
-
       </div>
+
+      {/* Head-to-Head Analysis Dialog */}
+      <Dialog open={!!selectedMatch} onOpenChange={(open) => !open && setSelectedMatch(null)}>
+        <DialogContent className="max-w-md border-primary border-2">
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                    <History className="w-5 h-5 text-primary" />
+                    Analisis Pertandingan
+                </DialogTitle>
+                <DialogDescription>
+                    Riwayat pertemuan fase grup antara kedua pemain ini.
+                </DialogDescription>
+            </DialogHeader>
+
+            {selectedMatch && (
+                <div className="space-y-6 py-4">
+                    <div className="flex items-center justify-between bg-muted/30 p-4 rounded-lg border border-primary/20">
+                        <div className="flex flex-col items-center gap-2 w-1/3">
+                            <Avatar className="h-12 w-12 border-2 border-primary">
+                                <AvatarImage src={selectedMatch.team1?.logoUrl} />
+                                <AvatarFallback><User /></AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs font-bold text-center">{selectedMatch.player1?.name || 'TBD'}</span>
+                        </div>
+                        <Swords className="w-6 h-6 text-primary animate-pulse" />
+                        <div className="flex flex-col items-center gap-2 w-1/3">
+                            <Avatar className="h-12 w-12 border-2 border-primary">
+                                <AvatarImage src={selectedMatch.team2?.logoUrl} />
+                                <AvatarFallback><User /></AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs font-bold text-center">{selectedMatch.player2?.name || 'TBD'}</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <h4 className="text-sm font-bold flex items-center gap-2 text-primary uppercase tracking-widest">
+                            <Info className="w-4 h-4" /> Hasil Fase Grup
+                        </h4>
+                        
+                        {h2hMatches.length > 0 ? (
+                            <div className="space-y-2">
+                                {h2hMatches.map((m, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-md bg-card border border-border text-sm">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                {format(m.matchDate.toDate(), 'd MMM yyyy', { locale: localeId })}
+                                            </span>
+                                            <span className="font-bold">
+                                                {m.isWin ? (
+                                                    <span className="text-green-400">Menang</span>
+                                                ) : m.isDraw ? (
+                                                    <span className="text-yellow-400">Seri</span>
+                                                ) : (
+                                                    <span className="text-red-400">Kalah</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="text-lg font-mono font-black text-primary bg-primary/5 px-3 py-1 rounded border border-primary/20">
+                                            {m.homeScore} - {m.awayScore}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/10">
+                                <p className="text-sm text-muted-foreground italic">Belum ada riwayat pertemuan di fase grup.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="pt-2 border-t border-border">
+                        <div className="flex justify-between items-center text-xs font-semibold">
+                            <span className="text-muted-foreground uppercase">Status Babak:</span>
+                            <Badge variant="outline" className="border-primary text-primary">{selectedMatch.round}</Badge>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
