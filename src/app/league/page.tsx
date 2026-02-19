@@ -432,8 +432,7 @@ export default function LeaguePage() {
                     seasonId: activeSeasonId,
                     player1Id: player1Id,
                     player2Id: player2Id,
-                    player1Score: null,
-                    player2Score: null,
+                    player1Score: null, player2Score: null,
                     player1Wins: null,
                     player2Wins: null,
                     isCompleted: false,
@@ -954,7 +953,7 @@ export default function LeaguePage() {
       }
 
       const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst || 0));
-      const worstDefenderPlayer = playersWhoPlayed.find(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
+      worstDefenderPlayer = playersWhoPlayed.find(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
       if (worstDefenderPlayer) {
           worstDefender = { playerName: worstDefenderPlayer.playerName, value: worstDefenderPlayer.goalsAgainst };
       }
@@ -1078,7 +1077,7 @@ export default function LeaguePage() {
           
           {/* Season Selection Group */}
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/30 h-10 px-3 bg-card/50 hidden sm:flex">Musim</Badge>
+            <Badge className="text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-primary h-10 px-3 hidden sm:flex italic shadow-[0_0_10px_rgba(204,253,1,0.4)]">Musim</Badge>
             <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
                 <SelectTrigger className="w-full sm:w-[200px] h-10 bg-background/50 border-primary/30">
                     <SelectValue placeholder={t('select_a_season')} />

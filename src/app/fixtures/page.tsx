@@ -837,7 +837,7 @@ export default function FixturesPage() {
             isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
             <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/30 h-10 px-3 bg-card/50 hidden sm:flex">Musim</Badge>
+                <Badge className="text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-primary h-10 px-3 hidden sm:flex italic shadow-[0_0_10px_rgba(204,253,1,0.4)]">Musim</Badge>
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
                     <SelectTrigger className="w-full sm:w-[200px] h-10 bg-background/50 border-primary/30">
                         <SelectValue placeholder={t('select_a_season')} />
@@ -900,6 +900,9 @@ export default function FixturesPage() {
                     player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }}
                 />
             )}
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setEditingMatch(null)}>{t('cancel')}</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
