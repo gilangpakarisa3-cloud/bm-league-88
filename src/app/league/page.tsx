@@ -425,16 +425,12 @@ export default function LeaguePage() {
     const batch = writeBatch(firestore);
     const now = Date.now();
 
+    // UB Quarter Finals (Matches 1-4)
     const ubQuarterPairings = [
-      { p1: groupA[0], p2: groupB[3] }, // M1: 1A vs 4B
-      { p1: groupB[1], p2: groupA[2] }, // M2: 2B vs 3A
-      { p1: groupB[0], p2: groupA[3] }, // M3: 1B vs 4A
-      { p1: groupA[1], p2: groupB[2] }, // M4: 2A vs 3B
-    ];
-
-    const lbRound1Pairings = [
-      { p1: groupA[4], p2: groupB[5] }, // M5: 5A vs 6B
-      { p1: groupB[4], p2: groupA[5] }, // M6: 5B vs 6A
+      { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, // M1: 1A vs 4B
+      { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' }, // M2: 2B vs 3A
+      { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, // M3: 1B vs 4A
+      { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' }, // M4: 2A vs 3B
     ];
 
     ubQuarterPairings.forEach((p, i) => {
@@ -442,28 +438,36 @@ export default function LeaguePage() {
         seasonId: activeSeasonId, player1Id: p.p1.playerId, player2Id: p.p2.playerId,
         player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
         isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 1) * 1000), 
-        round: 'UB-Quarter', bracketId: `playoff-m${i + 1}`
+        round: 'UB-Quarter', bracketId: p.bid
       };
       batch.set(doc(matchesCollectionRef), matchData);
     });
 
-    lbRound1Pairings.forEach((p, i) => {
-      const matchData: Omit<Match, 'id'> = {
-        seasonId: activeSeasonId, player1Id: p.p1.playerId, player2Id: p.p2.playerId,
-        player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
-        isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 5) * 1000),
-        round: 'LB-Round 1', bracketId: `playoff-m${i + 5}`
-      };
-      batch.set(doc(matchesCollectionRef), matchData);
+    // LB Round 1 (Matches 5-8): Waiting for UB losers
+    const lbRound1Starters = [
+        { p1: groupA[4], bid: 'playoff-m5', label: 'Rank 5A' },
+        { p1: groupB[4], bid: 'playoff-m6', label: 'Rank 5B' },
+        { p1: groupA[5], bid: 'playoff-m7', label: 'Rank 6A' },
+        { p1: groupB[5], bid: 'playoff-m8', label: 'Rank 6B' }
+    ];
+
+    lbRound1Starters.forEach((p, i) => {
+        const matchData: Omit<Match, 'id'> = {
+            seasonId: activeSeasonId, player1Id: p.p1.playerId, player2Id: 'TBD',
+            player1Score: null, player2Score: null, player1Wins: null, player2Wins: null,
+            isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 5) * 1000),
+            round: 'LB-Round 1', bracketId: p.bid
+        };
+        batch.set(doc(matchesCollectionRef), matchData);
     });
 
+    // Placeholders for remaining matches
     const placeholders = [
-        { round: 'LB-Round 2', bid: 'playoff-m7' }, { round: 'LB-Round 2', bid: 'playoff-m8' },
         { round: 'UB-Semi', bid: 'playoff-m9' }, { round: 'UB-Semi', bid: 'playoff-m10' },
-        { round: 'LB-Round 3', bid: 'playoff-m11' }, { round: 'LB-Round 3', bid: 'playoff-m12' },
-        { round: 'UB-Final', bid: 'playoff-m13' },
-        { round: 'LB-Round 4', bid: 'playoff-m14' }, { round: 'LB-Round 4', bid: 'playoff-m15' },
-        { round: 'LB-Round 5', bid: 'playoff-m16' },
+        { round: 'LB-Round 2', bid: 'playoff-m11' }, { round: 'LB-Round 2', bid: 'playoff-m12' },
+        { round: 'LB-Round 3', bid: 'playoff-m13' }, { round: 'LB-Round 3', bid: 'playoff-m14' },
+        { round: 'UB-Final', bid: 'playoff-m15' },
+        { round: 'LB-Semifinal', bid: 'playoff-m16' },
         { round: 'LB-Final', bid: 'playoff-m17' },
         { round: 'Grand-Final', bid: 'playoff-m18' }
     ];
@@ -770,6 +774,8 @@ export default function LeaguePage() {
     return { seasonProgress: (completed / matches.length) * 100, completedMatchesCount: completed };
   }, [matches]);
 
+  const isLoadingTableFinal = isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -855,7 +861,7 @@ export default function LeaguePage() {
             <div className="lg:col-span-4">
                 <LeagueTable 
                     tableData={sortedTable} 
-                    isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded}
+                    isLoading={isLoadingTableFinal}
                     onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
                     onSelectPlayer={setSelectedPlayerForStats}
                     seasonStatus={activeSeason?.status}

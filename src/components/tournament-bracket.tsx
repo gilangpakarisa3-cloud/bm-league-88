@@ -85,7 +85,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   return (
     <div className="w-full">
         <ScrollArea className="w-full h-full pb-4">
-            <div className="min-w-[1000px] flex flex-col gap-12 p-4">
+            <div className="min-w-[1200px] flex flex-col gap-12 p-4">
                 {/* Upper Bracket */}
                 <div className="space-y-4">
                     <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
@@ -97,7 +97,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <MatchCard bid="playoff-m9" label="UB-SEMI 1" /><MatchCard bid="playoff-m10" label="UB-SEMI 2" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m13" label="UB FINAL" />
+                            <MatchCard bid="playoff-m15" label="UB FINAL" />
                         </div>
                     </div>
                 </div>
@@ -109,22 +109,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <h3 className="text-sm font-black uppercase tracking-[0.3em] text-amber-500 italic flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
                     <div className="flex items-center gap-8 pl-4 overflow-x-visible">
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m5" label="LB - Putaran 1 (Rank 5-6)" /><MatchCard bid="playoff-m6" label="LB - Putaran 1 (Rank 5-6)" />
+                            <MatchCard bid="playoff-m5" label="LB-R1 (Rank 5A vs L-M1)" />
+                            <MatchCard bid="playoff-m6" label="LB-R1 (Rank 5B vs L-M2)" />
+                            <MatchCard bid="playoff-m7" label="LB-R1 (Rank 6A vs L-M3)" />
+                            <MatchCard bid="playoff-m8" label="LB-R1 (Rank 6B vs L-M4)" />
                         </div>
-                        <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m7" label="LB - vs Loser of Match QF 1" /><MatchCard bid="playoff-m8" label="LB - vs Loser of Match QF 2" />
+                        <div className="flex flex-col gap-24 py-12">
+                            <MatchCard bid="playoff-m11" label="LB-R2 (Winner M5-M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Winner M7-M8)" />
                         </div>
-                        <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m11" label="LB - vs Loser QF (Cont. 1)" /><MatchCard bid="playoff-m12" label="LB - vs Loser QF (Cont. 2)" />
-                        </div>
-                        <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m14" label="LB - vs Loser of Match SEMI 1" /><MatchCard bid="playoff-m15" label="LB - vs Loser of Match SEMI 2" />
-                        </div>
-                        <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m16" label="LB - Semifinal" />
+                        <div className="flex flex-col gap-24 py-12">
+                            <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser M9)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser M10)" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m17" label="LB - vs Loser of Match UB FINAL" />
+                            <MatchCard bid="playoff-m16" label="LB SEMIFINAL" />
+                        </div>
+                        <div className="flex flex-col justify-center h-full">
+                            <MatchCard bid="playoff-m17" label="LB FINAL" />
                         </div>
                     </div>
                 </div>
