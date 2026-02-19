@@ -1073,7 +1073,7 @@ export default function LeaguePage() {
         {/* Unified Control Bar */}
         <div className={cn(
             "bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm transition-all duration-500",
-            isAdmin ? "w-full" : "w-fit"
+            isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
           
           {/* Season Selection Group */}

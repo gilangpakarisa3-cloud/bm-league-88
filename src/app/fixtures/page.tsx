@@ -795,7 +795,7 @@ export default function FixturesPage() {
         {/* Adaptive Control Bar */}
         <div className={cn(
             "bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm transition-all duration-500",
-            isAdmin ? "w-full" : "w-fit"
+            isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
             <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/30 h-10 px-3 bg-card/50 hidden sm:flex">Musim</Badge>
