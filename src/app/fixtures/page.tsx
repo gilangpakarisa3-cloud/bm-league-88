@@ -784,19 +784,19 @@ export default function FixturesPage() {
                     <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('fixtures_page_title')}</h1>
                     {activeSeason && <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>}
                 </div>
-                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder={t('select_a_season')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {seasons?.map(season => (
-                        <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>
-                        ))}
-                    </SelectContent>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder={t('select_a_season')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {seasons?.map(season => (
+                            <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>
+                            ))}
+                        </SelectContent>
                     </Select>
-                    <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" disabled={!isPasswordLoaded}>
-                        {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+                    <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" size="sm" className={cn(isAdmin && "bg-primary/10 text-primary border-primary/50")} disabled={!isPasswordLoaded}>
+                        {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                         {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                     </Button>
                 </div>
