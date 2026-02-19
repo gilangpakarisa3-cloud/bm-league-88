@@ -74,17 +74,20 @@ export type CoOpLeagueEntry = {
   points: number;
 }
 
+export type MatchRound = "Group" | "UB-Quarter" | "UB-Semi" | "UB-Final" | "LB-Round 1" | "LB-Round 2" | "LB-Round 3" | "LB-Round 4" | "LB-Round 5" | "LB-Final" | "Grand-Final";
+
 export type Match = {
   seasonId: string;
-  player1Id: string; // For Co-Op, this will be the CoOp team ID
-  player2Id: string; // For Co-Op, this will be the CoOp team ID
+  player1Id: string; 
+  player2Id: string; 
   player1Wins: number | null;
   player2Wins: number | null;
   player1Score: number | null;
   player2Score: number | null;
   matchDate: Timestamp;
   isCompleted: boolean;
-  round?: 'Group' | 'Quarter-Final' | 'Semi-Final' | 'Final';
+  round?: MatchRound;
+  bracketId?: string; // e.g., 'playoff-m1'
 }
 
 export type Notice = {
@@ -115,5 +118,3 @@ export type SeasonRecord = {
         mostWins: { playerName: string; value: number } | null;
     };
 }
-
-    

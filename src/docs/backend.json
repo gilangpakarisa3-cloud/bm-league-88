@@ -139,6 +139,12 @@
             "enum": ["Single", "Co-Op", "Hybrid"],
             "default": "Single"
         },
+        "hybridGroupMeetings": {
+          "type": "number",
+          "description": "Number of meetings for the group stage in a Hybrid season (1 for single match, 2 for home & away).",
+          "enum": [1, 2],
+          "default": 1
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -215,7 +221,7 @@
         "round": {
             "type": "string",
             "description": "The stage of the match in a hybrid season.",
-            "enum": ["Group", "Quarter-Final", "Semi-Final", "Final"]
+            "enum": ["Group", "UB-Quarter", "UB-Semi", "UB-Final", "LB-Round 1", "LB-Round 2", "LB-Round 3", "LB-Round 4", "LB-Round 5", "LB-Final", "Grand-Final"]
         }
       },
       "required": [
@@ -512,5 +518,3 @@
     ]
   }
 }
-
-    
