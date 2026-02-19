@@ -331,7 +331,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
             <Button 
               type="submit" 
               disabled={isSaving} 
-              className="w-full h-14 text-lg font-black uppercase tracking-tighter gap-3 shadow-[0_10px_20px_rgba(204,253,1,0.2)]"
+              className="w-full h-14 text-lg font-black tracking-tighter gap-3 shadow-[0_10px_20px_rgba(204,253,1,0.2)]"
             >
               {isSaving ? (
                 <>Menyimpan...</>
