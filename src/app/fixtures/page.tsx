@@ -48,14 +48,14 @@ import { Badge } from '@/components/ui/badge';
 const LEAGUE_ID = 'main-league';
 
 /**
- * REVISED 12-Team Double Elimination Logic:
+ * UPDATED 12-Team Double Elimination Logic:
  * M1-M4: UB Quarter-Finals (Ranks 1-4)
  * M5-M8: LB Round 1 (Ranks 5-6 vs Losers UB QF)
  * M9-M10: UB Semis
  * M11-M12: LB Round 2 (Winners M5-M8 play each other)
  * M13-M14: LB Round 3 (Winners M11-M12 vs Losers UB Semi)
  * M15: UB Final
- * M16: LB Semi-Final
+ * M16: LB Semifinal (Winners M13-M14)
  * M17: LB Final (Winner M16 vs Loser UB Final M15)
  * M18: Grand Final
  */
@@ -92,7 +92,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const { t } = useTranslation();
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm');
     const isBestOfThree = activeSeason?.type === 'Co-Op' || (match.round && match.round !== 'Group');
-    const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin) || match.player1Id === 'TBD' || match.player2Id === 'TBD';
+    const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin) || (match.player1Id === 'TBD' && match.player2Id === 'TBD');
 
     const PlayerInfo = ({ name, team, alignment = 'left' }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
         <div className={cn("flex items-center gap-3 text-sm font-black uppercase tracking-tight overflow-hidden", { 'justify-end': alignment === 'right', 'justify-start': alignment === 'left' })}>

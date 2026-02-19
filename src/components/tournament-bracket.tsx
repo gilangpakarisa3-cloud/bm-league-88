@@ -115,7 +115,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <MatchCard bid="playoff-m8" label="LB-R1 (Rank 6B vs L-M4)" />
                         </div>
                         <div className="flex flex-col gap-24 py-12">
-                            <MatchCard bid="playoff-m11" label="LB-R2 (Winner M5-M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Winner M7-M8)" />
+                            <MatchCard bid="playoff-m11" label="LB-R2 (Pemenang M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Pemenang M7 & M8)" />
                         </div>
                         <div className="flex flex-col gap-24 py-12">
                             <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser M9)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser M10)" />
@@ -147,7 +147,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 {selectedMatch && (
                     <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-8 items-center relative">
-                            <div className="absolute left-1/2 -translate-x-1/2 font-black italic text-2xl text-primary/30">VS</div>
+                            <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center z-10">
+                                <div className="bg-background border-4 border-primary rounded-full w-16 h-16 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.4)] ring-4 ring-background">
+                                    <span className="text-primary font-black italic text-xl tracking-tighter">VS</span>
+                                </div>
+                            </div>
                             <div className="flex flex-col items-center gap-2 text-center">
                                 <Avatar className="h-16 w-16 border-2 border-primary"><AvatarImage src={selectedMatch.t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                 <p className="font-bold">{selectedMatch.p1.name}</p>
@@ -165,6 +169,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <p className="text-5xl font-black italic tracking-tighter text-primary">{selectedMatch.s1} - {selectedMatch.s2}</p>
                             </div>
                         )}
+                        <div className="pt-2 border-t border-border text-left">
+                            <Badge variant="outline" className="font-black uppercase italic tracking-widest text-[10px] bg-primary/10 text-primary border-primary/30">Babak: {selectedMatch.round}</Badge>
+                        </div>
                     </div>
                 )}
             </DialogContent>

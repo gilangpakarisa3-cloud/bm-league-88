@@ -6,7 +6,7 @@ import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Group, Swords } from 'lucide-react';
-import Link from 'next/link';
+import Link from 'link';
 import {
   Dialog,
   DialogContent,
@@ -279,7 +279,6 @@ export default function LeaguePage() {
         toast({ variant: 'destructive', title: t('incorrect_password') });
     }
     setPasswordPrompt({ open: false });
-    passwordInput === '';
     setPasswordInput('');
   };
 
@@ -427,10 +426,10 @@ export default function LeaguePage() {
 
     // UB Quarter Finals (Matches 1-4)
     const ubQuarterPairings = [
-      { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, // M1: 1A vs 4B
-      { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' }, // M2: 2B vs 3A
-      { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, // M3: 1B vs 4A
-      { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' }, // M4: 2A vs 3B
+      { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, // M1
+      { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' }, // M2
+      { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, // M3
+      { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' }, // M4
     ];
 
     ubQuarterPairings.forEach((p, i) => {
@@ -445,10 +444,10 @@ export default function LeaguePage() {
 
     // LB Round 1 (Matches 5-8): Waiting for UB losers
     const lbRound1Starters = [
-        { p1: groupA[4], bid: 'playoff-m5', label: 'Rank 5A' },
-        { p1: groupB[4], bid: 'playoff-m6', label: 'Rank 5B' },
-        { p1: groupA[5], bid: 'playoff-m7', label: 'Rank 6A' },
-        { p1: groupB[5], bid: 'playoff-m8', label: 'Rank 6B' }
+        { p1: groupA[4], bid: 'playoff-m5' }, // Rank 5A vs Loser M1
+        { p1: groupB[4], bid: 'playoff-m6' }, // Rank 5B vs Loser M2
+        { p1: groupA[5], bid: 'playoff-m7' }, // Rank 6A vs Loser M3
+        { p1: groupB[5], bid: 'playoff-m8' }  // Rank 6B vs Loser M4
     ];
 
     lbRound1Starters.forEach((p, i) => {
@@ -461,7 +460,6 @@ export default function LeaguePage() {
         batch.set(doc(matchesCollectionRef), matchData);
     });
 
-    // Placeholders for remaining matches
     const placeholders = [
         { round: 'UB-Semi', bid: 'playoff-m9' }, { round: 'UB-Semi', bid: 'playoff-m10' },
         { round: 'LB-Round 2', bid: 'playoff-m11' }, { round: 'LB-Round 2', bid: 'playoff-m12' },
@@ -711,7 +709,7 @@ export default function LeaguePage() {
         totalPlayed++;
         const isP1 = m.player1Id === winnerIdToFilter;
         const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+        const s2 = m.player2Wins !== null ? m.player2Wins : (finalMatch.player2Score ?? 0);
         const pResult = isP1 ? s1 : s2;
         const oResult = isP1 ? s2 : s1;
         if (pResult > oResult) totalWin++;
