@@ -40,6 +40,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -348,8 +349,8 @@ const FixtureContent = memo(function FixtureContent({
             ) : (
                 <Tabs defaultValue="upcoming" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="upcoming">Sisa Pertandingan ({upcomingCount})</TabsTrigger>
-                        <TabsTrigger value="completed">Pertandingan Selesai ({completedCount})</TabsTrigger>
+                        <TabsTrigger value="upcoming" className="font-bold">Sisa Pertandingan ({upcomingCount})</TabsTrigger>
+                        <TabsTrigger value="completed" className="font-bold">Pertandingan Selesai ({completedCount})</TabsTrigger>
                     </TabsList>
                     <TabsContent value="upcoming">
                         <Card>
@@ -588,7 +589,7 @@ export default function FixturesPage() {
 
                 if (values.player1Score > values.player2Score) { // P1 wins
                     p1LeagueData.win += 1; p1LeagueData.points += 3;
-                    p2LeagueData.loss += 1;
+                    p2EntryData.loss += 1;
                 } else if (values.player2Score > values.player1Score) { // P2 wins
                     p2EntryData.win += 1; p2EntryData.points += 3;
                     p1LeagueData.loss += 1;
@@ -778,48 +779,59 @@ export default function FixturesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-        <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                 <div className="space-y-2">
-                    <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('fixtures_page_title')}</h1>
-                    {activeSeason && <p className="text-xl font-bold">{activeSeason.name} ({activeSeason.status})</p>}
-                </div>
-                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                        <SelectTrigger className="w-full sm:w-[180px]">
-                            <SelectValue placeholder={t('select_a_season')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {seasons?.map(season => (
-                            <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" size="sm" className={cn(isAdmin && "bg-primary/10 text-primary border-primary/50")} disabled={!isPasswordLoaded}>
-                        {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
-                        {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
-                    </Button>
-                </div>
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+             <div className="space-y-2 flex-1">
+                <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('fixtures_page_title')}</h1>
+                {activeSeason && (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <p className="text-xl font-bold">{activeSeason.name}</p>
+                        <Badge className="bg-primary/20 text-primary border-primary/30">{activeSeason.status}</Badge>
+                    </div>
+                )}
             </div>
-
-            <div className="mb-8">
+            <div className="w-full md:w-auto flex justify-end">
                 <LiveClock />
             </div>
-            
-            {isLoading ? (
-                <p>{t('loading_fixtures')}</p>
-            ) : (
-                <FixtureContent 
-                    activeSeasonId={activeSeasonId}
-                    onEditMatch={handleEditMatch}
-                    onRevertMatch={handleRevertConfirm}
-                    isAdmin={isAdmin}
-                    allPlayers={allPlayers || []}
-                    allTeams={allTeams || []}
-                />
-            )}
-
         </div>
+
+        {/* Rigid Control Bar */}
+        <div className="bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-3 shadow-md backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/30 h-10 px-3 bg-card/50 hidden sm:flex">Musim</Badge>
+                <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
+                    <SelectTrigger className="w-full sm:w-[200px] h-10 bg-background/50 border-primary/30">
+                        <SelectValue placeholder={t('select_a_season')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {seasons?.map(season => (
+                        <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="flex items-center gap-2 ml-auto">
+                <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" size="sm" className={cn("h-10 px-4 font-bold border-primary/30", isAdmin && "bg-primary/10 text-primary border-primary/50")} disabled={!isPasswordLoaded}>
+                    {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+                    {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+                </Button>
+            </div>
+        </div>
+            
+        {isLoading ? (
+            <p>{t('loading_fixtures')}</p>
+        ) : (
+            <FixtureContent 
+                activeSeasonId={activeSeasonId}
+                onEditMatch={handleEditMatch}
+                onRevertMatch={handleRevertConfirm}
+                isAdmin={isAdmin}
+                allPlayers={allPlayers || []}
+                allTeams={allTeams || []}
+            />
+        )}
 
         <Dialog open={!!editingMatch} onOpenChange={(isOpen) => !isOpen && setEditingMatch(null)}>
           <DialogContent>
