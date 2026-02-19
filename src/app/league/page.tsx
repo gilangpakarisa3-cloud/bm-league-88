@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator, Group, Swords } from 'lucide-react';
-import Link from 'next/link';
+import Link from 'link';
 import {
   Dialog,
   DialogContent,
@@ -1185,8 +1185,12 @@ export default function LeaguePage() {
                     activeSeason={activeSeason}
                 />
             </div>
-            <div className="lg:col-span-1 space-y-4">
-                <h2 className="font-headline text-2xl font-bold text-center text-primary">Statistik Musim</h2>
+            <div className="lg:col-span-1 space-y-6">
+                <div className="flex flex-col gap-1 items-center justify-center">
+                    <h2 className="font-black text-2xl uppercase tracking-tighter text-primary">Statistik Musim</h2>
+                    <div className="h-1 w-12 bg-primary rounded-full" />
+                </div>
+                
                 <LeagueStats 
                   tableData={sortedTable} 
                   isLoading={isLoadingTable || isLoadingPlayers}
@@ -1194,40 +1198,45 @@ export default function LeaguePage() {
                 />
 
                 {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <DollarSign className="w-5 h-5 text-primary" />
+                    <Card className="group relative overflow-hidden transition-all duration-300 border-2 border-primary/20 hover:border-primary bg-card hover:shadow-lg hover:shadow-primary/10">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none" />
+                        <CardHeader className="relative z-10">
+                            <CardTitle className="flex items-center gap-3 text-sm font-black uppercase tracking-tight">
+                                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                                    <DollarSign className="w-5 h-5" />
+                                </div>
                                 Keuangan Musim
                             </CardTitle>
-                            <CardDescription>Lacak pembayaran registrasi dan total hadiah.</CardDescription>
+                            <CardDescription className="text-[10px] font-medium opacity-80">Lacak pembayaran registrasi dan total hadiah.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="border bg-card p-4 rounded-lg text-center space-y-1">
-                                <p className="text-sm text-foreground">Total Hadiah Terkumpul</p>
-                                <p className="text-3xl font-bold text-primary">
+                        <CardContent className="space-y-4 relative z-10">
+                             <div className="border-2 border-primary/10 bg-muted/20 p-4 rounded-xl text-center space-y-1 group-hover:border-primary/30 transition-colors">
+                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Hadiah Terkumpul</p>
+                                <p className="text-3xl font-black text-primary italic drop-shadow-sm">
                                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
                                 </p>
                                 {sponsorshipPool > 0 && (
-                                     <p className="text-xs text-foreground">
-                                        (<span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</span> dari pendaftaran + <span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</span> dari sponsor)
+                                     <p className="text-[9px] text-foreground font-bold uppercase tracking-tighter mt-1 opacity-80">
+                                        (<span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</span> pendaftaran + <span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</span> sponsor)
                                     </p>
                                 )}
-                                <p className="text-xs text-foreground pt-1">
-                                    <span className="font-bold text-primary">{paidPlayersCount}</span> dari <span className="font-bold text-primary">{registeredPlayers?.length}</span> pemain telah membayar
+                                <p className="text-[10px] font-bold text-foreground mt-2 border-t border-primary/10 pt-2">
+                                    <span className="text-primary">{paidPlayersCount}</span> dari <span className="text-primary">{registeredPlayers?.length}</span> pemain lunas
                                 </p>
                             </div>
                             <div>
-                                <h4 className="text-sm font-semibold mb-2">Status Pembayaran</h4>
-                                <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                                    <Users className="w-3 h-3" /> Status Pembayaran
+                                </h4>
+                                <div className="max-h-60 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-primary/20">
                                     {(registeredPlayers || []).map(player => (
-                                        <div key={player.id} className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
-                                            <div className='flex items-center gap-2'>
-                                                <Avatar className="h-6 w-6">
+                                        <div key={player.id} className="flex items-center justify-between bg-muted/10 p-2 rounded-lg border border-transparent hover:border-primary/20 transition-all">
+                                            <div className='flex items-center gap-2 overflow-hidden'>
+                                                <Avatar className="h-6 w-6 border">
                                                     <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
-                                                    <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                                                    <AvatarFallback><User className="w-3 h-3 text-muted-foreground" /></AvatarFallback>
                                                 </Avatar>
-                                                <Label htmlFor={`paid-${player.id}`} className="text-sm font-medium">
+                                                <Label htmlFor={`paid-${player.id}`} className="text-xs font-bold truncate cursor-pointer">
                                                     {player.playerName}
                                                 </Label>
                                             </div>
@@ -1236,6 +1245,7 @@ export default function LeaguePage() {
                                                 checked={!!player.hasPaid}
                                                 onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)}
                                                 disabled={!isAdmin}
+                                                className="border-primary/50"
                                             />
                                         </div>
                                     ))}
@@ -1453,7 +1463,7 @@ export default function LeaguePage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => { handleGenerateKnockoutFixtures(); setShowFinishGroupStageConfirm(false); }}>{t('unlock', { defaultValue: 'Lanjutkan' })}</AlertDialogAction>
+                    <AlertDialogAction onClick={handleGenerateKnockoutFixtures}>{t('unlock', { defaultValue: 'Lanjutkan' })}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -1469,7 +1479,7 @@ export default function LeaguePage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>{t('cancel', { defaultValue: 'Batal' })}</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => { handleGenerateFixtures(); setShowGenerateConfirm(false); }}>Ya, Lanjutkan</AlertDialogAction>
+                    <AlertDialogAction onClick={handleGenerateFixtures}>Ya, Lanjutkan</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
