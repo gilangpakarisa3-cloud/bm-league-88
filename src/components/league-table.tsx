@@ -271,9 +271,9 @@ export function LeagueTable({
         {isHybrid ? (
              <Tabs defaultValue="group_a">
                 <TabsList className="grid w-full grid-cols-3 rounded-b-none rounded-t-lg">
-                    <TabsTrigger value="group_a" className="rounded-tl-md">Grup A ({groupA.length})</TabsTrigger>
-                    <TabsTrigger value="group_b">Grup B ({groupB.length})</TabsTrigger>
-                    <TabsTrigger value="playoff" className="rounded-tr-md flex items-center gap-2">
+                    <TabsTrigger value="group_a" className="rounded-tl-md font-bold">Grup A ({groupA.length})</TabsTrigger>
+                    <TabsTrigger value="group_b" className="font-bold">Grup B ({groupB.length})</TabsTrigger>
+                    <TabsTrigger value="playoff" className="rounded-tr-md flex items-center gap-2 font-bold">
                         <LayoutGrid className="h-4 w-4" /> Bagan Playoff
                     </TabsTrigger>
                 </TabsList>
