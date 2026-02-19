@@ -115,7 +115,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <MatchCard bid="playoff-m8" label="LB-R1 (Rank 6B vs L-M4)" />
                         </div>
                         <div className="flex flex-col gap-24 py-12">
-                            <MatchCard bid="playoff-m11" label="LB-R2 (Pemenang M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Pemenang M7 & M8)" />
+                            <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
                         </div>
                         <div className="flex flex-col gap-24 py-12">
                             <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser M9)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser M10)" />
