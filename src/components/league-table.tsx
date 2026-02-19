@@ -59,21 +59,21 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b-primary/20">
               <TableHead className="w-2 p-0"></TableHead>
-              <TableHead className="w-14 text-center font-black text-primary uppercase italic text-[10px] tracking-widest">{t('rank')}</TableHead>
-              <TableHead className="text-left font-black text-primary uppercase italic text-[10px] tracking-widest min-w-[180px]">{t('player')}</TableHead>
-              <TableHead className="text-center font-black text-primary w-14 uppercase italic text-[10px] tracking-widest">{t('played_short')}</TableHead>
-              <TableHead className="text-center font-black text-green-400 w-14 uppercase italic text-[10px] tracking-widest">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-14 uppercase italic text-[10px] tracking-widest">{t('d_short')}</TableHead>}
-              <TableHead className="text-center font-black text-red-400 w-14 uppercase italic text-[10px] tracking-widest">{t('l_short')}</TableHead>
+              <TableHead className="w-16 text-center font-black text-primary uppercase italic text-[10px] tracking-widest">{t('rank')}</TableHead>
+              <TableHead className="text-left font-black text-primary uppercase italic text-[10px] tracking-widest min-w-[200px]">{t('player')}</TableHead>
+              <TableHead className="text-center font-black text-primary w-20 uppercase italic text-[10px] tracking-widest">{t('played_short')}</TableHead>
+              <TableHead className="text-center font-black text-green-400 w-20 uppercase italic text-[10px] tracking-widest">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-20 uppercase italic text-[10px] tracking-widest">{t('d_short')}</TableHead>}
+              <TableHead className="text-center font-black text-red-400 w-20 uppercase italic text-[10px] tracking-widest">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
-                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-14 uppercase italic text-[10px] tracking-widest">{t('gf_short')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-14 uppercase italic text-[10px] tracking-widest">{t('ga_short')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-14 uppercase italic text-[10px] tracking-widest">{t('gd_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 uppercase italic text-[10px] tracking-widest">{t('gf_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 uppercase italic text-[10px] tracking-widest">{t('ga_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 uppercase italic text-[10px] tracking-widest">{t('gd_short')}</TableHead>
                 </>
               )}
-              <TableHead className="text-center font-black text-primary w-16 uppercase italic text-[10px] tracking-widest">{t('pts_short')}</TableHead>
-              {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-14 uppercase italic text-[10px] tracking-widest">{t('actions')}</TableHead>}
+              <TableHead className="text-center font-black text-primary w-24 uppercase italic text-[10px] tracking-widest">{t('pts_short')}</TableHead>
+              {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 uppercase italic text-[10px] tracking-widest">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
