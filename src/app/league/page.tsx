@@ -1071,7 +1071,10 @@ export default function LeaguePage() {
         </div>
 
         {/* Unified Control Bar */}
-        <div className="bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm">
+        <div className={cn(
+            "bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm transition-all duration-500",
+            isAdmin ? "w-full" : "w-fit"
+        )}>
           
           {/* Season Selection Group */}
           <div className="flex items-center gap-2">

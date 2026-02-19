@@ -792,8 +792,11 @@ export default function FixturesPage() {
             </div>
         </div>
 
-        {/* Rigid Control Bar */}
-        <div className="bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm">
+        {/* Adaptive Control Bar */}
+        <div className={cn(
+            "bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm transition-all duration-500",
+            isAdmin ? "w-full" : "w-fit"
+        )}>
             <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/30 h-10 px-3 bg-card/50 hidden sm:flex">Musim</Badge>
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
@@ -808,7 +811,7 @@ export default function FixturesPage() {
                 </Select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center gap-2", isAdmin && "ml-auto")}>
                 <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" size="sm" className={cn("h-10 px-4 font-bold border-primary/30", isAdmin && "bg-primary/10 text-primary border-primary/50")} disabled={!isPasswordLoaded}>
                     {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                     {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
