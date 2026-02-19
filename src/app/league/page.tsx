@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator, Group, Swords } from 'lucide-react';
-import Link from 'link';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -546,7 +546,7 @@ export default function LeaguePage() {
         toast({
             variant: 'destructive',
             title: 'Babak Semi Final Sudah Ada',
-            description: 'Jadwal untuk babak semi final sudah dibuat sebelumnya.',
+            description: 'Jadwal untuk babak semi final sudah sebelumnya dibuat.',
         });
         return;
     }
