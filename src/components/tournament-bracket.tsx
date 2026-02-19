@@ -625,7 +625,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </div>
                                 <p className="text-[9px] text-yellow-400 italic text-center leading-tight">*Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.</p>
                             </div>
-                            <div className="pt-2 border-t border-border flex justify-between items-center text-[10px] font-bold">
+                            <div className="pt-2 border-t border-border flex justify-start gap-2 items-center text-[10px] font-bold">
                                 <span className="text-muted-foreground uppercase tracking-tighter">Babak Kompetisi Saat Ini:</span>
                                 <Badge variant="outline" className="border-primary text-primary text-[10px] h-5">{selectedMatch.round}</Badge>
                             </div>
