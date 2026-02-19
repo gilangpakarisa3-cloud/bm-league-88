@@ -2,12 +2,11 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Calculator, Undo2, Lock, Swords } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -24,10 +23,10 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
-import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, query, getDocs, where, runTransaction, Timestamp, orderBy, getDoc, updateDoc, increment, DocumentReference } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, doc, query, getDocs, where, runTransaction, Timestamp, orderBy } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ScoreForm } from '@/components/score-form';
@@ -493,21 +492,20 @@ export default function FixturesPage() {
                 return;
             }
 
-            let p1EntryRef, p2EntryRef, p1EntryQuery, p2EntryQuery;
+            let p1EntryRef, p2EntryRef;
             let p1EntrySnap, p2EntrySnap;
 
             if (isCoop) {
                 p1EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player1Id);
                 p2EntryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, originalMatch.player2Id);
-                // Fix syntax error here
                 const p1Doc = await transaction.get(p1EntryRef);
                 const p2Doc = await transaction.get(p2EntryRef);
                 p1EntrySnap = { docs: p1Doc.exists() ? [p1Doc] : [] };
                 p2EntrySnap = { docs: p2Doc.exists() ? [p2Doc] : [] };
             } else {
                 const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`);
-                p1EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player1Id));
-                p2EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player2Id));
+                const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player1Id));
+                const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', originalMatch.player2Id));
                 const [p1Docs, p2Docs] = await Promise.all([getDocs(p1EntryQuery), getDocs(p2EntryQuery)]);
                 p1EntrySnap = p1Docs;
                 p2EntrySnap = p2Docs;
@@ -635,7 +633,7 @@ export default function FixturesPage() {
             roundsToDelete = ['Final'];
         }
 
-        let matchesToDeleteRefs: DocumentReference[] = [];
+        let matchesToDeleteRefs: any[] = [];
         if (roundsToDelete.length > 0) {
             const matchesColRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
             const q = query(matchesColRef, where('round', 'in', roundsToDelete));
@@ -671,7 +669,7 @@ export default function FixturesPage() {
             const isCoop = (seasonDoc.data()?.type || 'Single') === 'Co-Op';
             const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
 
-            let p1EntryRef, p2EntryRef, p1EntryQuery, p2EntryQuery;
+            let p1EntryRef, p2EntryRef;
             let p1EntrySnap, p2EntrySnap;
 
             if (isCoop) {
@@ -683,8 +681,8 @@ export default function FixturesPage() {
                 p2EntrySnap = { docs: p2Doc.exists() ? [p2Doc] : [] };
             } else {
                 const tableEntriesRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`);
-                p1EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player1Id));
-                p2EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player2Id));
+                const p1EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player1Id));
+                const p2EntryQuery = query(tableEntriesRef, where('playerId', '==', matchToRevert.player2Id));
                 const [p1Docs, p2Docs] = await Promise.all([getDocs(p1EntryQuery), getDocs(p2EntryQuery)]);
                 p1EntrySnap = p1Docs;
                 p2EntrySnap = p2Docs;
@@ -795,7 +793,7 @@ export default function FixturesPage() {
         </div>
 
         {/* Rigid Control Bar */}
-        <div className="bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-3 shadow-md backdrop-blur-sm">
+        <div className="bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm">
             <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/30 h-10 px-3 bg-card/50 hidden sm:flex">Musim</Badge>
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
@@ -810,7 +808,7 @@ export default function FixturesPage() {
                 </Select>
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2">
                 <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" size="sm" className={cn("h-10 px-4 font-bold border-primary/30", isAdmin && "bg-primary/10 text-primary border-primary/50")} disabled={!isPasswordLoaded}>
                     {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                     {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}

@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Calculator, Group, Swords } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Group, Swords } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, doc, serverTimestamp, writeBatch, getDocs, query, deleteDoc, Timestamp, where, orderBy } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, writeBatch, getDocs, query, Timestamp, where, orderBy } from 'firebase/firestore';
 import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord, CoOpLeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
@@ -51,7 +51,6 @@ import { PlayerPerformanceDialog } from '@/components/player-performance-dialog'
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CoopDrawDialog } from '@/components/coop-draw-dialog';
 import { GroupDrawDialog } from '@/components/group-draw-dialog';
@@ -1071,7 +1070,7 @@ export default function LeaguePage() {
         </div>
 
         {/* Unified Control Bar */}
-        <div className="bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-3 shadow-md backdrop-blur-sm">
+        <div className="bg-card/40 border border-primary/20 rounded-xl p-3 mb-8 flex flex-wrap items-center gap-4 shadow-md backdrop-blur-sm">
           
           {/* Season Selection Group */}
           <div className="flex items-center gap-2">
@@ -1101,95 +1100,93 @@ export default function LeaguePage() {
             )}
           </div>
 
-          <Separator orientation="vertical" className="h-8 mx-1 hidden lg:block opacity-30" />
+          {isAdmin && <Separator orientation="vertical" className="h-8 mx-1 hidden lg:block opacity-30" />}
 
           {/* Admin Action Group */}
-          <div className="flex flex-wrap items-center gap-2 flex-1">
-            {isAdmin && activeSeason && (
-                <>
-                    {activeSeason.status === 'Not Started' && (
-                        <div className="flex flex-wrap gap-2">
-                            <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
-                                <UserPlus className="mr-2 h-4 w-4" />
-                                {t('register_players')}
+          {isAdmin && activeSeason && (
+            <div className="flex flex-wrap items-center gap-2">
+                {activeSeason.status === 'Not Started' && (
+                    <div className="flex flex-wrap gap-2">
+                        <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            {t('register_players')}
+                        </Button>
+                        {activeSeason?.type === 'Co-Op' && (
+                            <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
+                                <Shuffle className="mr-2 h-4 w-4" />
+                                Undi Pasangan
                             </Button>
-                            {activeSeason?.type === 'Co-Op' && (
-                                <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
-                                    <Shuffle className="mr-2 h-4 w-4" />
-                                    Undi Pasangan
-                                </Button>
-                            )}
-                            {activeSeason?.type === 'Hybrid' && (
-                                <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
-                                    <Group className="mr-2 h-4 w-4" />
-                                    Undi Grup
-                                </Button>
-                            )}
-                            <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
-                                <RefreshCw className="mr-2 h-4 w-4" />
-                                {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
+                        )}
+                        {activeSeason?.type === 'Hybrid' && (
+                            <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
+                                <Group className="mr-2 h-4 w-4" />
+                                Undi Grup
                             </Button>
-                            <Button 
-                                onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
-                                variant={(!hasFixtures || (sortedTable || []).length < 2) ? "outline" : "default"}
-                                size="sm"
-                                className="h-10 px-4 font-bold"
-                                disabled={!hasFixtures || (sortedTable || []).length < 2}>
-                                <Play className="mr-2 h-4 w-4" />
-                                {t('start_season')}
-                            </Button>
-                        </div>
-                    )}
-                    
-                    {activeSeason.status === 'In Progress' && (
-                        <div className="flex flex-wrap gap-2">
-                            {activeSeason?.type === 'Hybrid' && groupStageMatches.length > 0 && (
-                                <>
-                                    {!hasQuarterFinals && (
-                                        <Button 
-                                            onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateKnockoutFixtures) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))}
-                                            variant={areGroupStageMatchesComplete ? "default" : "outline"}
-                                            size="sm"
-                                            className="h-10 px-4 font-bold"
-                                        >
-                                            <Swords className="mr-2 h-4 w-4" />
-                                            Playoff
-                                        </Button>
-                                    )}
-                                    {areQuarterFinalsComplete && !hasSemiFinals && (
-                                        <Button 
-                                            onClick={() => withAdminCheck(handleGenerateSemiFinals)} 
-                                            variant={areQuarterFinalsComplete ? "default" : "outline"}
-                                            size="sm" 
-                                            className="h-10 px-4 font-bold">
-                                            <Swords className="mr-2 h-4 w-4" />
-                                            Semi Final
-                                        </Button>
-                                    )}
-                                    {areSemiFinalsComplete && !hasFinal && (
-                                        <Button 
-                                            onClick={() => withAdminCheck(handleGenerateFinal)} 
-                                            variant={areSemiFinalsComplete ? "default" : "outline"}
-                                            size="sm" 
-                                            className="h-10 px-4 font-bold">
-                                            <Trophy className="mr-2 h-4 w-4" />
-                                            Final
-                                        </Button>
-                                    )}
-                                </>
-                            )}
-                            <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" size="sm" className="h-10 px-4 font-bold">
-                                <Flag className="mr-2 h-4 w-4" />
-                                {t('finish_season')}
-                            </Button>
-                        </div>
-                    )}
-                </>
-            )}
-          </div>
+                        )}
+                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30">
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
+                        </Button>
+                        <Button 
+                            onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} 
+                            variant={(!hasFixtures || (sortedTable || []).length < 2) ? "outline" : "default"}
+                            size="sm"
+                            className="h-10 px-4 font-bold"
+                            disabled={!hasFixtures || (sortedTable || []).length < 2}>
+                            <Play className="mr-2 h-4 w-4" />
+                            {t('start_season')}
+                        </Button>
+                    </div>
+                )}
+                
+                {activeSeason.status === 'In Progress' && (
+                    <div className="flex flex-wrap gap-2">
+                        {activeSeason?.type === 'Hybrid' && groupStageMatches.length > 0 && (
+                            <>
+                                {!hasQuarterFinals && (
+                                    <Button 
+                                        onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateKnockoutFixtures) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))}
+                                        variant={areGroupStageMatchesComplete ? "default" : "outline"}
+                                        size="sm"
+                                        className="h-10 px-4 font-bold"
+                                    >
+                                        <Swords className="mr-2 h-4 w-4" />
+                                        Playoff
+                                    </Button>
+                                )}
+                                {areQuarterFinalsComplete && !hasSemiFinals && (
+                                    <Button 
+                                        onClick={() => withAdminCheck(handleGenerateSemiFinals)} 
+                                        variant={areQuarterFinalsComplete ? "default" : "outline"}
+                                        size="sm" 
+                                        className="h-10 px-4 font-bold">
+                                        <Swords className="mr-2 h-4 w-4" />
+                                        Semi Final
+                                    </Button>
+                                )}
+                                {areSemiFinalsComplete && !hasFinal && (
+                                    <Button 
+                                        onClick={() => withAdminCheck(handleGenerateFinal)} 
+                                        variant={areSemiFinalsComplete ? "default" : "outline"}
+                                        size="sm" 
+                                        className="h-10 px-4 font-bold">
+                                        <Trophy className="mr-2 h-4 w-4" />
+                                        Final
+                                    </Button>
+                                )}
+                            </>
+                        )}
+                        <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" size="sm" className="h-10 px-4 font-bold">
+                            <Flag className="mr-2 h-4 w-4" />
+                            {t('finish_season')}
+                        </Button>
+                    </div>
+                )}
+            </div>
+          )}
 
           {/* Global Actions Group */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className={cn("flex items-center gap-2", isAdmin && "ml-auto")}>
             <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline" size="sm" className={cn("h-10 px-4 font-bold border-primary/30", isAdmin && "bg-primary/10 text-primary border-primary/50")}>
                 {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                 {isAdmin ? t('lock_admin') : t('unlock_admin')}
