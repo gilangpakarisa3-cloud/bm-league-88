@@ -56,10 +56,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     // LB Round 1 Projection
     if (gA.length >= 6 && gB.length >= 6) {
-        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser M1' }, isProjection: true }; // 5A
-        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser M2' }, isProjection: true }; // 5B
-        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser M3' }, isProjection: true }; // 6A
-        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser M4' }, isProjection: true }; // 6B
+        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser QF 1' }, isProjection: true }; // 5A
+        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser QF 2' }, isProjection: true }; // 5B
+        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser QF 3' }, isProjection: true }; // 6A
+        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser QF 4' }, isProjection: true }; // 6B
     }
 
     return proj;
@@ -82,7 +82,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
           t1, t2, s1, s2,
           isW1: m.isCompleted && s1 > s2,
           isW2: m.isCompleted && s2 > s1,
-          isLive: true // Flag to indicate this is a real generated match
+          isLive: true 
         };
       }
     });
@@ -93,7 +93,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const m = bracketData[bid];
     const p = projections?.[bid];
 
-    // If no real match, but projection exists
     if (!m && p) {
         return (
             <div className="flex flex-col gap-1 opacity-60 grayscale-[0.5]">
@@ -151,7 +150,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   return (
     <div className="w-full">
-        {/* Projections Info Banner */}
         {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
             <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
                 <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
@@ -163,55 +161,66 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         )}
 
         <ScrollArea className="w-full h-full pb-4">
-            <div className="min-w-[1200px] flex flex-col gap-12 p-4">
-                {/* Upper Bracket */}
-                <div className="space-y-4">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
-                    <div className="flex items-center gap-8 pl-4">
-                        <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
+            <div className="min-w-[1500px] flex items-center gap-16 p-4">
+                <div className="flex-1 flex flex-col gap-12">
+                    {/* Upper Bracket */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
+                        <div className="flex items-center gap-8 pl-4">
+                            <div className="flex flex-col gap-4">
+                                <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
+                            </div>
+                            <div className="flex flex-col gap-20 py-8">
+                                <MatchCard bid="playoff-m9" label="UB-SEMI 1" /><MatchCard bid="playoff-m10" label="UB-SEMI 2" />
+                            </div>
+                            <div className="flex flex-col justify-center h-full">
+                                <MatchCard bid="playoff-m15" label="UB FINAL" />
+                            </div>
                         </div>
-                        <div className="flex flex-col gap-20 py-8">
-                            <MatchCard bid="playoff-m9" label="UB-SEMI 1" /><MatchCard bid="playoff-m10" label="UB-SEMI 2" />
-                        </div>
-                        <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m15" label="UB FINAL" />
+                    </div>
+
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+
+                    {/* Lower Bracket */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-amber-500 italic flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
+                        <div className="flex items-center gap-8 pl-4">
+                            <div className="flex flex-col gap-4">
+                                <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser QF 1)" />
+                                <MatchCard bid="playoff-m6" label="LB-R1 (vs Loser QF 2)" />
+                                <MatchCard bid="playoff-m7" label="LB-R1 (vs Loser QF 3)" />
+                                <MatchCard bid="playoff-m8" label="LB-R1 (vs Loser QF 4)" />
+                            </div>
+                            <div className="flex flex-col gap-24 py-12">
+                                <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
+                            </div>
+                            <div className="flex flex-col gap-24 py-12">
+                                <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser SEMI 1)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser SEMI 2)" />
+                            </div>
+                            <div className="flex flex-col justify-center h-full">
+                                <MatchCard bid="playoff-m16" label="LB SEMIFINAL" />
+                            </div>
+                            <div className="flex flex-col justify-center h-full">
+                                <MatchCard bid="playoff-m17" label="LB FINAL" />
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-
-                {/* Lower Bracket */}
-                <div className="space-y-4">
-                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-amber-500 italic flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
-                    <div className="flex items-center gap-8 pl-4 overflow-x-visible">
-                        <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser M1)" />
-                            <MatchCard bid="playoff-m6" label="LB-R1 (vs Loser M2)" />
-                            <MatchCard bid="playoff-m7" label="LB-R1 (vs Loser M3)" />
-                            <MatchCard bid="playoff-m8" label="LB-R1 (vs Loser M4)" />
-                        </div>
-                        <div className="flex flex-col gap-24 py-12">
-                            <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
-                        </div>
-                        <div className="flex flex-col gap-24 py-12">
-                            <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser M9)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser M10)" />
-                        </div>
-                        <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m16" label="LB SEMIFINAL" />
-                        </div>
-                        <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m17" label="LB FINAL (vs Loser UB Final)" />
+                {/* Grand Final Column */}
+                <div className="flex flex-col items-center justify-center gap-8 pr-12 h-full">
+                    <div className="w-px h-32 bg-gradient-to-b from-primary/50 to-amber-500/50 hidden md:block" />
+                    <div className="flex flex-col items-center gap-4">
+                        <Trophy className="text-yellow-400 w-16 h-16 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] animate-bounce" />
+                        <div className="text-center">
+                            <h3 className="text-2xl font-black uppercase tracking-[0.5em] text-white italic">GRAND FINAL</h3>
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">Ultimate Battle for Glory</p>
                         </div>
                     </div>
-                </div>
-
-                {/* Grand Final */}
-                <div className="flex flex-col items-center gap-4 mt-8">
-                    <div className="h-12 w-px bg-gradient-to-b from-primary to-amber-500" />
-                    <h3 className="text-xl font-black uppercase tracking-[0.5em] text-white flex items-center gap-4"><Trophy className="text-yellow-400 w-8 h-8" /> GRAND FINAL</h3>
-                    <div className="scale-125"><MatchCard bid="playoff-m18" label="THE FINAL BATTLE" /></div>
+                    <div className="scale-150 transform transition-transform hover:scale-[1.6]">
+                        <MatchCard bid="playoff-m18" label="CHAMPIONSHIP" />
+                    </div>
+                    <div className="w-px h-32 bg-gradient-to-t from-amber-500/50 to-primary/50 hidden md:block" />
                 </div>
             </div>
         </ScrollArea>
