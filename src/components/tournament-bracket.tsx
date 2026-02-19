@@ -124,7 +124,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <MatchCard bid="playoff-m16" label="LB SEMIFINAL" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m17" label="LB FINAL" />
+                            <MatchCard bid="playoff-m17" label="LB FINAL (vs Loser UB Final)" />
                         </div>
                     </div>
                 </div>

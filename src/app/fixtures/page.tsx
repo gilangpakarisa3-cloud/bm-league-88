@@ -107,7 +107,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         </div>
     );
     
-    const score = isBestOfThree ? `${match.player1Wins} - ${match.player2Wins}` : `${match.player1Score} - ${match.player2Score}`;
+    const scoreText = isBestOfThree ? `${match.player1Wins} - ${match.player2Wins}` : `${match.player1Score} - ${match.player2Score}`;
     const hasValidScore = match.isCompleted && (isBestOfThree ? match.player1Wins !== null : match.player1Score !== null);
 
     return (
@@ -116,7 +116,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} alignment="right" />
             <div className="flex flex-col items-center justify-center min-w-[60px] sm:min-w-[80px]">
                  {hasValidScore ? (
-                    <div className="bg-background/80 border border-primary/20 px-3 py-1 rounded shadow-inner"><span className="text-xl font-black italic tracking-tighter text-primary drop-shadow-[0_0_8px_rgba(204,253,1,0.3)]">{score}</span></div>
+                    <div className="bg-background/80 border border-primary/20 px-3 py-1 rounded shadow-inner"><span className="text-xl font-black italic tracking-tighter text-primary drop-shadow-[0_0_8px_rgba(204,253,1,0.3)]">{scoreText}</span></div>
                 ) : (
                     <div className="bg-primary/10 border border-primary/30 px-2 py-0.5 rounded rotate-[-5deg]"><span className="text-[10px] font-black italic tracking-widest text-primary uppercase">VS</span></div>
                 )}
@@ -174,9 +174,9 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         const filtered = enrichedMatches.filter(m => {
             if (!searchTerm.trim()) return true;
             const terms = searchTerm.toLowerCase().split(' ').filter(Boolean);
-            const p1 = m.player1?.name.toLowerCase() || '';
-            const p2 = m.player2?.name.toLowerCase() || '';
-            return terms.every(t => p1.includes(t) || p2.includes(t));
+            const pn1 = m.player1?.name.toLowerCase() || '';
+            const pn2 = m.player2?.name.toLowerCase() || '';
+            return terms.every(t => pn1.includes(t) || pn2.includes(t));
         });
         
         const sorted = [...filtered].sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
@@ -197,11 +197,11 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         'UB-Quarter': 'UB - Perempat Final', 
         'UB-Semi': 'UB - Semi Final', 
         'UB-Final': 'Upper Bracket Final', 
-        'LB-Round 1': 'LB - vs Loser of Match QF', 
-        'LB-Round 2': 'LB - Survivor R1', 
-        'LB-Round 3': 'LB - vs Loser of Match SEMI', 
+        'LB-Round 1': 'LB-R1 (vs Loser UB QF)', 
+        'LB-Round 2': 'LB-R2 (Pemenang LB R1)', 
+        'LB-Round 3': 'LB-R3 (vs Loser UB Semi)', 
         'LB-Semifinal': 'LB - Semifinal', 
-        'LB-Final': 'LB - vs Loser of Match UB Final', 
+        'LB-Final': 'LB - vs Loser UB Final', 
         'Grand-Final': 'Grand Final' 
     };
 
@@ -233,14 +233,14 @@ export default function FixturesPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
-  const seasonsCollection = useMemoFirebase(() => (firestore ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc')) : null), [firestore]);
-  const { data: seasons, isLoading: isLoadingSeasons } = useCollection<Season>(seasonsCollection);
-  const playersCollection = useMemoFirebase(() => (firestore ? collection(firestore, 'players') : null), [firestore]);
-  const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
-  const teamsCollection = useMemoFirebase(() => (firestore ? collection(firestore, 'teams') : null), [firestore]);
-  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
-  const matchesCollection = useMemoFirebase(() => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null, [firestore, activeSeasonId]);
-  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
+  const seasonsCol = useMemoFirebase(() => (firestore ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc')) : null), [firestore]);
+  const { data: seasons, isLoading: isLoadingSeasons } = useCollection<Season>(seasonsCol);
+  const playersCol = useMemoFirebase(() => (firestore ? collection(firestore, 'players') : null), [firestore]);
+  const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCol);
+  const teamsCol = useMemoFirebase(() => (firestore ? collection(firestore, 'teams') : null), [firestore]);
+  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCol);
+  const matchesCol = useMemoFirebase(() => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null, [firestore, activeSeasonId]);
+  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCol);
   const playersById = useMemo(() => (allPlayers || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
   const { progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
@@ -260,47 +260,44 @@ export default function FixturesPage() {
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
     try {
         await runTransaction(firestore, async (transaction) => {
-            const matchDoc = await transaction.get(matchRef);
-            if (!matchDoc.exists()) throw new Error("Match not found!");
-            const orig = matchDoc.data() as Match;
-            const seasonDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
-            const seasonData = seasonDoc.data() as Season;
-            const isMatchBo3 = seasonData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
+            const mDoc = await transaction.get(matchRef);
+            if (!mDoc.exists()) throw new Error("Match not found!");
+            const orig = mDoc.data() as Match;
+            const sDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
+            const sData = sDoc.data() as Season;
+            const isMatchBo3 = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
 
             if (orig.round && orig.round !== 'Group' && orig.bracketId) {
                 const winnerId = isMatchBo3 ? (values.player1Wins > values.player2Wins ? orig.player1Id : orig.player2Id) : (values.player1Score > values.player2Score ? orig.player1Id : orig.player2Id);
                 const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
                 const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId];
                 if (succ) {
-                    const matchesCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
-                    const qWin = query(matchesCol, where('bracketId', '==', succ.winner.bid));
+                    const mCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+                    const qWin = query(mCol, where('bracketId', '==', succ.winner.bid));
                     const winSnap = await getDocs(qWin);
                     if (!winSnap.empty) transaction.update(winSnap.docs[0].ref, { [`player${succ.winner.slot}Id`]: winnerId });
                     if (succ.loser) {
-                        const qLos = query(matchesCol, where('bracketId', '==', succ.loser.bid));
+                        const qLos = query(mCol, where('bracketId', '==', succ.loser.bid));
                         const losSnap = await getDocs(qLos);
                         if (!losSnap.empty) transaction.update(losSnap.docs[0].ref, { [`player${succ.loser.slot}Id`]: loserId });
                     }
                 }
             } else if (orig.round === 'Group') {
-                const tableName = seasonData.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
-                let p1R, p2R, p1S, p2S;
-                if (seasonData.type === 'Co-Op') {
-                    p1R = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, orig.player1Id);
-                    p2R = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`, orig.player2Id);
-                    const [d1, d2] = await Promise.all([transaction.get(p1R), transaction.get(p2R)]);
+                const tblName = sData.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+                let p1S, p2S;
+                if (sData.type === 'Co-Op') {
+                    const [d1, d2] = await Promise.all([transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`, orig.player1Id)), transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`, orig.player2Id))]);
                     p1S = { docs: d1.exists() ? [d1] : [] }; p2S = { docs: d2.exists() ? [d2] : [] };
                 } else {
-                    const col = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`);
-                    const [q1, q2] = [query(col, where('playerId', '==', orig.player1Id)), query(col, where('playerId', '==', orig.player2Id))];
-                    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+                    const col = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
+                    const [snap1, snap2] = await Promise.all([getDocs(query(col, where('playerId', '==', orig.player1Id))), getDocs(query(col, where('playerId', '==', orig.player2Id)))]);
                     p1S = snap1; p2S = snap2;
                 }
                 if (p1S.docs.length && p2S.docs.length) {
                     const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;
                     if (orig.isCompleted) {
                         e1.played--; e2.played--;
-                        if (seasonData.type === 'Co-Op') {
+                        if (sData.type === 'Co-Op') {
                             if (orig.player1Wins! > orig.player2Wins!) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
                         } else {
                             e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
@@ -308,7 +305,7 @@ export default function FixturesPage() {
                         }
                     }
                     e1.played++; e2.played++;
-                    if (seasonData.type === 'Co-Op') {
+                    if (sData.type === 'Co-Op') {
                         if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
                     } else {
                         e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
@@ -341,8 +338,8 @@ export default function FixturesPage() {
                     const [d1, d2] = await Promise.all([transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player1Id)), transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player2Id))]);
                     p1S = { docs: [d1] }; p2S = { docs: [d2] };
                 } else {
-                    const [q1, q2] = [query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`), where('playerId', '==', mToRev.player1Id)), query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`), where('playerId', '==', mToRev.player2Id))];
-                    const [sn1, sn2] = await Promise.all([getDocs(q1), getDocs(q2)]); p1S = sn1; p2S = sn2;
+                    const qCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`);
+                    const [sn1, sn2] = await Promise.all([getDocs(query(qCol, where('playerId', '==', mToRev.player1Id))), getDocs(query(qCol, where('playerId', '==', mToRev.player2Id)))]); p1S = sn1; p2S = sn2;
                 }
                 if (p1S.docs.length && p2S.docs.length) {
                     const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;

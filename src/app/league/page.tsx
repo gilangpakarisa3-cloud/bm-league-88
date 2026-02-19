@@ -6,7 +6,7 @@ import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Group, Swords } from 'lucide-react';
-import Link from 'link';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -231,9 +231,9 @@ export default function LeaguePage() {
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   
-  const { paidPlayersCount, prizePool, registrationPool, sponsorshipPool } = useMemo(() => {
+  const { prizePool, registrationPool, sponsorshipPool } = useMemo(() => {
     if (!activeSeason) {
-      return { paidPlayersCount: 0, prizePool: 0, registrationPool: 0, sponsorshipPool: 0 };
+      return { prizePool: 0, registrationPool: 0, sponsorshipPool: 0 };
     }
     const registrationFee = activeSeason.registrationFee || 0;
     const sponsorship = activeSeason.sponsorshipAmount || 0;
@@ -243,7 +243,6 @@ export default function LeaguePage() {
     const totalPool = regPool + sponsorship;
 
     return { 
-      paidPlayersCount: paidCount, 
       prizePool: totalPool,
       registrationPool: regPool,
       sponsorshipPool: sponsorship
@@ -314,8 +313,8 @@ export default function LeaguePage() {
     const seasonType = activeSeason.type || 'Single';
 
     if (seasonType === 'Hybrid' && singleLeagueTable) {
-        const groupA = singleLeagueTable.filter(p => p.group === 'A');
-        const groupB = singleLeagueTable.filter(p => p.group === 'B');
+        const gA = singleLeagueTable.filter(p => p.group === 'A');
+        const gB = singleLeagueTable.filter(p => p.group === 'B');
 
         const generateGroupMatches = (group: WithId<LeagueEntry>[]) => {
             const now = Date.now();
@@ -357,8 +356,8 @@ export default function LeaguePage() {
                 }
             }
         }
-        generateGroupMatches(groupA);
-        generateGroupMatches(groupB);
+        generateGroupMatches(gA);
+        generateGroupMatches(gB);
         
     } else {
         const meetings = seasonType === 'Co-Op' ? 1 : ((activeSeason?.type || 'Single') === 'Single' ? 2 : 1);
@@ -373,17 +372,17 @@ export default function LeaguePage() {
             const id2 = seasonType === 'Co-Op' ? entry2.id : (entry2 as WithId<LeagueEntry>).playerId;
             
             for (let k = 0; k < meetings; k++) {
-                let player1Id = k === 0 ? id1 : id2;
-                let player2Id = k === 0 ? id2 : id1;
+                let p1Id = k === 0 ? id1 : id2;
+                let p2Id = k === 0 ? id2 : id1;
 
                 if (meetings === 1 && Math.random() > 0.5) {
-                    [player1Id, player2Id] = [player2Id, player1Id];
+                    [p1Id, p2Id] = [p2Id, p1Id];
                 }
 
                 const matchData: Omit<Match, 'id'> = {
                     seasonId: activeSeasonId,
-                    player1Id: player1Id,
-                    player2Id: player2Id,
+                    player1Id: p1Id,
+                    player2Id: p2Id,
                     player1Score: null, player2Score: null,
                     player1Wins: null, player2Wins: null,
                     isCompleted: false,
@@ -414,8 +413,8 @@ export default function LeaguePage() {
       return;
     }
     
-    const matchesCollectionRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
-    const existingKnockoutSnap = await getDocs(query(matchesCollectionRef, where('round', '!=', 'Group')));
+    const matchesColRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+    const existingKnockoutSnap = await getDocs(query(matchesColRef, where('round', '!=', 'Group')));
     if (!existingKnockoutSnap.empty) {
         toast({ variant: 'destructive', title: 'Babak Gugur Sudah Ada', description: 'Jadwal playoff sudah ada.' });
         return;
@@ -439,7 +438,7 @@ export default function LeaguePage() {
         isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 1) * 1000), 
         round: 'UB-Quarter', bracketId: p.bid
       };
-      batch.set(doc(matchesCollectionRef), matchData);
+      batch.set(doc(matchesColRef), matchData);
     });
 
     // LB Round 1 (Matches 5-8): Waiting for UB losers
@@ -457,7 +456,7 @@ export default function LeaguePage() {
             isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 5) * 1000),
             round: 'LB-Round 1', bracketId: p.bid
         };
-        batch.set(doc(matchesCollectionRef), matchData);
+        batch.set(doc(matchesColRef), matchData);
     });
 
     const placeholders = [
@@ -477,7 +476,7 @@ export default function LeaguePage() {
             isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 10) * 1000),
             round: p.round as any, bracketId: p.bid
         };
-        batch.set(doc(matchesCollectionRef), matchData);
+        batch.set(doc(matchesColRef), matchData);
     });
 
     try {
@@ -586,8 +585,8 @@ export default function LeaguePage() {
   
   const handleDeleteEntry = () => {
     if (!firestore || !activeSeasonId || !deletingEntry) return;
-    const collectionName = (activeSeason?.type || 'Single') === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
-    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${collectionName}`, deletingEntry.id);
+    const collName = (activeSeason?.type || 'Single') === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${collName}`, deletingEntry.id);
     deleteDocumentNonBlocking(entryRef);
     toast({ title: t('player_removed_title'), description: t('player_removed_desc', { playerName: deletingEntry.playerName }) });
     setDeletingEntry(null);
@@ -595,11 +594,11 @@ export default function LeaguePage() {
 
   const handleRegisterPlayers = async (selectedPlayerIds: string[]) => {
     if (!firestore || !activeSeasonId || !allPlayers) return;
-    const playersToRegister = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
-    if (playersToRegister.length === 0) return;
+    const playersToReg = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
+    if (playersToReg.length === 0) return;
     const batch = writeBatch(firestore);
-    playersToRegister.forEach(player => {
-        const leagueEntryRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`));
+    playersToReg.forEach(player => {
+        const entryRef = doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`));
         const newEntry: Omit<LeagueEntry, 'id' | 'rank'> = {
             playerId: player.id,
             teamId: player.teamId,
@@ -607,11 +606,11 @@ export default function LeaguePage() {
             teamName: player.teamName,
             played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0, hasPaid: false,
         };
-        batch.set(leagueEntryRef, newEntry);
+        batch.set(entryRef, newEntry);
     });
     try {
         await batch.commit();
-        toast({ title: t('success'), description: t('players_registered_desc', { count: playersToRegister.length }) });
+        toast({ title: t('success'), description: t('players_registered_desc', { count: playersToReg.length }) });
     } catch (error) {
         console.error("Error registering players: ", error);
         toast({ variant: 'destructive', title: t('error'), description: t('register_players_error') });
@@ -622,18 +621,18 @@ export default function LeaguePage() {
   const handleSavePairs = async (pairs: { player1: PlayerWithTeam; player2: PlayerWithTeam; teamId: string; teamName: string }[]) => {
     if (!firestore || !activeSeasonId) return;
     const batch = writeBatch(firestore);
-    const targetCollection = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`);
+    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`);
     try {
-        const existingDocsSnap = await getDocs(targetCollection);
+        const existingDocsSnap = await getDocs(targetCol);
         existingDocsSnap.forEach(doc => batch.delete(doc.ref));
     } catch (error) {
         console.error("Error fetching existing co-op pairs:", error);
         return;
     }
     pairs.forEach(pair => {
-        const teamId = [pair.player1.id, pair.player2.id].sort().join('-');
-        const teamRef = doc(targetCollection, teamId);
-        const teamData: CoOpLeagueEntry = {
+        const tId = [pair.player1.id, pair.player2.id].sort().join('-');
+        const tRef = doc(targetCol, tId);
+        const tData: CoOpLeagueEntry = {
             teamName: `${pair.player1.name} & ${pair.player2.name}`,
             player1Id: pair.player1.id,
             player1Name: pair.player1.name,
@@ -645,7 +644,7 @@ export default function LeaguePage() {
             player2TeamName: pair.teamName,
             played: 0, win: 0, loss: 0, points: 0,
         };
-        batch.set(teamRef, teamData);
+        batch.set(tRef, tData);
     });
     try {
         await batch.commit();
@@ -659,9 +658,9 @@ export default function LeaguePage() {
   const handleSaveGroups = useCallback(async (groups: { groupA: WithId<LeagueEntry>[], groupB: WithId<LeagueEntry>[] }) => {
     if (!firestore || !activeSeasonId) return;
     const batch = writeBatch(firestore);
-    const targetCollection = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
-    groups.groupA.forEach(player => batch.update(doc(targetCollection, player.id), { group: 'A' }));
-    groups.groupB.forEach(player => batch.update(doc(targetCollection, player.id), { group: 'B' }));
+    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
+    groups.groupA.forEach(player => batch.update(doc(targetCol, player.id), { group: 'A' }));
+    groups.groupB.forEach(player => batch.update(doc(targetCol, player.id), { group: 'B' }));
     try {
         await batch.commit();
         toast({ title: 'Grup Disimpan!', description: 'Pembagian grup telah disimpan.' });
@@ -697,51 +696,51 @@ export default function LeaguePage() {
         if (finalMatch) {
             const s1 = finalMatch.player1Wins !== null ? finalMatch.player1Wins : (finalMatch.player1Score ?? 0);
             const s2 = finalMatch.player2Wins !== null ? finalMatch.player2Wins : (finalMatch.player2Score ?? 0);
-            const winnerId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
-            const winnerEntry = sortedTable.find(p => p.playerId === winnerId);
-            if (winnerEntry) winner = winnerEntry;
+            const wId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
+            const wEntry = sortedTable.find(p => p.playerId === wId);
+            if (wEntry) winner = wEntry;
         }
     }
-    const winnerIdToFilter = (activeSeason.type === 'Co-Op') ? winner.id : winner.playerId;
-    const playerMatches = matches?.filter(m => m.isCompleted && (m.player1Id === winnerIdToFilter || m.player2Id === winnerIdToFilter)) || [];
-    let totalPlayed = 0, totalWin = 0, totalDraw = 0, totalLoss = 0, totalGF = 0, totalGA = 0;
+    const wIdToFilter = (activeSeason.type === 'Co-Op') ? winner.id : winner.playerId;
+    const playerMatches = matches?.filter(m => m.isCompleted && (m.player1Id === wIdToFilter || m.player2Id === wIdToFilter)) || [];
+    let totP = 0, totW = 0, totD = 0, totL = 0, totGF = 0, totGA = 0;
     playerMatches.forEach(m => {
-        totalPlayed++;
-        const isP1 = m.player1Id === winnerIdToFilter;
+        totP++;
+        const isP1 = m.player1Id === wIdToFilter;
         const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-        const s2 = m.player2Wins !== null ? m.player2Wins : (finalMatch.player2Score ?? 0);
-        const pResult = isP1 ? s1 : s2;
-        const oResult = isP1 ? s2 : s1;
-        if (pResult > oResult) totalWin++;
-        else if (pResult < oResult) totalLoss++;
-        else totalDraw++;
+        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+        const pRes = isP1 ? s1 : s2;
+        const oRes = isP1 ? s2 : s1;
+        if (pRes > oRes) totW++;
+        else if (pRes < oRes) totL++;
+        else totD++;
         if (m.player1Score !== null && m.player2Score !== null) {
-            totalGF += isP1 ? m.player1Score : m.player2Score;
-            totalGA += isP1 ? m.player2Score : m.player1Score;
+            totGF += isP1 ? m.player1Score : m.player2Score;
+            totGA += isP1 ? m.player2Score : m.player1Score;
         }
     });
-    const playersWhoPlayed = sortedTable.filter(p => p.played > 0);
-    let bestAttacker = null;
-    let worstDefender = null;
+    const playersPlayed = sortedTable.filter(p => p.played > 0);
+    let bAtt = null;
+    let wDef = null;
     if ((activeSeason.type || 'Single') !== 'Co-Op') {
-      const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
-      const bestAttackerPlayer = playersWhoPlayed.find(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
-      if (bestAttackerPlayer) bestAttacker = { playerName: bestAttackerPlayer.playerName, value: bestAttackerPlayer.goalsFor };
-      const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst || 0));
-      const worstDefenderPlayer = playersWhoPlayed.find(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
-      if (worstDefenderPlayer) worstDefender = { playerName: worstDefenderPlayer.playerName, value: worstDefenderPlayer.goalsAgainst };
+      const maxGF = Math.max(...playersPlayed.map(p => p.goalsFor || 0));
+      const bAttP = playersPlayed.find(p => p.goalsFor === maxGF && maxGF > 0);
+      if (bAttP) bAtt = { playerName: bAttP.playerName, value: bAttP.goalsFor };
+      const maxGA = Math.max(...playersPlayed.map(p => p.goalsAgainst || 0));
+      const wDefP = playersPlayed.find(p => p.goalsAgainst === maxGA && maxGA > 0);
+      if (wDefP) wDef = { playerName: wDefP.playerName, value: wDefP.goalsAgainst };
     }
-    const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
-    const mostWinsPlayer = playersWhoPlayed.find(p => p.win === maxWins && maxWins > 0);
-    const seasonRecord: SeasonRecord = {
+    const maxW = Math.max(...playersPlayed.map(p => p.win));
+    const mWinP = playersPlayed.find(p => p.win === maxW && maxW > 0);
+    const seasonRec: SeasonRecord = {
         seasonId: activeSeason.id, seasonName: activeSeason.name, completedAt: Timestamp.now(),
         winnerPlayerId: winner.playerId || winner.id, winnerPlayerName: winner.playerName, winnerTeamName: winner.teamName,
         winnerPhotoUrl: (winner as any).team?.logoUrl, 
-        winnerStats: { points: winner.points, win: totalWin, draw: totalDraw, loss: totalLoss, goalsFor: totalGF, goalsAgainst: totalGA, goalDifference: totalGF - totalGA },
-        funStats: { mostWins: mostWinsPlayer ? { playerName: mostWinsPlayer.playerName, value: mostWinsPlayer.win } : null, bestAttacker, worstDefender }
+        winnerStats: { points: winner.points, win: totW, draw: totD, loss: totL, goalsFor: totGF, goalsAgainst: totGA, goalDifference: totGF - totGA },
+        funStats: { mostWins: mWinP ? { playerName: mWinP.playerName, value: mWinP.win } : null, bestAttacker: bAtt, worstDefender: wDef }
     };
     const hallOfFameRef = doc(firestore, `hallOfFame`, activeSeason.id);
-    setDocumentNonBlocking(hallOfFameRef, seasonRecord, {});
+    setDocumentNonBlocking(hallOfFameRef, seasonRec, {});
     const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeason.id);
     updateDocumentNonBlocking(seasonRef, { status: 'Completed' });
     toast({ title: "Season Completed!", description: `${activeSeason.name} is finished.` });
@@ -749,9 +748,9 @@ export default function LeaguePage() {
 
   const handleShareParticipants = () => {
     if (!activeSeason || !sortedTable || sortedTable.length === 0) return;
-    const header = `*${t('share_participants_header', { seasonName: activeSeason.name })}*\n\n`;
-    const participantsList = sortedTable.map((p, index) => `${index + 1}. ${p.playerName} (${p.teamName || 'Tanpa Tim'})`).join('\n');
-    setShareText(header + participantsList);
+    const hdr = `*${t('share_participants_header', { seasonName: activeSeason.name })}*\n\n`;
+    const pList = sortedTable.map((p, index) => `${index + 1}. ${p.playerName} (${p.teamName || 'Tanpa Tim'})`).join('\n');
+    setShareText(hdr + pList);
     setShareDialogOpen(true);
   };
   
@@ -890,7 +889,7 @@ export default function LeaguePage() {
                                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Hadiah Terkumpul</p>
                                 <p className="text-3xl font-black text-primary italic drop-shadow-sm">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}</p>
                                 {sponsorshipPool > 0 && <p className="text-[9px] text-foreground font-bold uppercase tracking-tighter mt-1 opacity-80">(<span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</span> pendaftaran + <span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</span> sponsor)</p>}
-                                <p className="text-[10px] font-bold text-foreground mt-2 border-t border-primary/10 pt-2"><span className="text-primary">{paidPlayersCount}</span> dari <span className="text-primary">{registeredPlayers?.length}</span> pemain lunas</p>
+                                <p className="text-[10px] font-bold text-foreground mt-2 border-t border-primary/10 pt-2"><span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> dari <span className="text-primary">{registeredPlayers?.length}</span> pemain lunas</p>
                             </div>
                             <div>
                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2"><Users className="w-3 h-3" /> Status Pembayaran</h4>
