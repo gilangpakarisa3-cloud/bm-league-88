@@ -136,6 +136,9 @@ const FixtureContent = memo(function FixtureContent({
     isAdmin,
     allPlayers,
     allTeams,
+    matches,
+    isLoadingMatches,
+    activeSeason
 }: {
     activeSeasonId: string | null;
     onEditMatch: (match: any) => void;
@@ -143,27 +146,15 @@ const FixtureContent = memo(function FixtureContent({
     isAdmin: boolean;
     allPlayers: WithId<Player>[];
     allTeams: WithId<Team>[];
+    matches: WithId<Match>[] | null;
+    isLoadingMatches: boolean;
+    activeSeason: WithId<Season> | null;
 }) {
     const firestore = useFirestore();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     
     // --- Firestore Data Hooks ---
-    const activeSeasonDoc = useMemoFirebase(
-        () => (firestore && activeSeasonId ? doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId) : null),
-        [firestore, activeSeasonId]
-    );
-    const { data: activeSeason } = useDoc<Season>(activeSeasonDoc);
-
-    const matchesCollection = useMemoFirebase(
-        () =>
-        firestore && activeSeasonId
-            ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`)
-            : null,
-        [firestore, activeSeasonId]
-    );
-    const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
-    
     const singleLeagueTableCollection = useMemoFirebase(
         () => firestore && activeSeasonId && (activeSeason?.type || 'Single') !== 'Co-Op' ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
         [firestore, activeSeasonId, activeSeason]
@@ -206,8 +197,8 @@ const FixtureContent = memo(function FixtureContent({
         return coopLeagueTable.reduce((acc, e) => { acc[e.id] = e; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>);
     }, [coopLeagueTable]);
     
-    const { groupedMatches, progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
-        if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {} }, progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
+    const { groupedMatches, upcomingCount, completedCount } = useMemo(() => {
+        if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {} }, upcomingCount: 0, completedCount: 0 };
         
         const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
 
@@ -282,24 +273,15 @@ const FixtureContent = memo(function FixtureContent({
             allGrouped.completed[round].sort((a,b) => b.matchDate.toMillis() - a.matchDate.toMillis());
         });
 
-        const upcomingCount = Object.values(allGrouped.upcoming).reduce((sum, arr) => sum + arr.length, 0);
-        const completedCount = Object.values(allGrouped.completed).reduce((sum, arr) => sum + arr.length, 0);
-        
-        const totalForProgress = searchTerm.trim() ? (upcomingCount + completedCount) : matches.length;
-        const completedForProgress = searchTerm.trim() ? completedCount : matches.filter(m => m.isCompleted).length;
-
-        const progress = totalForProgress > 0 ? (completedForProgress / totalForProgress) * 100 : 0;
+        const upCount = Object.values(allGrouped.upcoming).reduce((sum, arr) => sum + arr.length, 0);
+        const compCount = Object.values(allGrouped.completed).reduce((sum, arr) => sum + arr.length, 0);
         
         return { 
             groupedMatches: allGrouped,
-            progressPercentage: progress,
-            totalMatchesForDisplay: totalForProgress,
-            completedMatchesForDisplay: completedForProgress
+            upcomingCount: upCount,
+            completedCount: compCount
         };
     }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId]);
-
-    const upcomingCount = Object.values(groupedMatches.upcoming).reduce((sum, arr) => sum + arr.length, 0);
-    const completedCount = Object.values(groupedMatches.completed).reduce((sum, arr) => sum + arr.length, 0);
 
     const roundNames: Record<string, string> = {
         'Group': 'Fase Grup',
@@ -334,14 +316,6 @@ const FixtureContent = memo(function FixtureContent({
                 />
             </div>
             
-             <div className="my-6">
-                <Progress value={progressPercentage} className="h-3" />
-                <p className="text-xs text-center text-foreground font-bold mt-2">
-                    {completedMatchesForDisplay} dari {totalMatchesForDisplay} pertandingan selesai ({progressPercentage.toFixed(0)}%)
-                </p>
-            </div>
-
-
             {(upcomingCount === 0 && completedCount === 0 && searchTerm) ? (
                  <div className="border rounded-lg p-8 text-center bg-card">
                     <h2 className="text-xl font-medium text-muted-foreground">{t('no_matches_found')}</h2>
@@ -434,6 +408,15 @@ export default function FixturesPage() {
     [firestore]
   );
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
+  const matchesCollection = useMemoFirebase(
+    () =>
+    firestore && activeSeasonId
+        ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`)
+        : null,
+    [firestore, activeSeasonId]
+  );
+  const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
   
   // --- Memoized Derived State ---
   const playersById = useMemo(() => {
@@ -443,6 +426,13 @@ export default function FixturesPage() {
         return acc;
     }, {} as Record<string, WithId<Player>>);
   }, [allPlayers]);
+
+  const { progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
+    if (!matches || matches.length === 0) return { progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
+    const completed = matches.filter(m => m.isCompleted).length;
+    const progress = (completed / matches.length) * 100;
+    return { progressPercentage: progress, totalMatchesForDisplay: matches.length, completedMatchesForDisplay: completed };
+  }, [matches]);
   
   // --- Effects ---
   useEffect(() => {
@@ -592,7 +582,7 @@ export default function FixturesPage() {
                     p2EntryData.loss += 1;
                 } else if (values.player2Score > values.player1Score) { // P2 wins
                     p2EntryData.win += 1; p2EntryData.points += 3;
-                    p1LeagueData.loss += 1;
+                    p1EntryData.loss += 1;
                 } else { // Draw
                     p1LeagueData.draw += 1; p1LeagueData.points += 1;
                     p2LeagueData.draw += 1; p2LeagueData.points += 1;
@@ -781,13 +771,21 @@ export default function FixturesPage() {
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
              <div className="space-y-2 flex-1">
                 <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('fixtures_page_title')}</h1>
                 {activeSeason && (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                         <p className="text-xl font-bold">{activeSeason.name}</p>
                         <Badge className="bg-primary/20 text-primary border-primary/30">{activeSeason.status}</Badge>
+                    </div>
+                )}
+                {matches && matches.length > 0 && (
+                    <div className="max-w-xs pt-2">
+                        <Progress value={progressPercentage} className="h-1.5" />
+                        <p className="text-[10px] font-bold mt-1 uppercase tracking-tighter opacity-70">
+                            {completedMatchesForDisplay} / {totalMatchesForDisplay} Pertandingan Selesai ({progressPercentage.toFixed(0)}%)
+                        </p>
                     </div>
                 )}
             </div>
@@ -830,6 +828,9 @@ export default function FixturesPage() {
                 isAdmin={isAdmin}
                 allPlayers={allPlayers || []}
                 allTeams={allTeams || []}
+                matches={matches}
+                isLoadingMatches={isLoadingMatches}
+                activeSeason={activeSeason}
             />
         )}
 

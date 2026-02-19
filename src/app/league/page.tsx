@@ -1046,7 +1046,7 @@ export default function LeaguePage() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
           <div className="space-y-2 flex-1">
             <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('league_standings_page_title')}</h1>
             {activeSeason && (
@@ -1157,13 +1157,21 @@ export default function LeaguePage() {
                                         </Button>
                                     )}
                                     {areQuarterFinalsComplete && !hasSemiFinals && (
-                                        <Button onClick={() => withAdminCheck(handleGenerateSemiFinals)} size="sm" className="h-10 px-4 font-bold">
+                                        <Button 
+                                            onClick={() => withAdminCheck(handleGenerateSemiFinals)} 
+                                            variant={areQuarterFinalsComplete ? "default" : "outline"}
+                                            size="sm" 
+                                            className="h-10 px-4 font-bold">
                                             <Swords className="mr-2 h-4 w-4" />
                                             Semi Final
                                         </Button>
                                     )}
                                     {areSemiFinalsComplete && !hasFinal && (
-                                        <Button onClick={() => withAdminCheck(handleGenerateFinal)} size="sm" className="h-10 px-4 font-bold">
+                                        <Button 
+                                            onClick={() => withAdminCheck(handleGenerateFinal)} 
+                                            variant={areSemiFinalsComplete ? "default" : "outline"}
+                                            size="sm" 
+                                            className="h-10 px-4 font-bold">
                                             <Trophy className="mr-2 h-4 w-4" />
                                             Final
                                         </Button>
