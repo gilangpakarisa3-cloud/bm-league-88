@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -68,16 +68,18 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin);
 
     const PlayerInfo = ({ name, team, alignment = 'left' }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right' }) => (
-        <div className={cn("flex items-center gap-2 text-sm font-semibold truncate", {
-            'justify-start': alignment === 'left',
+        <div className={cn("flex items-center gap-3 text-sm font-black uppercase tracking-tight overflow-hidden", {
             'justify-end': alignment === 'right',
+            'justify-start': alignment === 'left',
         })}>
-             {alignment === 'right' && <span className="truncate">{name}</span>}
-            <Avatar className="h-5 w-5">
-                <AvatarImage src={team?.logoUrl} alt={team?.name} />
-                <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
-            </Avatar>
-            {alignment === 'left' && <span className="truncate">{name}</span>}
+             {alignment === 'right' && <span className="truncate flex-1 text-right">{name}</span>}
+            <div className="relative shrink-0">
+                <Avatar className="h-8 w-8 border-2 border-background shadow-md">
+                    <AvatarImage src={team?.logoUrl} alt={team?.name} />
+                    <AvatarFallback>{team?.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+            </div>
+            {alignment === 'left' && <span className="truncate flex-1 text-left">{name}</span>}
         </div>
     );
     
@@ -88,29 +90,48 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 
 
     return (
-        <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-4 p-3 transition-colors rounded-md hover:bg-muted/50">
+        <div className="group relative grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2 sm:gap-6 p-4 transition-all duration-300 border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
+            {/* Background Accent on Hover */}
+            <div className="absolute inset-y-0 left-0 w-1 bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+
             <PlayerInfo name={match.player1.name} team={match.team1} alignment="right" />
             
-            <div className="flex-none text-center">
+            <div className="flex flex-col items-center justify-center min-w-[60px] sm:min-w-[80px]">
                  {hasValidScore ? (
-                    <span className="text-lg font-bold text-primary">{score}</span>
+                    <div className="bg-background/80 border border-primary/20 px-3 py-1 rounded shadow-inner">
+                        <span className="text-xl font-black italic tracking-tighter text-primary drop-shadow-[0_0_8px_rgba(204,253,1,0.3)]">{score}</span>
+                    </div>
                 ) : (
-                    <span className="text-xs font-bold text-primary">VS</span>
+                    <div className="bg-primary/10 border border-primary/30 px-2 py-0.5 rounded rotate-[-5deg]">
+                        <span className="text-[10px] font-black italic tracking-widest text-primary uppercase">VS</span>
+                    </div>
                 )}
             </div>
 
             <PlayerInfo name={match.player2.name} team={match.team2} alignment="left" />
             
-            <div className="flex-none flex items-center gap-1">
+            <div className="flex items-center gap-2 justify-end">
                  <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="text-xs"
+                    className={cn(
+                        "h-8 px-3 text-[10px] font-bold uppercase tracking-widest transition-all",
+                        hasValidScore ? "text-muted-foreground hover:text-primary" : "text-primary hover:bg-primary/10 border border-primary/20"
+                    )}
                     onClick={() => onEditMatch(match)}
                     disabled={isEditDisabled}
                 >
-                    <Pencil className="mr-1 h-3 w-3" />
-                    {hasValidScore ? displayDate : t('unplayed_abbv', {defaultValue: 'TBD'})}
+                    {hasValidScore ? (
+                        <div className="flex items-center gap-1.5">
+                            <Clock className="h-3 w-3" />
+                            {displayDate}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3 w-3" />
+                            {t('unplayed_abbv', {defaultValue: 'TBD'})}
+                        </div>
+                    )}
                 </Button>
                 {isAdmin && hasValidScore && (
                      <Button
@@ -287,92 +308,109 @@ const FixtureContent = memo(function FixtureContent({
         'Group': 'Fase Grup',
         'Quarter-Final': 'Perempat Final',
         'Semi-Final': 'Semi Final',
-        'Final': 'Final'
+        'Final': 'Final Grand Final'
     }
 
     if (isLoadingMatches) {
-        return <p>{t('loading_fixtures')}</p>;
+        return <p className="text-center py-12 text-muted-foreground animate-pulse">{t('loading_fixtures')}</p>;
     }
 
     if (!matches || matches.length === 0) {
         return (
-            <div className="border rounded-lg p-8 text-center bg-card">
-              <h2 className="text-xl font-medium text-muted-foreground">{t('no_fixtures_generated_title')}</h2>
-              <p className="text-muted-foreground mt-2">{t('no_fixtures_generated_desc')}</p>
+            <div className="border-2 border-dashed border-primary/20 rounded-2xl p-12 text-center bg-card/40 backdrop-blur-sm">
+              <Swords className="w-12 h-12 text-primary/30 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-foreground uppercase tracking-tight">{t('no_fixtures_generated_title')}</h2>
+              <p className="text-muted-foreground mt-2 max-w-sm mx-auto">{t('no_fixtures_generated_desc')}</p>
             </div>
         );
     }
     
     return (
-        <>
-            <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <div className="space-y-8">
+            <div className="relative max-w-2xl mx-auto">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/50" />
                 <Input
                     type="text"
                     placeholder="Cari berdasarkan nama pemain/tim..."
-                    className="pl-10"
+                    className="pl-12 h-12 bg-card/50 border-primary/20 focus:border-primary rounded-xl text-lg font-medium"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
             
             {(upcomingCount === 0 && completedCount === 0 && searchTerm) ? (
-                 <div className="border rounded-lg p-8 text-center bg-card">
-                    <h2 className="text-xl font-medium text-muted-foreground">{t('no_matches_found')}</h2>
+                 <div className="border-2 border-dashed border-primary/20 rounded-2xl p-12 text-center bg-card/40">
+                    <h2 className="text-xl font-bold text-muted-foreground uppercase">{t('no_matches_found')}</h2>
                 </div>
             ) : (
                 <Tabs defaultValue="upcoming" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="upcoming" className="font-bold">Sisa Pertandingan ({upcomingCount})</TabsTrigger>
-                        <TabsTrigger value="completed" className="font-bold">Pertandingan Selesai ({completedCount})</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto h-12 bg-card/50 p-1 border-primary/10 border-2 rounded-xl mb-8">
+                        <TabsTrigger value="upcoming" className="font-black uppercase tracking-tighter h-full rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                            Sisa Laga ({upcomingCount})
+                        </TabsTrigger>
+                        <TabsTrigger value="completed" className="font-black uppercase tracking-tighter h-full rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                            Selesai ({completedCount})
+                        </TabsTrigger>
                     </TabsList>
-                    <TabsContent value="upcoming">
-                        <Card>
-                            <CardContent className="p-0">
-                               {upcomingCount > 0 ? (
-                                    <div className="space-y-4">
-                                        {Object.entries(groupedMatches.upcoming).map(([round, roundMatches]) => (
-                                            <div key={`upcoming-${round}`}>
-                                                <h3 className="text-lg font-bold p-4 pb-0 text-primary">{roundNames[round] || round}</h3>
-                                                <div className="divide-y p-2">
-                                                    {roundMatches.map(match => (
-                                                        <MatchRow key={match.id} match={match} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
+
+                    <TabsContent value="upcoming" className="mt-0 focus-visible:ring-0">
+                        <div className="space-y-10">
+                            {Object.entries(groupedMatches.upcoming).map(([round, roundMatches]) => (
+                                <section key={`upcoming-${round}`} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-primary/30" />
+                                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
+                                            {roundNames[round] || round}
+                                        </h3>
+                                        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-primary/30" />
                                     </div>
-                                ) : (
-                                    <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
-                                )}
-                            </CardContent>
-                        </Card>
+                                    <Card className="overflow-hidden border-2 border-primary/10 bg-card/40 backdrop-blur-md shadow-xl rounded-2xl">
+                                        <CardContent className="p-0">
+                                            {roundMatches.map(match => (
+                                                <MatchRow key={match.id} match={match} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                </section>
+                            ))}
+                            {upcomingCount === 0 && (
+                                <div className="text-center py-16 opacity-50">
+                                    <p className="text-sm font-black uppercase tracking-widest">{t('no_matches_in_category')}</p>
+                                </div>
+                            )}
+                        </div>
                     </TabsContent>
-                    <TabsContent value="completed">
-                        <Card>
-                             <CardContent className="p-0">
-                                {completedCount > 0 ? (
-                                    <div className="space-y-4">
-                                        {Object.entries(groupedMatches.completed).map(([round, roundMatches]) => (
-                                            <div key={`completed-${round}`}>
-                                                <h3 className="text-lg font-bold p-4 pb-0 text-primary">{roundNames[round] || round}</h3>
-                                                <div className="divide-y p-2">
-                                                    {roundMatches.map(match => (
-                                                        <MatchRow key={match.id} match={match} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
+
+                    <TabsContent value="completed" className="mt-0 focus-visible:ring-0">
+                        <div className="space-y-10">
+                            {Object.entries(groupedMatches.completed).map(([round, roundMatches]) => (
+                                <section key={`completed-${round}`} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-primary/30" />
+                                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
+                                            {roundNames[round] || round}
+                                        </h3>
+                                        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-primary/30" />
                                     </div>
-                                 ) : (
-                                    <p className="p-4 text-center text-muted-foreground">{t('no_matches_in_category')}</p>
-                                )}
-                            </CardContent>
-                        </Card>
+                                    <Card className="overflow-hidden border-2 border-primary/10 bg-card/40 backdrop-blur-md shadow-xl rounded-2xl">
+                                        <CardContent className="p-0">
+                                            {roundMatches.map(match => (
+                                                <MatchRow key={match.id} match={match} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                </section>
+                            ))}
+                            {completedCount === 0 && (
+                                <div className="text-center py-16 opacity-50">
+                                    <p className="text-sm font-black uppercase tracking-widest">{t('no_matches_in_category')}</p>
+                                </div>
+                            )}
+                        </div>
                     </TabsContent>
                 </Tabs>
             )}
-        </>
+        </div>
     );
 });
 
@@ -772,23 +810,23 @@ export default function FixturesPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
              <div className="space-y-2 flex-1">
-                <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('fixtures_page_title')}</h1>
+                <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary uppercase italic">{t('fixtures_page_title')}</h1>
                 {activeSeason && (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                        <p className="text-xl font-bold">{activeSeason.name}</p>
-                        <Badge className="bg-primary/20 text-primary border-primary/30">{activeSeason.status}</Badge>
+                        <p className="text-xl font-bold italic text-white/90 uppercase tracking-tight">{activeSeason.name}</p>
+                        <Badge className="bg-primary/20 text-primary border-primary/30 font-black uppercase tracking-widest text-[10px] italic">{activeSeason.status}</Badge>
                     </div>
                 )}
                 {matches && matches.length > 0 && (
                     <div className="max-w-xs pt-2">
                         <Progress value={progressPercentage} className="h-1.5" />
-                        <p className="text-[10px] font-bold mt-1 uppercase tracking-tighter opacity-70">
-                            {completedMatchesForDisplay} / {totalMatchesForDisplay} Pertandingan Selesai ({progressPercentage.toFixed(0)}%)
+                        <p className="text-[10px] font-bold mt-1 uppercase tracking-tighter opacity-70 italic text-primary">
+                            {completedMatchesForDisplay} / {totalMatchesForDisplay} Laga Selesai ({progressPercentage.toFixed(0)}%)
                         </p>
                     </div>
                 )}
             </div>
-            <div className="w-full md:w-auto flex justify-end">
+            <div className="w-full md:w-auto flex justify-end shrink-0">
                 <LiveClock />
             </div>
         </div>
@@ -821,7 +859,10 @@ export default function FixturesPage() {
         </div>
             
         {isLoading ? (
-            <p>{t('loading_fixtures')}</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="font-black uppercase tracking-[0.2em] text-xs">{t('loading_fixtures')}</p>
+            </div>
         ) : (
             <FixtureContent 
                 activeSeasonId={activeSeasonId}
