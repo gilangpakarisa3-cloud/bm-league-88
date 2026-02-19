@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -14,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from './ui/scroll-area';
+import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { Badge } from './ui/badge';
 
 interface TournamentBracketProps {
@@ -160,7 +159,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div>
         )}
 
-        <ScrollArea className="w-full h-full pb-4">
+        <ScrollArea className="w-full h-full pb-6">
             <div className="min-w-[1500px] flex items-center gap-16 p-4">
                 <div className="flex-1 flex flex-col gap-12">
                     {/* Upper Bracket */}
@@ -223,6 +222,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <div className="w-px h-32 bg-gradient-to-t from-amber-500/50 to-primary/50 hidden md:block" />
                 </div>
             </div>
+            <ScrollBar orientation="horizontal" className="bg-primary/10" />
         </ScrollArea>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
