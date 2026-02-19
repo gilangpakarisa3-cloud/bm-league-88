@@ -1187,7 +1187,7 @@ export default function LeaguePage() {
             </div>
             <div className="lg:col-span-1 space-y-6">
                 <div className="flex flex-col gap-1 items-center justify-center">
-                    <h2 className="font-black text-2xl uppercase tracking-tighter text-primary">Statistik Musim</h2>
+                    <h2 className="font-black text-2xl tracking-tighter text-primary">Statistik Musim</h2>
                     <div className="h-1 w-12 bg-primary rounded-full" />
                 </div>
                 
