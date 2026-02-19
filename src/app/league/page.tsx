@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -953,7 +954,7 @@ export default function LeaguePage() {
       }
 
       const maxGoalsAgainst = Math.max(...playersWhoPlayed.map(p => p.goalsAgainst || 0));
-      worstDefenderPlayer = playersWhoPlayed.find(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
+      const worstDefenderPlayer = playersWhoPlayed.find(p => p.goalsAgainst === maxGoalsAgainst && maxGoalsAgainst > 0);
       if (worstDefenderPlayer) {
           worstDefender = { playerName: worstDefenderPlayer.playerName, value: worstDefenderPlayer.goalsAgainst };
       }
@@ -1047,24 +1048,24 @@ export default function LeaguePage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
           <div className="space-y-2 flex-1">
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('league_standings_page_title')}</h1>
+            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary uppercase italic">{t('league_standings_page_title')}</h1>
             {activeSeason && (
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <p className="text-xl font-bold">{activeSeason.name}</p>
-                <Badge className="bg-primary/20 text-primary border-primary/30">{activeSeason.status}</Badge>
-                {formattedDateRange && <p className="text-sm font-medium opacity-70 italic">{formattedDateRange}</p>}
+                <p className="text-xl font-bold italic text-white/90 uppercase tracking-tight">{activeSeason.name}</p>
+                <Badge className="bg-primary/20 text-primary border-primary/30 font-black uppercase tracking-widest text-[10px] italic">{activeSeason.status}</Badge>
+                {formattedDateRange && <p className="text-sm font-medium opacity-70 italic text-white/60">{formattedDateRange}</p>}
               </div>
             )}
             {matches && matches.length > 0 && (
               <div className="max-w-xs pt-2">
                 <Progress value={seasonProgress} className="h-1.5" />
-                <p className="text-[10px] font-bold mt-1 uppercase tracking-tighter opacity-70">
+                <p className="text-[10px] font-bold mt-1 uppercase tracking-tighter opacity-70 italic text-primary">
                   {completedMatchesCount} / {matches.length} Pertandingan Selesai ({seasonProgress.toFixed(0)}%)
                 </p>
               </div>
             )}
           </div>
-          <div className="w-full md:w-auto flex justify-end">
+          <div className="w-full md:w-auto flex justify-end shrink-0">
             <LiveClock />
           </div>
         </div>
@@ -1206,8 +1207,8 @@ export default function LeaguePage() {
         </div>
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-            <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+            <div className="lg:col-span-4">
                 <LeagueTable 
                     tableData={sortedTable} 
                     isLoading={isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded}
@@ -1225,8 +1226,8 @@ export default function LeaguePage() {
             </div>
             <div className="lg:col-span-1 space-y-6">
                 <div className="flex flex-col gap-1 items-center justify-center">
-                    <h2 className="font-black text-2xl tracking-tighter text-primary">Statistik Musim</h2>
-                    <div className="h-1 w-12 bg-primary rounded-full" />
+                    <h2 className="font-black text-2xl tracking-tighter text-primary italic uppercase">Statistik Musim</h2>
+                    <div className="h-1 w-12 bg-primary rounded-full shadow-[0_0_10px_rgba(204,253,1,0.5)]" />
                 </div>
                 
                 <LeagueStats 

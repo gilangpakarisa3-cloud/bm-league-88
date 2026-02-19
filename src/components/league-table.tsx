@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -57,25 +58,22 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
         <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-4 p-0"></TableHead>
-              <TableHead className="w-12 text-center font-bold text-primary sm:hidden">#</TableHead>
-              <TableHead className="w-12 text-center font-bold text-primary hidden sm:table-cell">{t('rank')}</TableHead>
-              <TableHead className="text-left font-bold text-primary">{t('player')}</TableHead>
-              <TableHead className="text-center font-bold text-primary sm:hidden">{t('played_short')}</TableHead>
-              <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('played')}</TableHead>
-              <TableHead className="hidden sm:table-cell text-center font-bold text-green-400">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="hidden sm:table-cell text-center font-bold text-yellow-400">{t('d_short')}</TableHead>}
-              <TableHead className="hidden sm:table-cell text-center font-bold text-red-400">{t('l_short')}</TableHead>
+              <TableHead className="w-2 p-0"></TableHead>
+              <TableHead className="w-10 text-center font-bold text-primary whitespace-nowrap">{t('rank')}</TableHead>
+              <TableHead className="text-left font-bold text-primary min-w-[150px]">{t('player')}</TableHead>
+              <TableHead className="text-center font-bold text-primary w-10">{t('played_short')}</TableHead>
+              <TableHead className="text-center font-bold text-green-400 w-10">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="text-center font-bold text-yellow-400 w-10">{t('d_short')}</TableHead>}
+              <TableHead className="text-center font-bold text-red-400 w-10">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
-                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gf_short')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('ga_short')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-bold text-primary">{t('gd_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary w-10">{t('gf_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary w-10">{t('ga_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-bold text-primary w-10">{t('gd_short')}</TableHead>
                 </>
               )}
-              <TableHead className="text-center font-bold text-primary sm:hidden">{t('pts_short')}</TableHead>
-              <TableHead className="text-center font-bold text-primary hidden sm:table-cell">{t('pts')}</TableHead>
-              {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-bold text-accent">{t('actions')}</TableHead>}
+              <TableHead className="text-center font-bold text-primary w-12">{t('pts_short')}</TableHead>
+              {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-bold text-accent w-10">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -96,7 +94,7 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                 <TableRow 
                   key={entry.id}
                   className={cn(
-                    "transition-colors",
+                    "transition-colors h-14",
                     isFirst ? "bg-yellow-500/10 hover:bg-yellow-500/20" :
                     isQualificationZone ? "bg-green-500/10 hover:bg-green-500/20" :
                     isRelegationZone ? "bg-red-500/10 hover:bg-red-500/20" : "hover:bg-muted/50"
@@ -109,31 +107,31 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                   )}>
                   </TableCell>
                   <TableCell className={cn(
-                    "text-center font-bold text-lg",
-                    isFirst ? "text-yellow-400 text-xl" : 
+                    "text-center font-bold text-base px-1",
+                    isFirst ? "text-yellow-400 text-lg" : 
                     isQualificationZone ? "text-green-400" :
                     isRelegationZone ? "text-destructive" : "text-foreground"
                     )}>
                     {entry.rank}
                   </TableCell>
-                  <TableCell className="relative overflow-visible">
+                  <TableCell className="relative overflow-visible py-2">
                     <div 
-                      className="flex items-center gap-3 cursor-pointer group hover:bg-primary/10 p-2 -m-2 rounded-lg transition-all duration-200 relative z-10"
+                      className="flex items-center gap-2 cursor-pointer group hover:bg-primary/10 p-1 -m-1 rounded-lg transition-all duration-200 relative z-10"
                       onClick={() => onSelectPlayer(entry)}
                     >
-                       <Avatar className="h-10 w-10 border transition-transform duration-300 group-hover:scale-110 group-hover:border-primary/50 shadow-sm group-hover:shadow-primary/20">
+                       <Avatar className="h-8 w-8 border transition-transform duration-300 group-hover:scale-110 group-hover:border-primary/50 shadow-sm">
                         <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
-                        <AvatarFallback><User /></AvatarFallback>
+                        <AvatarFallback><User className="w-4 h-4"/></AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                           <span className={cn("font-bold group-hover:text-primary transition-colors truncate", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</span>
+                        <div className="flex items-center gap-1.5">
+                           <span className={cn("font-bold group-hover:text-primary transition-colors truncate", isFirst ? "text-base" : "text-xs sm:text-sm")}>{entry.playerName}</span>
                             {isFirst && (
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger>
-                                             <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0.5">
-                                                <Trophy className="w-3 h-3"/>
+                                             <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1 py-0 h-4">
+                                                <Trophy className="w-2.5 h-2.5"/>
                                             </Badge>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -146,8 +144,8 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger>
-                                             <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0.5">
-                                                <ShieldCheck className="w-3 h-3"/>
+                                             <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1 py-0 h-4">
+                                                <ShieldCheck className="w-2.5 h-2.5"/>
                                             </Badge>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -160,8 +158,8 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger>
-                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1.5 py-0.5">
-                                                <Award className="w-3 h-3"/>
+                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1 py-0 h-4">
+                                                <Award className="w-2.5 h-2.5"/>
                                             </Badge>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -171,39 +169,36 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                                 </TooltipProvider>
                             )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors">
-                            <Avatar className="h-4 w-4">
-                                <AvatarImage src={entry.team?.logoUrl} alt={entry.team?.name} />
-                                <AvatarFallback>{entry.team?.name?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span className="truncate">{entry.team?.name}</span>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-foreground/80 transition-colors">
+                            <span className="truncate uppercase font-medium">{entry.team?.name}</span>
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">{entry.played}</TableCell>
-                  <TableCell className="hidden sm:table-cell text-center text-green-400">{entry.win}</TableCell>
-                  {!isCoop && <TableCell className="hidden sm:table-cell text-center text-yellow-400">{entry.draw}</TableCell>}
-                  <TableCell className="hidden sm:table-cell text-center text-red-400">{entry.loss}</TableCell>
+                  <TableCell className="text-center p-1 text-sm">{entry.played}</TableCell>
+                  <TableCell className="text-center p-1 text-sm text-green-400">{entry.win}</TableCell>
+                  {!isCoop && <TableCell className="text-center p-1 text-sm text-yellow-400">{entry.draw}</TableCell>}
+                  <TableCell className="text-center p-1 text-sm text-red-400">{entry.loss}</TableCell>
                   {!isCoop && (
                     <>
-                        <TableCell className="hidden md:table-cell text-center">{entry.goalsFor}</TableCell>
-                        <TableCell className="hidden md:table-cell text-center">{entry.goalsAgainst}</TableCell>
-                        <TableCell className="hidden md:table-cell text-center">{entry.goalDifference}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center p-1 text-sm">{entry.goalsFor}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center p-1 text-sm">{entry.goalsAgainst}</TableCell>
+                        <TableCell className="hidden md:table-cell text-center p-1 text-sm">{entry.goalDifference}</TableCell>
                     </>
                   )}
-                  <TableCell className={cn("text-center font-bold text-lg", isFirst ? "text-yellow-300" : "text-primary")}>
+                  <TableCell className={cn("text-center font-black text-base p-1", isFirst ? "text-yellow-300" : "text-primary")}>
                     {entry.points}
                   </TableCell>
                   {canRemovePlayer && (
-                    <TableCell className="hidden sm:table-cell text-right">
+                    <TableCell className="hidden sm:table-cell text-right p-1">
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-8 w-8"
                         onClick={() => onRemovePlayer?.(entry)}
                         title={`${t('remove')} ${entry.playerName}`}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         <span className="sr-only">{t('remove_player')}</span>
                       </Button>
                     </TableCell>
@@ -277,7 +272,7 @@ export function LeagueTable({
                         <LayoutGrid className="h-4 w-4" /> Bagan Playoff
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="group_a">
+                <TabsContent value="group_a" className="mt-0">
                      <SingleTable 
                         tableData={groupA} 
                         totalPlayers={groupA.length}
@@ -290,7 +285,7 @@ export function LeagueTable({
                         defendingChampionId={defendingChampionId}
                      />
                 </TabsContent>
-                <TabsContent value="group_b">
+                <TabsContent value="group_b" className="mt-0">
                      <SingleTable 
                         tableData={groupB} 
                         totalPlayers={groupB.length}
@@ -303,7 +298,7 @@ export function LeagueTable({
                         defendingChampionId={defendingChampionId}
                      />
                 </TabsContent>
-                <TabsContent value="playoff">
+                <TabsContent value="playoff" className="mt-0">
                     <TournamentBracket 
                         matches={matches} 
                         playersById={playersById} 
