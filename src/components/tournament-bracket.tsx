@@ -41,8 +41,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
         data[m.bracketId] = {
           ...m,
-          p1: e1 ? { name: e1.playerName } : (playersById[m.player1Id] || { name: m.player1Id }),
-          p2: e2 ? { name: e2.playerName } : (playersById[m.player2Id] || { name: m.player2Id }),
+          p1: e1 ? { name: e1.playerName } : (playersById[m.player1Id] || { name: m.player1Id === 'TBD' ? 'TBD' : m.player1Id }),
+          p2: e2 ? { name: e2.playerName } : (playersById[m.player2Id] || { name: m.player2Id === 'TBD' ? 'TBD' : m.player2Id }),
           t1, t2, s1, s2,
           isW1: m.isCompleted && s1 > s2,
           isW2: m.isCompleted && s2 > s1
@@ -109,22 +109,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <h3 className="text-sm font-black uppercase tracking-[0.3em] text-amber-500 italic flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
                     <div className="flex items-center gap-8 pl-4 overflow-x-visible">
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m5" label="LB-R1 1" /><MatchCard bid="playoff-m6" label="LB-R1 2" />
+                            <MatchCard bid="playoff-m5" label="LB - PUTARAN 1" /><MatchCard bid="playoff-m6" label="LB - PUTARAN 1" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m7" label="LB-R2 1" /><MatchCard bid="playoff-m8" label="LB-R2 2" />
+                            <MatchCard bid="playoff-m7" label="LB - VS LOSER M1 & M2" /><MatchCard bid="playoff-m8" label="LB - VS LOSER M3 & M4" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m11" label="LB-R3 1" /><MatchCard bid="playoff-m12" label="LB-R3 2" />
+                            <MatchCard bid="playoff-m11" label="LB - PUTARAN 3" /><MatchCard bid="playoff-m12" label="LB - PUTARAN 3" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m14" label="LB-R4 1" /><MatchCard bid="playoff-m15" label="LB-R4 2" />
+                            <MatchCard bid="playoff-m14" label="LB - VS LOSER M9" /><MatchCard bid="playoff-m15" label="LB - VS LOSER M10" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m16" label="LB-R5" />
+                            <MatchCard bid="playoff-m16" label="LB - PUTARAN 5" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m17" label="LB FINAL" />
+                            <MatchCard bid="playoff-m17" label="LB - VS LOSER M13" />
                         </div>
                     </div>
                 </div>
