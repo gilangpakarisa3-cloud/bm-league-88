@@ -116,18 +116,18 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                     )}>
                     {entry.rank}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="relative overflow-visible">
                     <div 
-                      className="flex items-center gap-3 cursor-pointer group"
+                      className="flex items-center gap-3 cursor-pointer group hover:bg-primary/10 p-2 -m-2 rounded-lg transition-all duration-200 relative z-10"
                       onClick={() => onSelectPlayer(entry)}
                     >
-                       <Avatar className="h-10 w-10">
+                       <Avatar className="h-10 w-10 border transition-transform duration-300 group-hover:scale-110 group-hover:border-primary/50 shadow-sm group-hover:shadow-primary/20">
                         <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
                         <AvatarFallback><User /></AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                           <span className={cn("font-bold group-hover:text-primary transition-colors", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</span>
+                           <span className={cn("font-bold group-hover:text-primary transition-colors truncate", isFirst ? "text-lg" : "text-sm sm:text-base")}>{entry.playerName}</span>
                             {isFirst && (
                                 <TooltipProvider>
                                     <Tooltip>
@@ -171,12 +171,12 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                                 </TooltipProvider>
                             )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors">
                             <Avatar className="h-4 w-4">
                                 <AvatarImage src={entry.team?.logoUrl} alt={entry.team?.name} />
                                 <AvatarFallback>{entry.team?.name?.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            {entry.team?.name}
+                            <span className="truncate">{entry.team?.name}</span>
                         </div>
                       </div>
                     </div>
