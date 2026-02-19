@@ -6,7 +6,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, TrendingUp } from 'lucide-react';
+import { Swords, Trophy, User, TrendingUp, Info } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,42 @@ interface TournamentBracketProps {
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false }: TournamentBracketProps) {
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
 
+  // 1. Calculate Group Rankings for Projections
+  const projections = useMemo(() => {
+    if (!leagueTable || leagueTable.length === 0) return null;
+
+    const sortAndRank = (data: any[]) => 
+        [...data].sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+            return a.playerName.localeCompare(b.playerName);
+        });
+
+    const gA = sortAndRank(leagueTable.filter(p => p.group === 'A'));
+    const gB = sortAndRank(leagueTable.filter(p => p.group === 'B'));
+
+    const proj: Record<string, { p1: any, p2: any, isProjection: boolean }> = {};
+
+    // UB Quarter Finals Projection
+    if (gA.length >= 4 && gB.length >= 4) {
+        proj['playoff-m1'] = { p1: gA[0], p2: gB[3], isProjection: true }; // 1A vs 4B
+        proj['playoff-m2'] = { p1: gB[1], p2: gA[2], isProjection: true }; // 2B vs 3A
+        proj['playoff-m3'] = { p1: gB[0], p2: gA[3], isProjection: true }; // 1B vs 4A
+        proj['playoff-m4'] = { p1: gA[1], p2: gB[2], isProjection: true }; // 2A vs 3B
+    }
+
+    // LB Round 1 Projection
+    if (gA.length >= 6 && gB.length >= 6) {
+        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser M1' }, isProjection: true }; // 5A
+        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser M2' }, isProjection: true }; // 5B
+        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser M3' }, isProjection: true }; // 6A
+        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser M4' }, isProjection: true }; // 6B
+    }
+
+    return proj;
+  }, [leagueTable]);
+
   const bracketData = useMemo(() => {
     const data: Record<string, any> = {};
     matches.forEach(m => {
@@ -45,7 +81,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
           p2: e2 ? { name: e2.playerName } : (playersById[m.player2Id] || { name: m.player2Id === 'TBD' ? 'TBD' : m.player2Id }),
           t1, t2, s1, s2,
           isW1: m.isCompleted && s1 > s2,
-          isW2: m.isCompleted && s2 > s1
+          isW2: m.isCompleted && s2 > s1,
+          isLive: true // Flag to indicate this is a real generated match
         };
       }
     });
@@ -54,11 +91,41 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const MatchCard = ({ bid, label }: { bid: string, label: string }) => {
     const m = bracketData[bid];
+    const p = projections?.[bid];
+
+    // If no real match, but projection exists
+    if (!m && p) {
+        return (
+            <div className="flex flex-col gap-1 opacity-60 grayscale-[0.5]">
+                <div className="flex items-center justify-between px-1">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 italic">{label}</span>
+                    <Badge variant="outline" className="h-3 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase tracking-tighter">PROYEKSI</Badge>
+                </div>
+                <Card className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10">
+                    <CardContent className="p-0 flex flex-col divide-y divide-border/20">
+                        <div className="flex items-center justify-between px-2 py-1 h-8">
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                                <Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={teamsById[p.p1.teamId]?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                <span className="text-[10px] font-bold truncate text-foreground/50">{p.p1.playerName || p.p1.name}</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between px-2 py-1 h-8">
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                                <Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={teamsById[p.p2.teamId]?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                <span className="text-[10px] font-bold truncate text-foreground/50">{p.p2.playerName || p.p2.name}</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     if (!m) return (
         <div className="flex flex-col gap-1 opacity-40">
             <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 ml-1">{label}</span>
             <div className="w-44 h-16 bg-card/20 border border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center">
-                <span className="text-[8px] font-bold uppercase tracking-tighter">Slot Belum Ada</span>
+                <span className="text-[8px] font-bold uppercase tracking-tighter text-muted-foreground">Menunggu Alur...</span>
             </div>
         </div>
     );
@@ -66,7 +133,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return (
         <div className="flex flex-col gap-1">
             <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 ml-1 italic">{label}</span>
-            <Card className={cn("w-44 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50", m.isCompleted ? "border-primary/30" : "border-muted border-dashed")} onClick={() => setSelectedMatch(m)}>
+            <Card className={cn("w-44 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50", m.isCompleted ? "border-primary/30" : "border-primary/10 border-dashed")} onClick={() => setSelectedMatch(m)}>
                 <CardContent className="p-0 flex flex-col divide-y divide-border">
                     <div className={cn("flex items-center justify-between px-2 py-1 bg-card h-8", m.isW1 && "bg-primary/10")}>
                         <div className="flex items-center gap-1.5 overflow-hidden"><Avatar className="h-5 w-5 border"><AvatarImage src={m.t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar><span className={cn("text-[10px] font-bold truncate", m.isW1 ? "text-primary" : "text-foreground/70")}>{m.p1.name}</span></div>
@@ -84,6 +151,17 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   return (
     <div className="w-full">
+        {/* Projections Info Banner */}
+        {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
+            <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-200/80 leading-relaxed">
+                    <p className="font-bold text-amber-500 uppercase tracking-tight mb-1">Mode Live Preview (Proyeksi)</p>
+                    <p>Bagan di bawah ini adalah **proyeksi otomatis** berdasarkan klasemen grup saat ini. Nama pemain akan berubah secara live mengikuti hasil pertandingan di fase grup. Jadwal resmi akan muncul setelah Admin menekan tombol "Start Playoff".</p>
+                </div>
+            </div>
+        )}
+
         <ScrollArea className="w-full h-full pb-4">
             <div className="min-w-[1200px] flex flex-col gap-12 p-4">
                 {/* Upper Bracket */}
@@ -109,10 +187,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <h3 className="text-sm font-black uppercase tracking-[0.3em] text-amber-500 italic flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
                     <div className="flex items-center gap-8 pl-4 overflow-x-visible">
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m5" label="LB-R1 (Rank 5A vs L-M1)" />
-                            <MatchCard bid="playoff-m6" label="LB-R1 (Rank 5B vs L-M2)" />
-                            <MatchCard bid="playoff-m7" label="LB-R1 (Rank 6A vs L-M3)" />
-                            <MatchCard bid="playoff-m8" label="LB-R1 (Rank 6B vs L-M4)" />
+                            <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser M1)" />
+                            <MatchCard bid="playoff-m6" label="LB-R1 (vs Loser M2)" />
+                            <MatchCard bid="playoff-m7" label="LB-R1 (vs Loser M3)" />
+                            <MatchCard bid="playoff-m8" label="LB-R1 (vs Loser M4)" />
                         </div>
                         <div className="flex flex-col gap-24 py-12">
                             <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
@@ -169,8 +247,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <p className="text-5xl font-black italic tracking-tighter text-primary">{selectedMatch.s1} - {selectedMatch.s2}</p>
                             </div>
                         )}
-                        <div className="pt-2 border-t border-border text-left">
-                            <Badge variant="outline" className="font-black uppercase italic tracking-widest text-[10px] bg-primary/10 text-primary border-primary/30">Babak: {selectedMatch.round}</Badge>
+                        <div className="pt-2 border-t border-border flex flex-col items-start text-[10px] font-bold gap-1">
+                            <span className="text-muted-foreground uppercase tracking-tight">Babak Kompetisi Saat Ini:</span>
+                            <Badge variant="outline" className="font-black uppercase italic tracking-widest text-[10px] bg-primary/10 text-primary border-primary/30">{selectedMatch.round}</Badge>
                         </div>
                     </div>
                 )}
