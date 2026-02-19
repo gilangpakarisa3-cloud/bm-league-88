@@ -55,6 +55,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CoopDrawDialog } from '@/components/coop-draw-dialog';
 import { GroupDrawDialog } from '@/components/group-draw-dialog';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
