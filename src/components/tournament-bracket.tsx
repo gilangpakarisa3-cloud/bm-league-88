@@ -112,16 +112,16 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <MatchCard bid="playoff-m5" label="LB - Putaran 1 (Rank 5-6)" /><MatchCard bid="playoff-m6" label="LB - Putaran 1 (Rank 5-6)" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m7" label="LB - vs Loser of Match QF 1 & 2" /><MatchCard bid="playoff-m8" label="LB - vs Loser of Match QF 3 & 4" />
+                            <MatchCard bid="playoff-m7" label="LB - vs Loser of Match QF 1" /><MatchCard bid="playoff-m8" label="LB - vs Loser of Match QF 2" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m11" label="LB - Putaran 3" /><MatchCard bid="playoff-m12" label="LB - Putaran 3" />
+                            <MatchCard bid="playoff-m11" label="LB - vs Loser QF (Cont. 1)" /><MatchCard bid="playoff-m12" label="LB - vs Loser QF (Cont. 2)" />
                         </div>
                         <div className="flex flex-col gap-4">
                             <MatchCard bid="playoff-m14" label="LB - vs Loser of Match SEMI 1" /><MatchCard bid="playoff-m15" label="LB - vs Loser of Match SEMI 2" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m16" label="LB - Putaran 5" />
+                            <MatchCard bid="playoff-m16" label="LB - Semifinal" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
                             <MatchCard bid="playoff-m17" label="LB - vs Loser of Match UB FINAL" />

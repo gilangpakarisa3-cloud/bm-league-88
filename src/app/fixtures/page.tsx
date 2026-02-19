@@ -47,23 +47,39 @@ import { Badge } from '@/components/ui/badge';
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
 
+/**
+ * Standard 12-Team Double Elimination Logic:
+ * M1-M4: UB Quarter-Finals
+ * M5-M6: LB Round 1 (Rank 5-6)
+ * M7-M8: LB Round 2 (vs 2 Losers of UB QF)
+ * M9-M10: UB Semis
+ * M11-M12: LB Round 3 (vs 2 remaining Losers of UB QF)
+ * M13: UB Final
+ * M14-M15: LB Round 4 (vs 2 Losers of UB Semi)
+ * M16: LB Semi-Final (Survivors play each other)
+ * M17: LB Final (Winner M16 vs Loser UB Final M13)
+ * M18: Grand Final
+ */
 const PLAYOFF_SUCCESSOR_MAP: Record<string, { winner: { bid: string, slot: 1 | 2 }, loser?: { bid: string, slot: 1 | 2 } }> = {
+    // Upper Bracket
     'playoff-m1': { winner: { bid: 'playoff-m9', slot: 1 }, loser: { bid: 'playoff-m7', slot: 1 } },
-    'playoff-m2': { winner: { bid: 'playoff-m9', slot: 2 }, loser: { bid: 'playoff-m7', slot: 2 } },
-    'playoff-m3': { winner: { bid: 'playoff-m10', slot: 1 }, loser: { bid: 'playoff-m8', slot: 1 } },
-    'playoff-m4': { winner: { bid: 'playoff-m10', slot: 2 }, loser: { bid: 'playoff-m8', slot: 2 } },
-    'playoff-m5': { winner: { bid: 'playoff-m11', slot: 1 } },
-    'playoff-m6': { winner: { bid: 'playoff-m12', slot: 1 } },
+    'playoff-m2': { winner: { bid: 'playoff-m9', slot: 2 }, loser: { bid: 'playoff-m8', slot: 1 } },
+    'playoff-m3': { winner: { bid: 'playoff-m10', slot: 1 }, loser: { bid: 'playoff-m11', slot: 1 } },
+    'playoff-m4': { winner: { bid: 'playoff-m10', slot: 2 }, loser: { bid: 'playoff-m12', slot: 1 } },
+    'playoff-m9': { winner: { bid: 'playoff-m13', slot: 1 }, loser: { bid: 'playoff-m14', slot: 1 } },
+    'playoff-m10': { winner: { bid: 'playoff-m13', slot: 2 }, loser: { bid: 'playoff-m15', slot: 1 } },
+    'playoff-m13': { winner: { bid: 'playoff-m18', slot: 1 }, loser: { bid: 'playoff-m17', slot: 1 } },
+
+    // Lower Bracket
+    'playoff-m5': { winner: { bid: 'playoff-m7', slot: 2 } },
+    'playoff-m6': { winner: { bid: 'playoff-m8', slot: 2 } },
     'playoff-m7': { winner: { bid: 'playoff-m11', slot: 2 } },
     'playoff-m8': { winner: { bid: 'playoff-m12', slot: 2 } },
-    'playoff-m9': { winner: { bid: 'playoff-m13', slot: 1 }, loser: { bid: 'playoff-m14', slot: 2 } },
-    'playoff-m10': { winner: { bid: 'playoff-m13', slot: 2 }, loser: { bid: 'playoff-m15', slot: 2 } },
-    'playoff-m11': { winner: { bid: 'playoff-m14', slot: 1 } },
-    'playoff-m12': { winner: { bid: 'playoff-m15', slot: 1 } },
-    'playoff-m13': { winner: { bid: 'playoff-m18', slot: 1 }, loser: { bid: 'playoff-m17', slot: 2 } },
+    'playoff-m11': { winner: { bid: 'playoff-m14', slot: 2 } },
+    'playoff-m12': { winner: { bid: 'playoff-m15', slot: 2 } },
     'playoff-m14': { winner: { bid: 'playoff-m16', slot: 1 } },
     'playoff-m15': { winner: { bid: 'playoff-m16', slot: 2 } },
-    'playoff-m16': { winner: { bid: 'playoff-m17', slot: 1 } },
+    'playoff-m16': { winner: { bid: 'playoff-m17', slot: 2 } },
     'playoff-m17': { winner: { bid: 'playoff-m18', slot: 2 } },
 };
 
@@ -183,10 +199,10 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         'UB-Semi': 'UB - Semi Final', 
         'UB-Final': 'Upper Bracket Final', 
         'LB-Round 1': 'LB - Putaran 1 (Rank 5-6)', 
-        'LB-Round 2': 'LB - vs Loser of Match QF', 
-        'LB-Round 3': 'LB - Putaran 3', 
+        'LB-Round 2': 'LB - vs Loser of Match QF 1 & 2', 
+        'LB-Round 3': 'LB - vs Loser of Match QF 3 & 4', 
         'LB-Round 4': 'LB - vs Loser of Match SEMI', 
-        'LB-Round 5': 'LB - Putaran 5', 
+        'LB-Round 5': 'LB - Semifinal', 
         'LB-Final': 'LB - vs Loser of Match UB Final', 
         'Grand-Final': 'Grand Final' 
     };
