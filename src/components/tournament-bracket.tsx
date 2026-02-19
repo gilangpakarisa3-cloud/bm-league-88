@@ -109,22 +109,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <h3 className="text-sm font-black uppercase tracking-[0.3em] text-amber-500 italic flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
                     <div className="flex items-center gap-8 pl-4 overflow-x-visible">
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m5" label="LB - PUTARAN 1" /><MatchCard bid="playoff-m6" label="LB - PUTARAN 1" />
+                            <MatchCard bid="playoff-m5" label="LB - Putaran 1 (Rank 5-6)" /><MatchCard bid="playoff-m6" label="LB - Putaran 1 (Rank 5-6)" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m7" label="LB - VS LOSER M1 & M2" /><MatchCard bid="playoff-m8" label="LB - VS LOSER M3 & M4" />
+                            <MatchCard bid="playoff-m7" label="LB - vs Loser of Match QF 1 & 2" /><MatchCard bid="playoff-m8" label="LB - vs Loser of Match QF 3 & 4" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m11" label="LB - PUTARAN 3" /><MatchCard bid="playoff-m12" label="LB - PUTARAN 3" />
+                            <MatchCard bid="playoff-m11" label="LB - Putaran 3" /><MatchCard bid="playoff-m12" label="LB - Putaran 3" />
                         </div>
                         <div className="flex flex-col gap-4">
-                            <MatchCard bid="playoff-m14" label="LB - VS LOSER M9" /><MatchCard bid="playoff-m15" label="LB - VS LOSER M10" />
+                            <MatchCard bid="playoff-m14" label="LB - vs Loser of Match SEMI 1" /><MatchCard bid="playoff-m15" label="LB - vs Loser of Match SEMI 2" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m16" label="LB - PUTARAN 5" />
+                            <MatchCard bid="playoff-m16" label="LB - Putaran 5" />
                         </div>
                         <div className="flex flex-col justify-center h-full">
-                            <MatchCard bid="playoff-m17" label="LB - VS LOSER M13" />
+                            <MatchCard bid="playoff-m17" label="LB - vs Loser of Match UB FINAL" />
                         </div>
                     </div>
                 </div>

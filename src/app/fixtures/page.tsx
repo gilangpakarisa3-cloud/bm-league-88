@@ -177,7 +177,19 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         return { groupedMatches: grouped, upcomingCount: Object.values(grouped.upcoming).flat().length, completedCount: Object.values(grouped.completed).flat().length };
     }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId]);
 
-    const roundNames: Record<string, string> = { 'Group': 'Fase Grup', 'UB-Quarter': 'UB - Perempat Final', 'UB-Semi': 'UB - Semi Final', 'UB-Final': 'Upper Bracket Final', 'LB-Round 1': 'LB - Putaran 1', 'LB-Round 2': 'LB - Putaran 2', 'LB-Round 3': 'LB - Putaran 3', 'LB-Round 4': 'LB - Putaran 4', 'LB-Round 5': 'LB - Putaran 5', 'LB-Final': 'Lower Bracket Final', 'Grand-Final': 'Grand Final' };
+    const roundNames: Record<string, string> = { 
+        'Group': 'Fase Grup', 
+        'UB-Quarter': 'UB - Perempat Final', 
+        'UB-Semi': 'UB - Semi Final', 
+        'UB-Final': 'Upper Bracket Final', 
+        'LB-Round 1': 'LB - Putaran 1 (Rank 5-6)', 
+        'LB-Round 2': 'LB - vs Loser of Match QF', 
+        'LB-Round 3': 'LB - Putaran 3', 
+        'LB-Round 4': 'LB - vs Loser of Match SEMI', 
+        'LB-Round 5': 'LB - Putaran 5', 
+        'LB-Final': 'LB - vs Loser of Match UB Final', 
+        'Grand-Final': 'Grand Final' 
+    };
 
     if (isLoadingMatches) return <p className="text-center py-12 text-muted-foreground animate-pulse">{t('loading_fixtures')}</p>;
     if (!matches || matches.length === 0) return (<div className="border-2 border-dashed border-primary/20 rounded-2xl p-12 text-center bg-card/40 backdrop-blur-sm"><Swords className="w-12 h-12 text-primary/30 mx-auto mb-4" /><h2 className="text-xl font-bold text-foreground uppercase tracking-tight">{t('no_fixtures_generated_title')}</h2><p className="text-muted-foreground mt-2 max-w-sm mx-auto">{t('no_fixtures_generated_desc')}</p></div>);
