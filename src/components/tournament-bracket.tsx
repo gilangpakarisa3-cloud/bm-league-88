@@ -256,59 +256,64 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return [min - 1, max + 1];
   }, [analysisData]);
 
-  const MatchCard = ({ match }: { match: any }) => (
-    <Card 
-        className={cn(
-            "w-48 sm:w-56 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50",
-            match.isCompleted ? "border-primary/30" : "border-muted border-dashed"
-        )}
-        onClick={() => setSelectedMatch(match)}
-    >
-      <CardContent className="p-0">
-        <div className="flex flex-col divide-y divide-border">
-          <div className={cn(
-            "flex items-center justify-between px-3 py-2 bg-card",
-            match.isWinner1 && "bg-primary/10"
-          )}>
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Avatar className="h-6 w-6 border">
-                <AvatarImage src={match.team1?.logoUrl} />
-                <AvatarFallback><User className="h-3 w-3"/></AvatarFallback>
-              </Avatar>
-              <span className={cn(
-                "text-xs font-bold truncate",
-                match.isWinner1 ? "text-primary" : "text-foreground/70"
-              )}>
-                {match.player1?.name || 'TBD'}
+  const MatchCard = ({ match, label }: { match: any, label?: string }) => (
+    <div className="flex flex-col gap-1">
+      {label && (
+        <span className="text-[10px] font-black uppercase tracking-widest text-primary/60 ml-1 italic leading-none">{label}</span>
+      )}
+      <Card 
+          className={cn(
+              "w-48 sm:w-56 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50",
+              match.isCompleted ? "border-primary/30" : "border-muted border-dashed"
+          )}
+          onClick={() => setSelectedMatch(match)}
+      >
+        <CardContent className="p-0">
+          <div className="flex flex-col divide-y divide-border">
+            <div className={cn(
+              "flex items-center justify-between px-3 py-2 bg-card",
+              match.isWinner1 && "bg-primary/10"
+            )}>
+              <div className="flex items-center gap-2 overflow-hidden">
+                <Avatar className="h-6 w-6 border">
+                  <AvatarImage src={match.team1?.logoUrl} />
+                  <AvatarFallback><User className="h-3 w-3"/></AvatarFallback>
+                </Avatar>
+                <span className={cn(
+                  "text-xs font-bold truncate",
+                  match.isWinner1 ? "text-primary" : "text-foreground/70"
+                )}>
+                  {match.player1?.name || 'TBD'}
+                </span>
+              </div>
+              <span className={cn("font-mono font-bold", match.isWinner1 ? "text-primary" : "text-muted-foreground")}>
+                {match.isCompleted ? match.score1 : '-'}
               </span>
             </div>
-            <span className={cn("font-mono font-bold", match.isWinner1 ? "text-primary" : "text-muted-foreground")}>
-              {match.isCompleted ? match.score1 : '-'}
-            </span>
-          </div>
-          <div className={cn(
-            "flex items-center justify-between px-3 py-2 bg-card",
-            match.isWinner2 && "bg-primary/10"
-          )}>
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Avatar className="h-6 w-6 border">
-                <AvatarImage src={match.team2?.logoUrl} />
-                <AvatarFallback><User className="h-3 w-3"/></AvatarFallback>
-              </Avatar>
-              <span className={cn(
-                "text-xs font-bold truncate",
-                match.isWinner2 ? "text-primary" : "text-foreground/70"
-              )}>
-                {match.player2?.name || 'TBD'}
+            <div className={cn(
+              "flex items-center justify-between px-3 py-2 bg-card",
+              match.isWinner2 && "bg-primary/10"
+            )}>
+              <div className="flex items-center gap-2 overflow-hidden">
+                <Avatar className="h-6 w-6 border">
+                  <AvatarImage src={match.team2?.logoUrl} />
+                  <AvatarFallback><User className="h-3 w-3"/></AvatarFallback>
+                </Avatar>
+                <span className={cn(
+                  "text-xs font-bold truncate",
+                  match.isWinner2 ? "text-primary" : "text-foreground/70"
+                )}>
+                  {match.player2?.name || 'TBD'}
+                </span>
+              </div>
+              <span className={cn("font-mono font-bold", match.isWinner2 ? "text-primary" : "text-muted-foreground")}>
+                {match.isCompleted ? match.score2 : '-'}
               </span>
             </div>
-            <span className={cn("font-mono font-bold", match.isWinner2 ? "text-primary" : "text-muted-foreground")}>
-              {match.isCompleted ? match.score2 : '-'}
-            </span>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 
   const PlayerAnalysisColumn = ({ stats, playerInfo, team, variant = 'primary', side, matchScore, showScore }: { stats: any, playerInfo: any, team: any, variant?: 'primary' | 'gold', side: 'left' | 'right', matchScore?: number | null, showScore?: boolean }) => {
@@ -479,12 +484,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
           <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground text-center mb-2">Perempat Final</h3>
           <div className="flex flex-col gap-6">
             {bracketData['Quarter-Final'].length > 0 ? (
-                bracketData['Quarter-Final'].map(m => <MatchCard key={m.id} match={m} />)
+                bracketData['Quarter-Final'].map((m, index) => <MatchCard key={m.id} match={m} label={`Laga ${index + 1}`} />)
             ) : (
                 [...Array(4)].map((_, i) => (
-                    <div key={i} className="w-48 sm:w-56 h-20 bg-card/30 border-2 border-primary/10 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500">
-                        <Swords className="h-4 w-4 text-primary/30" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu Grup</span>
+                    <div key={i} className="flex flex-col gap-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/30 ml-1 italic leading-none">Laga {i + 1}</span>
+                        <div className="w-48 sm:w-56 h-20 bg-card/30 border-2 border-primary/10 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500">
+                            <Swords className="h-4 w-4 text-primary/30" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu Grup</span>
+                        </div>
                     </div>
                 ))
             )}
@@ -495,12 +503,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
           <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground text-center mb-2">Semi Final</h3>
           <div className="flex flex-col justify-around flex-grow gap-24 py-12">
              {bracketData['Semi-Final'].length > 0 ? (
-                bracketData['Semi-Final'].map(m => <MatchCard key={m.id} match={m} />)
+                bracketData['Semi-Final'].map((m, index) => <MatchCard key={m.id} match={m} label={`Laga ${index + 5}`} />)
             ) : (
                 [...Array(2)].map((_, i) => (
-                    <div key={i} className="w-48 sm:w-56 h-20 bg-card/30 border-2 border-primary/10 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500">
-                        <Swords className="h-4 w-4 text-primary/30" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu QF</span>
+                    <div key={i} className="flex flex-col gap-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/30 ml-1 italic leading-none">Laga {i + 5}</span>
+                        <div className="w-48 sm:w-56 h-20 bg-card/30 border-2 border-primary/10 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500">
+                            <Swords className="h-4 w-4 text-primary/30" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu QF</span>
+                        </div>
                     </div>
                 ))
             )}
@@ -514,12 +525,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
           <div className="flex flex-col justify-center flex-grow py-24">
              {bracketData['Final'].length > 0 ? (
                 <div className="scale-110">
-                    <MatchCard match={bracketData['Final'][0]} />
+                    <MatchCard match={bracketData['Final'][0]} label="Grand Final" />
                 </div>
             ) : (
-                <div className="w-48 sm:w-56 h-24 bg-primary/5 border-2 border-primary/20 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-500">
-                    <Trophy className="h-6 w-6 text-primary/20 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu Finalis</span>
+                <div className="flex flex-col gap-1 items-center scale-110">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary/30 italic leading-none">Final</span>
+                    <div className="w-48 sm:w-56 h-24 bg-primary/5 border-2 border-primary/20 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-500">
+                        <Trophy className="h-6 w-6 text-primary/20 animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu Finalis</span>
+                    </div>
                 </div>
             )}
           </div>
