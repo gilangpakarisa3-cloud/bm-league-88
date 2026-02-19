@@ -482,7 +482,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             {bracketData['Quarter-Final'].length > 0 ? (
                 bracketData['Quarter-Final'].map(m => <MatchCard key={m.id} match={m} />)
             ) : (
-                [...Array(4)].map((_, i) => <div key={i} className="w-48 sm:w-56 h-20 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground italic">Menunggu Hasil Grup</div>)
+                [...Array(4)].map((_, i) => (
+                    <div key={i} className="w-48 sm:w-56 h-20 bg-card/30 border-2 border-primary/10 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500">
+                        <Swords className="h-4 w-4 text-primary/30" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu Grup</span>
+                    </div>
+                ))
             )}
           </div>
         </div>
@@ -493,7 +498,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
              {bracketData['Semi-Final'].length > 0 ? (
                 bracketData['Semi-Final'].map(m => <MatchCard key={m.id} match={m} />)
             ) : (
-                [...Array(2)].map((_, i) => <div key={i} className="w-48 sm:w-56 h-20 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground italic">Menunggu QF</div>)
+                [...Array(2)].map((_, i) => (
+                    <div key={i} className="w-48 sm:w-56 h-20 bg-card/30 border-2 border-primary/10 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-500">
+                        <Swords className="h-4 w-4 text-primary/30" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu QF</span>
+                    </div>
+                ))
             )}
           </div>
         </div>
@@ -508,9 +518,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <MatchCard match={bracketData['Final'][0]} />
                 </div>
             ) : (
-                <div className="w-48 sm:w-56 h-24 border-2 border-primary/20 border-dashed rounded-lg flex flex-col items-center justify-center text-xs text-muted-foreground italic gap-2">
-                    <Swords className="h-5 w-5 opacity-20" />
-                    <span>Menunggu Finalis</span>
+                <div className="w-48 sm:w-56 h-24 bg-primary/5 border-2 border-primary/20 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-500">
+                    <Trophy className="h-6 w-6 text-primary/20 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 italic">Menunggu Finalis</span>
                 </div>
             )}
           </div>
