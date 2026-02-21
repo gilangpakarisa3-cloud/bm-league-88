@@ -8,10 +8,11 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import type { WithId, Season, Player, LeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Users, Swords, Group, Loader } from 'lucide-react';
+import { Loader2, Shuffle, Users, Swords, Group, Loader, Trophy, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { Badge } from './ui/badge';
 
 const LEAGUE_ID = 'main-league';
 
@@ -72,7 +73,7 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
             const prevTable = prevTableSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<LeagueEntry>));
             setPreviousSeasonTable(prevTable);
         } else {
-            setPreviousSeasonTable([]); // No previous season, so no seeding
+            setPreviousSeasonTable([]); 
         }
         setIsLoading(false);
     };
@@ -112,26 +113,17 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
     const groupA: PlayerInPot[] = [];
     const groupB: PlayerInPot[] = [];
     
-    // Distribute Pot 1
     shuffledPot1.forEach((player, index) => {
-        if (index % 2 === 0) {
-            groupA.push(player);
-        } else {
-            groupB.push(player);
-        }
+        if (index % 2 === 0) groupA.push(player);
+        else groupB.push(player);
     });
 
-    // Distribute Pot 2
     shuffledPot2.forEach((player, index) => {
-         if (groupA.length <= groupB.length) {
-            groupA.push(player);
-        } else {
-            groupB.push(player);
-        }
+         if (groupA.length <= groupB.length) groupA.push(player);
+         else groupB.push(player);
     });
 
-    const results = { groupA, groupB };
-    setDrawnGroups(results);
+    setDrawnGroups({ groupA, groupB });
     setRevealedCount(0);
     setIsRevealing(true);
 
@@ -144,9 +136,9 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
         if (current >= totalToReveal) {
             clearInterval(interval);
             setIsRevealing(false);
-            toast({ title: "Grup Telah Diundi!", description: "Seluruh tim telah berhasil diundi ke dalam grup." });
+            toast({ title: "Undian Selesai!", description: "Seluruh tim telah terbagi ke dalam grup kompetisi." });
         }
-    }, 1200); // 1.2s per reveal for suspense
+    }, 1200);
 
   }, [pot1, pot2, toast]);
   
@@ -157,42 +149,50 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden">
+      <DialogContent className="max-w-5xl p-0 overflow-hidden border-primary/20 bg-background/95 backdrop-blur-xl">
         <ScrollArea className="max-h-[90vh]">
-          <div className="p-6">
-            <DialogHeader>
-              <DialogTitle>Undian Grup: {season?.name}</DialogTitle>
-              <DialogDescription>
-                Pemain dibagi menjadi Pot Unggulan dan Non-Unggulan berdasarkan performa musim lalu. Tim akan diundi satu per satu secara bergantian antara Grup A dan Grup B.
+          <div className="p-8">
+            <DialogHeader className="mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <Trophy className="w-6 h-6" />
+                </div>
+                <DialogTitle className="text-3xl font-black tracking-tighter">Undian Grup: {season?.name}</DialogTitle>
+              </div>
+              <DialogDescription className="text-base font-medium">
+                Sistem Seeded Draw: Pemain dibagi menjadi Pot Unggulan dan Non-Unggulan. Tim akan diundi secara acak bergantian antara Grup A dan Grup B untuk menjaga keseimbangan kompetisi.
               </DialogDescription>
             </DialogHeader>
             
             {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="ml-4">Mencari data musim lalu...</p>
+                <div className="flex flex-col items-center justify-center h-80 gap-4">
+                    <div className="relative">
+                        <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" />
+                        <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
+                    </div>
+                    <p className="font-bold tracking-widest text-primary animate-pulse uppercase text-xs">Menganalisis performa musim lalu...</p>
                 </div>
             ) : (
-                 <div className="my-4">
+                 <div className="space-y-8">
                     {!drawnGroups ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <PotDisplay title="Pot 1 (Unggulan)" players={pot1} />
-                            <PotDisplay title="Pot 2 (Non-Unggulan)" players={pot2} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-500">
+                            <PotDisplay title="Pot 1" subtitle="Unggulan Utama" players={pot1} variant="primary" />
+                            <PotDisplay title="Pot 2" subtitle="Penantang" players={pot2} variant="muted" />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                              <GroupDisplay 
                                 title="Grup A" 
                                 players={drawnGroups.groupA} 
                                 revealedCount={revealedCount}
-                                groupIndex={0} // Index 0 for A (reveals at 1, 3, 5...)
+                                groupIndex={0}
                                 variant="primary"
                              />
                              <GroupDisplay 
                                 title="Grup B" 
                                 players={drawnGroups.groupB} 
                                 revealedCount={revealedCount}
-                                groupIndex={1} // Index 1 for B (reveals at 2, 4, 6...)
+                                groupIndex={1}
                                 variant="gold"
                              />
                         </div>
@@ -200,25 +200,28 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                 </div>
             )}
 
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-10 gap-4">
                 {drawnGroups ? (
-                    <Button onClick={handleFinalSave} className="w-full sm:w-auto" disabled={isLoading || isRevealing}>
+                    <Button onClick={handleFinalSave} className="w-full h-14 text-lg font-black tracking-tighter" disabled={isLoading || isRevealing}>
                         {isRevealing ? (
-                            <>
-                                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                            <div className="flex items-center gap-3">
+                                <span className="relative flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-foreground"></span>
+                                </span>
                                 Mengundi... ({revealedCount} / {drawnGroups.groupA.length + drawnGroups.groupB.length})
-                            </>
+                            </div>
                         ) : (
                             <>
-                                <Group className="mr-2 h-4 w-4"/>
-                                Simpan Grup
+                                <Sparkles className="mr-2 h-5 w-5"/>
+                                Kunci & Simpan Grup
                             </>
                         )}
                     </Button>
                 ) : (
-                    <Button onClick={handleDraw} className="w-full sm:w-auto" disabled={isLoading || registeredPlayers.length < 2}>
-                        <Shuffle className="mr-2 h-4 w-4"/>
-                        Mulai Undian
+                    <Button onClick={handleDraw} className="w-full h-14 text-lg font-black tracking-tighter shadow-[0_10px_25px_rgba(204,253,1,0.2)]" disabled={isLoading || registeredPlayers.length < 2}>
+                        <Shuffle className="mr-2 h-5 w-5"/>
+                        Mulai Undian Sekarang
                     </Button>
                 )}
             </DialogFooter>
@@ -229,18 +232,27 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
   );
 }
 
-const PotDisplay = ({ title, players }: { title: string; players: PlayerInPot[]; }) => (
-    <Card>
-        <CardHeader>
-            <CardTitle className="text-center text-primary">{title} ({players.length})</CardTitle>
+const PotDisplay = ({ title, subtitle, players, variant }: { title: string; subtitle: string; players: PlayerInPot[]; variant: 'primary' | 'muted' }) => (
+    <Card className={cn("overflow-hidden border-2", variant === 'primary' ? "border-primary/30 bg-primary/5" : "border-muted/30 bg-muted/5")}>
+        <CardHeader className="pb-4">
+            <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle className={cn("text-2xl font-black tracking-tighter", variant === 'primary' ? "text-primary" : "text-muted-foreground")}>{title}</CardTitle>
+                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">{subtitle}</p>
+                </div>
+                <Badge variant="outline" className="h-6 font-black">{players.length} Pemain</Badge>
+            </div>
         </CardHeader>
         <CardContent>
-            <ScrollArea className="h-96">
+            <ScrollArea className="h-[300px]">
                 <div className="space-y-2 pr-4">
-                    {players.map(player => (
-                        <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border gap-2">
-                           <span className="font-semibold">{player.playerName}</span>
-                           <span className="text-xs text-muted-foreground">Peringkat Lalu: {player.prevRank === Infinity ? 'N/A' : player.prevRank}</span>
+                    {players.map((player, idx) => (
+                        <div key={player.id} className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-white/5 hover:border-primary/30 transition-all group">
+                           <div className="flex items-center gap-3">
+                               <span className="text-xs font-black opacity-30 group-hover:opacity-100 transition-opacity">#{idx + 1}</span>
+                               <span className="font-bold text-sm">{player.playerName}</span>
+                           </div>
+                           <Badge variant="secondary" className="text-[9px] font-bold">Lalu: {player.prevRank === Infinity ? 'N/A' : `Rank ${player.prevRank}`}</Badge>
                         </div>
                     ))}
                 </div>
@@ -260,17 +272,18 @@ const GroupDisplay = ({ title, players, revealedCount, groupIndex, variant = 'pr
 
     return (
         <Card className={cn(
-            "overflow-hidden border-2 transition-all duration-500", 
-            isGold ? "border-yellow-400 shadow-lg shadow-yellow-400/10" : "border-primary"
+            "overflow-hidden border-4 transition-all duration-700", 
+            isGold ? "border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.15)] bg-yellow-500/5" : "border-primary shadow-[0_0_30px_rgba(204,253,1,0.15)] bg-primary/5"
         )}>
-            <CardHeader className={cn("py-3", isGold ? "bg-yellow-400/10" : "bg-primary/5")}>
-                <CardTitle className={cn("text-center text-lg", isGold ? "text-yellow-400" : "text-primary")}>{title}</CardTitle>
+            <CardHeader className={cn("py-4 border-b-2", isGold ? "border-yellow-500/20 bg-yellow-500/10" : "border-primary/20 bg-primary/10")}>
+                <div className="flex items-center justify-center gap-3">
+                    <Swords className={cn("w-5 h-5", isGold ? "text-yellow-500" : "text-primary")} />
+                    <CardTitle className={cn("text-center text-2xl font-black tracking-[0.2em] uppercase", isGold ? "text-yellow-500" : "text-primary")}>{title}</CardTitle>
+                </div>
             </CardHeader>
-            <CardContent className="p-4">
-                <div className="space-y-2">
+            <CardContent className="p-6">
+                <div className="space-y-3">
                     {players.map((player, i) => {
-                        // Sequence logic: A0=1, B0=2, A1=3, B1=4...
-                        // General: GroupIndex (0 or 1) + (PlayerIndex * 2) + 1
                         const sequenceNumber = groupIndex + (i * 2) + 1;
                         const isRevealed = revealedCount >= sequenceNumber;
                         const isNextToReveal = revealedCount === sequenceNumber - 1;
@@ -279,27 +292,37 @@ const GroupDisplay = ({ title, players, revealedCount, groupIndex, variant = 'pr
                             <div 
                                 key={player.id} 
                                 className={cn(
-                                    "flex items-center text-sm font-bold p-3 rounded-md border-2 transition-all duration-500",
+                                    "relative flex items-center h-14 rounded-xl border-2 transition-all duration-500 overflow-hidden",
                                     isRevealed 
                                         ? isGold 
-                                            ? "bg-yellow-400/10 border-yellow-400/50 text-foreground animate-in zoom-in-95 fade-in duration-500"
-                                            : "bg-primary/10 border-primary/50 text-foreground animate-in zoom-in-95 fade-in duration-500" 
+                                            ? "bg-yellow-500/20 border-yellow-500/50 shadow-inner animate-in zoom-in-95 slide-in-from-left-4 duration-500"
+                                            : "bg-primary/20 border-primary/50 shadow-inner animate-in zoom-in-95 slide-in-from-left-4 duration-500" 
                                         : isNextToReveal
-                                            ? cn("bg-muted animate-pulse border-dashed text-muted-foreground h-11", isGold ? "border-yellow-400/20" : "border-primary/20")
-                                            : "bg-muted/30 border-muted text-transparent h-11"
+                                            ? cn("bg-muted/50 animate-pulse border-dashed h-14 border-white/10")
+                                            : "bg-black/20 border-transparent h-14"
                                 )}
                             >
                                 {isRevealed ? (
                                     <>
-                                        <span className={cn("mr-2 opacity-50", isGold ? "text-yellow-400" : "text-primary")}>#{i + 1}</span>
-                                        {player.playerName}
+                                        <div className={cn("absolute left-0 top-0 bottom-0 w-1", isGold ? "bg-yellow-500" : "bg-primary")} />
+                                        <div className="px-4 flex items-center justify-between w-full">
+                                            <div className="flex items-center gap-3">
+                                                <span className={cn("text-xs font-black opacity-50", isGold ? "text-yellow-500" : "text-primary")}>Pos {i + 1}</span>
+                                                <span className="font-black text-base tracking-tight uppercase">{player.playerName}</span>
+                                            </div>
+                                            <Badge variant="outline" className={cn("text-[8px] font-bold border-white/10", isGold ? "text-yellow-500" : "text-primary")}>Drawn</Badge>
+                                        </div>
                                     </>
                                 ) : isNextToReveal ? (
-                                    <div className="flex items-center justify-center w-full gap-2">
-                                        <Loader2 className={cn("h-3 w-3 animate-spin", isGold ? "text-yellow-400" : "text-primary")} />
-                                        <span className="text-[10px] uppercase tracking-tighter">Menunggu...</span>
+                                    <div className="flex items-center justify-center w-full gap-3">
+                                        <Loader className={cn("h-4 w-4 animate-spin", isGold ? "text-yellow-500" : "text-primary")} />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Menanti...</span>
                                     </div>
-                                ) : null}
+                                ) : (
+                                    <div className="w-full flex justify-center opacity-10">
+                                        <span className="text-xs font-black tracking-widest">??????</span>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
