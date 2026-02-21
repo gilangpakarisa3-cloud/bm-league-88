@@ -76,7 +76,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const getPlayerAnalysis = (playerId: string) => {
     if (!playerId || playerId === 'TBD' || playerId.includes('Loser')) return null;
 
-    const playerMatches = matches.filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId));
+    // IMPORTANT: Sort by matchDate descending to get "Last 5" correctly
+    const playerMatches = matches
+      .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
+      .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+
     const entry = leagueTable.find(e => e.playerId === playerId);
     const team = entry?.teamId ? teamsById[entry.teamId] : (playersById[playerId]?.teamId ? teamsById[playersById[playerId].teamId] : null);
 
@@ -100,20 +104,27 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
 
     const winRate = stats.played > 0 ? (stats.win / stats.played) * 100 : 0;
-    const form = playerMatches.slice(0, 5).map(m => {
+    
+    // Last 5 matches: Most recent on the right
+    const last5Raw = playerMatches.slice(0, 5).reverse();
+    const form = last5Raw.map(m => {
       const isP1 = m.player1Id === playerId;
       const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-      return (isP1 ? s1 : s2) > (isP1 ? s2 : s1) ? 'W' : ((isP1 ? s1 : s2) < (isP1 ? s2 : s1) ? 'L' : 'D');
+      const pRes = isP1 ? s1 : s2;
+      const oRes = isP1 ? s2 : s1;
+      return pRes > oRes ? 'W' : (pRes < oRes ? 'L' : 'D');
     });
 
-    // Stability Chart Data
+    // Stability Chart Data: From oldest to newest
     let cumulativeScore = 0;
     const chartData = [{ match: 0, points: 0 }, ...[...playerMatches].reverse().map((m, i) => {
       const isP1 = m.player1Id === playerId;
       const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-      const res = (isP1 ? s1 : s2) > (isP1 ? s2 : s1) ? 1 : ((isP1 ? s1 : s2) < (isP1 ? s2 : s1) ? -1 : 0);
+      const pRes = isP1 ? s1 : s2;
+      const oRes = isP1 ? s2 : s1;
+      const res = pRes > oRes ? 1 : (pRes < oRes ? -1 : 0);
       cumulativeScore += res;
       return { match: i + 1, points: cumulativeScore };
     })];
@@ -123,10 +134,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
     
     if (stats.played > 0) {
-        if (stats.gf / stats.played > 2.2) {
+        const avgGF = stats.gf / stats.played;
+        const avgGA = stats.ga / stats.played;
+        if (avgGF > 2.2) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
-        } else if (stats.ga / stats.played < 1.2) {
+        } else if (avgGA < 1.2 && stats.played >= 3) {
             playStyleText = "Gaya bermain: Defensive & Counter";
             playStyleType = 'defensive';
         }
@@ -134,10 +147,17 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     let quote = "Stabil";
     let quoteColor = "text-foreground";
-    const recentWinCount = form.filter(f => f === 'W').length;
+    const recentResults = playerMatches.slice(0, 5).map(m => {
+        const isP1 = m.player1Id === playerId;
+        const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
+        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+        return (isP1 ? s1 : s2) > (isP1 ? s2 : s1) ? 'W' : ((isP1 ? s1 : s2) < (isP1 ? s2 : s1) ? 'L' : 'D');
+    });
+
+    const recentWinCount = recentResults.filter(f => f === 'W').length;
     if (recentWinCount === 5) { quote = "Merasa tak terkalahkan"; quoteColor = "text-green-400"; }
     else if (recentWinCount >= 3) { quote = "Dalam performa yang bagus"; quoteColor = "text-green-400"; }
-    else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
+    else if (recentResults.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
 
     return { stats, winRate, form, chartData, playStyleText, playStyleType, quote, quoteColor, team, entry, cumulativeScore };
   };
@@ -384,7 +404,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                     <div className="grid grid-cols-2 gap-12 pt-4">
                         <div className="space-y-6">
-                            {analysis1 ? (
+                            {analysis1 && analysis1.stats.played > 0 ? (
                                 <>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
@@ -428,7 +448,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
 
                         <div className="space-y-6">
-                            {analysis2 ? (
+                            {analysis2 && analysis2.stats.played > 0 ? (
                                 <>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
@@ -479,12 +499,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-center">
                                         <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p1?.name || 'TBD'}</CardTitle>
-                                        {analysis1 && <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">+{analysis1.cumulativeScore} PTS</Badge>}
+                                        {analysis1 && analysis1.stats.played > 0 && <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">+{analysis1.cumulativeScore} PTS</Badge>}
                                     </div>
-                                    {analysis1 && <p className={cn("text-[9px] font-black mt-1", analysis1.quoteColor)}>"{analysis1.quote}"</p>}
+                                    {analysis1 && analysis1.stats.played > 0 && <p className={cn("text-[9px] font-black mt-1", analysis1.quoteColor)}>"{analysis1.quote}"</p>}
                                 </CardHeader>
                                 <CardContent>
-                                    {analysis1 ? (
+                                    {analysis1 && analysis1.stats.played > 0 ? (
                                         <ChartContainer config={chartConfig} className="h-40 w-full">
                                             <LineChart data={analysis1.chartData} margin={{ left: -20, right: 10, top: 10 }}>
                                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
@@ -507,12 +527,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-center">
                                         <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p2?.name || 'TBD'}</CardTitle>
-                                        {analysis2 && <Badge variant="outline" className="bg-yellow-400/10 border-yellow-400/30 text-yellow-400 text-[10px] font-black">+{analysis2.cumulativeScore} PTS</Badge>}
+                                        {analysis2 && analysis2.stats.played > 0 && <Badge variant="outline" className="bg-yellow-400/10 border-yellow-400/30 text-yellow-400 text-[10px] font-black">+{analysis2.cumulativeScore} PTS</Badge>}
                                     </div>
-                                    {analysis2 && <p className={cn("text-[9px] font-black mt-1", analysis2.quoteColor)}>"{analysis2.quote}"</p>}
+                                    {analysis2 && analysis2.stats.played > 0 && <p className={cn("text-[9px] font-black mt-1", analysis2.quoteColor)}>"{analysis2.quote}"</p>}
                                 </CardHeader>
                                 <CardContent>
-                                    {analysis2 ? (
+                                    {analysis2 && analysis2.stats.played > 0 ? (
                                         <ChartContainer config={chartConfig} className="h-40 w-full">
                                             <LineChart data={analysis2.chartData} margin={{ left: -20, right: 10, top: 10 }}>
                                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
