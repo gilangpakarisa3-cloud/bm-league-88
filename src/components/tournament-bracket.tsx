@@ -6,7 +6,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert } from 'lucide-react';
+import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -120,18 +120,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     })];
 
     // Style & Quote
-    let playStyle = "Gaya Bermain: Balanced";
+    let playStyle = "Gaya bermain: Balanced";
     if (stats.played > 0) {
-        if (stats.gf / stats.played > 2.2) playStyle = "Gaya Bermain: Attacking";
-        else if (stats.ga / stats.played < 1.2) playStyle = "Gaya Bermain: Defensive & Counter";
+        if (stats.gf / stats.played > 2.2) playStyle = "Gaya bermain: Attacking";
+        else if (stats.ga / stats.played < 1.2) playStyle = "Gaya bermain: Defensive & Counter";
     }
 
     let quote = "Stabil";
     let quoteColor = "text-foreground";
     const recentWinCount = form.filter(f => f === 'W').length;
-    if (recentWinCount === 5) { quote = "Merasa Tak Terkalahkan"; quoteColor = "text-green-400"; }
-    else if (recentWinCount >= 3) { quote = "Dalam Performa Yang Bagus"; quoteColor = "text-green-400"; }
-    else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa Sedang Menurun"; quoteColor = "text-red-400"; }
+    if (recentWinCount === 5) { quote = "Merasa tak terkalahkan"; quoteColor = "text-green-400"; }
+    else if (recentWinCount >= 3) { quote = "Dalam performa yang bagus"; quoteColor = "text-green-400"; }
+    else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
 
     return { stats, winRate, form, chartData, playStyle, quote, quoteColor, team, entry, cumulativeScore };
   };
@@ -186,7 +186,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1 uppercase">{label}</span>
                     <Badge variant="outline" className="h-3 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black tracking-tighter uppercase">Proyeksi</Badge>
                 </div>
-                <Card className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10 cursor-pointer hover:border-primary/40 transition-all" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId, player2Id: p.p2.playerId, t1, t2, isProjection: true, round: label })}>
+                <Card className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10 cursor-pointer hover:border-primary/40 transition-all" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId, player2Id: p.p2.playerId, t1, t2, isProjection: true, round: label, p1: { name: p.p1.playerName, playerId: p.p1.playerId }, p2: { name: p.p2.playerName, playerId: p.p2.playerId } })}>
                     <CardContent className="p-0 flex flex-col divide-y divide-border/20">
                         <div className="flex items-center justify-between px-2 py-1 h-8"><div className="flex items-center gap-1.5 overflow-hidden"><Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar><span className="text-[10px] font-bold truncate text-foreground/50">{p.p1.playerName || 'TBD'}</span></div></div>
                         <div className="flex items-center justify-between px-2 py-1 h-8"><div className="flex items-center gap-1.5 overflow-hidden"><Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t2?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar><span className="text-[10px] font-bold truncate text-foreground/50">{p.p2.playerName || 'TBD'}</span></div></div>
@@ -281,7 +281,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <DialogDescription className="text-base text-white/60">Perbandingan stabilitas hasil seluruh pertandingan (Grup + Playoff) masing-masing peserta.</DialogDescription>
                     </DialogHeader>
 
-                    {/* Match Plan Info */}
                     <div className="flex justify-center">
                         <div className="bg-primary/5 border border-primary/30 rounded-xl p-4 flex flex-col items-center gap-2 min-w-[300px]">
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Rencana pertandingan (Informasi saja)</p>
@@ -293,20 +292,28 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
 
-                    {/* Main Versus Section */}
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                        {/* Player 1 Analysis */}
-                        {analysis1 && (
-                            <div className="flex flex-col items-center text-center gap-4">
-                                <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl shadow-primary/20"><AvatarImage src={analysis1.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
-                                <div>
-                                    <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p1.name}</h3>
-                                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis1.team?.name || 'Tanpa Tim'}</p>
-                                    <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis1.entry?.group || 'A'} RANK : {analysis1.entry?.rank || '?'}</Badge>
-                                    <div className="mt-2"><Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[9px] font-black uppercase tracking-tighter px-2 py-0.5">{analysis1.playStyle}</Badge></div>
-                                </div>
-                            </div>
-                        )}
+                        <div className="flex flex-col items-center text-center gap-4">
+                            {analysis1 ? (
+                                <>
+                                    <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl shadow-primary/20"><AvatarImage src={analysis1.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                    <div>
+                                        <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p1?.name}</h3>
+                                        <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis1.team?.name || 'Tanpa Tim'}</p>
+                                        <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis1.entry?.group || 'A'} RANK : {analysis1.entry?.rank || '?'}</Badge>
+                                        <div className="mt-2"><Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[9px] font-black uppercase tracking-tighter px-2 py-0.5">{analysis1.playStyle}</Badge></div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="h-24 w-24 rounded-full bg-white/5 border-4 border-dashed border-white/10 flex items-center justify-center"><User className="w-10 h-10 text-white/20" /></div>
+                                    <div>
+                                        <h3 className="text-2xl font-black tracking-tight text-white/30">Menunggu Peserta</h3>
+                                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mt-1">Belum ditentukan</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
 
                         <div className="flex flex-col items-center justify-center">
                             <div className="bg-primary border-4 border-background rounded-full w-16 h-16 flex items-center justify-center shadow-[0_0_30px_rgba(204,253,1,0.4)] ring-8 ring-primary/10">
@@ -314,140 +321,177 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </div>
 
-                        {/* Player 2 Analysis */}
-                        {analysis2 && (
-                            <div className="flex flex-col items-center text-center gap-4">
-                                <Avatar className="h-24 w-24 border-4 border-white shadow-2xl"><AvatarImage src={analysis2.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
-                                <div>
-                                    <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p2.name}</h3>
-                                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis2.team?.name || 'Tanpa Tim'}</p>
-                                    <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis2.entry?.group || 'B'} RANK : {analysis2.entry?.rank || '?'}</Badge>
-                                    <div className="mt-2"><Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[9px] font-black uppercase tracking-tighter px-2 py-0.5">{analysis2.playStyle}</Badge></div>
-                                </div>
-                            </div>
-                        )}
+                        <div className="flex flex-col items-center text-center gap-4">
+                            {analysis2 ? (
+                                <>
+                                    <Avatar className="h-24 w-24 border-4 border-white shadow-2xl"><AvatarImage src={analysis2.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                    <div>
+                                        <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p2?.name}</h3>
+                                        <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis2.team?.name || 'Tanpa Tim'}</p>
+                                        <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis2.entry?.group || 'B'} RANK : {analysis2.entry?.rank || '?'}</Badge>
+                                        <div className="mt-2"><Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[9px] font-black uppercase tracking-tighter px-2 py-0.5">{analysis2.playStyle}</Badge></div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="h-24 w-24 rounded-full bg-white/5 border-4 border-dashed border-white/10 flex items-center justify-center"><User className="w-10 h-10 text-white/20" /></div>
+                                    <div>
+                                        <h3 className="text-2xl font-black tracking-tight text-white/30">Menunggu Peserta</h3>
+                                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mt-1">Belum ditentukan</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Stats Comparison Rows */}
                     <div className="grid grid-cols-2 gap-12 pt-4">
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                                    <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Win Rate</p>
-                                    <p className="text-2xl font-black text-primary">% {analysis1?.winRate.toFixed(0)}</p>
-                                </div>
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                                    <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Poin Grup</p>
-                                    <p className="text-2xl font-black text-white">{analysis1?.entry?.points || 0}</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-6 gap-1">
-                                {[
-                                    { label: 'W', val: analysis1?.stats.win, col: 'text-primary' },
-                                    { label: 'D', val: analysis1?.stats.draw, col: 'text-yellow-400' },
-                                    { label: 'L', val: analysis1?.stats.loss, col: 'text-red-400' },
-                                    { label: 'GF', val: analysis1?.stats.gf, col: 'text-white' },
-                                    { label: 'GA', val: analysis1?.stats.ga, col: 'text-white' },
-                                    { label: 'GD', val: (analysis1?.stats.gf || 0) - (analysis1?.stats.ga || 0), col: 'text-primary' }
-                                ].map((s, i) => (
-                                    <div key={i} className="flex flex-col items-center bg-white/5 p-2 rounded">
-                                        <p className="text-[8px] font-bold text-white/30">{s.label}</p>
-                                        <p className={cn("text-xs font-black", s.col)}>{s.val ?? 0}</p>
+                            {analysis1 ? (
+                                <>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                                            <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Win Rate</p>
+                                            <p className="text-2xl font-black text-primary">% {analysis1.winRate.toFixed(0)}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                                            <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Poin Grup</p>
+                                            <p className="text-2xl font-black text-white">{analysis1.entry?.points || 0}</p>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <p className="text-[10px] font-black text-white/40 uppercase"><History className="inline w-3 h-3 mr-1" /> Laga Terakhir</p>
-                                <div className="flex gap-1.5">
-                                    {analysis1?.form.map((f, i) => (
-                                        <div key={i} className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f}</div>
-                                    ))}
+                                    <div className="grid grid-cols-6 gap-1">
+                                        {[
+                                            { label: 'W', val: analysis1.stats.win, col: 'text-primary' },
+                                            { label: 'D', val: analysis1.stats.draw, col: 'text-yellow-400' },
+                                            { label: 'L', val: analysis1.stats.loss, col: 'text-red-400' },
+                                            { label: 'GF', val: analysis1.stats.gf, col: 'text-white' },
+                                            { label: 'GA', val: analysis1.stats.ga, col: 'text-white' },
+                                            { label: 'GD', val: analysis1.stats.gf - analysis1.stats.ga, col: 'text-primary' }
+                                        ].map((s, i) => (
+                                            <div key={i} className="flex flex-col items-center bg-white/5 p-2 rounded">
+                                                <p className="text-[8px] font-bold text-white/30">{s.label}</p>
+                                                <p className={cn("text-xs font-black", s.col)}>{s.val}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <p className="text-[10px] font-black text-white/40 uppercase"><History className="inline w-3 h-3 mr-1" /> Laga Terakhir</p>
+                                        <div className="flex gap-1.5">
+                                            {analysis1.form.map((f, i) => (
+                                                <div key={i} className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f}</div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="h-40 bg-white/[0.02] rounded-xl border border-dashed border-white/5 flex items-center justify-center">
+                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Statistik belum tersedia</p>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                                    <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Win Rate</p>
-                                    <p className="text-2xl font-black text-primary">% {analysis2?.winRate.toFixed(0)}</p>
-                                </div>
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                                    <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Poin Grup</p>
-                                    <p className="text-2xl font-black text-white">{analysis2?.entry?.points || 0}</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-6 gap-1">
-                                {[
-                                    { label: 'W', val: analysis2?.stats.win, col: 'text-primary' },
-                                    { label: 'D', val: analysis2?.stats.draw, col: 'text-yellow-400' },
-                                    { label: 'L', val: analysis2?.stats.loss, col: 'text-red-400' },
-                                    { label: 'GF', val: analysis2?.stats.gf, col: 'text-white' },
-                                    { label: 'GA', val: analysis2?.stats.ga, col: 'text-white' },
-                                    { label: 'GD', val: (analysis2?.stats.gf || 0) - (analysis2?.stats.ga || 0), col: 'text-primary' }
-                                ].map((s, i) => (
-                                    <div key={i} className="flex flex-col items-center bg-white/5 p-2 rounded">
-                                        <p className="text-[8px] font-bold text-white/30">{s.label}</p>
-                                        <p className={cn("text-xs font-black", s.col)}>{s.val ?? 0}</p>
+                            {analysis2 ? (
+                                <>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                                            <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Win Rate</p>
+                                            <p className="text-2xl font-black text-primary">% {analysis2.winRate.toFixed(0)}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                                            <p className="text-[10px] font-bold text-white/40 uppercase mb-1">Poin Grup</p>
+                                            <p className="text-2xl font-black text-white">{analysis2.entry?.points || 0}</p>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <p className="text-[10px] font-black text-white/40 uppercase"><History className="inline w-3 h-3 mr-1" /> Laga Terakhir</p>
-                                <div className="flex gap-1.5">
-                                    {analysis2?.form.map((f, i) => (
-                                        <div key={i} className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f}</div>
-                                    ))}
+                                    <div className="grid grid-cols-6 gap-1">
+                                        {[
+                                            { label: 'W', val: analysis2.stats.win, col: 'text-primary' },
+                                            { label: 'D', val: analysis2.stats.draw, col: 'text-yellow-400' },
+                                            { label: 'L', val: analysis2.stats.loss, col: 'text-red-400' },
+                                            { label: 'GF', val: analysis2.stats.gf, col: 'text-white' },
+                                            { label: 'GA', val: analysis2.stats.ga, col: 'text-white' },
+                                            { label: 'GD', val: analysis2.stats.gf - analysis2.stats.ga, col: 'text-primary' }
+                                        ].map((s, i) => (
+                                            <div key={i} className="flex flex-col items-center bg-white/5 p-2 rounded">
+                                                <p className="text-[8px] font-bold text-white/30">{s.label}</p>
+                                                <p className={cn("text-xs font-black", s.col)}>{s.val}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <p className="text-[10px] font-black text-white/40 uppercase"><History className="inline w-3 h-3 mr-1" /> Laga Terakhir</p>
+                                        <div className="flex gap-1.5">
+                                            {analysis2.form.map((f, i) => (
+                                                <div key={i} className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f}</div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="h-40 bg-white/[0.02] rounded-xl border border-dashed border-white/5 flex items-center justify-center">
+                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Statistik belum tersedia</p>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Individual Stability Graphs */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 text-primary"><TrendingUp className="w-5 h-5" /> <h4 className="text-sm font-black tracking-widest uppercase">Grafik stabilitas individu</h4></div>
                         <div className="grid grid-cols-2 gap-8">
                             <Card className="bg-white/5 border-white/10">
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-center">
-                                        <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p1.name}</CardTitle>
-                                        <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">+{analysis1?.cumulativeScore} PTS</Badge>
+                                        <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p1?.name || 'TBD'}</CardTitle>
+                                        {analysis1 && <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">+{analysis1.cumulativeScore} PTS</Badge>}
                                     </div>
-                                    <p className={cn("text-[9px] font-black italic mt-1", analysis1?.quoteColor)}>"{analysis1?.quote}"</p>
+                                    {analysis1 && <p className={cn("text-[9px] font-black mt-1", analysis1.quoteColor)}>"{analysis1.quote}"</p>}
                                 </CardHeader>
                                 <CardContent>
-                                    <ChartContainer config={chartConfig} className="h-40 w-full">
-                                        <LineChart data={analysis1?.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                            <XAxis dataKey="match" hide />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={[-5, 5]} />
-                                            <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 4 }} activeDot={{ r: 6 }} />
-                                        </LineChart>
-                                    </ChartContainer>
+                                    {analysis1 ? (
+                                        <ChartContainer config={chartConfig} className="h-40 w-full">
+                                            <LineChart data={analysis1.chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                                <XAxis dataKey="match" hide />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={[-5, 5]} />
+                                                <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 4 }} activeDot={{ r: 6 }} />
+                                            </LineChart>
+                                        </ChartContainer>
+                                    ) : (
+                                        <div className="h-40 flex flex-col items-center justify-center gap-2 opacity-20">
+                                            <Loader2 className="w-6 h-6 animate-spin" />
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti peserta...</p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
 
                             <Card className="bg-white/5 border-white/10">
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-center">
-                                        <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p2.name}</CardTitle>
-                                        <Badge variant="outline" className="bg-yellow-400/10 border-yellow-400/30 text-yellow-400 text-[10px] font-black">+{analysis2?.cumulativeScore} PTS</Badge>
+                                        <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p2?.name || 'TBD'}</CardTitle>
+                                        {analysis2 && <Badge variant="outline" className="bg-yellow-400/10 border-yellow-400/30 text-yellow-400 text-[10px] font-black">+{analysis2.cumulativeScore} PTS</Badge>}
                                     </div>
-                                    <p className={cn("text-[9px] font-black italic mt-1", analysis2?.quoteColor)}>"{analysis2?.quote}"</p>
+                                    {analysis2 && <p className={cn("text-[9px] font-black mt-1", analysis2.quoteColor)}>"{analysis2.quote}"</p>}
                                 </CardHeader>
                                 <CardContent>
-                                    <ChartContainer config={chartConfig} className="h-40 w-full">
-                                        <LineChart data={analysis2?.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                            <XAxis dataKey="match" hide />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={[-5, 5]} />
-                                            <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 4 }} activeDot={{ r: 6 }} />
-                                        </LineChart>
-                                    </ChartContainer>
+                                    {analysis2 ? (
+                                        <ChartContainer config={chartConfig} className="h-40 w-full">
+                                            <LineChart data={analysis2.chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                                <XAxis dataKey="match" hide />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={[-5, 5]} />
+                                                <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 4 }} activeDot={{ r: 6 }} />
+                                            </LineChart>
+                                        </ChartContainer>
+                                    ) : (
+                                        <div className="h-40 flex flex-col items-center justify-center gap-2 opacity-20">
+                                            <Loader2 className="w-6 h-6 animate-spin" />
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti peserta...</p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>
-                        <p className="text-[10px] text-center text-white/30 italic font-medium">*Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.</p>
+                        <p className="text-[10px] text-center text-white/30 font-medium">*Grafik menunjukkan akumulasi hasil positif (+1 Menang) vs negatif (-1 Kalah). Garis yang terus naik menandakan stabilitas performa yang tinggi.</p>
                     </div>
 
                     <div className="pt-6 border-t border-white/5 flex items-center justify-between">
