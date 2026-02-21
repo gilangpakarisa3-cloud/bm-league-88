@@ -264,15 +264,15 @@ export default function FixturesPage() {
             };
 
             const updatePlayerStats = async (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (pId === 'TBD') return;
+                if (!pId || pId === 'TBD') return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
-                    overallPlayed: increment(change.played),
-                    overallWin: increment(change.win),
-                    overallDraw: increment(change.draw),
-                    overallLoss: increment(change.loss),
-                    overallGoalsFor: increment(change.gf),
-                    overallGoalsAgainst: increment(change.ga),
+                    overallPlayed: increment(change.played || 0),
+                    overallWin: increment(change.win || 0),
+                    overallDraw: increment(change.draw || 0),
+                    overallLoss: increment(change.loss || 0),
+                    overallGoalsFor: increment(change.gf || 0),
+                    overallGoalsAgainst: increment(change.ga || 0),
                 });
             };
 
@@ -289,8 +289,8 @@ export default function FixturesPage() {
                         win: res === 'W' ? -1 : 0, 
                         draw: res === 'D' ? -1 : 0, 
                         loss: res === 'L' ? -1 : 0, 
-                        gf: -gf, 
-                        ga: -ga 
+                        gf: -(gf || 0), 
+                        ga: -(ga || 0) 
                     });
                 };
 
@@ -301,10 +301,10 @@ export default function FixturesPage() {
                     ]);
                     if (e1.exists() && e2.exists()) {
                         const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                        await processRevert(d1.player1Id, outcome.p1, values.player1Score || 0, values.player2Score || 0);
-                        await processRevert(d1.player2Id, outcome.p1, values.player1Score || 0, values.player2Score || 0);
-                        await processRevert(d2.player1Id, outcome.p2, values.player2Score || 0, values.player1Score || 0);
-                        await processRevert(d2.player2Id, outcome.p2, values.player2Score || 0, values.player1Score || 0);
+                        await processRevert(d1.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
+                        await processRevert(d1.player2Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
+                        await processRevert(d2.player1Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
+                        await processRevert(d2.player2Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
                     }
                 } else {
                     await processRevert(orig.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
@@ -313,8 +313,8 @@ export default function FixturesPage() {
             }
 
             // 2. Apply new stats to Player collection
-            const newS1 = isMatchBo3 ? values.player1Wins : values.player1Score;
-            const newS2 = isMatchBo3 ? values.player2Wins : values.player2Score;
+            const newS1 = isMatchBo3 ? (values.player1Wins || 0) : (values.player1Score || 0);
+            const newS2 = isMatchBo3 ? (values.player2Wins || 0) : (values.player2Score || 0);
             const newOutcome = getOutcome(newS1, newS2);
             const isCoopNow = sData.type === 'Co-Op';
 
@@ -324,8 +324,8 @@ export default function FixturesPage() {
                     win: res === 'W' ? 1 : 0, 
                     draw: res === 'D' ? 1 : 0, 
                     loss: res === 'L' ? 1 : 0, 
-                    gf: gf, 
-                    ga: ga 
+                    gf: gf || 0, 
+                    ga: ga || 0 
                 });
             };
 
@@ -348,7 +348,7 @@ export default function FixturesPage() {
 
             // 3. Bracket & Table Logic
             if (orig.round && orig.round !== 'Group' && orig.bracketId) {
-                const winnerId = isMatchBo3 ? (values.player1Wins > values.player2Wins ? orig.player1Id : orig.player2Id) : (values.player1Score > values.player2Score ? orig.player1Id : orig.player2Id);
+                const winnerId = isMatchBo3 ? (newS1 > newS2 ? orig.player1Id : orig.player2Id) : (newS1 > newS2 ? orig.player1Id : orig.player2Id);
                 const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
                 const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId];
                 if (succ) {
@@ -421,15 +421,15 @@ export default function FixturesPage() {
             };
 
             const updatePlayerStats = async (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (pId === 'TBD') return;
+                if (!pId || pId === 'TBD') return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
-                    overallPlayed: increment(change.played),
-                    overallWin: increment(change.win),
-                    overallDraw: increment(change.draw),
-                    overallLoss: increment(change.loss),
-                    overallGoalsFor: increment(change.gf),
-                    overallGoalsAgainst: increment(change.ga),
+                    overallPlayed: increment(change.played || 0),
+                    overallWin: increment(change.win || 0),
+                    overallDraw: increment(change.draw || 0),
+                    overallLoss: increment(change.loss || 0),
+                    overallGoalsFor: increment(change.gf || 0),
+                    overallGoalsAgainst: increment(change.ga || 0),
                 });
             };
 
@@ -445,8 +445,8 @@ export default function FixturesPage() {
                     win: res === 'W' ? -1 : 0, 
                     draw: res === 'D' ? -1 : 0, 
                     loss: res === 'L' ? -1 : 0, 
-                    gf: -gf, 
-                    ga: -ga 
+                    gf: -(gf || 0), 
+                    ga: -(ga || 0) 
                 });
             };
 

@@ -91,26 +91,25 @@ export default function SettingsPage() {
 
                     // Determine format (Bo3 for Co-Op and Playoffs)
                     const isMatchBo3 = isCoop || (m.round && m.round !== 'Group');
-                    const s1 = isMatchBo3 ? (m.player1Wins || 0) : (m.player1Score || 0);
-                    const s2 = isMatchBo3 ? (m.player2Wins || 0) : (m.player2Score || 0);
+                    const s1 = isMatchBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+                    const s2 = isMatchBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
                     
-                    const gf1 = m.player1Score || 0;
-                    const ga1 = m.player2Score || 0;
-                    const gf2 = m.player2Score || 0;
-                    const ga2 = m.player1Score || 0;
+                    const gf1 = Number(m.player1Score) || 0;
+                    const ga1 = Number(m.player2Score) || 0;
+                    const gf2 = Number(m.player2Score) || 0;
+                    const ga2 = Number(m.player1Score) || 0;
 
                     const res1 = s1 > s2 ? 'W' : (s1 < s2 ? 'L' : 'D');
                     const res2 = s2 > s1 ? 'W' : (s2 < s1 ? 'L' : 'D');
 
                     const addStats = (pId: string, res: string, gf: number, ga: number) => {
-                        if (pId === 'TBD' || !playerStats[pId]) return;
+                        if (!pId || pId === 'TBD' || !playerStats[pId]) return;
                         const p = playerStats[pId];
                         p.overallPlayed++;
                         if (res === 'W') p.overallWin++;
                         else if (res === 'L') p.overallLoss++;
                         else p.overallDraw++;
                         
-                        // Co-Op matches don't usually track individual GF/GA in table but we sum them if present
                         p.overallGoalsFor += gf;
                         p.overallGoalsAgainst += ga;
                     };
