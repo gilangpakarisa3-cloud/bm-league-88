@@ -115,7 +115,7 @@
   "participant_list_label": "Daftar Peserta",
   "copy_to_clipboard": "Salin ke Papan Klip",
   "copied_to_clipboard_title": "Disalin ke Papan Klip!",
-  "copied_to_clipboard_desc": "Anda sekarang dapat menempelkan daftar peserta di mana saja.",
+  "copied_to_clipboard_desc": "Anda sekarang dapat menempatkan daftar peserta di mana saja.",
   "season_name_empty": "Nama musim tidak boleh kosong.",
   "success": "Sukses",
   "season_updated_desc": "Nama musim diperbarui menjadi '{{seasonName}}'.",
