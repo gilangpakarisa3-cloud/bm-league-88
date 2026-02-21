@@ -9,7 +9,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck, Trophy, Award, LayoutGrid, History } from "lucide-react";
+import { Trash2, User, ShieldCheck, Trophy, Award, LayoutGrid, History, Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
