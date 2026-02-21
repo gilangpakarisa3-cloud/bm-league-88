@@ -72,7 +72,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     }
   };
 
-  // Dynamic real-time ranking engine
   const rankedTable = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return [];
     
@@ -92,14 +91,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
   }, [leagueTable, season]);
 
-  // Player Analysis Logic
   const getPlayerAnalysis = (playerId: string) => {
-    if (!playerId || playerId === 'TBD' || playerId.includes('Loser')) return null;
+    if (!playerId || playerId === 'TBD' || playerId.includes('TBD') || playerId.includes('Loser')) return null;
 
-    // Filter all matches for this season (Group + Playoff)
     const playerMatches = matches
       .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
-      .sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis()); // Chronological for trend
+      .sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
 
     const entry = rankedTable.find(e => e.playerId === playerId);
     const team = entry?.teamId ? teamsById[entry.teamId] : (playersById[playerId]?.teamId ? teamsById[playersById[playerId].teamId] : null);
@@ -124,8 +121,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
 
     const winRate = stats.played > 0 ? (stats.win / stats.played) * 100 : 0;
-    
-    // Form logic (Last 5, newest on right)
     const formMatches = [...playerMatches].reverse().slice(0, 5).reverse();
     const form = formMatches.map(m => {
       const isP1 = m.player1Id === playerId;
@@ -136,7 +131,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return pRes > oRes ? 'W' : (pRes < oRes ? 'L' : 'D');
     });
 
-    // Trend Chart Data
     let cumulativeScore = 0;
     const chartData = [{ match: 0, points: 0 }, ...playerMatches.map((m, i) => {
       const isP1 = m.player1Id === playerId;
@@ -149,20 +143,16 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return { match: i + 1, points: cumulativeScore };
     })];
 
-    // Play Style Parameters
     let playStyleText = "Gaya bermain: Balanced";
     let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
     
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
-        // Parameter 1: Attacking (avgGF > 1.6)
         if (avgGF > 1.6) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
-        } 
-        // Parameter 2 & 3: Defensive (avgGA < 1.2 and min 3 matches)
-        else if (avgGA < 1.2 && stats.played >= 3) {
+        } else if (avgGA < 1.2 && stats.played >= 3) {
             playStyleText = "Gaya bermain: Defensive & Counter";
             playStyleType = 'defensive';
         }
@@ -183,13 +173,25 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const sortAndRank = (data: any[]) => [...data].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
     const gA = sortAndRank(leagueTable.filter(p => p.group === 'A'));
     const gB = sortAndRank(leagueTable.filter(p => p.group === 'B'));
+    
     const proj: Record<string, any> = {};
+    
+    // Upper Bracket Projections
     if (gA.length >= 4 && gB.length >= 4) {
         proj['playoff-m1'] = { p1: gA[0], p2: gB[3], isProjection: true, round: 'UB-Quarter Final' };
         proj['playoff-m2'] = { p1: gB[1], p2: gA[2], isProjection: true, round: 'UB-Quarter Final' };
         proj['playoff-m3'] = { p1: gB[0], p2: gA[3], isProjection: true, round: 'UB-Quarter Final' };
         proj['playoff-m4'] = { p1: gA[1], p2: gB[2], isProjection: true, round: 'UB-Quarter Final' };
     }
+
+    // Lower Bracket Projections (Ranks 5-6)
+    if (gA.length >= 6 && gB.length >= 6) {
+        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', playerId: 'TBD-L1' }, isProjection: true, round: 'LB-Round 1' };
+        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', playerId: 'TBD-L2' }, isProjection: true, round: 'LB-Round 1' };
+        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', playerId: 'TBD-L3' }, isProjection: true, round: 'LB-Round 1' };
+        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', playerId: 'TBD-L4' }, isProjection: true, round: 'LB-Round 1' };
+    }
+    
     return proj;
   }, [leagueTable]);
 
@@ -219,6 +221,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const MatchCard = ({ bid, label }: { bid: string, label: string }) => {
     const m = bracketData[bid];
     const p = projections?.[bid];
+    
     if (!m && p) {
         const t1 = p.p1?.teamId ? teamsById[p.p1.teamId] : null;
         const t2 = p.p2?.teamId ? teamsById[p.p2.teamId] : null;
@@ -228,21 +231,35 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1 uppercase">{label}</span>
                     <Badge variant="outline" className="h-3 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black tracking-tighter uppercase">Proyeksi</Badge>
                 </div>
-                <Card className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10 cursor-pointer hover:border-primary/40 transition-all" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId, player2Id: p.p2.playerId, t1, t2, isProjection: true, round: label, p1: { name: p.p1.playerName, playerId: p.p1.playerId }, p2: { name: p.p2.playerName, playerId: p.p2.playerId } })}>
+                <Card className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10 cursor-pointer hover:border-primary/40 transition-all" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', t1, t2, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
                     <CardContent className="p-0 flex flex-col divide-y divide-border/20">
-                        <div className="flex items-center justify-between px-2 py-1 h-8"><div className="flex items-center gap-1.5 overflow-hidden"><Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar><span className="text-[10px] font-bold truncate text-foreground/50">{p.p1.playerName || 'TBD'}</span></div></div>
-                        <div className="flex items-center justify-between px-2 py-1 h-8"><div className="flex items-center gap-1.5 overflow-hidden"><Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t2?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar><span className="text-[10px] font-bold truncate text-foreground/50">{p.p2.playerName || 'TBD'}</span></div></div>
+                        <div className="flex items-center justify-between px-2 py-1 h-8">
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                                <Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                <span className="text-[10px] font-bold truncate text-foreground/50">{p.p1.playerName || p.p1.name || 'TBD'}</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between px-2 py-1 h-8">
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                                <Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t2?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                <span className="text-[10px] font-bold truncate text-foreground/50">{p.p2.playerName || p.p2.name || 'TBD'}</span>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
         );
     }
+    
     if (!m) return (
         <div className="flex flex-col gap-1 opacity-40">
             <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1 uppercase">{label}</span>
-            <div className="w-44 h-16 bg-card/20 border border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center"><span className="text-[8px] font-bold tracking-tighter text-muted-foreground">Menunggu alur...</span></div>
+            <div className="w-44 h-16 bg-card/20 border border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center">
+                <span className="text-[8px] font-bold tracking-tighter text-muted-foreground">Menunggu alur...</span>
+            </div>
         </div>
     );
+
     return (
         <div className="flex flex-col gap-1">
             <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1 uppercase">{label}</span>
