@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useRef } from 'react';
@@ -14,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from './ui/badge';
+import { ScrollArea, ScrollBar } from './ui/scroll-area';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -61,7 +63,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // Group Rankings for Projections
   const projections = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return null;
 
@@ -154,7 +155,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         <div className="flex flex-col gap-1 opacity-40">
             <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1">{label}</span>
             <div className="w-44 h-16 bg-card/20 border border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center">
-                <span className="text-[8px] font-bold tracking-tighter text-muted-foreground">Menunggu Alur...</span>
+                <span className="text-[8px] font-bold tracking-tighter text-muted-foreground">Menunggu alur...</span>
             </div>
         </div>
     );
@@ -191,92 +192,95 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-200/80 leading-relaxed">
                     <p className="font-bold text-amber-500 tracking-tight mb-1">Mode Live Preview (Proyeksi)</p>
-                    <p>Bagan di bawah ini adalah **proyeksi otomatis** berdasarkan klasemen grup saat ini. Nama pemain akan berubah secara live mengikuti hasil pertandingan di fase grup. Jadwal resmi akan muncul setelah Admin menekan tombol "Start Playoff".</p>
+                    <p>Bagan di bawah ini adalah proyeksi otomatis berdasarkan klasemen grup saat ini. Nama pemain akan berubah secara live mengikuti hasil pertandingan di fase grup. Jadwal resmi akan muncul setelah Admin menekan tombol "Start Playoff".</p>
                 </div>
             </div>
         )}
 
-        <div 
-            ref={scrollRef}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseLeave}
-            className={cn(
-                "w-full overflow-x-auto pb-6 cursor-grab active:cursor-grabbing select-none scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
-                isDragging && "cursor-grabbing"
-            )}
-        >
-            <div className="min-w-[1400px] flex items-stretch gap-10 p-4">
-                <div className="flex-1 flex flex-col gap-12">
-                    {/* Upper Bracket */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-black tracking-[0.3em] text-primary flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
-                        <div className="flex items-center gap-8 pl-4">
-                            <div className="flex flex-col gap-4">
-                                <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
+        <ScrollArea className="w-full pb-4">
+            <div 
+                ref={scrollRef}
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={onMouseUp}
+                onMouseLeave={onMouseLeave}
+                className={cn(
+                    "w-full cursor-grab active:cursor-grabbing select-none",
+                    isDragging && "cursor-grabbing"
+                )}
+            >
+                <div className="min-w-[1400px] flex items-stretch gap-10 p-4">
+                    <div className="flex-1 flex flex-col gap-12">
+                        {/* Upper Bracket */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-black tracking-[0.3em] text-primary flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
+                            <div className="flex items-center gap-8 pl-4">
+                                <div className="flex flex-col gap-4">
+                                    <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
+                                </div>
+                                <div className="flex flex-col gap-20 py-8">
+                                    <MatchCard bid="playoff-m9" label="UB-SEMI 1" /><MatchCard bid="playoff-m10" label="UB-SEMI 2" />
+                                </div>
+                                <div className="flex flex-col justify-center h-full">
+                                    <MatchCard bid="playoff-m15" label="UB Final" />
+                                </div>
                             </div>
-                            <div className="flex flex-col gap-20 py-8">
-                                <MatchCard bid="playoff-m9" label="UB-SEMI 1" /><MatchCard bid="playoff-m10" label="UB-SEMI 2" />
-                            </div>
-                            <div className="flex flex-col justify-center h-full">
-                                <MatchCard bid="playoff-m15" label="UB FINAL" />
+                        </div>
+
+                        <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+
+                        {/* Lower Bracket */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-black tracking-[0.3em] text-amber-500 flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
+                            <div className="flex items-center gap-8 pl-4">
+                                <div className="flex flex-col gap-4">
+                                    <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser QF 1)" />
+                                    <MatchCard bid="playoff-m6" label="LB-R1 (vs Loser QF 2)" />
+                                    <MatchCard bid="playoff-m7" label="LB-R1 (vs Loser QF 3)" />
+                                    <MatchCard bid="playoff-m8" label="LB-R1 (vs Loser QF 4)" />
+                                </div>
+                                <div className="flex flex-col gap-24 py-12">
+                                    <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
+                                </div>
+                                <div className="flex flex-col gap-24 py-12">
+                                    <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser SEMI 1)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser SEMI 2)" />
+                                </div>
+                                <div className="flex flex-col justify-center h-full">
+                                    <MatchCard bid="playoff-m16" label="LB Semifinal" />
+                                </div>
+                                <div className="flex flex-col justify-center h-full">
+                                    <MatchCard bid="playoff-m17" label="LB Final" />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-
-                    {/* Lower Bracket */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-black tracking-[0.3em] text-amber-500 flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
-                        <div className="flex items-center gap-8 pl-4">
-                            <div className="flex flex-col gap-4">
-                                <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser QF 1)" />
-                                <MatchCard bid="playoff-m6" label="LB-R1 (vs Loser QF 2)" />
-                                <MatchCard bid="playoff-m7" label="LB-R1 (vs Loser QF 3)" />
-                                <MatchCard bid="playoff-m8" label="LB-R1 (vs Loser QF 4)" />
+                    {/* Grand Final Column */}
+                    <div className="flex flex-col items-center justify-center gap-6 pl-10 border-l border-primary/10">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="relative">
+                                <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-xl animate-pulse" />
+                                <Trophy className="text-yellow-400 w-14 h-14 relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
                             </div>
-                            <div className="flex flex-col gap-24 py-12">
-                                <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
-                            </div>
-                            <div className="flex flex-col gap-24 py-12">
-                                <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser SEMI 1)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser SEMI 2)" />
-                            </div>
-                            <div className="flex flex-col justify-center h-full">
-                                <MatchCard bid="playoff-m16" label="LB SEMIFINAL" />
-                            </div>
-                            <div className="flex flex-col justify-center h-full">
-                                <MatchCard bid="playoff-m17" label="LB FINAL" />
+                            <div className="text-center space-y-1">
+                                <h3 className="text-xl font-black tracking-[0.4em] text-white">Grand Final</h3>
+                                <p className="text-[9px] font-bold text-primary tracking-widest opacity-80">Battle for Glory</p>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Grand Final Column */}
-                <div className="flex flex-col items-center justify-center gap-6 pl-10 border-l border-primary/10">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="relative">
-                            <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-xl animate-pulse" />
-                            <Trophy className="text-yellow-400 w-14 h-14 relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                        <div className="scale-125 transform transition-transform hover:scale-150 py-10">
+                            <MatchCard bid="playoff-m18" label="Championship" />
                         </div>
-                        <div className="text-center space-y-1">
-                            <h3 className="text-xl font-black tracking-[0.4em] text-white">Grand Final</h3>
-                            <p className="text-[9px] font-bold text-primary tracking-widest opacity-80">Battle for Glory</p>
-                        </div>
+                        <div className="w-1 bg-gradient-to-b from-primary/40 to-transparent h-20 rounded-full" />
                     </div>
-                    <div className="scale-125 transform transition-transform hover:scale-150 py-10">
-                        <MatchCard bid="playoff-m18" label="Championship" />
-                    </div>
-                    <div className="w-1 bg-gradient-to-b from-primary/40 to-transparent h-20 rounded-full" />
                 </div>
             </div>
-        </div>
+            <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-xl border-primary border-2">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-primary text-left"><TrendingUp className="w-5 h-5" /> Playoff Match Analysis</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2 text-primary text-left"><TrendingUp className="w-5 h-5" /> Playoff match analysis</DialogTitle>
                     <DialogDescription className="text-left">Detail pertandingan babak: {selectedMatch?.round}</DialogDescription>
                 </DialogHeader>
                 {selectedMatch && (
@@ -284,7 +288,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="grid grid-cols-2 gap-8 items-center relative">
                             <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center z-10">
                                 <div className="bg-background border-4 border-primary rounded-full w-12 h-12 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.4)] ring-4 ring-background">
-                                    <span className="text-primary font-black text-lg tracking-tighter">VS</span>
+                                    <span className="text-primary font-black text-lg tracking-tighter">vs</span>
                                 </div>
                             </div>
                             <div className="flex flex-col items-center gap-2 text-center">
@@ -300,12 +304,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                         {selectedMatch.isCompleted && (
                             <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center">
-                                <p className="text-xs font-black text-primary mb-2">Final Score</p>
+                                <p className="text-xs font-black text-primary mb-2">Final score</p>
                                 <p className="text-5xl font-black tracking-tighter text-primary">{selectedMatch.s1} - {selectedMatch.s2}</p>
                             </div>
                         )}
                         <div className="pt-2 border-t border-border flex flex-col items-start text-[10px] font-bold gap-1">
-                            <span className="text-muted-foreground tracking-tight">Babak Kompetisi Saat Ini:</span>
+                            <span className="text-muted-foreground tracking-tight">Babak kompetisi saat ini:</span>
                             <Badge variant="outline" className="font-black tracking-widest text-[10px] bg-primary/10 text-primary border-primary/30">{selectedMatch.round}</Badge>
                         </div>
                     </div>

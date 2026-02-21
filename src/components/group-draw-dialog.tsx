@@ -235,12 +235,10 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
 const PotDisplay = ({ title, subtitle, players, variant }: { title: string; subtitle: string; players: PlayerInPot[]; variant: 'primary' | 'muted' }) => (
     <Card className={cn("overflow-hidden border-2", variant === 'primary' ? "border-primary/30 bg-primary/5" : "border-muted/30 bg-muted/5")}>
         <CardHeader className="pb-4">
-            <div className="flex justify-between items-center">
-                <div>
-                    <CardTitle className={cn("text-2xl font-black tracking-tighter", variant === 'primary' ? "text-primary" : "text-muted-foreground")}>{title}</CardTitle>
-                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">{subtitle}</p>
-                </div>
-                <Badge variant="outline" className="h-6 font-black">{players.length} Pemain</Badge>
+            <div className="flex flex-col items-center text-center gap-1">
+                <CardTitle className={cn("text-2xl font-black tracking-tighter", variant === 'primary' ? "text-primary" : "text-muted-foreground")}>{title}</CardTitle>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">{subtitle}</p>
+                <Badge variant="outline" className="h-6 font-black mt-1">{players.length} Pemain</Badge>
             </div>
         </CardHeader>
         <CardContent>
@@ -278,7 +276,7 @@ const GroupDisplay = ({ title, players, revealedCount, groupIndex, variant = 'pr
             <CardHeader className={cn("py-4 border-b-2", isGold ? "border-yellow-500/20 bg-yellow-500/10" : "border-primary/20 bg-primary/10")}>
                 <div className="flex items-center justify-center gap-3">
                     <Swords className={cn("w-5 h-5", isGold ? "text-yellow-500" : "text-primary")} />
-                    <CardTitle className={cn("text-center text-2xl font-black tracking-[0.2em] uppercase", isGold ? "text-yellow-500" : "text-primary")}>{title}</CardTitle>
+                    <CardTitle className={cn("text-center text-2xl font-black tracking-[0.2em]", isGold ? "text-yellow-500" : "text-primary")}>{title}</CardTitle>
                 </div>
             </CardHeader>
             <CardContent className="p-6">
@@ -316,7 +314,7 @@ const GroupDisplay = ({ title, players, revealedCount, groupIndex, variant = 'pr
                                 ) : isNextToReveal ? (
                                     <div className="flex items-center justify-center w-full gap-3">
                                         <Loader className={cn("h-4 w-4 animate-spin", isGold ? "text-yellow-500" : "text-primary")} />
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Menanti...</span>
+                                        <span className="text-[10px] font-black tracking-[0.3em] opacity-50">Menanti...</span>
                                     </div>
                                 ) : (
                                     <div className="w-full flex justify-center opacity-10">

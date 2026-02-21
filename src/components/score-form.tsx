@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -25,7 +26,6 @@ import { Calendar } from "./ui/calendar";
 import { CoopScoreChecklist } from "./coop-score-checklist";
 import { Badge } from "./ui/badge";
 
-// Zod schema for Co-Op (Best of 3) matches
 const coopFormSchema = z.object({
   player1Wins: z.coerce.number().min(0).max(2),
   player2Wins: z.coerce.number().min(0).max(2),
@@ -39,7 +39,6 @@ const coopFormSchema = z.object({
     path: ["player1Wins"],
 });
 
-// Zod schema for Single (standard score) matches
 const singleFormSchema = z.object({
   player1Score: z.coerce.number().min(0, { message: "Skor minimal 0" }),
   player2Score: z.coerce.number().min(0, { message: "Skor minimal 0" }),
@@ -151,19 +150,16 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-8">
         
         <div className="relative">
-            {/* VS Background Logo */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden sm:flex items-center justify-center">
                 <div className="bg-background border-4 border-primary rounded-full w-16 h-16 flex items-center justify-center shadow-[0_0_30px_rgba(204,253,1,0.4)] ring-8 ring-background">
-                    <span className="text-primary font-black italic text-2xl tracking-tighter pr-0.5">VS</span>
+                    <span className="text-primary font-black text-2xl tracking-tighter pr-0.5">vs</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              {/* Player 1 Section */}
               <div className="bg-card border-2 border-primary/10 rounded-2xl p-6 flex flex-col items-center gap-4 text-center relative overflow-hidden">
-                {/* Watermark Score Left */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-0 opacity-20 -translate-x-20">
-                    <span className="text-9xl font-black text-white italic">{p1Value ?? 0}</span>
+                    <span className="text-9xl font-black text-white">{p1Value ?? 0}</span>
                 </div>
 
                 <div className="relative z-10">
@@ -203,11 +199,9 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                 </div>
               </div>
 
-              {/* Player 2 Section */}
               <div className="bg-card border-2 border-primary/10 rounded-2xl p-6 flex flex-col items-center gap-4 text-center relative overflow-hidden">
-                {/* Watermark Score Right */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-0 opacity-20 translate-x-20">
-                    <span className="text-9xl font-black text-white italic">{p2Value ?? 0}</span>
+                    <span className="text-9xl font-black text-white">{p2Value ?? 0}</span>
                 </div>
 
                 <div className="relative z-10">
@@ -252,7 +246,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
         {isBestOfThree && (
            <div className="bg-muted/20 p-6 rounded-2xl border border-primary/20 shadow-inner">
              <div className="mb-4 text-center">
-                <Badge className="bg-primary text-primary-foreground font-black px-4 py-1 italic tracking-tighter">Format Best of 3</Badge>
+                <Badge className="bg-primary text-primary-foreground font-black px-4 py-1 tracking-tighter">Format Best of 3</Badge>
              </div>
              <CoopScoreChecklist
                 player1Name={player1Info.name}
@@ -337,7 +331,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  Simpan Skor Akhir
+                  Simpan skor akhir
                 </>
               )}
             </Button>
