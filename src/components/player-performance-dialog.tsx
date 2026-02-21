@@ -225,7 +225,7 @@ export function PlayerPerformanceDialog({
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
-        if (avgGF > 2.2) {
+        if (avgGF > 1.5) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
         } else if (avgGA < 1.2 && stats.played >= 3) {
@@ -547,20 +547,3 @@ export function PlayerPerformanceDialog({
     </>
   );
 }
-
-
-const ResultBadge = ({ result }: { result: 'W' | 'L' | 'D' }) => {
-    const resultConfig = {
-        W: { text: 'W', className: 'bg-green-500/20 text-green-400 border-green-500/50' },
-        L: { text: 'L', className: 'bg-red-500/20 text-red-400 border-red-500/50' },
-        D: { text: 'D', className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' },
-    };
-    const { text, className } = resultConfig[result];
-    
-    return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center text-sm font-bold border-2", className)}>{text}</Badge>
-};
-
-const HomeAwayBadge = ({ isHome }: { isHome: boolean }) => {
-    const text = isHome ? 'H' : 'A';
-    return <Badge variant="outline" className={cn("w-8 h-8 flex items-center justify-center p-0 font-bold text-sm border-2")}>{text}</Badge>
-};
