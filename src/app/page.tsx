@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -187,23 +188,23 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
   return (
      <section className="space-y-8 max-w-6xl mx-auto">
         {activeSeason && (
-            <div className="flex flex-col items-center gap-3 mb-2">
-                <Badge variant="outline" className="text-primary border-primary bg-primary/10 px-6 py-1 font-black uppercase tracking-widest italic text-[10px]">
+            <div className="flex flex-col items-center gap-3 mb-2 px-4">
+                <Badge variant="outline" className="text-primary border-primary bg-primary/10 px-4 sm:px-6 py-1 font-black uppercase tracking-widest italic text-[9px] sm:text-[10px]">
                     <Activity className="w-3 h-3 mr-2 inline" />
                     {t(`home_format_${activeSeason.type?.toLowerCase() || 'single'}`)}
                 </Badge>
-                <h2 className="text-3xl font-black text-center tracking-tighter uppercase italic pr-4">{activeSeason.name}</h2>
-                <div className="h-1 w-24 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
+                <h2 className="text-xl sm:text-3xl font-black text-center tracking-tighter uppercase italic pr-2 sm:pr-4">{activeSeason.name}</h2>
+                <div className="h-1 w-16 sm:w-24 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
             </div>
         )}
 
         {hasPlayoffs ? (
-            <div className="w-full overflow-hidden rounded-3xl border-4 border-primary/30 bg-[#0A192F]/80 shadow-[0_0_50px_rgba(204,253,1,0.1)] backdrop-blur-xl p-8">
-                <div className="flex flex-col items-center gap-2 mb-10">
-                    <h2 className="text-2xl font-black text-primary flex items-center justify-center gap-3 uppercase italic tracking-tighter pr-4">
-                        <Swords className="w-8 h-8"/> Bagan Babak Playoff
+            <div className="w-full overflow-hidden rounded-2xl sm:rounded-3xl border-2 sm:border-4 border-primary/30 bg-[#0A192F]/80 shadow-[0_0_50px_rgba(204,253,1,0.1)] backdrop-blur-xl p-4 sm:p-8">
+                <div className="flex flex-col items-center gap-2 mb-6 sm:mb-10">
+                    <h2 className="text-lg sm:text-2xl font-black text-primary flex items-center justify-center gap-2 sm:gap-3 uppercase italic tracking-tighter pr-2 sm:pr-4">
+                        <Swords className="w-6 h-6 sm:w-8 h-8"/> Bagan Babak Playoff
                     </h2>
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.4em]">Tournament HUD System v2.0</p>
+                    <p className="text-[8px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] sm:tracking-[0.4em]">Tournament HUD System v2.0</p>
                 </div>
                 <TournamentBracket 
                     matches={matches || []}
@@ -215,16 +216,16 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                 />
             </div>
         ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 px-2 sm:px-0">
                 {leaderboardData ? (
                     isHybrid ? (
                         <>
                             <div className="flex flex-col space-y-4">
                                 <div className="flex items-center gap-3 px-4">
                                     <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                        <Trophy className="w-5 h-5"/>
+                                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5"/>
                                     </div>
-                                    <h2 className="text-lg font-black uppercase italic tracking-tighter pr-2">4 Besar Grup A</h2>
+                                    <h2 className="text-base sm:text-lg font-black uppercase italic tracking-tighter pr-2">4 Besar Grup A</h2>
                                 </div>
                                 <Card className="border-2 border-white/5 shadow-2xl overflow-hidden bg-card/40 backdrop-blur-xl rounded-2xl group/card">
                                     {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
@@ -237,9 +238,9 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                             <div className="flex flex-col space-y-4">
                                 <div className="flex items-center gap-3 px-4">
                                     <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                        <Trophy className="w-5 h-5"/>
+                                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5"/>
                                     </div>
-                                    <h2 className="text-lg font-black uppercase italic tracking-tighter pr-2">4 Besar Grup B</h2>
+                                    <h2 className="text-base sm:text-lg font-black uppercase italic tracking-tighter pr-2">4 Besar Grup B</h2>
                                 </div>
                                 <Card className="border-2 border-white/5 shadow-2xl overflow-hidden bg-card/40 backdrop-blur-xl rounded-2xl group/card">
                                     {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
@@ -254,11 +255,11 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                         <div className="lg:col-span-2 flex flex-col max-w-3xl mx-auto w-full space-y-4">
                             <div className="flex items-center justify-center gap-3">
                                 <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                    <Award className="w-6 h-6"/>
+                                    <Award className="w-5 h-5 sm:w-6 sm:h-6"/>
                                 </div>
-                                <h2 className="text-2xl font-black uppercase italic tracking-tighter pr-4">{t('home_top_players')}</h2>
+                                <h2 className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter pr-2 sm:pr-4">{t('home_top_players')}</h2>
                             </div>
-                            <Card className="border-2 border-white/5 shadow-2xl overflow-hidden bg-card/40 backdrop-blur-xl rounded-3xl group/card">
+                            <Card className="border-2 border-white/5 shadow-2xl overflow-hidden bg-card/40 backdrop-blur-xl rounded-2xl sm:rounded-3xl group/card">
                                 {leaderboardData.top && leaderboardData.top.length > 0 ? (
                                     <LeaderboardTable players={leaderboardData.top} defendingChampionId={defendingChampionId} />
                                 ) : (
@@ -284,11 +285,11 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
   return (
      <Table>
       <TableHeader>
-          <TableRow className="hover:bg-transparent border-b-white/5 h-12">
+          <TableRow className="hover:bg-transparent border-b-white/5 h-10 sm:h-12">
           <TableHead className="w-1 p-0"></TableHead>
-          <TableHead className="w-[60px] pl-6 font-black text-white/20 uppercase text-[9px] tracking-widest">#</TableHead>
-          <TableHead className="font-black text-white/20 uppercase text-[9px] tracking-widest">{t('player')}</TableHead>
-          <TableHead className="text-right pr-6 font-black text-white/20 uppercase text-[9px] tracking-widest">{t('pts')}</TableHead>
+          <TableHead className="w-[40px] sm:w-[60px] pl-4 sm:pl-6 font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">#</TableHead>
+          <TableHead className="font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">{t('player')}</TableHead>
+          <TableHead className="text-right pr-4 sm:pr-6 font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">{t('pts')}</TableHead>
           </TableRow>
       </TableHeader>
       <TableBody>
@@ -297,36 +298,36 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
             const isDefendingChampion = entry.playerId === defendingChampionId;
             return (
               <TableRow key={entry.id} className={cn(
-                  "border-b-white/5 transition-all duration-300 group/row h-16",
+                  "border-b-white/5 transition-all duration-300 group/row h-14 sm:h-16",
                   isFirst ? "bg-yellow-400/[0.03] hover:bg-yellow-400/[0.08]" : "hover:bg-white/[0.03]"
                 )}>
-                  <TableCell className={cn("p-0 w-1.5 transition-all duration-500", 
+                  <TableCell className={cn("p-0 w-1 sm:w-1.5 transition-all duration-500", 
                     isFirst ? 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]' :
                     isBottom ? 'bg-destructive' : 'bg-transparent'
                   )}></TableCell>
-                  <TableCell className={cn("font-black text-xl pl-6 italic", 
+                  <TableCell className={cn("font-black text-lg sm:text-xl pl-4 sm:pl-6 italic", 
                     isFirst ? "text-yellow-400 scale-110 drop-shadow-[0_0_10px_rgba(250,204,21,0.4)]" : "text-white/20 group-hover/row:text-white/40"
                   )}>{entry.rank}</TableCell>
-                  <TableCell>
-                  <div className="flex items-center gap-4">
+                  <TableCell className="py-2">
+                  <div className="flex items-center gap-2 sm:gap-4">
                       <div className="relative shrink-0">
-                        <Avatar className={cn("h-10 w-10 border-2 transition-all duration-500", isFirst ? "border-yellow-400 scale-105 shadow-xl" : "border-white/10 group-hover/row:border-primary")}>
+                        <Avatar className={cn("h-8 w-8 sm:h-10 sm:w-10 border-2 transition-all duration-500", isFirst ? "border-yellow-400 scale-105 shadow-xl" : "border-white/10 group-hover/row:border-primary")}>
                             <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
-                            <AvatarFallback className="bg-white/5"><User className="w-5 h-5 text-white/20" /></AvatarFallback>
+                            <AvatarFallback className="bg-white/5"><User className="w-4 h-4 sm:w-5 sm:h-5 text-white/20" /></AvatarFallback>
                         </Avatar>
                         {isDefendingChampion && (
-                            <div className="absolute -top-2 -right-2 bg-amber-500 rounded-lg p-1 border-2 border-background shadow-lg rotate-12">
-                                <Award className="w-3 h-3 text-white" />
+                            <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-amber-500 rounded-lg p-0.5 sm:p-1 border-2 border-background shadow-lg rotate-12">
+                                <Award className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                             </div>
                         )}
                       </div>
                       <div className="overflow-hidden">
-                        <div className={cn("font-black truncate uppercase italic pr-2 transition-colors", isFirst ? "text-yellow-400 text-lg" : "text-white group-hover/row:text-primary")}>{entry.playerName}</div>
-                        <div className="text-[9px] text-white/40 truncate font-black uppercase tracking-widest">{entry.team?.name || entry.teamName}</div>
+                        <div className={cn("font-black truncate uppercase italic pr-1 sm:pr-2 transition-colors", isFirst ? "text-yellow-400 text-sm sm:text-lg" : "text-xs sm:text-base text-white group-hover:text-primary")}>{entry.playerName}</div>
+                        <div className="text-[7px] sm:text-[9px] text-white/40 truncate font-black uppercase tracking-widest">{entry.team?.name || entry.teamName}</div>
                       </div>
                   </div>
                   </TableCell>
-                  <TableCell className="text-right pr-6 font-black text-2xl tabular-nums italic">
+                  <TableCell className="text-right pr-4 sm:pr-6 font-black text-xl sm:text-2xl tabular-nums italic">
                     <span className={isFirst ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]" : "text-primary"}>{entry.points}</span>
                   </TableCell>
               </TableRow>
@@ -363,40 +364,40 @@ export default function Home() {
   
   return (
     <div className={cn(
-        "mx-auto px-4 py-12 transition-all duration-1000 ease-in-out relative",
-        isWideMode ? "max-w-[95vw]" : "container"
+        "mx-auto px-2 sm:px-4 py-8 sm:py-12 transition-all duration-1000 ease-in-out relative",
+        isWideMode ? "max-w-[98vw] sm:max-w-[95vw]" : "container"
     )}>
       {/* Dynamic Background Decoration */}
-      <div className="absolute top-0 right-0 -z-10 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute top-1/2 left-0 -z-10 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/2 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-16">
-        <section className="text-center space-y-6 relative">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-primary italic mb-2">
-            <Flame className="w-3 h-3 fill-primary"/> Official League Station
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-16">
+        <section className="text-center space-y-4 sm:space-y-6 relative px-4">
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-3 sm:px-4 py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary italic mb-1 sm:2">
+            <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-primary"/> Official League Station
           </div>
-          <h1 className="font-headline text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+          <h1 className="font-headline text-4xl sm:text-7xl md:text-8xl font-black tracking-tighter text-white uppercase italic pr-2 sm:pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]">
             BM <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">LEAGUE 88</span>
           </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-sm sm:text-base font-bold text-white/60 uppercase tracking-widest leading-relaxed">
+          <p className="mt-2 sm:mt-4 max-w-2xl mx-auto text-xs sm:text-base font-bold text-white/60 uppercase tracking-widest leading-relaxed">
             {t('home_welcome')}
           </p>
         </section>
 
-        <section className="max-w-4xl mx-auto w-full">
+        <section className="max-w-4xl mx-auto w-full px-2">
           <LiveClock />
         </section>
 
-        <section className="max-w-5xl mx-auto w-full">
+        <section className="max-w-5xl mx-auto w-full px-2 sm:px-0">
             <EditableNotice />
         </section>
         
-        <section className="space-y-6">
+        <section className="space-y-4 sm:space-y-6">
             <div className="flex flex-col items-center gap-2">
-                <h2 className="text-[10px] font-black text-primary uppercase tracking-[0.5em] flex items-center justify-center gap-3 italic">
-                    <LayoutGrid className="w-4 h-4"/> Registered Participants
+                <h2 className="text-[8px] sm:text-[10px] font-black text-primary uppercase tracking-[0.3em] sm:tracking-[0.5em] flex items-center justify-center gap-2 sm:gap-3 italic">
+                    <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4"/> Registered Participants
                 </h2>
-                <div className="h-0.5 w-16 bg-primary/30 rounded-full" />
+                <div className="h-0.5 w-12 sm:w-16 bg-primary/30 rounded-full" />
             </div>
             <PlayerMarquee />
         </section>

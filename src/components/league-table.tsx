@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -90,14 +91,14 @@ const SingleTable = ({
          <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20">
         <Table className="min-w-full">
           <TableHeader>
-            <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-14">
-              <TableHead className="w-2 p-0"></TableHead>
-              <TableHead className="w-10 text-center font-black text-primary uppercase text-[10px] tracking-[0.2em]">{t('rank')}</TableHead>
-              <TableHead className="text-left font-black text-primary text-[10px] tracking-[0.2em] min-w-[140px] uppercase">{t('player')}</TableHead>
-              <TableHead className="text-center font-black text-primary w-24 text-[10px] tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
-              <TableHead className="text-center font-black text-green-400 w-24 text-[10px] tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-24 text-[10px] tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
-              <TableHead className="text-center font-black text-red-400 w-24 text-[10px] tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
+            <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14">
+              <TableHead className="w-1.5 p-0"></TableHead>
+              <TableHead className="w-8 sm:w-10 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em]">{t('rank')}</TableHead>
+              <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] min-w-[100px] sm:min-w-[140px] uppercase">{t('player')}</TableHead>
+              <TableHead className="text-center font-black text-primary w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
+              <TableHead className="text-center font-black text-green-400 w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="hidden xs:table-cell text-center font-black text-yellow-400 w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
+              <TableHead className="text-center font-black text-red-400 w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
                     <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-24 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
@@ -106,7 +107,7 @@ const SingleTable = ({
                 </>
               )}
               <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-48 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
-              <TableHead className="text-center font-black text-primary w-36 text-[10px] tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
+              <TableHead className="text-center font-black text-primary w-12 sm:w-36 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-[0.2em] uppercase">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
@@ -136,22 +137,22 @@ const SingleTable = ({
                 <TableRow 
                   key={entry.id}
                   className={cn(
-                    "transition-all h-20 border-b-white/5 relative group/row",
+                    "transition-all h-16 sm:h-20 border-b-white/5 relative group/row",
                     isFirst ? "bg-yellow-500/[0.07] hover:bg-yellow-500/[0.12]" :
                     isQualificationZone ? "bg-green-500/[0.05] hover:bg-green-500/[0.1]" :
                     isLowerBracketZone ? "bg-amber-500/[0.05] hover:bg-amber-500/[0.1]" :
                     isRelegationZone ? "bg-red-500/[0.05] hover:bg-red-500/[0.1]" : "hover:bg-white/[0.03]"
                   )}
                 >
-                  <TableCell className={cn("p-0 w-1.5", 
-                    isFirst ? 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' :
+                  <TableCell className={cn("p-0 w-1 sm:w-1.5", 
+                    isFirst ? 'bg-yellow-400 shadow-[0_0:10px_rgba(250,204,21,0.5)]' :
                     isQualificationZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
                     isLowerBracketZone ? 'bg-amber-500' :
                     isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent'
                   )}>
                   </TableCell>
                   <TableCell className={cn(
-                    "text-center font-black text-xl px-1 italic",
+                    "text-center font-black text-base sm:text-xl px-1 italic",
                     isFirst ? "text-yellow-400 scale-110 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" : 
                     isQualificationZone ? "text-green-400" :
                     isLowerBracketZone ? "text-amber-500" :
@@ -159,72 +160,56 @@ const SingleTable = ({
                     )}>
                     {entry.rank}
                   </TableCell>
-                  <TableCell className="relative overflow-visible py-3">
+                  <TableCell className="relative overflow-visible py-2 sm:py-3">
                     <div 
-                      className="flex items-center gap-4 cursor-pointer group hover:translate-x-1 transition-transform duration-300"
+                      className="flex items-center gap-2 sm:gap-4 cursor-pointer group hover:translate-x-1 transition-transform duration-300"
                       onClick={() => onSelectPlayer(entry)}
                     >
                        <div className="relative shrink-0">
-                          <div className={cn(
-                              "absolute -inset-1 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity",
-                              isFirst ? "bg-yellow-400/30" : "bg-primary/20"
-                          )} />
                           <Avatar className={cn(
-                              "h-12 w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
-                              isFirst ? "border-yellow-400 scale-110" : "border-white/10 group-hover:border-primary"
+                              "h-8 w-8 sm:h-12 sm:w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
+                              isFirst ? "border-yellow-400" : "border-white/10 group-hover:border-primary"
                           )}>
                             <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} className="object-cover" />
-                            <AvatarFallback><User className="w-6 h-6 text-white/20"/></AvatarFallback>
+                            <AvatarFallback><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/20"/></AvatarFallback>
                           </Avatar>
                           {isFirst && (
-                             <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1 shadow-lg border-2 border-background z-20 animate-bounce">
-                                <Trophy className="w-3.5 h-3.5 text-black" />
+                             <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-yellow-400 rounded-full p-0.5 sm:p-1 shadow-lg border-2 border-background z-20 animate-bounce">
+                                <Trophy className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-black" />
                              </div>
                           )}
                        </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                            <span className={cn(
-                               "font-black tracking-tight transition-colors truncate uppercase italic pr-2", 
-                               isFirst ? "text-lg text-yellow-400" : "text-base text-white group-hover:text-primary"
+                               "font-black tracking-tight transition-colors truncate uppercase italic pr-1 sm:pr-2", 
+                               isFirst ? "text-xs sm:text-lg text-yellow-400" : "text-[11px] sm:text-base text-white group-hover:text-primary"
                             )}>
                                 {entry.playerName}
                             </span>
-                            {isUnbeaten && (
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                             <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0 h-5 font-black text-[8px] uppercase">
-                                                <ShieldCheck className="w-2.5 h-2.5 mr-1"/> UNBEATEN
-                                            </Badge>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>Tak Terkalahkan</p></TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )}
-                             {isDefendingChampion && (
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1.5 py-0 h-5 font-black text-[8px] uppercase">
-                                                <Award className="w-2.5 h-2.5 mr-1"/> CHAMP
-                                            </Badge>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>Juara Bertahan</p></TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )}
+                            <div className="flex items-center gap-1 mt-0.5 sm:mt-0">
+                                {isUnbeaten && (
+                                    <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
+                                        UB
+                                    </Badge>
+                                )}
+                                {isDefendingChampion && (
+                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
+                                        CH
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/40 uppercase tracking-widest group-hover:text-white/60 transition-colors">
-                            <span className="truncate">{entry.team?.name}</span>
+                        <div className="text-[7px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest truncate max-w-[80px] sm:max-w-none">
+                            {entry.team?.name}
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center px-2 text-sm font-black text-white/80">{entry.played}</TableCell>
-                  <TableCell className="text-center px-2 text-sm font-black text-green-400">{entry.win}</TableCell>
-                  {!isCoop && <TableCell className="text-center px-2 text-sm font-black text-yellow-400">{entry.draw}</TableCell>}
-                  <TableCell className="text-center px-2 text-sm font-black text-red-400">{entry.loss}</TableCell>
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-white/80">{entry.played}</TableCell>
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-green-400">{entry.win}</TableCell>
+                  {!isCoop && <TableCell className="hidden xs:table-cell text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400">{entry.draw}</TableCell>}
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400">{entry.loss}</TableCell>
                   {!isCoop && (
                     <>
                         <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30">{entry.goalsFor}</TableCell>
@@ -247,7 +232,7 @@ const SingleTable = ({
                       </div>
                   </TableCell>
                   <TableCell className={cn(
-                      "text-center font-black text-2xl px-2 italic", 
+                      "text-center font-black text-lg sm:text-2xl px-1 sm:px-2 italic", 
                       isFirst ? "text-yellow-300 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] scale-110" : "text-primary"
                     )}>
                     {entry.points}
@@ -317,10 +302,10 @@ export function LeagueTable({
   
   if (tableData.length === 0) {
     return (
-      <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-card/40 p-16 text-center backdrop-blur-md">
-        <LayoutGrid className="w-16 h-16 text-primary/10 mx-auto mb-4" />
-        <h2 className="text-2xl font-black text-muted-foreground uppercase tracking-widest">{t('no_players_registered_title')}</h2>
-        <p className="text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">{t('no_players_registered_desc')}</p>
+      <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-card/40 p-10 sm:p-16 text-center backdrop-blur-md">
+        <LayoutGrid className="w-12 h-12 sm:w-16 sm:h-16 text-primary/10 mx-auto mb-4" />
+        <h2 className="text-xl sm:text-2xl font-black text-muted-foreground uppercase tracking-widest">{t('no_players_registered_title')}</h2>
+        <p className="text-[10px] sm:text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">{t('no_players_registered_desc')}</p>
       </div>
     );
   }
@@ -328,14 +313,14 @@ export function LeagueTable({
   const isHybrid = seasonType === 'Hybrid';
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border-2 border-white/5 bg-card/60 backdrop-blur-xl shadow-2xl">
+    <div className="w-full overflow-hidden rounded-xl sm:rounded-2xl border-2 border-white/5 bg-card/60 backdrop-blur-xl shadow-2xl">
         {isHybrid ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 rounded-none bg-black/40 h-14 p-1 border-b border-white/5">
-                    <TabsTrigger value="group_a" className="font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup A ({groupA.length})</TabsTrigger>
-                    <TabsTrigger value="group_b" className="font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup B ({groupB.length})</TabsTrigger>
-                    <TabsTrigger value="playoff" className="flex items-center gap-2 font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">
-                        <Swords className="h-3.5 w-3.5" /> Playoff
+                <TabsList className="grid w-full grid-cols-3 rounded-none bg-black/40 h-12 sm:h-14 p-1 border-b border-white/5">
+                    <TabsTrigger value="group_a" className="font-black uppercase tracking-widest text-[8px] sm:text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup A ({groupA.length})</TabsTrigger>
+                    <TabsTrigger value="group_b" className="font-black uppercase tracking-widest text-[8px] sm:text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup B ({groupB.length})</TabsTrigger>
+                    <TabsTrigger value="playoff" className="flex items-center justify-center gap-1 sm:gap-2 font-black uppercase tracking-widest text-[8px] sm:text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">
+                        <Swords className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Playoff
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="group_a" className="mt-0">
