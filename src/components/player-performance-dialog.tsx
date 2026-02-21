@@ -355,7 +355,7 @@ export function PlayerPerformanceDialog({
                               <Tooltip>
                                   <TooltipTrigger asChild>
                                       <div className="absolute -top-2 -right-2 transform rotate-12">
-                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/20 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
+                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
                                               <ShieldCheck className="w-5 h-5"/>
                                           </Badge>
                                       </div>
@@ -377,7 +377,7 @@ export function PlayerPerformanceDialog({
                         {player.teamName || 'Tanpa Tim'}
                       </DialogDescription>
                       <div className="pt-1">
-                        <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(playStyleType))}>
+                        <Badge className={cn("text-[11px] font-black uppercase tracking-tighter px-3 py-1 border", getPlayStyleClass(playStyleType))}>
                             {playStyleText}
                         </Badge>
                       </div>
@@ -440,7 +440,7 @@ export function PlayerPerformanceDialog({
                               return (
                                   <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border-l-4 border-primary/50 transition-all hover:bg-white/10">
                                   <div className="flex items-center gap-3">
-                                      <div className={cn("w-6 h-6 rounded flex items-center justify-center text-[10px] font-black border", match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{match.result}</div>
+                                      <div className={cn("w-6 h-6 rounded flex items-center justify-center text-[10px] font-black border", match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{match.result}</div>
                                       <div>
                                           <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
                                           <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>

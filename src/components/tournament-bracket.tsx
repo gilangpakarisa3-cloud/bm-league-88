@@ -410,7 +410,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis1.team?.name || 'Tanpa Tim'}</p>
                                         <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">Grup {analysis1.entry?.group || 'A'} • Rank {analysis1.entry?.rank || '?'}</Badge>
                                         <div className="mt-2">
-                                            <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(analysis1.playStyleType))}>
+                                            <Badge className={cn("text-[11px] font-black uppercase tracking-tighter px-3 py-1 border", getPlayStyleClass(analysis1.playStyleType))}>
                                                 {analysis1.playStyleText}
                                             </Badge>
                                         </div>
@@ -442,7 +442,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <div className="absolute -top-2 -right-2 transform rotate-12 z-20">
+                                                        <div className="absolute -top-2 -left-2 transform -rotate-12 z-20">
                                                             <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg border-2">
                                                                 <Award className="w-6 h-6"/>
                                                             </Badge>
@@ -458,7 +458,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis2.team?.name || 'Tanpa Tim'}</p>
                                         <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">Grup {analysis2.entry?.group || 'B'} • Rank {analysis2.entry?.rank || '?'}</Badge>
                                         <div className="mt-2">
-                                            <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(analysis2.playStyleType))}>
+                                            <Badge className={cn("text-[11px] font-black uppercase tracking-tighter px-3 py-1 border", getPlayStyleClass(analysis2.playStyleType))}>
                                                 {analysis2.playStyleText}
                                             </Badge>
                                         </div>
