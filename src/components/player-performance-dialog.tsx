@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, KeyRound } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, KeyRound, Target, Zap } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -16,7 +16,7 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/t
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 
 interface PlayerPerformanceDialogProps {
@@ -192,8 +192,14 @@ export function PlayerPerformanceDialog({
         if (m.result === 'W') acc.win++;
         else if (m.result === 'L') acc.loss++;
         else acc.draw++;
+
+        if (m.player1Score !== null && m.player2Score !== null) {
+            const isP1 = m.player1Id === playerIdToFilter;
+            acc.gf += isP1 ? m.player1Score : m.player2Score;
+            acc.ga += isP1 ? m.player2Score : m.player1Score;
+        }
         return acc;
-    }, { played: 0, win: 0, draw: 0, loss: 0 });
+    }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
 
     const totalMatchesCount = playerMatches.length;
     const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
@@ -213,22 +219,32 @@ export function PlayerPerformanceDialog({
 
     const finalTrendScore = chartData.length > 1 ? chartData[chartData.length - 1].points : 0;
 
-    const last5Matches = completedMatches.slice(0, 5);
-    let last5TrendScore = 0;
-    let performanceStatus = null;
-    if (last5Matches.length === 5) {
-        last5Matches.forEach(match => {
-            if (match.result === 'W') last5TrendScore += 1;
-            else if (match.result === 'L') last5TrendScore -=1;
-        });
-
-        if (last5TrendScore === 5) performanceStatus = { text: "Merasa Tak Terkalahkan", color: "text-green-400" };
-        else if (last5TrendScore >= 3) performanceStatus = { text: "Dalam performa yang bagus", color: "text-green-400" };
-        else if (last5TrendScore <= -3 && last5TrendScore > -5) performanceStatus = { text: "Dalam performa yang buruk", color: "text-red-400" };
-        else if (last5TrendScore === -5) performanceStatus = { text: "Pemain sedang ketakutan", color: "text-red-400" };
+    // Play Style Analysis (3 Parameters)
+    let playStyleText = "Gaya bermain: Balanced";
+    let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
+    if (stats.played > 0) {
+        const avgGF = stats.gf / stats.played;
+        const avgGA = stats.ga / stats.played;
+        if (avgGF > 2.2) {
+            playStyleText = "Gaya bermain: Attacking";
+            playStyleType = 'attacking';
+        } else if (avgGA < 1.2 && stats.played >= 3) {
+            playStyleText = "Gaya bermain: Defensive & Counter";
+            playStyleType = 'defensive';
+        }
     }
 
-    // Compute effective group size for rank highlighting
+    const last5Matches = completedMatches.slice(0, 5);
+    let performanceStatus = null;
+    if (last5Matches.length > 0) {
+        const winCount = last5Matches.filter(m => m.result === 'W').length;
+        const lossCount = last5Matches.filter(m => m.result === 'L').length;
+
+        if (winCount === 5) performanceStatus = { text: "Merasa tak terkalahkan", color: "text-green-400" };
+        else if (winCount >= 3) performanceStatus = { text: "Dalam performa yang bagus", color: "text-green-400" };
+        else if (lossCount >= 3) performanceStatus = { text: "Performa sedang menurun", color: "text-red-400" };
+    }
+
     const groupSize = activeSeason.type === 'Hybrid' 
         ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
         : totalPlayersInSeason;
@@ -243,7 +259,9 @@ export function PlayerPerformanceDialog({
         finalTrendScore,
         performanceStatus,
         stats,
-        groupSize
+        groupSize,
+        playStyleText,
+        playStyleType
     }
 
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable]);
@@ -251,19 +269,19 @@ export function PlayerPerformanceDialog({
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize, playStyleText, playStyleType } = performanceStats;
   
    const chartConfig = {
     points: {
-      label: "Points",
+      label: "Tren",
       color: "hsl(var(--primary))",
     },
   } satisfies ChartConfig;
 
   const StatDisplay = ({ label, value }: { label: string, value: string | number }) => (
     <div className="flex flex-col items-center justify-center p-2 rounded-md bg-card">
-      <span className="text-xs sm:text-sm font-semibold text-muted-foreground">{label}</span>
-      <span className="text-base sm:text-lg font-bold text-primary">{value}</span>
+      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
+      <span className="text-lg font-black text-primary">{value}</span>
     </div>
   );
   
@@ -274,7 +292,7 @@ export function PlayerPerformanceDialog({
 
 
   const rankBadgeStyle = cn(
-    "absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background text-sm font-bold",
+    "absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background text-sm font-black shadow-lg",
     {
       "bg-yellow-400 border-yellow-300 text-black": isTopRank,
       "bg-red-500 border-red-400 text-white": isBottomRank,
@@ -282,7 +300,7 @@ export function PlayerPerformanceDialog({
     }
   );
 
-  const rankTextStyle = cn("text-xl font-bold mt-1", {
+  const rankTextStyle = cn("text-xl font-black mt-1", {
     "text-yellow-400": isTopRank,
     "text-red-500": isBottomRank,
     "text-primary": !isTopRank && !isBottomRank,
@@ -290,16 +308,24 @@ export function PlayerPerformanceDialog({
 
   const isCoop = (activeSeason?.type || 'Single') === 'Co-Op';
 
+  const getPlayStyleClass = (type: 'attacking' | 'defensive' | 'balanced') => {
+    switch (type) {
+        case 'attacking': return "bg-red-500/20 text-red-400 border-red-500/30";
+        case 'defensive': return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        default: return "bg-primary/20 text-primary border-primary/30";
+    }
+  }
+
 
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-primary border-2 p-0">
+      <DialogContent className="max-w-md border-primary border-2 p-0 overflow-hidden bg-[#0A192F]/95 backdrop-blur-xl">
         <ScrollArea className="max-h-[90vh]">
             <div className="p-6">
                 <DialogHeader className="flex flex-col items-center text-center">
                     <div className="relative">
-                      <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-primary">
+                      <Avatar className="h-20 w-20 border-4 border-primary shadow-2xl shadow-primary/20">
                         <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.playerName} />
                         <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
                       </Avatar>
@@ -312,7 +338,7 @@ export function PlayerPerformanceDialog({
                               <Tooltip>
                                   <TooltipTrigger asChild>
                                       <div className="absolute -top-2 -left-2 transform -rotate-12">
-                                          <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full">
+                                          <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
                                               <Award className="w-5 h-5"/>
                                           </Badge>
                                       </div>
@@ -329,7 +355,7 @@ export function PlayerPerformanceDialog({
                               <Tooltip>
                                   <TooltipTrigger asChild>
                                       <div className="absolute -top-2 -right-2 transform rotate-12">
-                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/20 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full">
+                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/20 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
                                               <ShieldCheck className="w-5 h-5"/>
                                           </Badge>
                                       </div>
@@ -340,248 +366,179 @@ export function PlayerPerformanceDialog({
                               </Tooltip>
                           </TooltipProvider>
                       )}
-                      
-                      {isTopRank && !isUnbeaten && !isDefendingChampion && (
-                           <TooltipProvider>
-                              <Tooltip>
-                                  <TooltipTrigger asChild>
-                                      <div className="absolute -top-2 -right-2 transform rotate-12">
-                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/20 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full">
-                                              <Trophy className="w-5 h-5"/>
-                                          </Badge>
-                                      </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                      <p>Peringkat Pertama</p>
-                                  </TooltipContent>
-                              </Tooltip>
-                          </TooltipProvider>
-                      )}
                     </div>
-                    <div className="flex flex-col items-center space-y-1 pt-2">
-                      <DialogTitle className="text-2xl font-bold">{player.playerName}</DialogTitle>
-                      <DialogDescription className="flex items-center justify-center gap-2">
+                    <div className="flex flex-col items-center space-y-1 pt-3">
+                      <DialogTitle className="text-2xl font-black tracking-tight">{player.playerName}</DialogTitle>
+                      <DialogDescription className="flex items-center justify-center gap-2 font-bold text-white/60">
                         <Avatar className="h-5 w-5">
                             <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.teamName} />
                             <AvatarFallback><Shield className="w-3 h-3"/></AvatarFallback>
                         </Avatar>
-                        {player.teamName}
+                        {player.teamName || 'Tanpa Tim'}
                       </DialogDescription>
-                       {isDefendingChampion && previousSeasonName && (
-                        <p className="text-xs font-bold text-yellow-400">
-                          Juara Bertahan - {previousSeasonName}
-                        </p>
-                      )}
+                      <div className="pt-1">
+                        <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(playStyleType))}>
+                            {playStyleText}
+                        </Badge>
+                      </div>
                     </div>
                 </DialogHeader>
 
-                <div className="py-2 sm:space-y-6 mt-4">
+                <div className="py-2 space-y-6 mt-6">
                     <div className='space-y-4'>
                         <div>
-                            <h3 className="text-sm font-semibold mb-2">Progres Musim</h3>
-                            <Progress value={seasonProgress} className="h-3" />
-                            <p className="text-xs text-muted-foreground mt-1.5">{stats.played} dari {totalMatchesCount} pertandingan dimainkan ({seasonProgress.toFixed(0)}%)</p>
+                            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Progres Musim</h3>
+                            <Progress value={seasonProgress} className="h-2 bg-white/5" />
+                            <p className="text-[10px] font-bold text-muted-foreground mt-2">{stats.played} dari {totalMatchesCount} laga dimainkan ({seasonProgress.toFixed(0)}%)</p>
                         </div>
                          <div className={cn("grid gap-2 text-center", isCoop ? 'grid-cols-4' : 'grid-cols-5')}>
-                           <StatDisplay label={t('played', { defaultValue: "P"})} value={stats.played} />
-                           <StatDisplay label={t('w', { defaultValue: "W"})} value={stats.win} />
-                           {!isCoop && <StatDisplay label={t('d', { defaultValue: "D"})} value={stats.draw} />}
-                           <StatDisplay label={t('l', { defaultValue: "L"})} value={stats.loss} />
-                           <StatDisplay label={t('pts', { defaultValue: "Pts"})} value={player.points} />
+                           <StatDisplay label="M" value={stats.played} />
+                           <StatDisplay label="W" value={stats.win} />
+                           {!isCoop && <StatDisplay label="S" value={stats.draw} />}
+                           <StatDisplay label="K" value={stats.loss} />
+                           <StatDisplay label="Pts" value={player.points} />
                         </div>
-                         <div className="grid grid-cols-2 gap-2">
-                            <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                                    <Percent className="w-4 h-4 text-primary"/>
-                                    <p>Win Rate</p>
+                         <div className="grid grid-cols-2 gap-3">
+                            <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/5">
+                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                    <Percent className="w-3 h-3 text-primary"/>
+                                    <span>Win Rate</span>
                                 </div>
-                                <p className="text-xl font-bold text-primary mt-1">{winRate.toFixed(0)}%</p>
+                                <p className="text-xl font-black text-primary mt-1">% {winRate.toFixed(0)}</p>
                             </div>
-                            <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-muted/50">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                                    <Trophy className="w-4 h-4 text-primary"/>
-                                    <p>Peringkat</p>
+                            <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/5">
+                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                    <Trophy className="w-3 h-3 text-primary"/>
+                                    <span>Rank</span>
                                 </div>
                                 <p className={rankTextStyle}>{player.rank}</p>
                             </div>
                         </div>
                     </div>
-                  <div className="mt-6 sm:mt-0">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="history">Riwayat</TabsTrigger>
-                            <TabsTrigger value="upcoming">Sisa Laga</TabsTrigger>
-                            <TabsTrigger value="trend">Tren Performa</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="history">
-                             {completedMatches.length > 0 ? (
-                                <div className="space-y-3 pt-4">
-                                {completedMatches.map(match => {
-                                const scoreColorPlayer = cn({
-                                        'text-green-400': match.result === 'W',
-                                        'text-red-400': match.result === 'L',
-                                        'text-yellow-400': match.result === 'D',
-                                    });
-                                const scoreColorOpponent = cn({
-                                        'text-foreground': match.result !== 'D',
-                                        'text-yellow-400': match.result === 'D',
-                                });
-                                
-                                return (
-                                    <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
-                                    <div className="flex items-center gap-2">
-                                        <ResultBadge result={match.result} />
-                                        <HomeAwayBadge isHome={match.isPlayer1} />
-                                        <div className='flex items-center gap-2'>
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
-                                                <AvatarFallback><Shield /></AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                                                <p className="text-xs text-muted-foreground">{format(match.matchDate.toDate(), "d MMM yyyy, HH:mm", { locale: localeId })}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p className="text-lg font-bold">
-                                        {match.isPlayer1 ? (
-                                            <>
-                                            <span className={scoreColorPlayer}>{match.playerResult}</span>
-                                            <span className="mx-2 text-muted-foreground">-</span>
-                                            <span className={scoreColorOpponent}>{match.opponentResult}</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                            <span className={scoreColorOpponent}>{match.opponentResult}</span>
-                                            <span className="mx-2 text-muted-foreground">-</span>
-                                            <span className={scoreColorPlayer}>{match.playerResult}</span>
-                                            </>
-                                        )}
-                                    </p>
-                                    </div>
-                                )
-                                })}
-                                </div>
-                            ) : (
-                                <p className="text-center text-muted-foreground py-8">{t('no_completed_matches', {defaultValue: 'Belum ada pertandingan yang selesai.'})}</p>
-                            )}
-                        </TabsContent>
-                        <TabsContent value="upcoming">
-                             {upcomingMatches.length > 0 ? (
-                                <div className="space-y-3 pt-4">
-                                {upcomingMatches.map(match => (
-                                    <div key={match.id} className="flex items-center justify-between p-3 rounded-lg bg-card border-l-4 border-primary/50">
-                                        <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className="w-8 h-8 flex items-center justify-center font-bold border-2 border-muted">
-                                                <CalendarClock className="w-4 h-4"/>
-                                            </Badge>
-                                             <HomeAwayBadge isHome={match.isPlayer1} />
-                                             <div className='flex items-center gap-2'>
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={match.opponentTeam?.logoUrl} alt={match.opponentTeam?.name} />
-                                                    <AvatarFallback><Shield /></AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="text-sm font-semibold">vs {match.opponent?.name || 'Unknown'}</p>
-                                                    <p className="text-xs text-muted-foreground">Jadwal belum ditentukan</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                                </div>
-                            ) : (
-                                 <p className="text-center text-muted-foreground py-8">Semua pertandingan telah selesai.</p>
-                            )}
-                        </TabsContent>
-                         <TabsContent value="trend">
-                            <Card className="mt-4">
-                                <CardHeader>
-                                    <div className="flex justify-between items-center">
-                                        <CardTitle className="flex items-center gap-2 text-primary">
-                                            <TrendingUp className="w-5 h-5"/>
-                                            Tren Performa
-                                        </CardTitle>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-sm text-muted-foreground">Nilai Akhir:</span>
-                                            <span className={cn("text-xl font-bold", 
-                                                finalTrendScore > 0 && "text-green-400",
-                                                finalTrendScore < 0 && "text-red-400",
-                                                finalTrendScore === 0 && "text-foreground"
-                                            )}>
-                                                {finalTrendScore > 0 ? `+${finalTrendScore}` : finalTrendScore}
-                                            </span>
-                                        </div>
-                                    </div>
-                                     {performanceStatus && (
-                                        <CardDescription className={cn("text-sm font-bold italic", performanceStatus.color)}>
-                                            "{performanceStatus.text}"
-                                        </CardDescription>
-                                    )}
-                                </CardHeader>
-                                <CardContent>
-                                    {chartData.length > 1 ? (
-                                        <ChartContainer config={chartConfig} className="h-48 w-full">
-                                            <LineChart
-                                                accessibilityLayer
-                                                data={chartData}
-                                                margin={{
-                                                    left: -20,
-                                                    right: 20,
-                                                }}
-                                            >
-                                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-                                                <XAxis
-                                                    dataKey="match"
-                                                    tickLine={false}
-                                                    axisLine={false}
-                                                    tickMargin={8}
-                                                    tickFormatter={(value) => value === 0 ? 'Start' : `M${value}`}
-                                                />
-                                                <YAxis
-                                                    tickLine={false}
-                                                    axisLine={false}
-                                                    tickMargin={8}
-                                                    allowDecimals={false}
-                                                />
-                                                <ChartTooltip
-                                                    cursor={false}
-                                                    content={
-                                                        <ChartTooltipContent
-                                                            indicator="dot"
-                                                            labelFormatter={(value, payload) => payload?.[0]?.payload.match === 0 ? "Awal Musim" : `Match ${payload?.[0]?.payload.match}`}
-                                                            formatter={(value, name, item) => (
-                                                                <div className="text-left">
-                                                                    <p className="text-xs text-muted-foreground">{item.payload.tooltip}</p>
-                                                                    <p className="font-bold">Nilai Tren: {item.payload.points > 0 ? `+${item.payload.points}`: item.payload.points}</p>
-                                                                </div>
-                                                            )}
-                                                        />
-                                                    }
-                                                />
-                                                <Line
-                                                    dataKey="points"
-                                                    type="monotone"
-                                                    stroke="hsl(var(--primary))"
-                                                    strokeWidth={2}
-                                                    dot={{
-                                                        fill: "hsl(var(--primary))",
-                                                        r: 4
-                                                    }}
-                                                    activeDot={{
-                                                        r: 6
-                                                    }}
-                                                />
-                                            </LineChart>
-                                        </ChartContainer>
-                                    ) : (
-                                        <p className="text-center text-muted-foreground py-8">Butuh minimal 2 pertandingan untuk menampilkan tren.</p>
-                                    )}
-                                </CardContent>
-                            </Card>
-                         </TabsContent>
-                    </Tabs>
-                  </div>
+                  
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3 bg-white/5">
+                          <TabsTrigger value="history" className="text-[10px] font-black uppercase tracking-widest">Riwayat</TabsTrigger>
+                          <TabsTrigger value="upcoming" className="text-[10px] font-black uppercase tracking-widest">Sisa Laga</TabsTrigger>
+                          <TabsTrigger value="trend" className="text-[10px] font-black uppercase tracking-widest">Tren</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="history" className="pt-4">
+                           {completedMatches.length > 0 ? (
+                              <div className="space-y-2">
+                              {completedMatches.map(match => {
+                              const scoreColorPlayer = cn({
+                                      'text-green-400': match.result === 'W',
+                                      'text-red-400': match.result === 'L',
+                                      'text-yellow-400': match.result === 'D',
+                                  });
+                              const scoreColorOpponent = cn({
+                                      'text-white/80': match.result !== 'D',
+                                      'text-yellow-400': match.result === 'D',
+                              });
+                              
+                              return (
+                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border-l-4 border-primary/50 transition-all hover:bg-white/10">
+                                  <div className="flex items-center gap-3">
+                                      <div className={cn("w-6 h-6 rounded flex items-center justify-center text-[10px] font-black border", match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{match.result}</div>
+                                      <div>
+                                          <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
+                                          <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>
+                                      </div>
+                                  </div>
+                                  <p className="text-base font-black tabular-nums">
+                                      {match.isPlayer1 ? (
+                                          <>
+                                          <span className={scoreColorPlayer}>{match.playerResult}</span>
+                                          <span className="mx-1.5 text-white/20">-</span>
+                                          <span className={scoreColorOpponent}>{match.opponentResult}</span>
+                                          </>
+                                      ) : (
+                                          <>
+                                          <span className={scoreColorOpponent}>{match.opponentResult}</span>
+                                          <span className="mx-1.5 text-white/20">-</span>
+                                          <span className={scoreColorPlayer}>{match.playerResult}</span>
+                                          </>
+                                      )}
+                                  </p>
+                                  </div>
+                              )
+                              })}
+                              </div>
+                          ) : (
+                              <div className="text-center py-12 opacity-30">
+                                  <p className="text-[10px] font-black uppercase tracking-[0.2em]">Belum ada laga selesai</p>
+                              </div>
+                          )}
+                      </TabsContent>
+                      
+                      <TabsContent value="upcoming" className="pt-4">
+                           {upcomingMatches.length > 0 ? (
+                              <div className="space-y-2">
+                              {upcomingMatches.map(match => (
+                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-dashed border-white/10 opacity-70">
+                                      <div className="flex items-center gap-3">
+                                          <div className="w-6 h-6 rounded flex items-center justify-center bg-white/10"><CalendarClock className="w-3 h-3 text-white/40"/></div>
+                                          <div>
+                                              <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
+                                              <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Jadwal belum ditentukan</p>
+                                          </div>
+                                      </div>
+                                  </div>
+                              ))}
+                              </div>
+                          ) : (
+                               <div className="text-center py-12 opacity-30">
+                                  <p className="text-[10px] font-black uppercase tracking-[0.2em]">Seluruh laga telah tuntas</p>
+                              </div>
+                          )}
+                      </TabsContent>
+                      
+                       <TabsContent value="trend" className="pt-4">
+                          <Card className="bg-white/5 border-white/10">
+                              <CardHeader className="pb-2">
+                                  <div className="flex justify-between items-center">
+                                      <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase">
+                                          <TrendingUp className="inline w-3 h-3 mr-1"/>
+                                          Stabilitas Performa
+                                      </CardTitle>
+                                      <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">
+                                          {finalTrendScore > 0 ? `+${finalTrendScore}` : finalTrendScore} Pts
+                                      </Badge>
+                                  </div>
+                                   {performanceStatus && (
+                                      <CardDescription className={cn("text-[9px] font-black italic mt-1", performanceStatus.color)}>
+                                          "{performanceStatus.text}"
+                                      </CardDescription>
+                                  )}
+                              </CardHeader>
+                              <CardContent className="pt-2">
+                                  {chartData.length > 1 ? (
+                                      <ChartContainer config={chartConfig} className="h-40 w-full">
+                                          <LineChart data={chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                              <XAxis dataKey="match" hide />
+                                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} allowDecimals={false} />
+                                              <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" />
+                                              <Line 
+                                                  type="monotone" 
+                                                  dataKey="points" 
+                                                  stroke="hsl(var(--primary))" 
+                                                  strokeWidth={3} 
+                                                  dot={{ fill: "hsl(var(--primary))", r: 4 }} 
+                                                  activeDot={{ r: 6 }} 
+                                              />
+                                          </LineChart>
+                                      </ChartContainer>
+                                  ) : (
+                                      <div className="text-center py-12 opacity-30">
+                                          <p className="text-[10px] font-black uppercase tracking-[0.2em]">Butuh minimal 2 laga</p>
+                                      </div>
+                                  )}
+                              </CardContent>
+                          </Card>
+                       </TabsContent>
+                  </Tabs>
                 </div>
             </div>
         </ScrollArea>

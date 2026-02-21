@@ -72,7 +72,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     }
   };
 
-  // Pre-calculate accurate ranks for all players in the current season
+  // Dynamic real-time ranking engine
   const rankedTable = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return [];
     
@@ -92,13 +92,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
   }, [leagueTable, season]);
 
-  // Helper to calculate complex player analysis
+  // Player Analysis Logic
   const getPlayerAnalysis = (playerId: string) => {
     if (!playerId || playerId === 'TBD' || playerId.includes('Loser')) return null;
 
+    // Filter all matches for this season (Group + Playoff)
     const playerMatches = matches
       .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
-      .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+      .sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis()); // Chronological for trend
 
     const entry = rankedTable.find(e => e.playerId === playerId);
     const team = entry?.teamId ? teamsById[entry.teamId] : (playersById[playerId]?.teamId ? teamsById[playersById[playerId].teamId] : null);
@@ -124,8 +125,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     const winRate = stats.played > 0 ? (stats.win / stats.played) * 100 : 0;
     
-    const last5Raw = playerMatches.slice(0, 5).reverse();
-    const form = last5Raw.map(m => {
+    // Form logic (Last 5, newest on right)
+    const formMatches = [...playerMatches].reverse().slice(0, 5).reverse();
+    const form = formMatches.map(m => {
       const isP1 = m.player1Id === playerId;
       const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
@@ -134,8 +136,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return pRes > oRes ? 'W' : (pRes < oRes ? 'L' : 'D');
     });
 
+    // Trend Chart Data
     let cumulativeScore = 0;
-    const chartData = [{ match: 0, points: 0 }, ...[...playerMatches].reverse().map((m, i) => {
+    const chartData = [{ match: 0, points: 0 }, ...playerMatches.map((m, i) => {
       const isP1 = m.player1Id === playerId;
       const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
@@ -146,16 +149,20 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return { match: i + 1, points: cumulativeScore };
     })];
 
+    // Play Style Parameters
     let playStyleText = "Gaya bermain: Balanced";
     let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
     
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
+        // Parameter 1: Attacking (avgGF > 2.2)
         if (avgGF > 2.2) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
-        } else if (avgGA < 1.2 && stats.played >= 3) {
+        } 
+        // Parameter 2 & 3: Defensive (avgGA < 1.2 and min 3 matches)
+        else if (avgGA < 1.2 && stats.played >= 3) {
             playStyleText = "Gaya bermain: Defensive & Counter";
             playStyleType = 'defensive';
         }
@@ -163,11 +170,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     let quote = "Stabil";
     let quoteColor = "text-foreground";
-    const recentResults = form.slice(-5);
-    const recentWinCount = recentResults.filter(f => f === 'W').length;
+    const recentWinCount = form.filter(f => f === 'W').length;
     if (recentWinCount === 5) { quote = "Merasa tak terkalahkan"; quoteColor = "text-green-400"; }
     else if (recentWinCount >= 3) { quote = "Dalam performa yang bagus"; quoteColor = "text-green-400"; }
-    else if (recentResults.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
+    else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
 
     return { stats, winRate, form, chartData, playStyleText, playStyleType, quote, quoteColor, team, entry, cumulativeScore };
   };
@@ -359,7 +365,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div>
                                         <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p1?.name}</h3>
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis1.team?.name || 'Tanpa Tim'}</p>
-                                        <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis1.entry?.group || 'A'} RANK : {analysis1.entry?.rank || '?'}</Badge>
+                                        <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">Grup {analysis1.entry?.group || 'A'} • Rank {analysis1.entry?.rank || '?'}</Badge>
                                         <div className="mt-2">
                                             <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(analysis1.playStyleType))}>
                                                 {analysis1.playStyleText}
@@ -380,7 +386,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                         <div className="flex flex-col items-center justify-center">
                             <div className="bg-primary border-4 border-background rounded-full w-16 h-16 flex items-center justify-center shadow-[0_0_30px_rgba(204,253,1,0.4)] ring-8 ring-primary/10">
-                                <span className="text-black font-black text-2xl tracking-tighter italic italic-none">VS</span>
+                                <span className="text-black font-black text-2xl tracking-tighter italic-none">VS</span>
                             </div>
                         </div>
 
@@ -391,7 +397,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div>
                                         <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p2?.name}</h3>
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis2.team?.name || 'Tanpa Tim'}</p>
-                                        <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis2.entry?.group || 'B'} RANK : {analysis2.entry?.rank || '?'}</Badge>
+                                        <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">Grup {analysis2.entry?.group || 'B'} • Rank {analysis2.entry?.rank || '?'}</Badge>
                                         <div className="mt-2">
                                             <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(analysis2.playStyleType))}>
                                                 {analysis2.playStyleText}
@@ -449,11 +455,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         </div>
                                     </div>
                                 </>
-                            ) : (
-                                <div className="h-40 bg-white/[0.02] rounded-xl border border-dashed border-white/5 flex items-center justify-center">
-                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Statistik belum tersedia</p>
-                                </div>
-                            )}
+                            ) : null}
                         </div>
 
                         <div className="space-y-6">
@@ -493,11 +495,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         </div>
                                     </div>
                                 </>
-                            ) : (
-                                <div className="h-40 bg-white/[0.02] rounded-xl border border-dashed border-white/5 flex items-center justify-center">
-                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Statistik belum tersedia</p>
-                                </div>
-                            )}
+                            ) : null}
                         </div>
                     </div>
 
@@ -508,7 +506,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-center">
                                         <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p1?.name || 'TBD'}</CardTitle>
-                                        {analysis1 && analysis1.stats.played > 0 && <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">+{analysis1.cumulativeScore} PTS</Badge>}
+                                        {analysis1 && analysis1.stats.played > 0 && <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">+{analysis1.cumulativeScore} Pts</Badge>}
                                     </div>
                                     {analysis1 && analysis1.stats.played > 0 && <p className={cn("text-[9px] font-black mt-1", analysis1.quoteColor)}>"{analysis1.quote}"</p>}
                                 </CardHeader>
@@ -525,8 +523,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         </ChartContainer>
                                     ) : (
                                         <div className="h-40 flex flex-col items-center justify-center gap-2 opacity-20">
-                                            <Loader2 className="w-6 h-6 animate-spin" />
-                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti Peserta...</p>
+                                            <p className="text-[10px] font-black text-center text-white/40 leading-relaxed max-w-[180px]">Data performa akan muncul setelah peserta diketahui</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -536,7 +533,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-center">
                                         <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase"><Zap className="inline w-3 h-3 mr-1" /> Tren {selectedMatch?.p2?.name || 'TBD'}</CardTitle>
-                                        {analysis2 && analysis2.stats.played > 0 && <Badge variant="outline" className="bg-yellow-400/10 border-yellow-400/30 text-yellow-400 text-[10px] font-black">+{analysis2.cumulativeScore} PTS</Badge>}
+                                        {analysis2 && analysis2.stats.played > 0 && <Badge variant="outline" className="bg-yellow-400/10 border-yellow-400/30 text-yellow-400 text-[10px] font-black">+{analysis2.cumulativeScore} Pts</Badge>}
                                     </div>
                                     {analysis2 && analysis2.stats.played > 0 && <p className={cn("text-[9px] font-black mt-1", analysis2.quoteColor)}>"{analysis2.quote}"</p>}
                                 </CardHeader>
@@ -553,8 +550,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         </ChartContainer>
                                     ) : (
                                         <div className="h-40 flex flex-col items-center justify-center gap-2 opacity-20">
-                                            <Loader2 className="w-6 h-6 animate-spin" />
-                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti Peserta...</p>
+                                            <p className="text-[10px] font-black text-center text-white/40 leading-relaxed max-w-[180px]">Data performa akan muncul setelah peserta diketahui</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -566,7 +562,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <div className="pt-6 border-t border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Babak kompetisi saat ini:</p>
-                            <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/30 font-black uppercase text-[10px] px-4 py-1">{selectedMatch?.round || 'Playoff Stage'}</Badge>
+                            <Badge className="bg-yellow-400/20 text-yellow-400 border-yellow-400/30 font-black uppercase text-[10px] px-4 py-1">{selectedMatch?.round || 'Playoff'}</Badge>
                         </div>
                     </div>
                 </div>
