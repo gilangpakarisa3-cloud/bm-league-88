@@ -51,9 +51,26 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
   );
   const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
   
-  const sortedPlayers = useMemo(() => {
+  // Calculate OVR and Ranks among all players
+  const playersWithRanks = useMemo(() => {
     if (!players) return [];
-    return [...players].sort((a, b) => a.name.localeCompare(b.name));
+    
+    // 1. Calculate OVR for all
+    const withOvr = players.map(p => {
+        const possiblePoints = (p.overallPlayed || 0) * 3;
+        const actualPoints = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
+        const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
+        return { ...p, ovrRating };
+    });
+
+    // 2. Sort by OVR to determine rank
+    const sortedByOvr = [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed);
+    
+    // 3. Map to final display objects with ovrRank
+    return sortedByOvr.map((p, index) => ({
+        ...p,
+        ovrRank: index + 1
+    })).sort((a, b) => a.name.localeCompare(b.name)); // Alphabetical for list view
   }, [players]);
 
   const teamsById = useMemo(() => {
@@ -107,7 +124,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     );
   }
   
-  if (!sortedPlayers || sortedPlayers.length === 0) {
+  if (!playersWithRanks || playersWithRanks.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-white/10 bg-card/40 p-16 text-center backdrop-blur-md">
         <Users className="w-16 h-16 text-white/10 mx-auto mb-4" />
@@ -123,14 +140,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {sortedPlayers.map((player) => {
+        {playersWithRanks.map((player) => {
           const team = player.teamId ? teamsById[player.teamId] : null;
-          
-          // Calculate OVR (Overall Rating) based on Points Efficiency
-          // (Wins*3 + Draws*1) / (Played*3) * 100
-          const possiblePoints = (player.overallPlayed || 0) * 3;
-          const actualPoints = ((player.overallWin || 0) * 3) + ((player.overallDraw || 0) * 1);
-          const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
           
           return (
             <div key={player.id} className="group relative">
@@ -140,7 +151,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                 <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/30 transition-all duration-500 overflow-hidden rounded-2xl">
                     {/* Card Header with Profile Image */}
                     <div className="relative pt-10 pb-6 flex flex-col items-center overflow-hidden">
-                        {/* Ghost name in background - Adjusted padding */}
+                        {/* Ghost name in background */}
                         <span className="absolute top-6 left-1/2 -translate-x-1/2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter whitespace-nowrap pointer-events-none pr-4">
                             {player.name}
                         </span>
@@ -151,10 +162,11 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                 <AvatarFallback className="bg-white/5"><User className="h-14 w-14 text-white/20" /></AvatarFallback>
                             </Avatar>
                             
-                            {/* Performance Indicator Badge (OVR) */}
-                            <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground h-10 w-10 rounded-lg flex flex-col items-center justify-center border-2 border-background shadow-lg rotate-12 group-hover:rotate-0 transition-transform">
+                            {/* Performance Indicator Badge (OVR) with Rank */}
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground h-12 w-12 rounded-lg flex flex-col items-center justify-center border-2 border-background shadow-lg rotate-12 group-hover:rotate-0 transition-transform">
+                                <span className="text-[7px] font-black leading-none uppercase opacity-70">#{player.ovrRank}</span>
                                 <span className="text-[10px] font-black leading-none uppercase">OVR</span>
-                                <span className="text-sm font-black leading-none">{ovrRating.toFixed(0)}</span>
+                                <span className="text-sm font-black leading-none">{player.ovrRating.toFixed(0)}</span>
                             </div>
                         </div>
                     </div>
