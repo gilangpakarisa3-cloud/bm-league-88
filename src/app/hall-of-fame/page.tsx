@@ -6,7 +6,7 @@ import type { SeasonRecord, WithId } from "@/lib/types";
 import { useTranslation } from "@/hooks/use-translation";
 import { SeasonRecordCard } from "@/components/season-record-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lock, Trophy, Unlock } from "lucide-react";
+import { Lock, Trophy, Unlock, Award, LayoutGrid } from "lucide-react";
 import { useState } from "react";
 import { useSharedPassword } from "@/context/password-context";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export default function HallOfFamePage() {
     const firestore = useFirestore();
@@ -65,19 +66,13 @@ export default function HallOfFamePage() {
             <div className="container mx-auto px-4 py-8">
                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="text-center mb-12">
-                        <h1 className="font-headline text-4xl sm:text-5xl font-extrabold tracking-tight text-primary">{t('hall_of_fame_title')}</h1>
-                        <p className="mt-2 max-w-2xl mx-auto text-lg text-foreground">
-                            {t('hall_of_fame_desc')}
-                        </p>
+                        <Skeleton className="h-12 w-64 mx-auto mb-4" />
+                        <Skeleton className="h-6 w-96 mx-auto" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {[...Array(3)].map((_, i) => (
                             <div key={i} className="flex flex-col space-y-3">
-                                <Skeleton className="h-[350px] w-full rounded-xl" />
-                                <div className="space-y-2">
-                                    <Skeleton className="h-4 w-4/5" />
-                                    <Skeleton className="h-4 w-3/5" />
-                                </div>
+                                <Skeleton className="h-[450px] w-full rounded-2xl" />
                             </div>
                         ))}
                     </div>
@@ -87,24 +82,45 @@ export default function HallOfFamePage() {
     }
     
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-center mb-8">
-                    <h1 className="font-headline text-4xl sm:text-5xl font-extrabold tracking-tight text-primary">{t('hall_of_fame_title')}</h1>
-                    <p className="mt-2 max-w-2xl mx-auto text-lg text-foreground">
-                        {t('hall_of_fame_desc')}
-                    </p>
-                </div>
-                
-                 <div className="flex justify-end mb-8">
-                    <Button onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} variant="outline" disabled={!isPasswordLoaded}>
-                        {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
-                        {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
-                    </Button>
+        <div className="container mx-auto px-4 py-8 relative">
+            {/* Background decorative glows */}
+            <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -z-10 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
+
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 border-b border-white/10 pb-10">
+                    <div className="text-center md:text-left space-y-3">
+                        <div className="flex items-center justify-center md:justify-start gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                <Trophy className="w-6 h-6" />
+                            </div>
+                            <h1 className="font-headline text-4xl sm:text-5xl font-black tracking-tighter text-primary uppercase italic">
+                                {t('hall_of_fame_title')}
+                            </h1>
+                        </div>
+                        <p className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] max-w-lg">
+                            {t('hall_of_fame_desc')}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Button 
+                            onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} 
+                            variant="outline" 
+                            disabled={!isPasswordLoaded}
+                            className={cn(
+                                "h-12 px-6 font-black tracking-widest text-xs uppercase transition-all duration-500",
+                                isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "border-white/20"
+                            )}
+                        >
+                            {isAdmin ? <Unlock className="mr-2 w-4 h-4" /> : <Lock className="mr-2 w-4 h-4" />}
+                            {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+                        </Button>
+                    </div>
                 </div>
                 
                 {seasonRecords && seasonRecords.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                         {seasonRecords.map(record => (
                            <SeasonRecordCard 
                                 key={record.id} 
@@ -115,10 +131,10 @@ export default function HallOfFamePage() {
                         ))}
                     </div>
                 ): (
-                    <div className="text-center border-2 border-dashed border-primary/50 rounded-lg p-12 bg-card shadow-lg shadow-primary/10">
-                        <Trophy className="w-16 h-16 mx-auto text-primary mb-4" />
-                        <h2 className="text-2xl font-bold text-primary">{t('hall_of_fame_empty_title')}</h2>
-                        <p className="mt-2 text-foreground">
+                    <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-white/10 bg-card/40 p-20 text-center backdrop-blur-md">
+                        <Trophy className="w-20 h-20 text-white/5 mx-auto mb-6" />
+                        <h2 className="text-2xl font-black text-muted-foreground uppercase tracking-widest">{t('hall_of_fame_empty_title')}</h2>
+                        <p className="text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter max-w-md mx-auto leading-relaxed">
                             {t('hall_of_fame_empty_desc')}
                         </p>
                     </div>
@@ -127,14 +143,14 @@ export default function HallOfFamePage() {
             
             {/* Password Dialog */}
             <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
-                <DialogContent>
+                <DialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl">
                     <DialogHeader>
-                        <DialogTitle>{t('admin_auth')}</DialogTitle>
-                        <DialogDescription>{t('admin_auth_desc')}</DialogDescription>
+                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('admin_auth')}</DialogTitle>
+                        <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{t('admin_auth_desc')}</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="password-input" className="text-right">
+                            <Label htmlFor="password-input" className="text-right text-[10px] font-black uppercase tracking-widest">
                             {t('password')}
                             </Label>
                             <Input
@@ -142,31 +158,31 @@ export default function HallOfFamePage() {
                             type="password"
                             value={passwordInput}
                             onChange={(e) => setPasswordInput(e.target.value)}
-                            className="col-span-3"
+                            className="col-span-3 h-12 bg-white/5 border-white/10"
                             onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
                             />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button onClick={handlePasswordCheck}>{t('unlock')}</Button>
+                        <Button onClick={handlePasswordCheck} className="w-full h-12 font-black tracking-tighter">{t('unlock')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={!!deletingRecord} onOpenChange={(isOpen) => !isOpen && setDeletingRecord(null)}>
-                <AlertDialogContent>
+                <AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl">
                     <AlertDialogHeader>
-                    <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle>
+                    <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
                         {t('delete_record_confirm_desc', { defaultValue: `Ini akan menghapus catatan untuk '${deletingRecord?.seasonName}' secara permanen. Tindakan ini tidak dapat dibatalkan.`, seasonName: deletingRecord?.seasonName })}
                     </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogFooter className="gap-3">
+                    <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDelete}
-                        className="bg-destructive hover:bg-destructive/90"
+                        className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12"
                     >
                         {t('delete')}
                     </AlertDialogAction>
