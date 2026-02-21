@@ -50,7 +50,7 @@ export function LiveClock() {
                 <div className="w-px h-12 bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
                 
                 {/* Date Section */}
-                <div className="flex flex-col items-start">
+                <div className="flex flex-col items-center text-center">
                     <span className="text-[10px] font-black tracking-[0.2em] text-muted-foreground leading-none mb-1">Tournament Date</span>
                     <span className="text-sm sm:text-base font-black tracking-tight text-foreground">
                         {formattedDate}
