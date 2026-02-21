@@ -128,8 +128,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
           
           // Calculate OVR (Overall Rating) based on Points Efficiency
           // (Wins*3 + Draws*1) / (Played*3) * 100
-          const possiblePoints = player.overallPlayed * 3;
-          const actualPoints = (player.overallWin * 3) + (player.overallDraw * 1);
+          const possiblePoints = (player.overallPlayed || 0) * 3;
+          const actualPoints = ((player.overallWin || 0) * 3) + ((player.overallDraw || 0) * 1);
           const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
           
           return (
@@ -161,7 +161,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
 
                     <CardContent className="flex-grow space-y-6 px-6 relative z-10">
                         <div className="text-center space-y-1">
-                            <h3 className="font-black text-2xl text-white tracking-tighter uppercase italic group-hover:text-primary transition-colors">
+                            <h3 className="font-black text-2xl text-white tracking-tighter uppercase italic group-hover:text-primary transition-colors pr-2">
                                 {player.name}
                             </h3>
                             <div className="flex items-center justify-center gap-2">
@@ -182,30 +182,30 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                         <div className="space-y-4">
                             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 border-b border-white/5 pb-2">
                                 <span className="flex items-center gap-1.5"><Activity className="w-3 h-3" /> Career Overview</span>
-                                <span>{player.overallPlayed} Matches</span>
+                                <span>{player.overallPlayed || 0} Matches</span>
                             </div>
                             
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 group-hover:border-primary/10 transition-colors">
                                     <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">Win</p>
-                                    <p className="text-lg font-black text-white">{player.overallWin}</p>
+                                    <p className="text-lg font-black text-white">{player.overallWin || 0}</p>
                                 </div>
                                 <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 group-hover:border-primary/10 transition-colors">
                                     <p className="text-[8px] font-black text-yellow-400 uppercase tracking-widest mb-1">Draw</p>
-                                    <p className="text-lg font-black text-white">{player.overallDraw}</p>
+                                    <p className="text-lg font-black text-white">{player.overallDraw || 0}</p>
                                 </div>
                                 <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 group-hover:border-primary/10 transition-colors">
                                     <p className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Loss</p>
-                                    <p className="text-lg font-black text-white">{player.overallLoss}</p>
+                                    <p className="text-lg font-black text-white">{player.overallLoss || 0}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
                                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-tighter">
                                     <span className="text-white/40 italic">Aggressive Momentum</span>
-                                    <span className="text-primary">{player.overallGoalsFor} Goals Scored</span>
+                                    <span className="text-primary">{player.overallGoalsFor || 0} Goals Scored</span>
                                 </div>
-                                <Progress value={(player.overallGoalsFor / (player.overallGoalsFor + player.overallGoalsAgainst || 1)) * 100} className="h-1 bg-white/5" />
+                                <Progress value={((player.overallGoalsFor || 0) / ((player.overallGoalsFor || 0) + (player.overallGoalsAgainst || 0) || 1)) * 100} className="h-1 bg-white/5" />
                             </div>
                         </div>
                     </CardContent>

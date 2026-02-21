@@ -104,7 +104,7 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                     </div>
 
                     <div className="space-y-1">
-                        <h3 className="text-2xl font-black text-white tracking-tighter uppercase italic group-hover:text-yellow-400 transition-colors">
+                        <h3 className="text-2xl font-black text-white tracking-tighter uppercase italic group-hover:text-yellow-400 transition-colors pr-2">
                             {record.winnerPlayerName}
                         </h3>
                         <div className="flex items-center justify-center gap-2">

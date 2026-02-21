@@ -181,7 +181,7 @@ const SingleTable = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                            <span className={cn(
-                               "font-black tracking-tight transition-colors truncate uppercase italic", 
+                               "font-black tracking-tight transition-colors truncate uppercase italic pr-2", 
                                isFirst ? "text-lg text-yellow-400" : "text-base text-white group-hover:text-primary"
                             )}>
                                 {entry.playerName}
