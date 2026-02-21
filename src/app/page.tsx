@@ -22,7 +22,7 @@ import { TournamentBracket } from '@/components/tournament-bracket';
 
 const LEAGUE_ID = 'main-league';
 
-function LeaderboardSection() {
+function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: (active: boolean) => void }) {
   const firestore = useFirestore();
   const { t } = useTranslation();
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
@@ -112,8 +112,13 @@ function LeaderboardSection() {
   }, [allPlayers]);
   
   const hasPlayoffs = useMemo(() => {
-    return matches?.some(m => m.round && m.round !== 'Group') || false;
+    const active = matches?.some(m => m.round && m.round !== 'Group') || false;
+    return active;
   }, [matches]);
+
+  useEffect(() => {
+    onPlayoffStatusChange(hasPlayoffs);
+  }, [hasPlayoffs, onPlayoffStatusChange]);
 
   const leaderboardData = useMemo(() => {
     if (!allLeaguePlayers || !activeSeason) return null;
@@ -302,8 +307,8 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
                         )}
                       </div>
                       <div className="overflow-hidden">
-                        <div className="font-bold truncate text-sm sm:text-base">{entry.playerName}</div>
-                        <div className="text-[10px] sm:text-xs text-muted-foreground truncate font-semibold">{entry.team?.name || entry.teamName}</div>
+                        <div className="font-bold truncate text-sm sm:text-base pr-2">{entry.playerName}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground truncate font-semibold uppercase">{entry.team?.name || entry.teamName}</div>
                       </div>
                   </div>
                   </TableCell>
@@ -352,9 +357,13 @@ const LeaderboardSkeleton = ({ isBottom = false }) => {
 
 export default function Home() {
   const { t } = useTranslation();
+  const [isWideMode, setIsWideMode] = useState(false);
   
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className={cn(
+        "mx-auto px-4 py-8 transition-all duration-1000 ease-in-out",
+        isWideMode ? "max-w-[95vw]" : "container"
+    )}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <section className="text-center mb-8">
           <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-primary">
@@ -380,7 +389,7 @@ export default function Home() {
             <PlayerMarquee />
         </section>
 
-        <LeaderboardSection />
+        <LeaderboardSection onPlayoffStatusChange={setIsWideMode} />
 
       </div>
     </div>

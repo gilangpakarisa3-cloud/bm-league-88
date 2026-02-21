@@ -75,6 +75,7 @@ export default function LeaguePage() {
   const [showRegisterPlayers, setShowRegisterPlayers] = useState(false);
   const [showDrawDialog, setShowDrawDialog] = useState(false);
   const [showGroupDrawDialog, setShowGroupDrawDialog] = useState(false);
+  const [activeLeagueTab, setActiveLeagueTab] = useState("group_a");
   
   const [newSeasonName, setNewSeasonName] = useState('');
   const [newSeasonFee, setNewSeasonFee] = useState<number | string>('');
@@ -779,7 +780,10 @@ export default function LeaguePage() {
   const isLoadingTableFinal = isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className={cn(
+        "mx-auto px-4 py-8 transition-all duration-1000 ease-in-out",
+        (activeSeason?.type === 'Hybrid' && activeLeagueTab === 'playoff') ? "max-w-[95vw]" : "container"
+    )}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
           <div className="space-y-2 flex-1">
@@ -876,6 +880,8 @@ export default function LeaguePage() {
                     playersById={playersById}
                     teamsById={teamsById}
                     activeSeason={activeSeason}
+                    activeTab={activeLeagueTab}
+                    onTabChange={setActiveLeagueTab}
                 />
             </div>
             

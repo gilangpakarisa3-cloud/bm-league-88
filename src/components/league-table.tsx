@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Table,
   TableBody,
@@ -32,6 +34,8 @@ interface LeagueTableProps {
   playersById?: Record<string, WithId<Player>>;
   teamsById?: Record<string, WithId<Team>>;
   activeSeason?: WithId<Season> | null;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 interface SingleTableProps {
@@ -89,7 +93,7 @@ const SingleTable = ({
             <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-14">
               <TableHead className="w-2 p-0"></TableHead>
               <TableHead className="w-10 text-center font-black text-primary uppercase text-[10px] tracking-[0.2em]">{t('rank')}</TableHead>
-              <TableHead className="text-left font-black text-primary text-[10px] tracking-[0.2em] min-w-[80px] uppercase">{t('player')}</TableHead>
+              <TableHead className="text-left font-black text-primary text-[10px] tracking-[0.2em] min-w-[140px] uppercase">{t('player')}</TableHead>
               <TableHead className="text-center font-black text-primary w-24 text-[10px] tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
               <TableHead className="text-center font-black text-green-400 w-24 text-[10px] tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
               {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-24 text-[10px] tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
@@ -283,7 +287,9 @@ export function LeagueTable({
     matches = [],
     playersById = {},
     teamsById = {},
-    activeSeason = null
+    activeSeason = null,
+    activeTab = "group_a",
+    onTabChange
 }: LeagueTableProps) {
   const { t } = useTranslation();
   
@@ -324,7 +330,7 @@ export function LeagueTable({
   return (
     <div className="w-full overflow-hidden rounded-2xl border-2 border-white/5 bg-card/60 backdrop-blur-xl shadow-2xl">
         {isHybrid ? (
-             <Tabs defaultValue="group_a" className="w-full">
+             <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 rounded-none bg-black/40 h-14 p-1 border-b border-white/5">
                     <TabsTrigger value="group_a" className="font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup A ({groupA.length})</TabsTrigger>
                     <TabsTrigger value="group_b" className="font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup B ({groupB.length})</TabsTrigger>
