@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from './ui/badge';
-import { ScrollArea, ScrollBar } from './ui/scroll-area';
+import { ScrollBar } from './ui/scroll-area';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
@@ -33,37 +33,50 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   
   // Drag-to-scroll logic
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [hasMoved, setHasMoved] = useState(false);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const mouseMoved = useRef(false);
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-    setHasMoved(false);
-  };
-
-  const onMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const onMouseUp = () => {
-    setIsDragging(false);
+    isDragging.current = true;
+    mouseMoved.current = false;
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+    
+    // Add temporary class to body to prevent text selection during drag
+    document.body.style.userSelect = 'none';
   };
 
   const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
+    if (!isDragging.current || !scrollRef.current) return;
+    
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; 
-    // Increased threshold to 15px to prevent accidental drag detection on simple clicks
-    if (Math.abs(walk) > 15) {
-      setHasMoved(true);
+    const walk = (x - startX.current);
+    
+    // Threshold to distinguish between click and drag
+    if (Math.abs(walk) > 10) {
+      mouseMoved.current = true;
+      scrollRef.current.scrollLeft = scrollLeft.current - walk;
     }
-    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const onMouseUp = () => {
+    isDragging.current = false;
+    document.body.style.userSelect = '';
+  };
+
+  const onMouseLeave = () => {
+    isDragging.current = false;
+    document.body.style.userSelect = '';
+  };
+
+  const handleCardClick = (matchData: any) => {
+    // Only open dialog if we weren't dragging
+    if (!mouseMoved.current) {
+      setSelectedMatch(matchData);
+    }
   };
 
   const projections = useMemo(() => {
@@ -141,7 +154,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const m = bracketData[bid];
     const p = projections?.[bid];
 
-    // Card for projection (before official kickoff)
     if (!m && p) {
         const p1 = p.p1;
         const p2 = p.p2;
@@ -149,26 +161,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         const t2 = p2?.teamId ? teamsById[p2.teamId] : null;
 
         return (
-            <div className="flex flex-col gap-1 opacity-60 grayscale-[0.5]">
+            <div className="flex flex-col gap-1 opacity-60">
                 <div className="flex items-center justify-between px-1">
-                    <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1">{label}</span>
+                    <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1 uppercase">{label}</span>
                     <Badge variant="outline" className="h-3 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black tracking-tighter uppercase">Proyeksi</Badge>
                 </div>
                 <Card 
                     className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10 cursor-pointer hover:border-primary/40 transition-all"
-                    onClick={() => {
-                        if (!hasMoved) {
-                            setSelectedMatch({
-                                p1: { name: p1.playerName || p1.name || 'TBD' },
-                                p2: { name: p2.playerName || p2.name || 'TBD' },
-                                t1, t2,
-                                player1Id: p1.playerId || p1.id,
-                                player2Id: p2.playerId || p2.id,
-                                round: label,
-                                isProjection: true
-                            });
-                        }
-                    }}
+                    onClick={() => handleCardClick({
+                        p1: { name: p1.playerName || p1.name || 'TBD' },
+                        p2: { name: p2.playerName || p2.name || 'TBD' },
+                        t1, t2,
+                        player1Id: p1.playerId || p1.id,
+                        player2Id: p2.playerId || p2.id,
+                        round: label,
+                        isProjection: true
+                    })}
                 >
                     <CardContent className="p-0 flex flex-col divide-y divide-border/20">
                         <div className="flex items-center justify-between px-2 py-1 h-8">
@@ -191,7 +199,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     if (!m) return (
         <div className="flex flex-col gap-1 opacity-40">
-            <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1">{label}</span>
+            <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1 uppercase">{label}</span>
             <div className="w-44 h-16 bg-card/20 border border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center">
                 <span className="text-[8px] font-bold tracking-tighter text-muted-foreground">Menunggu alur...</span>
             </div>
@@ -200,17 +208,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     return (
         <div className="flex flex-col gap-1">
-            <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1">{label}</span>
+            <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1 uppercase">{label}</span>
             <Card 
                 className={cn(
                     "w-44 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50", 
                     m.isCompleted ? "border-primary/30" : "border-primary/10 border-dashed"
                 )} 
-                onClick={() => {
-                    if (!hasMoved) {
-                        setSelectedMatch(m);
-                    }
-                }}
+                onClick={() => handleCardClick(m)}
             >
                 <CardContent className="p-0 flex flex-col divide-y divide-border">
                     <div className={cn("flex items-center justify-between px-2 py-1 bg-card h-8", m.isW1 && "bg-primary/10")}>
@@ -234,94 +238,88 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-200/80 leading-relaxed">
                     <p className="font-bold text-amber-500 tracking-tight mb-1">Mode Live Preview (Proyeksi)</p>
-                    <p>Bagan di bawah ini adalah <strong>proyeksi otomatis</strong> berdasarkan klasemen grup saat ini. Nama pemain akan berubah secara live mengikuti hasil pertandingan di fase grup. Jadwal resmi akan muncul setelah Admin menekan tombol "Start Playoff".</p>
+                    <p>Bagan di bawah ini adalah proyeksi otomatis berdasarkan klasemen grup saat ini. Nama pemain akan berubah secara live mengikuti hasil pertandingan di fase grup. Jadwal resmi akan muncul setelah Admin menekan tombol "Start Playoff".</p>
                 </div>
             </div>
         )}
 
-        <ScrollArea className="w-full pb-4">
-            <div 
-                ref={scrollRef}
-                onMouseDown={onMouseDown}
-                onMouseMove={onMouseMove}
-                onMouseUp={onMouseUp}
-                onMouseLeave={onMouseLeave}
-                className={cn(
-                    "w-full cursor-grab active:cursor-grabbing select-none",
-                    isDragging && "cursor-grabbing"
-                )}
-            >
-                <div className="min-w-[1400px] flex items-stretch gap-10 p-4">
-                    <div className="flex-1 flex flex-col gap-12">
-                        {/* Upper Bracket */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-black tracking-[0.3em] text-primary flex items-center gap-2 uppercase"><div className="h-4 w-1 bg-primary" /> Upper bracket</h3>
-                            <div className="flex items-center gap-8 pl-4">
-                                <div className="flex flex-col gap-4">
-                                    <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
-                                </div>
-                                <div className="flex flex-col gap-20 py-8">
-                                    <MatchCard bid="playoff-m9" label="UB-Semi 1" /><MatchCard bid="playoff-m10" label="UB-Semi 2" />
-                                </div>
-                                <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m15" label="UB final" />
-                                </div>
+        <div 
+            ref={scrollRef}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseLeave}
+            className="w-full overflow-x-auto pb-6 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20"
+        >
+            <div className="min-w-[1400px] flex items-stretch gap-10 p-4">
+                <div className="flex-1 flex flex-col gap-12">
+                    {/* Upper Bracket */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-black tracking-[0.3em] text-primary flex items-center gap-2 uppercase"><div className="h-4 w-1 bg-primary" /> Upper bracket (Double Life)</h3>
+                        <div className="flex items-center gap-8 pl-4">
+                            <div className="flex flex-col gap-4">
+                                <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
                             </div>
-                        </div>
-
-                        <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-
-                        {/* Lower Bracket */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-black tracking-[0.3em] text-amber-500 flex items-center gap-2 uppercase"><div className="h-4 w-1 bg-amber-500" /> Lower bracket</h3>
-                            <div className="flex items-center gap-8 pl-4">
-                                <div className="flex flex-col gap-4">
-                                    <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser QF 1)" />
-                                    <MatchCard bid="playoff-m6" label="LB-R1 (vs Loser QF 2)" />
-                                    <MatchCard bid="playoff-m7" label="LB-R1 (vs Loser QF 3)" />
-                                    <MatchCard bid="playoff-m8" label="LB-R1 (vs Loser QF 4)" />
-                                </div>
-                                <div className="flex flex-col gap-24 py-12">
-                                    <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
-                                </div>
-                                <div className="flex flex-col gap-24 py-12">
-                                    <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser Semi 1)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser Semi 2)" />
-                                </div>
-                                <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m16" label="LB semifinal" />
-                                </div>
-                                <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m17" label="LB final" />
-                                </div>
+                            <div className="flex flex-col gap-20 py-8">
+                                <MatchCard bid="playoff-m9" label="UB-Semi 1" /><MatchCard bid="playoff-m10" label="UB-Semi 2" />
+                            </div>
+                            <div className="flex flex-col justify-center h-full">
+                                <MatchCard bid="playoff-m15" label="UB final" />
                             </div>
                         </div>
                     </div>
 
-                    {/* Grand Final Column */}
-                    <div className="flex flex-col items-center justify-center gap-6 pl-10 border-l border-primary/10">
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="relative">
-                                <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-xl animate-pulse" />
-                                <Trophy className="text-yellow-400 w-14 h-14 relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+
+                    {/* Lower Bracket */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-black tracking-[0.3em] text-amber-500 flex items-center gap-2 uppercase"><div className="h-4 w-1 bg-amber-500" /> Lower bracket (Elimination)</h3>
+                        <div className="flex items-center gap-8 pl-4">
+                            <div className="flex flex-col gap-4">
+                                <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser QF 1)" />
+                                <MatchCard bid="playoff-m6" label="LB-R1 (vs Loser QF 2)" />
+                                <MatchCard bid="playoff-m7" label="LB-R1 (vs Loser QF 3)" />
+                                <MatchCard bid="playoff-m8" label="LB-R1 (vs Loser QF 4)" />
                             </div>
-                            <div className="text-center space-y-1">
-                                <h3 className="text-xl font-black tracking-[0.4em] text-white uppercase">Grand final</h3>
-                                <p className="text-[9px] font-bold text-primary tracking-widest opacity-80">Ultimate Battle for Glory</p>
+                            <div className="flex flex-col gap-24 py-12">
+                                <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
+                            </div>
+                            <div className="flex flex-col gap-24 py-12">
+                                <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser Semi 1)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser Semi 2)" />
+                            </div>
+                            <div className="flex flex-col justify-center h-full">
+                                <MatchCard bid="playoff-m16" label="LB semifinal" />
+                            </div>
+                            <div className="flex flex-col justify-center h-full">
+                                <MatchCard bid="playoff-m17" label="LB final" />
                             </div>
                         </div>
-                        <div className="scale-125 transform transition-transform hover:scale-150 py-10">
-                            <MatchCard bid="playoff-m18" label="Championship" />
-                        </div>
-                        <div className="w-1 bg-gradient-to-b from-primary/40 to-transparent h-20 rounded-full" />
                     </div>
                 </div>
+
+                {/* Grand Final Column */}
+                <div className="flex flex-col items-center justify-center gap-6 pl-10 border-l border-primary/10">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="relative">
+                            <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-xl animate-pulse" />
+                            <Trophy className="text-yellow-400 w-14 h-14 relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                        </div>
+                        <div className="text-center space-y-1">
+                            <h3 className="text-xl font-black tracking-[0.4em] text-white uppercase">Grand final</h3>
+                            <p className="text-[9px] font-bold text-primary tracking-widest opacity-80 uppercase">Ultimate Battle for Glory</p>
+                        </div>
+                    </div>
+                    <div className="scale-125 transform transition-transform hover:scale-150 py-10">
+                        <MatchCard bid="playoff-m18" label="Championship" />
+                    </div>
+                    <div className="w-1 bg-gradient-to-b from-primary/40 to-transparent h-20 rounded-full" />
+                </div>
             </div>
-            <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        </div>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-xl border-primary border-2 p-0 overflow-hidden bg-background/95 backdrop-blur-xl">
-                <ScrollArea className="max-h-[85vh]">
+                <div className="max-h-[85vh] overflow-y-auto scrollbar-thin">
                     <div className="p-6 space-y-8">
                         <DialogHeader>
                             <div className="flex items-center justify-between mb-4">
@@ -329,7 +327,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     {selectedMatch?.isProjection ? 'Prediksi pertandingan' : selectedMatch?.round}
                                 </Badge>
                                 {selectedMatch?.isProjection && (
-                                    <Badge variant="outline" className="text-[9px] font-bold border-amber-500/50 text-amber-500">Live preview</Badge>
+                                    <Badge variant="outline" className="text-[9px] font-bold border-amber-500/50 text-amber-500 uppercase">Live preview</Badge>
                                 )}
                             </div>
                             <DialogTitle className="flex items-center gap-2 text-primary text-left font-black tracking-tighter text-2xl uppercase">
@@ -345,20 +343,20 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="grid grid-cols-2 gap-8 items-center relative">
                                     <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center z-10">
                                         <div className="bg-background border-4 border-primary rounded-full w-14 h-14 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.4)] ring-4 ring-background">
-                                            <span className="text-primary font-black text-xl tracking-tighter">vs</span>
+                                            <span className="text-primary font-black text-xl tracking-tighter pr-0.5">vs</span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-3 text-center">
                                         <Avatar className="h-20 w-20 border-4 border-primary shadow-lg"><AvatarImage src={selectedMatch.t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                         <div className="space-y-0.5">
-                                            <p className="font-black tracking-tight text-lg">{selectedMatch.p1?.name}</p>
+                                            <p className="font-black tracking-tight text-lg uppercase">{selectedMatch.p1?.name}</p>
                                             <p className="text-[10px] font-bold text-primary/70 tracking-widest uppercase">{selectedMatch.t1?.name || 'Tanpa tim'}</p>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-3 text-center">
                                         <Avatar className="h-20 w-20 border-4 border-primary shadow-lg"><AvatarImage src={selectedMatch.t2?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                         <div className="space-y-0.5">
-                                            <p className="font-black tracking-tight text-lg">{selectedMatch.p2?.name}</p>
+                                            <p className="font-black tracking-tight text-lg uppercase">{selectedMatch.p2?.name}</p>
                                             <p className="text-[10px] font-bold text-primary/70 tracking-widest uppercase">{selectedMatch.t2?.name || 'Tanpa tim'}</p>
                                         </div>
                                     </div>
@@ -418,7 +416,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         )}
                     </div>
-                </ScrollArea>
+                </div>
             </DialogContent>
         </Dialog>
     </div>
