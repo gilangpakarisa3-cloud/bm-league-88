@@ -59,7 +59,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
     const walk = (x - startX) * 1.5; 
-    if (Math.abs(walk) > 5) {
+    // Increased threshold to 15px to prevent accidental drag detection on simple clicks
+    if (Math.abs(walk) > 15) {
       setHasMoved(true);
     }
     scrollRef.current.scrollLeft = scrollLeft - walk;
@@ -125,11 +126,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const h2hMatches = useMemo(() => {
     if (!selectedMatch || !matches) return [];
     
-    // Normalize IDs depending on if it's a projection or official bracket match
     const p1Id = selectedMatch.player1Id || selectedMatch.p1?.playerId || selectedMatch.p1?.id;
     const p2Id = selectedMatch.player2Id || selectedMatch.p2?.playerId || selectedMatch.p2?.id;
 
-    if (!p1Id || !p2Id || p1Id === 'TBD' || p2Id === 'TBD' || p1Id.includes('Loser')) return [];
+    if (!p1Id || !p2Id || p1Id === 'TBD' || p2Id === 'TBD' || (typeof p1Id === 'string' && p1Id.includes('Loser'))) return [];
 
     return matches.filter(m => 
         m.isCompleted && 
@@ -141,11 +141,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const m = bracketData[bid];
     const p = projections?.[bid];
 
+    // Card for projection (before official kickoff)
     if (!m && p) {
         const p1 = p.p1;
         const p2 = p.p2;
-        const t1 = teamsById[p1.teamId];
-        const t2 = teamsById[p2.teamId];
+        const t1 = p1?.teamId ? teamsById[p1.teamId] : null;
+        const t2 = p2?.teamId ? teamsById[p2.teamId] : null;
 
         return (
             <div className="flex flex-col gap-1 opacity-60 grayscale-[0.5]">
@@ -155,27 +156,31 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 </div>
                 <Card 
                     className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10 cursor-pointer hover:border-primary/40 transition-all"
-                    onClick={() => !hasMoved && setSelectedMatch({
-                        p1: { name: p1.playerName || p1.name },
-                        p2: { name: p2.playerName || p2.name },
-                        t1, t2,
-                        player1Id: p1.playerId || p1.id,
-                        player2Id: p2.playerId || p2.id,
-                        round: label,
-                        isProjection: true
-                    })}
+                    onClick={() => {
+                        if (!hasMoved) {
+                            setSelectedMatch({
+                                p1: { name: p1.playerName || p1.name || 'TBD' },
+                                p2: { name: p2.playerName || p2.name || 'TBD' },
+                                t1, t2,
+                                player1Id: p1.playerId || p1.id,
+                                player2Id: p2.playerId || p2.id,
+                                round: label,
+                                isProjection: true
+                            });
+                        }
+                    }}
                 >
                     <CardContent className="p-0 flex flex-col divide-y divide-border/20">
                         <div className="flex items-center justify-between px-2 py-1 h-8">
                             <div className="flex items-center gap-1.5 overflow-hidden">
                                 <Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
-                                <span className="text-[10px] font-bold truncate text-foreground/50">{p1.playerName || p1.name}</span>
+                                <span className="text-[10px] font-bold truncate text-foreground/50">{p1.playerName || p1.name || 'TBD'}</span>
                             </div>
                         </div>
                         <div className="flex items-center justify-between px-2 py-1 h-8">
                             <div className="flex items-center gap-1.5 overflow-hidden">
                                 <Avatar className="h-5 w-5 border border-muted/20 opacity-50"><AvatarImage src={t2?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
-                                <span className="text-[10px] font-bold truncate text-foreground/50">{p2.playerName || p2.name}</span>
+                                <span className="text-[10px] font-bold truncate text-foreground/50">{p2.playerName || p2.name || 'TBD'}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -201,7 +206,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     "w-44 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50", 
                     m.isCompleted ? "border-primary/30" : "border-primary/10 border-dashed"
                 )} 
-                onClick={() => !hasMoved && setSelectedMatch(m)}
+                onClick={() => {
+                    if (!hasMoved) {
+                        setSelectedMatch(m);
+                    }
+                }}
             >
                 <CardContent className="p-0 flex flex-col divide-y divide-border">
                     <div className={cn("flex items-center justify-between px-2 py-1 bg-card h-8", m.isW1 && "bg-primary/10")}>
@@ -246,16 +255,16 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <div className="flex-1 flex flex-col gap-12">
                         {/* Upper Bracket */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-black tracking-[0.3em] text-primary flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
+                            <h3 className="text-sm font-black tracking-[0.3em] text-primary flex items-center gap-2 uppercase"><div className="h-4 w-1 bg-primary" /> Upper bracket</h3>
                             <div className="flex items-center gap-8 pl-4">
                                 <div className="flex flex-col gap-4">
                                     <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
                                 </div>
                                 <div className="flex flex-col gap-20 py-8">
-                                    <MatchCard bid="playoff-m9" label="UB-SEMI 1" /><MatchCard bid="playoff-m10" label="UB-SEMI 2" />
+                                    <MatchCard bid="playoff-m9" label="UB-Semi 1" /><MatchCard bid="playoff-m10" label="UB-Semi 2" />
                                 </div>
                                 <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m15" label="UB Final" />
+                                    <MatchCard bid="playoff-m15" label="UB final" />
                                 </div>
                             </div>
                         </div>
@@ -264,7 +273,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                         {/* Lower Bracket */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-black tracking-[0.3em] text-amber-500 flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
+                            <h3 className="text-sm font-black tracking-[0.3em] text-amber-500 flex items-center gap-2 uppercase"><div className="h-4 w-1 bg-amber-500" /> Lower bracket</h3>
                             <div className="flex items-center gap-8 pl-4">
                                 <div className="flex flex-col gap-4">
                                     <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser QF 1)" />
@@ -276,13 +285,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <MatchCard bid="playoff-m11" label="LB-R2 (Win M5 & M6)" /><MatchCard bid="playoff-m12" label="LB-R2 (Win M7 & M8)" />
                                 </div>
                                 <div className="flex flex-col gap-24 py-12">
-                                    <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser SEMI 1)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser SEMI 2)" />
+                                    <MatchCard bid="playoff-m13" label="LB-R3 (vs Loser Semi 1)" /><MatchCard bid="playoff-m14" label="LB-R3 (vs Loser Semi 2)" />
                                 </div>
                                 <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m16" label="LB Semifinal" />
+                                    <MatchCard bid="playoff-m16" label="LB semifinal" />
                                 </div>
                                 <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m17" label="LB Final" />
+                                    <MatchCard bid="playoff-m17" label="LB final" />
                                 </div>
                             </div>
                         </div>
@@ -296,7 +305,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <Trophy className="text-yellow-400 w-14 h-14 relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
                             </div>
                             <div className="text-center space-y-1">
-                                <h3 className="text-xl font-black tracking-[0.4em] text-white">Grand final</h3>
+                                <h3 className="text-xl font-black tracking-[0.4em] text-white uppercase">Grand final</h3>
                                 <p className="text-[9px] font-bold text-primary tracking-widest opacity-80">Ultimate Battle for Glory</p>
                             </div>
                         </div>
@@ -311,23 +320,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </ScrollArea>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
-            <DialogContent className="max-w-xl border-primary border-2 p-0 overflow-hidden">
+            <DialogContent className="max-w-xl border-primary border-2 p-0 overflow-hidden bg-background/95 backdrop-blur-xl">
                 <ScrollArea className="max-h-[85vh]">
                     <div className="p-6 space-y-8">
                         <DialogHeader>
                             <div className="flex items-center justify-between mb-4">
                                 <Badge variant="outline" className="font-black tracking-widest text-[10px] bg-primary/10 text-primary border-primary/30 uppercase">
-                                    {selectedMatch?.isProjection ? 'Prediksi Pertandingan' : selectedMatch?.round}
+                                    {selectedMatch?.isProjection ? 'Prediksi pertandingan' : selectedMatch?.round}
                                 </Badge>
                                 {selectedMatch?.isProjection && (
-                                    <Badge variant="outline" className="text-[9px] font-bold border-amber-500/50 text-amber-500">Live Preview</Badge>
+                                    <Badge variant="outline" className="text-[9px] font-bold border-amber-500/50 text-amber-500">Live preview</Badge>
                                 )}
                             </div>
-                            <DialogTitle className="flex items-center gap-2 text-primary text-left font-black tracking-tighter text-2xl">
-                                <TrendingUp className="w-6 h-6" /> Analisis Pertandingan
+                            <DialogTitle className="flex items-center gap-2 text-primary text-left font-black tracking-tighter text-2xl uppercase">
+                                <TrendingUp className="w-6 h-6" /> Analisis pertandingan
                             </DialogTitle>
                             <DialogDescription className="text-left font-medium">
-                                Detail alur dan riwayat pertemuan kedua pemain.
+                                Detail alur dan riwayat pertemuan kedua pemain musim ini.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -342,15 +351,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div className="flex flex-col items-center gap-3 text-center">
                                         <Avatar className="h-20 w-20 border-4 border-primary shadow-lg"><AvatarImage src={selectedMatch.t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                         <div className="space-y-0.5">
-                                            <p className="font-black tracking-tight text-lg">{selectedMatch.p1.name}</p>
-                                            <p className="text-[10px] font-bold text-primary/70 tracking-widest">{selectedMatch.t1?.name || 'Tanpa Tim'}</p>
+                                            <p className="font-black tracking-tight text-lg">{selectedMatch.p1?.name}</p>
+                                            <p className="text-[10px] font-bold text-primary/70 tracking-widest uppercase">{selectedMatch.t1?.name || 'Tanpa tim'}</p>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-3 text-center">
                                         <Avatar className="h-20 w-20 border-4 border-primary shadow-lg"><AvatarImage src={selectedMatch.t2?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                         <div className="space-y-0.5">
-                                            <p className="font-black tracking-tight text-lg">{selectedMatch.p2.name}</p>
-                                            <p className="text-[10px] font-bold text-primary/70 tracking-widest">{selectedMatch.t2?.name || 'Tanpa Tim'}</p>
+                                            <p className="font-black tracking-tight text-lg">{selectedMatch.p2?.name}</p>
+                                            <p className="text-[10px] font-bold text-primary/70 tracking-widest uppercase">{selectedMatch.t2?.name || 'Tanpa tim'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -366,31 +375,33 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                                 <div className="space-y-4">
                                     <h4 className="text-sm font-black tracking-widest text-primary flex items-center gap-2 uppercase">
-                                        <History className="w-4 h-4" /> Head to Head (Musim Ini)
+                                        <History className="w-4 h-4" /> Head to head (Musim ini)
                                     </h4>
                                     
                                     {h2hMatches.length > 0 ? (
                                         <div className="space-y-3">
                                             {h2hMatches.map((m, idx) => {
-                                                const isP1 = m.player1Id === (selectedMatch.player1Id || selectedMatch.p1.playerId);
-                                                const s1 = m.player1Score ?? m.player1Wins ?? 0;
-                                                const s2 = m.player2Score ?? m.player2Wins ?? 0;
+                                                const p1Id = selectedMatch.player1Id || selectedMatch.p1?.playerId || selectedMatch.p1?.id;
+                                                const isP1Home = m.player1Id === p1Id;
+                                                const s1 = isP1Home ? (m.player1Score ?? m.player1Wins ?? 0) : (m.player2Score ?? m.player2Wins ?? 0);
+                                                const s2 = isP1Home ? (m.player2Score ?? m.player2Wins ?? 0) : (m.player1Score ?? m.player1Wins ?? 0);
                                                 const result = s1 > s2 ? 'W' : (s1 < s2 ? 'L' : 'D');
 
                                                 return (
-                                                    <Card key={idx} className="bg-muted/20 border-white/5 hover:border-primary/20 transition-all">
-                                                        <CardContent className="p-3 flex items-center justify-between">
-                                                            <div className="flex flex-col">
+                                                    <Card key={idx} className="bg-muted/20 border-white/5 hover:border-primary/20 transition-all overflow-hidden group">
+                                                        <CardContent className="p-3 flex items-center justify-between relative">
+                                                            <div className={cn("absolute left-0 top-0 bottom-0 w-1 transition-all", result === 'W' ? 'bg-green-500' : (result === 'L' ? 'bg-red-500' : 'bg-amber-500'))} />
+                                                            <div className="flex flex-col pl-2">
                                                                 <span className="text-[10px] font-bold text-muted-foreground">{format(m.matchDate.toDate(), 'd MMM yyyy', { locale: localeId })}</span>
                                                                 <span className="text-[9px] font-black text-primary/60 uppercase tracking-tighter">{m.round || 'Liga'}</span>
                                                             </div>
                                                             <div className="flex items-center gap-4">
-                                                                <span className={cn("text-lg font-black tracking-tighter", result === 'W' ? 'text-green-400' : (result === 'L' ? 'text-red-400' : 'text-amber-400'))}>
+                                                                <span className={cn("text-xl font-black tracking-tighter tabular-nums", result === 'W' ? 'text-green-400' : (result === 'L' ? 'text-red-400' : 'text-amber-400'))}>
                                                                     {s1} - {s2}
                                                                 </span>
-                                                                <Badge className={cn("h-6 w-6 p-0 flex items-center justify-center font-black rounded-md", result === 'W' ? 'bg-green-500/20 text-green-400' : (result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'))}>
+                                                                <div className={cn("h-7 w-7 flex items-center justify-center font-black rounded text-[10px] shadow-sm", result === 'W' ? 'bg-green-500/20 text-green-400' : (result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'))}>
                                                                     {result}
-                                                                </Badge>
+                                                                </div>
                                                             </div>
                                                         </CardContent>
                                                     </Card>
