@@ -14,6 +14,7 @@ import { useSharedPassword } from '@/context/password-context';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 const LEAGUE_ID = 'main-league';
 
@@ -159,7 +160,7 @@ export default function SettingsPage() {
 
                 <div className="grid gap-6">
                     <Card className="border-2 border-primary/20 bg-card/60 backdrop-blur-xl overflow-hidden relative group">
-                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none" />
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-widest text-primary">
                                 <KeyRound className="w-5 h-5" /> Keamanan Admin
