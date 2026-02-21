@@ -37,7 +37,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const onMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
     setIsDragging(true);
-    // e.pageX is relative to the document
     setStartX(e.pageX - scrollRef.current.offsetLeft);
     setScrollLeft(scrollRef.current.scrollLeft);
     setHasMoved(false);
@@ -55,14 +54,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     if (!isDragging || !scrollRef.current) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; // multiplier for scroll speed
+    const walk = (x - startX) * 1.5; 
     if (Math.abs(walk) > 5) {
       setHasMoved(true);
     }
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // 1. Calculate Group Rankings for Projections
+  // Group Rankings for Projections
   const projections = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return null;
 
@@ -79,20 +78,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     const proj: Record<string, { p1: any, p2: any, isProjection: boolean }> = {};
 
-    // UB Quarter Finals Projection (1A vs 4B, 2B vs 3A, 1B vs 4A, 2A vs 3B)
     if (gA.length >= 4 && gB.length >= 4) {
-        proj['playoff-m1'] = { p1: gA[0], p2: gB[3], isProjection: true }; // 1A vs 4B
-        proj['playoff-m2'] = { p1: gB[1], p2: gA[2], isProjection: true }; // 2B vs 3A
-        proj['playoff-m3'] = { p1: gB[0], p2: gA[3], isProjection: true }; // 1B vs 4A
-        proj['playoff-m4'] = { p1: gA[1], p2: gB[2], isProjection: true }; // 2A vs 3B
+        proj['playoff-m1'] = { p1: gA[0], p2: gB[3], isProjection: true };
+        proj['playoff-m2'] = { p1: gB[1], p2: gA[2], isProjection: true };
+        proj['playoff-m3'] = { p1: gB[0], p2: gA[3], isProjection: true };
+        proj['playoff-m4'] = { p1: gA[1], p2: gB[2], isProjection: true };
     }
 
-    // LB Round 1 Projection (Rank 5 & 6)
     if (gA.length >= 6 && gB.length >= 6) {
-        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser QF 1' }, isProjection: true }; // 5A
-        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser QF 2' }, isProjection: true }; // 5B
-        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser QF 3' }, isProjection: true }; // 6A
-        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser QF 4' }, isProjection: true }; // 6B
+        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser QF 1' }, isProjection: true };
+        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser QF 2' }, isProjection: true };
+        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser QF 3' }, isProjection: true };
+        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser QF 4' }, isProjection: true };
     }
 
     return proj;
@@ -210,7 +207,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 isDragging && "cursor-grabbing"
             )}
         >
-            <div className="min-w-[1500px] flex items-center gap-16 p-4">
+            <div className="min-w-[1400px] flex items-stretch gap-10 p-4">
                 <div className="flex-1 flex flex-col gap-12">
                     {/* Upper Bracket */}
                     <div className="space-y-4">
@@ -257,19 +254,21 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 </div>
 
                 {/* Grand Final Column */}
-                <div className="flex flex-col items-center justify-center gap-8 pr-12 h-full">
-                    <div className="w-px h-32 bg-gradient-to-b from-primary/50 to-amber-500/50 hidden md:block" />
+                <div className="flex flex-col items-center justify-center gap-6 pl-10 border-l border-primary/10">
                     <div className="flex flex-col items-center gap-4">
-                        <Trophy className="text-yellow-400 w-16 h-16 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] animate-bounce" />
-                        <div className="text-center">
-                            <h3 className="text-2xl font-black uppercase tracking-[0.5em] text-white italic">GRAND FINAL</h3>
-                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">Ultimate Battle for Glory</p>
+                        <div className="relative">
+                            <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-xl animate-pulse" />
+                            <Trophy className="text-yellow-400 w-14 h-14 relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                        </div>
+                        <div className="text-center space-y-1">
+                            <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white italic">GRAND FINAL</h3>
+                            <p className="text-[9px] font-bold text-primary uppercase tracking-widest opacity-80">Battle for Glory</p>
                         </div>
                     </div>
-                    <div className="scale-150 transform transition-transform hover:scale-[1.6]">
+                    <div className="scale-125 transform transition-transform hover:scale-150 py-10">
                         <MatchCard bid="playoff-m18" label="CHAMPIONSHIP" />
                     </div>
-                    <div className="w-px h-32 bg-gradient-to-t from-amber-500/50 to-primary/50 hidden md:block" />
+                    <div className="w-1 bg-gradient-to-b from-primary/40 to-transparent h-20 rounded-full" />
                 </div>
             </div>
         </div>
