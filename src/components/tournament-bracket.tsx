@@ -120,10 +120,17 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     })];
 
     // Style & Quote
-    let playStyle = "Gaya bermain: Balanced";
+    let playStyleText = "Gaya bermain: Balanced";
+    let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
+    
     if (stats.played > 0) {
-        if (stats.gf / stats.played > 2.2) playStyle = "Gaya bermain: Attacking";
-        else if (stats.ga / stats.played < 1.2) playStyle = "Gaya bermain: Defensive & Counter";
+        if (stats.gf / stats.played > 2.2) {
+            playStyleText = "Gaya bermain: Attacking";
+            playStyleType = 'attacking';
+        } else if (stats.ga / stats.played < 1.2) {
+            playStyleText = "Gaya bermain: Defensive & Counter";
+            playStyleType = 'defensive';
+        }
     }
 
     let quote = "Stabil";
@@ -133,7 +140,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     else if (recentWinCount >= 3) { quote = "Dalam performa yang bagus"; quoteColor = "text-green-400"; }
     else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
 
-    return { stats, winRate, form, chartData, playStyle, quote, quoteColor, team, entry, cumulativeScore };
+    return { stats, winRate, form, chartData, playStyleText, playStyleType, quote, quoteColor, team, entry, cumulativeScore };
   };
 
   const projections = useMemo(() => {
@@ -225,6 +232,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const chartConfig = { points: { label: "Trend", color: "hsl(var(--primary))" } } satisfies ChartConfig;
 
+  // Helper to get playstyle class
+  const getPlayStyleClass = (type: 'attacking' | 'defensive' | 'balanced') => {
+    switch (type) {
+        case 'attacking': return "bg-red-500/20 text-red-400 border-red-500/30";
+        case 'defensive': return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        default: return "bg-primary/20 text-primary border-primary/30";
+    }
+  }
+
   return (
     <div className="w-full">
         {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
@@ -301,7 +317,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p1?.name}</h3>
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis1.team?.name || 'Tanpa Tim'}</p>
                                         <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis1.entry?.group || 'A'} RANK : {analysis1.entry?.rank || '?'}</Badge>
-                                        <div className="mt-2"><Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[9px] font-black uppercase tracking-tighter px-2 py-0.5">{analysis1.playStyle}</Badge></div>
+                                        <div className="mt-2">
+                                            <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(analysis1.playStyleType))}>
+                                                {analysis1.playStyleText}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </>
                             ) : (
@@ -329,7 +349,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p2?.name}</h3>
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis2.team?.name || 'Tanpa Tim'}</p>
                                         <Badge variant="outline" className="mt-2 bg-yellow-400/10 border-yellow-400/50 text-yellow-400 font-black px-3">GRUP {analysis2.entry?.group || 'B'} RANK : {analysis2.entry?.rank || '?'}</Badge>
-                                        <div className="mt-2"><Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[9px] font-black uppercase tracking-tighter px-2 py-0.5">{analysis2.playStyle}</Badge></div>
+                                        <div className="mt-2">
+                                            <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 border", getPlayStyleClass(analysis2.playStyleType))}>
+                                                {analysis2.playStyleText}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </>
                             ) : (
