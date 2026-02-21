@@ -8,7 +8,7 @@ import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords } from 'luci
 import { EditableNotice } from '@/components/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Season, LeagueEntry, WithId, Player, Team, Match } from '@/lib/types';
+import type { Season, LeagueEntry, WithId, Player, Team, Match, SeasonRecord } from '@/lib/types';
 import { useState, useMemo, useEffect } from 'react';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -87,6 +87,13 @@ function LeaderboardSection() {
     [firestore]
   );
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
+  const hallOfFameCollection = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'hallOfFame'), orderBy('completedAt', 'desc'), limit(1)) : null),
+    [firestore]
+  );
+  const { data: latestHallOfFame } = useCollection<SeasonRecord>(hallOfFameCollection);
+  const defendingChampionId = latestHallOfFame?.[0]?.winnerPlayerId;
 
   const teamsById = useMemo(() => {
     if (!allTeams) return {};
@@ -194,6 +201,7 @@ function LeaderboardSection() {
                     teamsById={teamsById}
                     leagueTable={allLeaguePlayers || []}
                     season={activeSeason || null}
+                    defendingChampionId={defendingChampionId}
                 />
             </div>
         ) : (
@@ -207,7 +215,7 @@ function LeaderboardSection() {
                                 </h2>
                                 <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
                                     {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
-                                        <LeaderboardTable players={leaderboardData.groupA} />
+                                        <LeaderboardTable players={leaderboardData.groupA} defendingChampionId={defendingChampionId} />
                                     ) : (
                                         <div className="p-8 text-center text-muted-foreground">Belum ada data grup A</div>
                                     )}
@@ -219,7 +227,7 @@ function LeaderboardSection() {
                                 </h2>
                                 <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
                                     {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
-                                        <LeaderboardTable players={leaderboardData.groupB} />
+                                        <LeaderboardTable players={leaderboardData.groupB} defendingChampionId={defendingChampionId} />
                                     ) : (
                                         <div className="p-8 text-center text-muted-foreground">Belum ada data grup B</div>
                                     )}
@@ -233,7 +241,7 @@ function LeaderboardSection() {
                             </h2>
                             <Card className="border-2 border-primary shadow-lg shadow-primary/20 overflow-hidden bg-card">
                                 {leaderboardData.top && leaderboardData.top.length > 0 ? (
-                                    <LeaderboardTable players={leaderboardData.top} />
+                                    <LeaderboardTable players={leaderboardData.top} defendingChampionId={defendingChampionId} />
                                 ) : (
                                     <div className="p-8 text-center text-muted-foreground">Belum ada pemain di liga.</div>
                                 )}
@@ -251,7 +259,7 @@ function LeaderboardSection() {
   )
 }
 
-const LeaderboardTable = ({ players, isBottom = false }: { players: any[], isBottom?: boolean }) => {
+const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { players: any[], isBottom?: boolean, defendingChampionId?: string }) => {
   const { t } = useTranslation();
   return (
      <Table>
@@ -266,6 +274,7 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: any[], isBot
       <TableBody>
           {players.map((entry) => {
             const isFirst = entry.rank === 1 && !isBottom;
+            const isDefendingChampion = entry.playerId === defendingChampionId;
             return (
               <TableRow key={entry.id} className={cn(
                   "border-b-muted/10",
@@ -281,10 +290,17 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: any[], isBot
                   )}>{entry.rank}</TableCell>
                   <TableCell>
                   <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8 border">
-                          <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
-                          <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-8 w-8 border">
+                            <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
+                            <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                        </Avatar>
+                        {isDefendingChampion && (
+                            <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5 border border-background shadow-sm">
+                                <Award className="w-2 h-2 text-white" />
+                            </div>
+                        )}
+                      </div>
                       <div className="overflow-hidden">
                         <div className="font-bold truncate text-sm sm:text-base">{entry.playerName}</div>
                         <div className="text-[10px] sm:text-xs text-muted-foreground truncate font-semibold">{entry.team?.name || entry.teamName}</div>

@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2 } from 'lucide-react';
+import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2, Award } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -26,9 +27,10 @@ interface TournamentBracketProps {
   leagueTable: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
   season: WithId<Season> | null;
   isAdmin?: boolean;
+  defendingChampionId?: string;
 }
 
-export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false }: TournamentBracketProps) {
+export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId }: TournamentBracketProps) {
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -165,7 +167,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     else if (recentWinCount >= 3) { quote = "Dalam performa yang bagus"; quoteColor = "text-green-400"; }
     else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
 
-    return { stats, winRate, form, chartData, playStyleText, playStyleType, quote, quoteColor, team, entry, cumulativeScore };
+    return { stats, winRate, form, chartData, playStyleText, playStyleType, quote, quoteColor, team, entry, cumulativeScore, isDefendingChampion: playerId === defendingChampionId };
   };
 
   const projections = useMemo(() => {
@@ -279,8 +281,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     );
   };
 
-  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById]);
-  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById]);
+  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, defendingChampionId]);
+  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, defendingChampionId]);
 
   const sharedChartDomain = useMemo(() => {
     const defaultDomain = [-5, 5];
@@ -378,7 +380,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="flex flex-col items-center text-center gap-4">
                             {analysis1 ? (
                                 <>
-                                    <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl shadow-primary/20"><AvatarImage src={analysis1.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                    <div className="relative">
+                                        <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl shadow-primary/20"><AvatarImage src={analysis1.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                        {analysis1.isDefendingChampion && (
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="absolute -top-2 -left-2 transform -rotate-12">
+                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
+                                                                <Award className="w-5 h-5"/>
+                                                            </Badge>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent><p>Juara Bertahan</p></TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        )}
+                                    </div>
                                     <div>
                                         <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p1?.name}</h3>
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis1.team?.name || 'Tanpa Tim'}</p>
@@ -410,7 +428,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="flex flex-col items-center text-center gap-4">
                             {analysis2 ? (
                                 <>
-                                    <Avatar className="h-24 w-24 border-4 border-white shadow-2xl"><AvatarImage src={analysis2.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                    <div className="relative">
+                                        <Avatar className="h-24 w-24 border-4 border-white shadow-2xl"><AvatarImage src={analysis2.team?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                                        {analysis2.isDefendingChampion && (
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="absolute -top-2 -right-2 transform rotate-12">
+                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
+                                                                <Award className="w-5 h-5"/>
+                                                            </Badge>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent><p>Juara Bertahan</p></TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        )}
+                                    </div>
                                     <div>
                                         <h3 className="text-2xl font-black tracking-tight">{selectedMatch.p2?.name}</h3>
                                         <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{analysis2.team?.name || 'Tanpa Tim'}</p>

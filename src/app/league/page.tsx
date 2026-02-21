@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, doc, serverTimestamp, writeBatch, getDocs, query, Timestamp, where, orderBy } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, writeBatch, getDocs, query, Timestamp, where, orderBy, limit } from 'firebase/firestore';
 import type { League, Season, LeagueEntry, Player, WithId, Match, Team, SeasonRecord, CoOpLeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { RegisterPlayersForm } from '@/components/register-players-form';
 import { Input } from '@/components/ui/input';
@@ -149,6 +149,14 @@ export default function LeaguePage() {
     [firestore, activeSeasonId]
   );
   const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCollection);
+
+  const hallOfFameCollection = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'hallOfFame'), orderBy('completedAt', 'desc'), limit(1)) : null),
+    [firestore]
+  );
+  const { data: latestHallOfFame } = useCollection<SeasonRecord>(hallOfFameCollection);
+  const defendingChampionId = latestHallOfFame?.[0]?.winnerPlayerId;
+  const previousSeasonName = latestHallOfFame?.[0]?.seasonName;
   
   const playersById = useMemo(() => {
     if (!allPlayers) return {};
@@ -488,45 +496,42 @@ export default function LeaguePage() {
   }, [firestore, activeSeasonId, activeSeason, groupA, groupB, toast]);
 
   const handleSeasonDialogSubmit = () => {
-    if (!firestore || !newSeasonName.trim()) {
-      toast({ variant: 'destructive', title: t('error'), description: t('season_name_empty') });
-      return;
-    }
+    if (firestore && newSeasonName.trim()) {
+      const fee = typeof newSeasonFee === 'string' ? parseFloat(newSeasonFee) : newSeasonFee;
+      const sponsorship = typeof newSponsorshipAmount === 'string' ? parseFloat(newSponsorshipAmount) : newSponsorshipAmount;
+      
+      const seasonData: Partial<Omit<Season, 'createdAt' | 'status'>> = {
+          name: newSeasonName.trim(),
+          type: newSeasonType,
+          ...(newSeasonType === 'Hybrid' && { hybridGroupMeetings: newHybridMeetings }),
+          ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
+          ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
+          registrationFee: isNaN(fee) ? 0 : fee,
+          sponsorshipAmount: isNaN(sponsorship) ? 0 : sponsorship,
+      }
 
-    const fee = typeof newSeasonFee === 'string' ? parseFloat(newSeasonFee) : newSeasonFee;
-    const sponsorship = typeof newSponsorshipAmount === 'string' ? parseFloat(newSponsorshipAmount) : newSponsorshipAmount;
-    
-    const seasonData: Partial<Omit<Season, 'createdAt' | 'status'>> = {
-        name: newSeasonName.trim(),
-        type: newSeasonType,
-        ...(newSeasonType === 'Hybrid' && { hybridGroupMeetings: newHybridMeetings }),
-        ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }),
-        ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
-        registrationFee: isNaN(fee) ? 0 : fee,
-        sponsorshipAmount: isNaN(sponsorship) ? 0 : sponsorship,
+      if (editingSeason) {
+        const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, editingSeason.id);
+        updateDocumentNonBlocking(seasonRef, seasonData);
+        toast({ title: t('success'), description: t('season_updated_desc', { seasonName: newSeasonName.trim() }) });
+      } else {
+        const seasonsRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons`);
+        addDocumentNonBlocking(seasonsRef, {
+          ...seasonData,
+          status: 'Not Started',
+          createdAt: serverTimestamp(),
+        });
+        toast({ title: t('success'), description: t('season_created_desc', { seasonName: newSeasonName.trim() }) });
+      }
+      setShowCreateSeason(false);
+      setNewSeasonName('');
+      setNewSeasonFee('');
+      setNewSponsorshipAmount('');
+      setNewSeasonType('Single');
+      setNewHybridMeetings(1);
+      setEditingSeason(null);
+      setDateRange({ from: undefined, to: undefined });
     }
-
-    if (editingSeason) {
-      const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons`, editingSeason.id);
-      updateDocumentNonBlocking(seasonRef, seasonData);
-      toast({ title: t('success'), description: t('season_updated_desc', { seasonName: newSeasonName.trim() }) });
-    } else {
-      const seasonsRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons`);
-      addDocumentNonBlocking(seasonsRef, {
-        ...seasonData,
-        status: 'Not Started',
-        createdAt: serverTimestamp(),
-      });
-      toast({ title: t('success'), description: t('season_created_desc', { seasonName: newSeasonName.trim() }) });
-    }
-    setShowCreateSeason(false);
-    setNewSeasonName('');
-    setNewSeasonFee('');
-    setNewSponsorshipAmount('');
-    setNewSeasonType('Single');
-    setNewHybridMeetings(1);
-    setEditingSeason(null);
-    setDateRange({ from: undefined, to: undefined });
   };
   
   const handleOpenEditDialog = () => {
@@ -865,7 +870,7 @@ export default function LeaguePage() {
                     seasonStatus={activeSeason?.status}
                     seasonType={activeSeason?.type}
                     isAdmin={isAdmin}
-                    defendingChampionId={undefined}
+                    defendingChampionId={defendingChampionId}
                     matches={matches || []}
                     playersById={playersById}
                     teamsById={teamsById}
@@ -926,7 +931,7 @@ export default function LeaguePage() {
       <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} allPlayers={allPlayers || []} allTeams={allTeams || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
       <GroupDrawDialog open={showGroupDrawDialog} onOpenChange={setShowGroupDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} onSaveGroups={handleSaveGroups} />
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
-      <PlayerPerformanceDialog player={selectedPlayerForStats} matches={matches || []} allPlayers={allPlayers || []} allTeams={allTeams || []} coopLeagueTable={coopLeagueTable || []} singleLeagueTable={singleLeagueTable || []} activeSeason={activeSeason} totalPlayersInSeason={(activeSeason?.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) || 0} open={!!selectedPlayerForStats} onOpenChange={() => setSelectedPlayerForStats(null)} isAdmin={isAdmin} />
+      <PlayerPerformanceDialog player={selectedPlayerForStats} matches={matches || []} allPlayers={allPlayers || []} allTeams={allTeams || []} coopLeagueTable={coopLeagueTable || []} singleLeagueTable={singleLeagueTable || []} activeSeason={activeSeason} totalPlayersInSeason={(activeSeason?.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) || 0} open={!!selectedPlayerForStats} onOpenChange={() => setSelectedPlayerForStats(null)} isAdmin={isAdmin} defendingChampionId={defendingChampionId} />
     </div>
   );
 }
