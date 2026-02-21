@@ -163,11 +163,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     let quote = "Stabil";
     let quoteColor = "text-foreground";
     const recentWinCount = form.filter(f => f === 'W').length;
-    if (recentWinCount === 5) { quote = "Merasa tak terkalahkan"; quoteColor = "text-green-400"; }
-    else if (recentWinCount >= 3) { quote = "Dalam performa yang bagus"; quoteColor = "text-green-400"; }
-    else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa sedang menurun"; quoteColor = "text-red-400"; }
+    if (recentWinCount === 5) { quote = "Tak terkalahkan"; quoteColor = "text-green-400"; }
+    else if (recentWinCount >= 3) { quote = "Performa bagus"; quoteColor = "text-green-400"; }
+    else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa menurun"; quoteColor = "text-red-400"; }
 
-    return { stats, winRate, form, chartData, playStyleText, playStyleType, quote, quoteColor, team, entry, cumulativeScore, isDefendingChampion: playerId === defendingChampionId };
+    return { 
+      stats, 
+      winRate, 
+      form, 
+      chartData, 
+      playStyleText, 
+      playStyleType, 
+      quote, 
+      quoteColor, 
+      team, 
+      entry, 
+      cumulativeScore, 
+      isDefendingChampion: playerId === defendingChampionId 
+    };
   };
 
   const projections = useMemo(() => {
@@ -178,7 +191,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     
     const proj: Record<string, any> = {};
     
-    // Upper Bracket Projections
     if (gA.length >= 4 && gB.length >= 4) {
         proj['playoff-m1'] = { p1: gA[0], p2: gB[3], isProjection: true, round: 'UB-Quarter Final' };
         proj['playoff-m2'] = { p1: gB[1], p2: gA[2], isProjection: true, round: 'UB-Quarter Final' };
@@ -186,7 +198,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         proj['playoff-m4'] = { p1: gA[1], p2: gB[2], isProjection: true, round: 'UB-Quarter Final' };
     }
 
-    // Lower Bracket Projections (Ranks 5-6)
     if (gA.length >= 6 && gB.length >= 6) {
         proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', playerId: 'TBD-L1' }, isProjection: true, round: 'LB-Round 1' };
         proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', playerId: 'TBD-L2' }, isProjection: true, round: 'LB-Round 1' };
@@ -287,13 +298,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const sharedChartDomain = useMemo(() => {
     const defaultDomain = [-5, 5];
     if (!analysis1 && !analysis2) return defaultDomain;
-    
     const points1 = analysis1?.chartData.map(d => d.points) || [];
     const points2 = analysis2?.chartData.map(d => d.points) || [];
     const allPoints = [...points1, ...points2];
-    
     if (allPoints.length === 0) return defaultDomain;
-    
     const maxVal = Math.max(...allPoints.map(Math.abs));
     const finalMax = Math.max(maxVal, 5); 
     return [-finalMax, finalMax];
@@ -386,9 +394,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <div className="absolute -top-2 -left-2 transform -rotate-12">
-                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
-                                                                <Award className="w-5 h-5"/>
+                                                        <div className="absolute -top-2 -left-2 transform -rotate-12 z-20">
+                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg border-2">
+                                                                <Award className="w-6 h-6"/>
                                                             </Badge>
                                                         </div>
                                                     </TooltipTrigger>
@@ -434,9 +442,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <div className="absolute -top-2 -right-2 transform rotate-12">
-                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
-                                                                <Award className="w-5 h-5"/>
+                                                        <div className="absolute -top-2 -right-2 transform rotate-12 z-20">
+                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg border-2">
+                                                                <Award className="w-6 h-6"/>
                                                             </Badge>
                                                         </div>
                                                     </TooltipTrigger>
@@ -487,9 +495,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             { label: 'W', val: analysis1.stats.win, col: 'text-primary' },
                                             { label: 'D', val: analysis1.stats.draw, col: 'text-yellow-400' },
                                             { label: 'L', val: analysis1.stats.loss, col: 'text-red-400' },
-                                            { label: 'GF', val: analysis1.stats.gf, col: 'text-white' },
-                                            { label: 'GA', val: analysis1.stats.ga, col: 'text-white' },
-                                            { label: 'GD', val: analysis1.stats.gf - analysis1.stats.ga, col: 'text-primary' }
+                                            { label: 'GM', val: analysis1.stats.gf, col: 'text-white' },
+                                            { label: 'GK', val: analysis1.stats.ga, col: 'text-white' },
+                                            { label: 'SG', val: analysis1.stats.gf - analysis1.stats.ga, col: 'text-primary' }
                                         ].map((s, i) => (
                                             <div key={i} className="flex flex-col items-center bg-white/5 p-2 rounded">
                                                 <p className="text-[8px] font-bold text-white/30">{s.label}</p>
@@ -527,9 +535,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             { label: 'W', val: analysis2.stats.win, col: 'text-primary' },
                                             { label: 'D', val: analysis2.stats.draw, col: 'text-yellow-400' },
                                             { label: 'L', val: analysis2.stats.loss, col: 'text-red-400' },
-                                            { label: 'GF', val: analysis2.stats.gf, col: 'text-white' },
-                                            { label: 'GA', val: analysis2.stats.ga, col: 'text-white' },
-                                            { label: 'GD', val: analysis2.stats.gf - analysis2.stats.ga, col: 'text-primary' }
+                                            { label: 'GM', val: analysis2.stats.gf, col: 'text-white' },
+                                            { label: 'GK', val: analysis2.stats.ga, col: 'text-white' },
+                                            { label: 'SG', val: analysis2.stats.gf - analysis2.stats.ga, col: 'text-primary' }
                                         ].map((s, i) => (
                                             <div key={i} className="flex flex-col items-center bg-white/5 p-2 rounded">
                                                 <p className="text-[8px] font-bold text-white/30">{s.label}</p>
