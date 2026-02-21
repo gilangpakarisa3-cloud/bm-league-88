@@ -14,7 +14,6 @@ import {
 import { useLanguage } from '@/context/language-context';
 import { useTranslation } from '@/hooks/use-translation';
 
-
 export function Header() {
   const pathname = usePathname();
   const { setLanguage } = useLanguage();
@@ -29,53 +28,85 @@ export function Header() {
   ];
 
   return (
-    <header className="bg-card/80 border-b border-border sticky top-0 z-50 backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 gap-4">
-        <Link href="/" className="flex items-center gap-2 group">
-          <Flame className="h-7 w-7 text-primary group-hover:animate-pulse" />
-          <span className="font-headline font-bold text-2xl hidden sm:inline tracking-tighter">BM League 88</span>
+    <header className="sticky top-0 z-50 w-full border-b-2 border-primary/20 bg-[#0A192F]/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      {/* Decorative top bar */}
+      <div className="h-1 w-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+      
+      <div className="container mx-auto flex h-20 items-center justify-between px-4 gap-4">
+        {/* Brand/Logo Section */}
+        <Link href="/" className="flex items-center gap-3 group relative shrink-0">
+          <div className="relative">
+            <div className="absolute -inset-2 bg-primary/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="bg-primary p-1.5 rounded-lg rotate-12 group-hover:rotate-0 transition-transform duration-500 shadow-[0_0_15px_rgba(204,253,1,0.4)]">
+              <Flame className="h-6 w-6 text-black" />
+            </div>
+          </div>
+          <span className="font-black text-2xl tracking-tighter uppercase italic text-white pr-2">
+            BM <span className="text-primary drop-shadow-[0_0_8px_rgba(204,253,1,0.3)]">League 88</span>
+          </span>
         </Link>
-        <div className="flex-1 overflow-hidden sm:flex sm:justify-center">
-            <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-4 -mb-4 sm:pb-0 sm:mb-0">
-              {navLinks.map((link) => {
-                const isActive = pathname ? pathname.startsWith(link.href) : false;
-                return (
-                  <Button
-                    key={link.href}
-                    variant={isActive ? "default" : "ghost"}
-                    asChild
-                    className={cn(
-                      'transition-colors text-sm font-bold shrink-0',
-                      !isActive && 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    <Link href={link.href}>{link.label}</Link>
-                  </Button>
-                )
-              })}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="shrink-0">
-                    <Languages className="h-5 w-5" />
-                    <span className="sr-only">Change language</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setLanguage('id')}>
-                    Bahasa Indonesia
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('en')}>
-                    English
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-               <Button asChild variant={pathname === '/settings' ? "default" : "ghost"} size="icon" className="shrink-0">
-                  <Link href="/settings">
-                    <Settings className="h-5 w-5" />
-                    <span className="sr-only">{t('header_settings')}</span>
-                  </Link>
+
+        {/* Navigation Section */}
+        <div className="flex-1 flex justify-center items-center overflow-hidden h-full">
+          <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-2 px-1">
+            {navLinks.map((link) => {
+              const isActive = pathname ? pathname.startsWith(link.href) : false;
+              return (
+                <Link 
+                  key={link.href} 
+                  href={link.href}
+                  className={cn(
+                    "relative px-4 py-2 text-xs font-black uppercase tracking-[0.15em] italic transition-all duration-300 whitespace-nowrap group/nav",
+                    isActive ? "text-primary" : "text-white/60 hover:text-white"
+                  )}
+                >
+                  {/* Slanted indicator for active/hover */}
+                  <span className={cn(
+                    "absolute inset-0 -skew-x-12 transition-all duration-300 -z-10 rounded-md",
+                    isActive ? "bg-primary/10 border-r-4 border-primary" : "bg-transparent group-hover/nav:bg-white/5"
+                  )} />
+                  {link.label}
+                </Link>
+              )
+            })}
+          </nav>
+        </div>
+
+        {/* Action Section */}
+        <div className="flex items-center gap-2 shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-300">
+                <Languages className="h-5 w-5" />
+                <span className="sr-only">Change language</span>
               </Button>
-            </nav>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-[#0A192F] border-primary/30 backdrop-blur-xl">
+              <DropdownMenuItem onClick={() => setLanguage('id')} className="font-bold text-xs uppercase tracking-widest focus:bg-primary focus:text-black">
+                Bahasa Indonesia
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage('en')} className="font-bold text-xs uppercase tracking-widest focus:bg-primary focus:text-black">
+                English
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button 
+            asChild 
+            variant="ghost" 
+            size="icon" 
+            className={cn(
+              "h-10 w-10 rounded-xl transition-all duration-300 border",
+              pathname === '/settings' 
+                ? "bg-primary text-black border-primary shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
+                : "bg-white/5 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+            )}
+          >
+            <Link href="/settings">
+              <Settings className="h-5 w-5" />
+              <span className="sr-only">{t('header_settings')}</span>
+            </Link>
+          </Button>
         </div>
       </div>
     </header>
