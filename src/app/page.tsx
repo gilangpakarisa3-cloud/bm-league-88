@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords } from 'lucide-react';
+import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords, Award } from 'lucide-react';
 import { EditableNotice } from '@/components/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
