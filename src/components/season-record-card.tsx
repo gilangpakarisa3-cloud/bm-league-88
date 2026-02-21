@@ -58,8 +58,8 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
             <div className="absolute -inset-0.5 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-700" />
             
             <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-yellow-400/30 transition-all duration-500 overflow-hidden rounded-2xl">
-                {/* Ghost Text Background */}
-                <span className="absolute top-2 left-4 text-5xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-yellow-400/[0.03] transition-colors leading-none">
+                {/* Ghost Text Background - Adjusted for visibility */}
+                <span className="absolute top-4 left-4 text-5xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-yellow-400/[0.03] transition-colors leading-none pr-4">
                     {record.seasonName}
                 </span>
 

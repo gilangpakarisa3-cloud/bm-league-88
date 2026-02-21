@@ -140,8 +140,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                 <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/30 transition-all duration-500 overflow-hidden rounded-2xl">
                     {/* Card Header with Profile Image */}
                     <div className="relative pt-10 pb-6 flex flex-col items-center overflow-hidden">
-                        {/* Ghost name in background */}
-                        <span className="absolute top-4 left-1/2 -translate-x-1/2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter whitespace-nowrap pointer-events-none">
+                        {/* Ghost name in background - Adjusted padding */}
+                        <span className="absolute top-6 left-1/2 -translate-x-1/2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter whitespace-nowrap pointer-events-none pr-4">
                             {player.name}
                         </span>
                         

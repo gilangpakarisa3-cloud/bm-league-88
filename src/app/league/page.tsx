@@ -893,7 +893,7 @@ export default function LeaguePage() {
                     <div className="lg:col-span-4">
                         {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
                             <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-primary/20 hover:border-primary/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_30px_rgba(204,253,1,0.15)]">
-                                <span className="absolute -bottom-2 -right-2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none">FUNDS</span>
+                                <span className="absolute bottom-0 right-0 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none pr-4 pb-2">FUNDS</span>
                                 <CardHeader className="relative z-10 pb-4">
                                     <CardTitle className="flex items-center gap-3 text-xs font-black uppercase tracking-widest italic pr-2">
                                         <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 shadow-lg">
@@ -935,7 +935,7 @@ export default function LeaguePage() {
                                                                 <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
                                                                 <AvatarFallback><User className="w-4 h-4 text-white/20" /></AvatarFallback>
                                                             </Avatar>
-                                                            <Label htmlFor={`paid-${player.id}`} className="text-xs font-black uppercase italic pr-1 truncate cursor-pointer group-hover/item:text-primary transition-colors">
+                                                            <Label htmlFor={`paid-${player.id}`} className="text-xs font-black uppercase italic pr-2 truncate cursor-pointer group-hover/item:text-primary transition-colors">
                                                                 {player.playerName}
                                                             </Label>
                                                         </div>

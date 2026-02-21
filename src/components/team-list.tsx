@@ -59,9 +59,9 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
     setDeletingTeam(null);
   };
   
-  const confirmDelete = (team: WithId<Team>) => {
+  const confirmDelete = (player: WithId<Team>) => {
     withAdminCheck(() => {
-        setDeletingTeam(team)
+        setDeletingTeam(player)
     });
   }
 
@@ -102,8 +102,8 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                     <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
                     
                     <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 overflow-hidden rounded-2xl">
-                        {/* Ghost Text Background */}
-                        <span className="absolute top-2 left-4 text-4xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors">
+                        {/* Ghost Text Background - Adjusted padding */}
+                        <span className="absolute top-4 left-4 text-4xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors pr-4">
                             {team.name}
                         </span>
 
@@ -118,7 +118,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                                 </Avatar>
                             </div>
                             
-                            <p className="font-black text-lg text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-300">
+                            <p className="font-black text-lg text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-300 pr-2">
                                 {team.name}
                             </p>
                         </CardContent>
