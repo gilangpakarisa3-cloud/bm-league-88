@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { Badge } from './ui/badge';
 
 interface TournamentBracketProps {
@@ -27,6 +26,41 @@ interface TournamentBracketProps {
 
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false }: TournamentBracketProps) {
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+  
+  // Drag-to-scroll logic
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasMoved, setHasMoved] = useState(false);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    // e.pageX is relative to the document
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+    setHasMoved(false);
+  };
+
+  const onMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const onMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // multiplier for scroll speed
+    if (Math.abs(walk) > 5) {
+      setHasMoved(true);
+    }
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   // 1. Calculate Group Rankings for Projections
   const projections = useMemo(() => {
@@ -45,7 +79,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     const proj: Record<string, { p1: any, p2: any, isProjection: boolean }> = {};
 
-    // UB Quarter Finals Projection
+    // UB Quarter Finals Projection (1A vs 4B, 2B vs 3A, 1B vs 4A, 2A vs 3B)
     if (gA.length >= 4 && gB.length >= 4) {
         proj['playoff-m1'] = { p1: gA[0], p2: gB[3], isProjection: true }; // 1A vs 4B
         proj['playoff-m2'] = { p1: gB[1], p2: gA[2], isProjection: true }; // 2B vs 3A
@@ -53,7 +87,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         proj['playoff-m4'] = { p1: gA[1], p2: gB[2], isProjection: true }; // 2A vs 3B
     }
 
-    // LB Round 1 Projection
+    // LB Round 1 Projection (Rank 5 & 6)
     if (gA.length >= 6 && gB.length >= 6) {
         proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser QF 1' }, isProjection: true }; // 5A
         proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser QF 2' }, isProjection: true }; // 5B
@@ -131,7 +165,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return (
         <div className="flex flex-col gap-1">
             <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 ml-1 italic">{label}</span>
-            <Card className={cn("w-44 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50", m.isCompleted ? "border-primary/30" : "border-primary/10 border-dashed")} onClick={() => setSelectedMatch(m)}>
+            <Card 
+                className={cn(
+                    "w-44 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50", 
+                    m.isCompleted ? "border-primary/30" : "border-primary/10 border-dashed"
+                )} 
+                onClick={() => !hasMoved && setSelectedMatch(m)}
+            >
                 <CardContent className="p-0 flex flex-col divide-y divide-border">
                     <div className={cn("flex items-center justify-between px-2 py-1 bg-card h-8", m.isW1 && "bg-primary/10")}>
                         <div className="flex items-center gap-1.5 overflow-hidden"><Avatar className="h-5 w-5 border"><AvatarImage src={m.t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar><span className={cn("text-[10px] font-bold truncate", m.isW1 ? "text-primary" : "text-foreground/70")}>{m.p1.name}</span></div>
@@ -159,7 +199,17 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div>
         )}
 
-        <ScrollArea className="w-full h-full pb-6">
+        <div 
+            ref={scrollRef}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseLeave}
+            className={cn(
+                "w-full overflow-x-auto pb-6 cursor-grab active:cursor-grabbing select-none scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
+                isDragging && "cursor-grabbing"
+            )}
+        >
             <div className="min-w-[1500px] flex items-center gap-16 p-4">
                 <div className="flex-1 flex flex-col gap-12">
                     {/* Upper Bracket */}
@@ -222,21 +272,20 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <div className="w-px h-32 bg-gradient-to-t from-amber-500/50 to-primary/50 hidden md:block" />
                 </div>
             </div>
-            <ScrollBar orientation="horizontal" className="bg-primary/10" />
-        </ScrollArea>
+        </div>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-xl border-primary border-2">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-primary uppercase italic"><TrendingUp className="w-5 h-5" /> Playoff Match Analysis</DialogTitle>
-                    <DialogDescription>Detail pertandingan babak: {selectedMatch?.round}</DialogDescription>
+                    <DialogTitle className="flex items-center gap-2 text-primary uppercase italic text-left"><TrendingUp className="w-5 h-5" /> Playoff Match Analysis</DialogTitle>
+                    <DialogDescription className="text-left">Detail pertandingan babak: {selectedMatch?.round}</DialogDescription>
                 </DialogHeader>
                 {selectedMatch && (
                     <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-8 items-center relative">
                             <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center z-10">
-                                <div className="bg-background border-4 border-primary rounded-full w-16 h-16 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.4)] ring-4 ring-background">
-                                    <span className="text-primary font-black italic text-xl tracking-tighter">VS</span>
+                                <div className="bg-background border-4 border-primary rounded-full w-12 h-12 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.4)] ring-4 ring-background">
+                                    <span className="text-primary font-black italic text-lg tracking-tighter">VS</span>
                                 </div>
                             </div>
                             <div className="flex flex-col items-center gap-2 text-center">
