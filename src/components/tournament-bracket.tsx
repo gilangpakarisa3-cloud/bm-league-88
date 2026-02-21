@@ -72,16 +72,35 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     }
   };
 
+  // Pre-calculate accurate ranks for all players in the current season
+  const rankedTable = useMemo(() => {
+    if (!leagueTable || leagueTable.length === 0) return [];
+    
+    const sortFn = (a: any, b: any) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+      return a.playerName.localeCompare(b.playerName);
+    };
+
+    if (season?.type === 'Hybrid') {
+      const gA = [...leagueTable].filter(p => p.group === 'A').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
+      const gB = [...leagueTable].filter(p => p.group === 'B').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
+      return [...gA, ...gB];
+    }
+    
+    return [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
+  }, [leagueTable, season]);
+
   // Helper to calculate complex player analysis
   const getPlayerAnalysis = (playerId: string) => {
     if (!playerId || playerId === 'TBD' || playerId.includes('Loser')) return null;
 
-    // IMPORTANT: Sort by matchDate descending to get "Last 5" correctly
     const playerMatches = matches
       .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
       .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
 
-    const entry = leagueTable.find(e => e.playerId === playerId);
+    const entry = rankedTable.find(e => e.playerId === playerId);
     const team = entry?.teamId ? teamsById[entry.teamId] : (playersById[playerId]?.teamId ? teamsById[playersById[playerId].teamId] : null);
 
     const stats = playerMatches.reduce((acc, m) => {
@@ -105,7 +124,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     const winRate = stats.played > 0 ? (stats.win / stats.played) * 100 : 0;
     
-    // Last 5 matches: Most recent on the right
     const last5Raw = playerMatches.slice(0, 5).reverse();
     const form = last5Raw.map(m => {
       const isP1 = m.player1Id === playerId;
@@ -116,7 +134,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return pRes > oRes ? 'W' : (pRes < oRes ? 'L' : 'D');
     });
 
-    // Stability Chart Data: From oldest to newest
     let cumulativeScore = 0;
     const chartData = [{ match: 0, points: 0 }, ...[...playerMatches].reverse().map((m, i) => {
       const isP1 = m.player1Id === playerId;
@@ -129,7 +146,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return { match: i + 1, points: cumulativeScore };
     })];
 
-    // Style & Quote
     let playStyleText = "Gaya bermain: Balanced";
     let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
     
@@ -147,13 +163,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     let quote = "Stabil";
     let quoteColor = "text-foreground";
-    const recentResults = playerMatches.slice(0, 5).map(m => {
-        const isP1 = m.player1Id === playerId;
-        const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-        return (isP1 ? s1 : s2) > (isP1 ? s2 : s1) ? 'W' : ((isP1 ? s1 : s2) < (isP1 ? s2 : s1) ? 'L' : 'D');
-    });
-
+    const recentResults = form.slice(-5);
     const recentWinCount = recentResults.filter(f => f === 'W').length;
     if (recentWinCount === 5) { quote = "Merasa tak terkalahkan"; quoteColor = "text-green-400"; }
     else if (recentWinCount >= 3) { quote = "Dalam performa yang bagus"; quoteColor = "text-green-400"; }
@@ -181,8 +191,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const data: Record<string, any> = {};
     matches.forEach(m => {
       if (m.bracketId) {
-        const e1 = leagueTable.find(e => e.playerId === m.player1Id);
-        const e2 = leagueTable.find(e => e.playerId === m.player2Id);
+        const e1 = rankedTable.find(e => e.playerId === m.player1Id);
+        const e2 = rankedTable.find(e => e.playerId === m.player2Id);
         const t1 = e1 ? teamsById[e1.teamId] : (playersById[m.player1Id] ? teamsById[playersById[m.player1Id].teamId] : null);
         const t2 = e2 ? teamsById[e2.teamId] : (playersById[m.player2Id] ? teamsById[playersById[m.player2Id].teamId] : null);
         const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
@@ -198,7 +208,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       }
     });
     return data;
-  }, [matches, playersById, teamsById, leagueTable]);
+  }, [matches, playersById, teamsById, rankedTable]);
 
   const MatchCard = ({ bid, label }: { bid: string, label: string }) => {
     const m = bracketData[bid];
@@ -246,8 +256,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     );
   };
 
-  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, leagueTable, teamsById, playersById]);
-  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, leagueTable, teamsById, playersById]);
+  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById]);
+  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById]);
 
   const sharedChartDomain = useMemo(() => {
     const defaultDomain = [-5, 5];
@@ -260,13 +270,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     if (allPoints.length === 0) return defaultDomain;
     
     const maxVal = Math.max(...allPoints.map(Math.abs));
-    const finalMax = Math.max(maxVal, 5); // Ensure at least a range of 5
+    const finalMax = Math.max(maxVal, 5); 
     return [-finalMax, finalMax];
   }, [analysis1, analysis2]);
 
   const chartConfig = { points: { label: "Trend", color: "hsl(var(--primary))" } } satisfies ChartConfig;
 
-  // Helper to get playstyle class
   const getPlayStyleClass = (type: 'attacking' | 'defensive' | 'balanced') => {
     switch (type) {
         case 'attacking': return "bg-red-500/20 text-red-400 border-red-500/30";
