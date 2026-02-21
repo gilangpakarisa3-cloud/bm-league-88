@@ -89,7 +89,9 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                   totalPlayers >= 6 && 
                   (entry.rank === 5 || entry.rank === 6);
 
-              const isRelegationZone = currentType === 'Single' && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
+              const isRelegationZone = 
+                  (currentType === 'Single' && totalPlayers > 3 && entry.rank >= totalPlayers - 2) ||
+                  (currentType === 'Hybrid' && totalPlayers > 6 && entry.rank > 6);
               
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
@@ -109,7 +111,7 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                     isFirst ? 'bg-yellow-400' :
                     isQualificationZone ? 'bg-green-500' :
                     isLowerBracketZone ? 'bg-amber-500' :
-                    isRelegationZone ? 'bg-destructive' : 'bg-transparent'
+                    isRelegationZone ? 'bg-red-500' : 'bg-transparent'
                   )}>
                   </TableCell>
                   <TableCell className={cn(
@@ -117,7 +119,7 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                     isFirst ? "text-yellow-400 text-xl" : 
                     isQualificationZone ? "text-green-400" :
                     isLowerBracketZone ? "text-amber-500" :
-                    isRelegationZone ? "text-destructive" : "text-foreground"
+                    isRelegationZone ? "text-red-500" : "text-foreground"
                     )}>
                     {entry.rank}
                   </TableCell>
