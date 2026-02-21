@@ -156,8 +156,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
-        // Parameter 1: Attacking (avgGF > 1.5)
-        if (avgGF > 1.5) {
+        // Parameter 1: Attacking (avgGF > 1.8)
+        if (avgGF > 1.8) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
         } 
