@@ -143,8 +143,8 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 ? "border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]" 
                 : "border-primary/20 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(204,253,1,0.15)]"
         )}>
-            {/* Ghost Text Background */}
-            <span className="absolute -bottom-2 -right-2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none group-hover:text-white/[0.05] transition-colors">
+            {/* Ghost Text Background - Adjusted for visibility */}
+            <span className="absolute bottom-[-10px] right-[-10px] text-7xl font-black text-white/[0.05] uppercase tracking-tighter italic pointer-events-none group-hover:text-white/[0.08] transition-colors leading-none">
                 {title.split(' ')[0]}
             </span>
 
@@ -270,7 +270,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {/* 6. Tidak Terkalahkan */}
             {showUnbeaten && (
                 <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-primary/20 hover:border-primary/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_20px_rgba(204,253,1,0.1)]">
-                    <span className="absolute -bottom-2 -right-2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none">IMMORTAL</span>
+                    <span className="absolute bottom-[-10px] right-[-10px] text-7xl font-black text-white/[0.05] uppercase tracking-tighter italic pointer-events-none leading-none">IMMORTAL</span>
                     <CardHeader className="pb-2 relative z-10">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 shadow-lg">
@@ -299,7 +299,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {/* Peluang Juara (Hanya Single Mode) */}
             {seasonType === 'Single' && stats.championshipContenders.length > 0 && (
                 <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-yellow-500/20 hover:border-yellow-500/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_20px_rgba(234,179,8,0.1)]">
-                    <span className="absolute -bottom-2 -right-2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none">TITLE</span>
+                    <span className="absolute bottom-[-10px] right-[-10px] text-7xl font-black text-white/[0.05] uppercase tracking-tighter italic pointer-events-none leading-none">TITLE</span>
                     <CardHeader className="pb-2 relative z-10">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-500 group-hover:bg-yellow-500 group-hover:text-black transition-all duration-500 shadow-lg">
