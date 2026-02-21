@@ -88,21 +88,21 @@ const SingleTable = ({
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-14">
               <TableHead className="w-2 p-0"></TableHead>
-              <TableHead className="w-16 text-center font-black text-primary uppercase text-[10px] tracking-[0.2em]">{t('rank')}</TableHead>
-              <TableHead className="text-left font-black text-primary text-[10px] tracking-[0.2em] min-w-[220px] uppercase">{t('player')}</TableHead>
-              <TableHead className="text-center font-black text-primary w-16 text-[10px] tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
-              <TableHead className="text-center font-black text-green-400 w-16 text-[10px] tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-16 text-[10px] tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
-              <TableHead className="text-center font-black text-red-400 w-16 text-[10px] tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
+              <TableHead className="w-12 text-center font-black text-primary uppercase text-[10px] tracking-[0.2em]">{t('rank')}</TableHead>
+              <TableHead className="text-left font-black text-primary text-[10px] tracking-[0.2em] min-w-[140px] uppercase">{t('player')}</TableHead>
+              <TableHead className="text-center font-black text-primary w-20 text-[10px] tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
+              <TableHead className="text-center font-black text-green-400 w-20 text-[10px] tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-20 text-[10px] tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
+              <TableHead className="text-center font-black text-red-400 w-20 text-[10px] tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-16 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-16 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-primary/60 w-16 text-[10px] tracking-[0.2em] uppercase">{t('gd_short')}</TableHead>
+                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
+                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
+                    <TableHead className="hidden lg:table-cell text-center font-black text-primary/60 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gd_short')}</TableHead>
                 </>
               )}
-              <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-32 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
-              <TableHead className="text-center font-black text-primary w-24 text-[10px] tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
+              <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-40 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
+              <TableHead className="text-center font-black text-primary w-28 text-[10px] tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-[0.2em] uppercase">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
@@ -217,20 +217,20 @@ const SingleTable = ({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center p-1 text-sm font-black text-white/80">{entry.played}</TableCell>
-                  <TableCell className="text-center p-1 text-sm font-black text-green-400">{entry.win}</TableCell>
-                  {!isCoop && <TableCell className="text-center p-1 text-sm font-black text-yellow-400">{entry.draw}</TableCell>}
-                  <TableCell className="text-center p-1 text-sm font-black text-red-400">{entry.loss}</TableCell>
+                  <TableCell className="text-center px-2 text-sm font-black text-white/80">{entry.played}</TableCell>
+                  <TableCell className="text-center px-2 text-sm font-black text-green-400">{entry.win}</TableCell>
+                  {!isCoop && <TableCell className="text-center px-2 text-sm font-black text-yellow-400">{entry.draw}</TableCell>}
+                  <TableCell className="text-center px-2 text-sm font-black text-red-400">{entry.loss}</TableCell>
                   {!isCoop && (
                     <>
-                        <TableCell className="hidden lg:table-cell text-center p-1 text-sm font-bold text-white/30">{entry.goalsFor}</TableCell>
-                        <TableCell className="hidden lg:table-cell text-center p-1 text-sm font-bold text-white/30">{entry.goalsAgainst}</TableCell>
-                        <TableCell className={cn("hidden lg:table-cell text-center p-1 text-sm font-black", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))}>
+                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30">{entry.goalsFor}</TableCell>
+                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30">{entry.goalsAgainst}</TableCell>
+                        <TableCell className={cn("hidden lg:table-cell text-center px-2 text-sm font-black", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))}>
                             {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
                         </TableCell>
                     </>
                   )}
-                  <TableCell className="hidden xl:table-cell text-center p-1">
+                  <TableCell className="hidden xl:table-cell text-center px-2">
                       <div className="flex justify-center gap-1">
                           {playerForm.length > 0 ? playerForm.map((res, i) => (
                               <div key={i} className={cn(
@@ -243,13 +243,13 @@ const SingleTable = ({
                       </div>
                   </TableCell>
                   <TableCell className={cn(
-                      "text-center font-black text-2xl p-1 italic", 
+                      "text-center font-black text-2xl px-2 italic", 
                       isFirst ? "text-yellow-300 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] scale-110" : "text-primary"
                     )}>
                     {entry.points}
                   </TableCell>
                   {canRemovePlayer && (
-                    <TableCell className="hidden sm:table-cell text-right p-1">
+                    <TableCell className="hidden sm:table-cell text-right px-2">
                       <Button
                         variant="ghost"
                         size="icon"
