@@ -56,6 +56,7 @@ import { CoopDrawDialog } from '@/components/coop-draw-dialog';
 import { GroupDrawDialog } from '@/components/group-draw-dialog';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const LEAGUE_ID = 'main-league';
