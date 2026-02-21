@@ -442,7 +442,12 @@ export function PlayerPerformanceDialog({
                                   <div className="flex items-center gap-3">
                                       <div className={cn("w-6 h-6 rounded flex items-center justify-center text-[10px] font-black border", match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{match.result}</div>
                                       <div>
-                                          <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
+                                          <div className="flex items-center gap-2">
+                                              <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
+                                              <Badge variant="outline" className={cn("text-[8px] h-4 px-1 font-bold uppercase", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/50")}>
+                                                  {match.isPlayer1 ? 'Home' : 'Away'}
+                                              </Badge>
+                                          </div>
                                           <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>
                                       </div>
                                   </div>
@@ -480,7 +485,12 @@ export function PlayerPerformanceDialog({
                                       <div className="flex items-center gap-3">
                                           <div className="w-6 h-6 rounded flex items-center justify-center bg-white/10"><CalendarClock className="w-3 h-3 text-white/40"/></div>
                                           <div>
-                                              <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
+                                              <div className="flex items-center gap-2">
+                                                  <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
+                                                  <Badge variant="outline" className={cn("text-[8px] h-4 px-1 font-bold uppercase", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/50")}>
+                                                      {match.isPlayer1 ? 'Home' : 'Away'}
+                                                  </Badge>
+                                              </div>
                                               <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Jadwal belum ditentukan</p>
                                           </div>
                                       </div>
