@@ -203,7 +203,11 @@ export function PlayerPerformanceDialog({
 
     const totalMatchesCount = playerMatches.length;
     const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
-    const winRate = stats.played > 0 ? (stats.win / stats.played) * 100 : 0;
+    
+    // Calculate OVR Rating (Points Efficiency)
+    const possiblePoints = stats.played * 3;
+    const actualPoints = (stats.win * 3) + (stats.draw * 1);
+    const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
 
     let trendScore = 0;
     const chartData = [{ match: 0, points: 0, tooltip: 'Awal Musim' }, ...[...completedMatches].reverse().map((match, index) => {
@@ -252,7 +256,7 @@ export function PlayerPerformanceDialog({
     return {
         completedMatches,
         upcomingMatches,
-        winRate,
+        ovrRating,
         seasonProgress,
         totalMatchesCount,
         chartData,
@@ -269,7 +273,7 @@ export function PlayerPerformanceDialog({
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize, playStyleText, playStyleType } = performanceStats;
+  const { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize, playStyleText, playStyleType } = performanceStats;
   
    const chartConfig = {
     points: {
@@ -337,7 +341,7 @@ export function PlayerPerformanceDialog({
                           <TooltipProvider>
                               <Tooltip>
                                   <TooltipTrigger asChild>
-                                      <div className="absolute -top-2 -left-2 transform -rotate-12">
+                                      <div className="absolute -top-2 -left-2 transform -rotate-12 z-20">
                                           <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
                                               <Award className="w-5 h-5"/>
                                           </Badge>
@@ -402,9 +406,9 @@ export function PlayerPerformanceDialog({
                             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/5">
                                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                     <Percent className="w-3 h-3 text-primary"/>
-                                    <span>Win Rate</span>
+                                    <span>OVR Rating</span>
                                 </div>
-                                <p className="text-xl font-black text-primary mt-1">% {winRate.toFixed(0)}</p>
+                                <p className="text-xl font-black text-primary mt-1">% {ovrRating.toFixed(0)}</p>
                             </div>
                             <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/5">
                                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">

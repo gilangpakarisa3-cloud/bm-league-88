@@ -125,7 +125,12 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {sortedPlayers.map((player) => {
           const team = player.teamId ? teamsById[player.teamId] : null;
-          const winRate = player.overallPlayed > 0 ? (player.overallWin / player.overallPlayed) * 100 : 0;
+          
+          // Calculate OVR (Overall Rating) based on Points Efficiency
+          // (Wins*3 + Draws*1) / (Played*3) * 100
+          const possiblePoints = player.overallPlayed * 3;
+          const actualPoints = (player.overallWin * 3) + (player.overallDraw * 1);
+          const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
           
           return (
             <div key={player.id} className="group relative">
@@ -146,10 +151,10 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                 <AvatarFallback className="bg-white/5"><User className="h-14 w-14 text-white/20" /></AvatarFallback>
                             </Avatar>
                             
-                            {/* Performance Indicator Badge */}
+                            {/* Performance Indicator Badge (OVR) */}
                             <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground h-10 w-10 rounded-lg flex flex-col items-center justify-center border-2 border-background shadow-lg rotate-12 group-hover:rotate-0 transition-transform">
-                                <span className="text-[10px] font-black leading-none uppercase">Rate</span>
-                                <span className="text-sm font-black leading-none">{winRate.toFixed(0)}</span>
+                                <span className="text-[10px] font-black leading-none uppercase">OVR</span>
+                                <span className="text-sm font-black leading-none">{ovrRating.toFixed(0)}</span>
                             </div>
                         </div>
                     </div>
