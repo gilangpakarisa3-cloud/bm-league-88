@@ -17,7 +17,7 @@ import {
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface TournamentBracketProps {
@@ -227,8 +227,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     );
   };
 
-  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch]);
-  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch]);
+  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, leagueTable, teamsById, playersById]);
+  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, leagueTable, teamsById, playersById]);
+
+  const sharedChartDomain = useMemo(() => {
+    const defaultDomain = [-5, 5];
+    if (!analysis1 && !analysis2) return defaultDomain;
+    
+    const points1 = analysis1?.chartData.map(d => d.points) || [];
+    const points2 = analysis2?.chartData.map(d => d.points) || [];
+    const allPoints = [...points1, ...points2];
+    
+    if (allPoints.length === 0) return defaultDomain;
+    
+    const maxVal = Math.max(...allPoints.map(Math.abs));
+    const finalMax = Math.max(maxVal, 5); // Ensure at least a range of 5
+    return [-finalMax, finalMax];
+  }, [analysis1, analysis2]);
 
   const chartConfig = { points: { label: "Trend", color: "hsl(var(--primary))" } } satisfies ChartConfig;
 
@@ -325,13 +340,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 </>
                             ) : (
-                                <>
+                                <div className="flex flex-col items-center gap-4">
                                     <div className="h-24 w-24 rounded-full bg-white/5 border-4 border-dashed border-white/10 flex items-center justify-center"><User className="w-10 h-10 text-white/20" /></div>
                                     <div>
                                         <h3 className="text-2xl font-black tracking-tight text-white/30">Menunggu Peserta</h3>
                                         <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mt-1">Belum ditentukan</p>
                                     </div>
-                                </>
+                                </div>
                             )}
                         </div>
 
@@ -357,13 +372,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 </>
                             ) : (
-                                <>
+                                <div className="flex flex-col items-center gap-4">
                                     <div className="h-24 w-24 rounded-full bg-white/5 border-4 border-dashed border-white/10 flex items-center justify-center"><User className="w-10 h-10 text-white/20" /></div>
                                     <div>
                                         <h3 className="text-2xl font-black tracking-tight text-white/30">Menunggu Peserta</h3>
                                         <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mt-1">Belum ditentukan</p>
                                     </div>
-                                </>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -459,7 +474,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
 
                     <div className="space-y-6">
-                        <div className="flex items-center gap-2 text-primary"><TrendingUp className="w-5 h-5" /> <h4 className="text-sm font-black tracking-widest uppercase">Grafik stabilitas individu</h4></div>
+                        <div className="flex items-center gap-2 text-primary"><TrendingUp className="w-5 h-5" /> <h4 className="text-sm font-black tracking-widest uppercase">Grafik Stabilitas Individu</h4></div>
                         <div className="grid grid-cols-2 gap-8">
                             <Card className="bg-white/5 border-white/10">
                                 <CardHeader className="pb-2">
@@ -475,14 +490,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <LineChart data={analysis1.chartData} margin={{ left: -20, right: 10, top: 10 }}>
                                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                                                 <XAxis dataKey="match" hide />
-                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={[-5, 5]} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={sharedChartDomain} />
+                                                <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" />
                                                 <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 4 }} activeDot={{ r: 6 }} />
                                             </LineChart>
                                         </ChartContainer>
                                     ) : (
                                         <div className="h-40 flex flex-col items-center justify-center gap-2 opacity-20">
                                             <Loader2 className="w-6 h-6 animate-spin" />
-                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti peserta...</p>
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti Peserta...</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -502,14 +518,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <LineChart data={analysis2.chartData} margin={{ left: -20, right: 10, top: 10 }}>
                                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                                                 <XAxis dataKey="match" hide />
-                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={[-5, 5]} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} domain={sharedChartDomain} />
+                                                <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" />
                                                 <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 4 }} activeDot={{ r: 6 }} />
                                             </LineChart>
                                         </ChartContainer>
                                     ) : (
                                         <div className="h-40 flex flex-col items-center justify-center gap-2 opacity-20">
                                             <Loader2 className="w-6 h-6 animate-spin" />
-                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti peserta...</p>
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em]">Menanti Peserta...</p>
                                         </div>
                                     )}
                                 </CardContent>
