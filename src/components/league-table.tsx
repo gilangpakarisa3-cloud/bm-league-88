@@ -84,6 +84,11 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                   (currentType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
                   (currentType === 'Single' && entry.rank > 1 && entry.rank <= 4);
               
+              const isLowerBracketZone = 
+                  currentType === 'Hybrid' && 
+                  totalPlayers >= 6 && 
+                  (entry.rank === 5 || entry.rank === 6);
+
               const isRelegationZone = currentType === 'Single' && (entry.rank >= totalPlayers - 2 && totalPlayers > 3);
               
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
@@ -96,12 +101,14 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                     "transition-colors h-16 border-b-white/5",
                     isFirst ? "bg-yellow-500/10 hover:bg-yellow-500/20" :
                     isQualificationZone ? "bg-green-500/10 hover:bg-green-500/20" :
+                    isLowerBracketZone ? "bg-amber-500/10 hover:bg-amber-500/20" :
                     isRelegationZone ? "bg-red-500/10 hover:bg-red-500/20" : "hover:bg-white/[0.03]"
                   )}
                 >
                   <TableCell className={cn("p-0 w-1", 
                     isFirst ? 'bg-yellow-400' :
                     isQualificationZone ? 'bg-green-500' :
+                    isLowerBracketZone ? 'bg-amber-500' :
                     isRelegationZone ? 'bg-destructive' : 'bg-transparent'
                   )}>
                   </TableCell>
@@ -109,6 +116,7 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                     "text-center font-black text-lg px-1",
                     isFirst ? "text-yellow-400 text-xl" : 
                     isQualificationZone ? "text-green-400" :
+                    isLowerBracketZone ? "text-amber-500" :
                     isRelegationZone ? "text-destructive" : "text-foreground"
                     )}>
                     {entry.rank}
