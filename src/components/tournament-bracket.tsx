@@ -368,7 +368,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         )}
 
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-10 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-white/5">
-            <div className="min-w-[1500px] flex items-stretch gap-16 p-6">
+            <div className="min-w-[1600px] flex items-stretch gap-16 p-6">
                 {/* Upper Bracket Section */}
                 <div className="flex-1 flex flex-col gap-16 relative">
                     <div className="space-y-8 relative">
@@ -449,8 +449,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 </div>
 
                 {/* Grand Final Section */}
-                <div className="flex flex-col items-center justify-center gap-10 pl-16 border-l-2 border-white/5 bg-black/20 px-12 rounded-r-3xl relative overflow-hidden">
-                    <div className="absolute inset-0 pointer-events-none">
+                <div className="flex flex-col items-center justify-center gap-10 pl-16 border-l-2 border-white/5 bg-black/20 px-16 rounded-r-3xl relative">
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-r-3xl">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-[100px]" />
                     </div>
 
@@ -467,7 +467,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
 
-                    <div className="scale-150 transform transition-all duration-700 hover:scale-[1.65] py-12 relative z-10">
+                    <div className="scale-150 transform transition-all duration-700 hover:scale-[1.65] py-16 relative z-10">
                         <MatchCard bid="playoff-m18" label="Championship Match" />
                     </div>
                 </div>
@@ -484,10 +484,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="p-3 bg-primary/10 rounded-2xl">
                                     <Activity className="w-8 h-8" />
                                 </div>
-                                <div>
-                                    <DialogTitle className="text-4xl font-black tracking-tighter uppercase italic pr-4">HUD: Match Analysis</DialogTitle>
-                                    <DialogDescription className="text-base font-bold text-white/40 uppercase tracking-widest mt-1">Live Simulation & Tactical Overview • {selectedMatch?.round || 'Playoff'}</DialogDescription>
-                                </div>
+                                {selectedMatch && (
+                                    <div>
+                                        <DialogTitle className="text-4xl font-black tracking-tighter uppercase italic pr-4">HUD: Match Analysis</DialogTitle>
+                                        <DialogDescription className="text-base font-bold text-white/40 uppercase tracking-widest mt-1">Live Simulation & Tactical Overview • {selectedMatch.round || 'Playoff'}</DialogDescription>
+                                    </div>
+                                )}
                             </div>
                             <Badge className="bg-primary text-black font-black px-6 py-2 rounded-xl text-sm italic tracking-tighter shadow-lg">PRO SYSTEM v2</Badge>
                         </div>
@@ -533,7 +535,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         )}
                                     </div>
                                     <div className="space-y-2">
-                                        <h3 className="text-3xl font-black tracking-tighter uppercase italic pr-4 text-white group-hover:text-primary transition-colors">{selectedMatch.p1?.name}</h3>
+                                        <h3 className="text-3xl font-black tracking-tighter uppercase italic pr-4 text-white group-hover:text-primary transition-colors">{selectedMatch?.p1?.name}</h3>
                                         <div className="flex flex-col items-center gap-2">
                                             <span className="text-xs font-black text-white/40 uppercase tracking-[0.2em]">{analysis1.team?.name || 'Free Agent'}</span>
                                             <Badge className={cn("text-[10px] font-black uppercase tracking-widest px-4 py-1.5 border-2", getPlayStyleClass(analysis1.playStyleType))}>
@@ -581,7 +583,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         )}
                                     </div>
                                     <div className="space-y-2">
-                                        <h3 className="text-3xl font-black tracking-tighter uppercase italic pr-4 text-white group-hover:text-primary transition-colors">{selectedMatch.p2?.name}</h3>
+                                        <h3 className="text-3xl font-black tracking-tighter uppercase italic pr-4 text-white group-hover:text-primary transition-colors">{selectedMatch?.p2?.name}</h3>
                                         <div className="flex flex-col items-center gap-2">
                                             <span className="text-xs font-black text-white/40 uppercase tracking-[0.2em]">{analysis2.team?.name || 'Free Agent'}</span>
                                             <Badge className={cn("text-[10px] font-black uppercase tracking-widest px-4 py-1.5 border-2", getPlayStyleClass(analysis2.playStyleType))}>
