@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -22,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { User, Pencil, Trash2, Shield, Swords, Trophy, Target, Zap, Activity } from 'lucide-react';
+import { User, Pencil, Trash2, Shield, Swords, Trophy, Target, Zap, Activity, Users } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
