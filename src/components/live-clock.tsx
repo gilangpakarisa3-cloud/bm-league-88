@@ -42,7 +42,7 @@ export function LiveClock() {
                 {/* Time Section */}
                 <div className="flex flex-col items-center">
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/50 leading-none mb-1">Live Match Time</span>
-                    <span className="text-4xl sm:text-5xl font-black italic tracking-tighter text-primary font-headline tabular-nums drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]">
+                    <span className="text-4xl sm:text-5xl font-black tracking-tighter text-primary font-headline tabular-nums drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]">
                         {formattedTime}
                     </span>
                 </div>
@@ -53,7 +53,7 @@ export function LiveClock() {
                 {/* Date Section */}
                 <div className="flex flex-col items-start">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1">Tournament Date</span>
-                    <span className="text-sm sm:text-base font-black uppercase tracking-tight text-foreground italic">
+                    <span className="text-sm sm:text-base font-black uppercase tracking-tight text-foreground">
                         {formattedDate}
                     </span>
                 </div>

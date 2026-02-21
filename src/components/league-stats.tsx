@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from "react";
@@ -107,7 +108,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
     if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.bestDefense.length === 0 && stats.worstDefender.length === 0 && stats.kingOfDraws.length === 0 && stats.championshipContenders.length === 0) {
         return (
              <Card className="border-dashed border-2">
-                <CardContent className="p-6 text-center text-muted-foreground text-sm italic">
+                <CardContent className="p-6 text-center text-muted-foreground text-sm">
                     Belum ada statistik performa untuk ditampilkan.
                 </CardContent>
             </Card>
@@ -175,7 +176,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                         </div>
                         <div className="text-right ml-2 flex-shrink-0">
                             <span className={cn(
-                                "text-lg font-black italic",
+                                "text-lg font-black",
                                 variant === "destructive" ? "text-destructive" : "text-primary"
                             )}>
                                 {player[valueKey]}
@@ -301,7 +302,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                                     <Avatar className="h-8 w-8 border-2 border-background"><AvatarImage src={player.team?.logoUrl} alt={player.playerName} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                     <div><p className="text-xs font-bold">{player.playerName}</p><p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter">{player.teamName}</p></div>
                                 </div>
-                                <Badge variant="outline" className="text-[10px] font-black italic border-primary/50 text-primary bg-primary/5">-{player.pointsBehind} Poin</Badge>
+                                <Badge variant="outline" className="text-[10px] font-black border-primary/50 text-primary bg-primary/5">-{player.pointsBehind} Poin</Badge>
                             </div>
                         ))}
                     </CardContent>
