@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -778,18 +777,18 @@ export default function LeaguePage() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
           <div className="space-y-2 flex-1">
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary uppercase">{t('league_standings_page_title')}</h1>
+            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('league_standings_page_title')}</h1>
             {activeSeason && (
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <p className="text-xl font-bold text-white/90 uppercase tracking-tight">{activeSeason.name}</p>
-                <Badge className="bg-primary/20 text-primary border-primary/30 font-black uppercase tracking-widest text-[10px]">{activeSeason.status}</Badge>
+                <p className="text-xl font-bold text-white/90 tracking-tight">{activeSeason.name}</p>
+                <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[10px]">{activeSeason.status}</Badge>
                 {formattedDateRange && <p className="text-sm font-medium opacity-70 text-white/60">{formattedDateRange}</p>}
               </div>
             )}
             {matches && matches.length > 0 && (
               <div className="max-w-xs pt-2">
                 <Progress value={seasonProgress} className="h-1.5" />
-                <p className="text-[10px] font-bold mt-1 uppercase tracking-tighter opacity-70 text-primary">
+                <p className="text-[10px] font-bold mt-1 tracking-tighter opacity-70 text-primary">
                   {completedMatchesCount} / {matches.length} Pertandingan Selesai ({seasonProgress.toFixed(0)}%)
                 </p>
               </div>
@@ -805,7 +804,7 @@ export default function LeaguePage() {
             isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
           <div className="flex items-center gap-2">
-            <Badge className="text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground border-primary h-10 px-3 hidden sm:flex shadow-[0_0_10px_rgba(204,253,1,0.4)]">Musim</Badge>
+            <Badge className="text-[10px] font-black tracking-widest bg-primary text-primary-foreground border-primary h-10 px-3 hidden sm:flex shadow-[0_0_10px_rgba(204,253,1,0.4)]">Musim</Badge>
             <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
                 <SelectTrigger className="w-full sm:w-[200px] h-10 bg-background/50 border-primary/30">
                     <SelectValue placeholder={t('select_a_season')} />
@@ -873,7 +872,7 @@ export default function LeaguePage() {
             </div>
             <div className="lg:col-span-1 space-y-6">
                 <div className="flex flex-col gap-1 items-center justify-center">
-                    <h2 className="font-black text-2xl tracking-tighter text-primary uppercase">Statistik Musim</h2>
+                    <h2 className="font-black text-2xl tracking-tighter text-primary">Statistik Musim</h2>
                     <div className="h-1 w-12 bg-primary rounded-full shadow-[0_0_10px_rgba(204,253,1,0.5)]" />
                 </div>
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} />
@@ -881,18 +880,18 @@ export default function LeaguePage() {
                     <Card className="group relative overflow-hidden transition-all duration-300 border-2 border-primary/20 hover:border-primary bg-card hover:shadow-lg hover:shadow-primary/10">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none" />
                         <CardHeader className="relative z-10">
-                            <CardTitle className="flex items-center gap-3 text-sm font-black uppercase tracking-tight"><div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300"><DollarSign className="w-5 h-5" /></div>Keuangan Musim</CardTitle>
+                            <CardTitle className="flex items-center gap-3 text-sm font-black tracking-tight"><div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300"><DollarSign className="w-5 h-5" /></div>Keuangan Musim</CardTitle>
                             <CardDescription className="text-[10px] font-medium opacity-80">Lacak pembayaran registrasi dan total hadiah.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 relative z-10">
                              <div className="border-2 border-primary/10 bg-muted/20 p-4 rounded-xl text-center space-y-1 group-hover:border-primary/30 transition-colors">
-                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Hadiah Terkumpul</p>
+                                <p className="text-[10px] font-black text-muted-foreground tracking-widest">Total Hadiah Terkumpul</p>
                                 <p className="text-3xl font-black text-primary drop-shadow-sm">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}</p>
-                                {sponsorshipPool > 0 && <p className="text-[9px] text-foreground font-bold uppercase tracking-tighter mt-1 opacity-80">(<span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</span> pendaftaran + <span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</span> sponsor)</p>}
+                                {sponsorshipPool > 0 && <p className="text-[9px] text-foreground font-bold tracking-tighter mt-1 opacity-80">(<span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</span> pendaftaran + <span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</span> sponsor)</p>}
                                 <p className="text-[10px] font-bold text-foreground mt-2 border-t border-primary/10 pt-2"><span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> dari <span className="text-primary">{registeredPlayers?.length}</span> pemain lunas</p>
                             </div>
                             <div>
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2"><Users className="w-3 h-3" /> Status Pembayaran</h4>
+                                <h4 className="text-[10px] font-black tracking-widest text-muted-foreground mb-3 flex items-center gap-2"><Users className="w-3 h-3" /> Status Pembayaran</h4>
                                 <div className="max-h-60 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-primary/20">
                                     {(registeredPlayers || []).map(player => (
                                         <div key={player.id} className="flex items-center justify-between bg-muted/10 p-2 rounded-lg border border-transparent hover:border-primary/20 transition-all">

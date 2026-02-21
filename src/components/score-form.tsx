@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -174,8 +173,8 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                     </Avatar>
                 </div>
                 <div className="space-y-1 relative z-10">
-                  <p className="text-sm font-black uppercase tracking-tight truncate max-w-[160px]">{player1Info.name}</p>
-                  <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{player1Info.team?.name || 'Tanpa Tim'}</p>
+                  <p className="text-sm font-black tracking-tight truncate max-w-[160px]">{player1Info.name}</p>
+                  <p className="text-[10px] text-primary font-bold tracking-widest">{player1Info.team?.name || 'Tanpa Tim'}</p>
                 </div>
                 
                 <div className="w-full relative z-10">
@@ -218,8 +217,8 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                     </Avatar>
                 </div>
                 <div className="space-y-1 relative z-10">
-                  <p className="text-sm font-black uppercase tracking-tight truncate max-w-[160px]">{player2Info.name}</p>
-                  <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{player2Info.team?.name || 'Tanpa Tim'}</p>
+                  <p className="text-sm font-black tracking-tight truncate max-w-[160px]">{player2Info.name}</p>
+                  <p className="text-[10px] text-primary font-bold tracking-widest">{player2Info.team?.name || 'Tanpa Tim'}</p>
                 </div>
 
                 <div className="w-full relative z-10">
@@ -253,7 +252,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
         {isBestOfThree && (
            <div className="bg-muted/20 p-6 rounded-2xl border border-primary/20 shadow-inner">
              <div className="mb-4 text-center">
-                <Badge className="bg-primary text-primary-foreground font-black px-4 py-1 uppercase italic tracking-tighter">Format Best of 3</Badge>
+                <Badge className="bg-primary text-primary-foreground font-black px-4 py-1 italic tracking-tighter">Format Best of 3</Badge>
              </div>
              <CoopScoreChecklist
                 player1Name={player1Info.name}
@@ -265,7 +264,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
         )}
 
         <div className="bg-muted/30 p-6 rounded-2xl border border-dashed border-primary/20 space-y-4">
-            <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
+            <h4 className="text-[10px] font-black text-primary tracking-widest flex items-center gap-2">
                 <Clock className="w-3 h-3" /> Informasi Kick-Off
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
@@ -274,7 +273,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                   name="date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-bold uppercase text-muted-foreground">Hari & Tanggal</FormLabel>
+                      <FormLabel className="text-[10px] font-bold text-muted-foreground">Hari & Tanggal</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -312,7 +311,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                   name="time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-bold uppercase text-muted-foreground">Waktu Pertandingan</FormLabel>
+                      <FormLabel className="text-[10px] font-bold text-muted-foreground">Waktu Pertandingan</FormLabel>
                       <FormControl>
                         <Input 
                           type="time" 

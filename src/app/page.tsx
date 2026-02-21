@@ -287,7 +287,7 @@ const LeaderboardTable = ({ players, isBottom = false }: { players: any[], isBot
                       </Avatar>
                       <div className="overflow-hidden">
                         <div className="font-bold truncate text-sm sm:text-base">{entry.playerName}</div>
-                        <div className="text-[10px] sm:text-xs text-muted-foreground truncate uppercase font-semibold">{entry.team?.name || entry.teamName}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground truncate font-semibold">{entry.team?.name || entry.teamName}</div>
                       </div>
                   </div>
                   </TableCell>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useRef } from 'react';
@@ -128,8 +127,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         return (
             <div className="flex flex-col gap-1 opacity-60 grayscale-[0.5]">
                 <div className="flex items-center justify-between px-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 ml-1">{label}</span>
-                    <Badge variant="outline" className="h-3 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase tracking-tighter">PROYEKSI</Badge>
+                    <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1">{label}</span>
+                    <Badge variant="outline" className="h-3 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black tracking-tighter">Proyeksi</Badge>
                 </div>
                 <Card className="w-44 overflow-hidden border-2 border-muted border-dashed bg-card/10">
                     <CardContent className="p-0 flex flex-col divide-y divide-border/20">
@@ -153,16 +152,16 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     if (!m) return (
         <div className="flex flex-col gap-1 opacity-40">
-            <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 ml-1">{label}</span>
+            <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1">{label}</span>
             <div className="w-44 h-16 bg-card/20 border border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center">
-                <span className="text-[8px] font-bold uppercase tracking-tighter text-muted-foreground">Menunggu Alur...</span>
+                <span className="text-[8px] font-bold tracking-tighter text-muted-foreground">Menunggu Alur...</span>
             </div>
         </div>
     );
 
     return (
         <div className="flex flex-col gap-1">
-            <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 ml-1">{label}</span>
+            <span className="text-[9px] font-black tracking-widest text-primary/60 ml-1">{label}</span>
             <Card 
                 className={cn(
                     "w-44 overflow-hidden border-2 transition-all cursor-pointer hover:ring-2 hover:ring-primary/50", 
@@ -191,7 +190,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
                 <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-200/80 leading-relaxed">
-                    <p className="font-bold text-amber-500 uppercase tracking-tight mb-1">Mode Live Preview (Proyeksi)</p>
+                    <p className="font-bold text-amber-500 tracking-tight mb-1">Mode Live Preview (Proyeksi)</p>
                     <p>Bagan di bawah ini adalah **proyeksi otomatis** berdasarkan klasemen grup saat ini. Nama pemain akan berubah secara live mengikuti hasil pertandingan di fase grup. Jadwal resmi akan muncul setelah Admin menekan tombol "Start Playoff".</p>
                 </div>
             </div>
@@ -212,7 +211,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <div className="flex-1 flex flex-col gap-12">
                     {/* Upper Bracket */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
+                        <h3 className="text-sm font-black tracking-[0.3em] text-primary flex items-center gap-2"><div className="h-4 w-1 bg-primary" /> Upper Bracket (Double Life)</h3>
                         <div className="flex items-center gap-8 pl-4">
                             <div className="flex flex-col gap-4">
                                 <MatchCard bid="playoff-m1" label="UB-QF 1" /><MatchCard bid="playoff-m2" label="UB-QF 2" /><MatchCard bid="playoff-m3" label="UB-QF 3" /><MatchCard bid="playoff-m4" label="UB-QF 4" />
@@ -230,7 +229,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                     {/* Lower Bracket */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-amber-500 flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
+                        <h3 className="text-sm font-black tracking-[0.3em] text-amber-500 flex items-center gap-2"><div className="h-4 w-1 bg-amber-500" /> Lower Bracket (Elimination)</h3>
                         <div className="flex items-center gap-8 pl-4">
                             <div className="flex flex-col gap-4">
                                 <MatchCard bid="playoff-m5" label="LB-R1 (vs Loser QF 1)" />
@@ -262,12 +261,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <Trophy className="text-yellow-400 w-14 h-14 relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
                         </div>
                         <div className="text-center space-y-1">
-                            <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white">GRAND FINAL</h3>
-                            <p className="text-[9px] font-bold text-primary uppercase tracking-widest opacity-80">Battle for Glory</p>
+                            <h3 className="text-xl font-black tracking-[0.4em] text-white">Grand Final</h3>
+                            <p className="text-[9px] font-bold text-primary tracking-widest opacity-80">Battle for Glory</p>
                         </div>
                     </div>
                     <div className="scale-125 transform transition-transform hover:scale-150 py-10">
-                        <MatchCard bid="playoff-m18" label="CHAMPIONSHIP" />
+                        <MatchCard bid="playoff-m18" label="Championship" />
                     </div>
                     <div className="w-1 bg-gradient-to-b from-primary/40 to-transparent h-20 rounded-full" />
                 </div>
@@ -277,7 +276,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-xl border-primary border-2">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-primary uppercase text-left"><TrendingUp className="w-5 h-5" /> Playoff Match Analysis</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2 text-primary text-left"><TrendingUp className="w-5 h-5" /> Playoff Match Analysis</DialogTitle>
                     <DialogDescription className="text-left">Detail pertandingan babak: {selectedMatch?.round}</DialogDescription>
                 </DialogHeader>
                 {selectedMatch && (
@@ -291,23 +290,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="flex flex-col items-center gap-2 text-center">
                                 <Avatar className="h-16 w-16 border-2 border-primary"><AvatarImage src={selectedMatch.t1?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                 <p className="font-bold">{selectedMatch.p1.name}</p>
-                                <p className="text-xs text-muted-foreground uppercase">{selectedMatch.t1?.name}</p>
+                                <p className="text-xs text-muted-foreground">{selectedMatch.t1?.name}</p>
                             </div>
                             <div className="flex flex-col items-center gap-2 text-center">
                                 <Avatar className="h-16 w-16 border-2 border-primary"><AvatarImage src={selectedMatch.t2?.logoUrl} /><AvatarFallback><User /></AvatarFallback></Avatar>
                                 <p className="font-bold">{selectedMatch.p2.name}</p>
-                                <p className="text-xs text-muted-foreground uppercase">{selectedMatch.t2?.name}</p>
+                                <p className="text-xs text-muted-foreground">{selectedMatch.t2?.name}</p>
                             </div>
                         </div>
                         {selectedMatch.isCompleted && (
                             <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center">
-                                <p className="text-xs font-black uppercase text-primary mb-2">Final Score</p>
+                                <p className="text-xs font-black text-primary mb-2">Final Score</p>
                                 <p className="text-5xl font-black tracking-tighter text-primary">{selectedMatch.s1} - {selectedMatch.s2}</p>
                             </div>
                         )}
                         <div className="pt-2 border-t border-border flex flex-col items-start text-[10px] font-bold gap-1">
-                            <span className="text-muted-foreground uppercase tracking-tight">Babak Kompetisi Saat Ini:</span>
-                            <Badge variant="outline" className="font-black uppercase tracking-widest text-[10px] bg-primary/10 text-primary border-primary/30">{selectedMatch.round}</Badge>
+                            <span className="text-muted-foreground tracking-tight">Babak Kompetisi Saat Ini:</span>
+                            <Badge variant="outline" className="font-black tracking-widest text-[10px] bg-primary/10 text-primary border-primary/30">{selectedMatch.round}</Badge>
                         </div>
                     </div>
                 )}

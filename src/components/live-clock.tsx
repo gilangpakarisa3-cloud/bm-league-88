@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -41,7 +40,7 @@ export function LiveClock() {
             <div className="relative flex items-center gap-6 bg-card/80 border-2 border-primary/30 px-8 py-3 rounded-2xl shadow-2xl backdrop-blur-md">
                 {/* Time Section */}
                 <div className="flex flex-col items-center">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/50 leading-none mb-1">Live Match Time</span>
+                    <span className="text-[10px] font-black tracking-[0.3em] text-primary/50 leading-none mb-1">Live Match Time</span>
                     <span className="text-4xl sm:text-5xl font-black tracking-tighter text-primary font-headline tabular-nums drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]">
                         {formattedTime}
                     </span>
@@ -52,8 +51,8 @@ export function LiveClock() {
                 
                 {/* Date Section */}
                 <div className="flex flex-col items-start">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1">Tournament Date</span>
-                    <span className="text-sm sm:text-base font-black uppercase tracking-tight text-foreground">
+                    <span className="text-[10px] font-black tracking-[0.2em] text-muted-foreground leading-none mb-1">Tournament Date</span>
+                    <span className="text-sm sm:text-base font-black tracking-tight text-foreground">
                         {formattedDate}
                     </span>
                 </div>

@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -60,20 +59,20 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
             <TableRow className="hover:bg-transparent border-b-primary/20">
               <TableHead className="w-2 p-0"></TableHead>
               <TableHead className="w-16 text-center font-black text-primary uppercase text-[10px] tracking-widest">{t('rank')}</TableHead>
-              <TableHead className="text-left font-black text-primary uppercase text-[10px] tracking-widest min-w-[200px]">{t('player')}</TableHead>
-              <TableHead className="text-center font-black text-primary w-20 uppercase text-[10px] tracking-widest">{t('played_short')}</TableHead>
-              <TableHead className="text-center font-black text-green-400 w-20 uppercase text-[10px] tracking-widest">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-20 uppercase text-[10px] tracking-widest">{t('d_short')}</TableHead>}
-              <TableHead className="text-center font-black text-red-400 w-20 uppercase text-[10px] tracking-widest">{t('l_short')}</TableHead>
+              <TableHead className="text-left font-black text-primary text-[10px] tracking-widest min-w-[200px]">{t('player')}</TableHead>
+              <TableHead className="text-center font-black text-primary w-20 text-[10px] tracking-widest">{t('played_short')}</TableHead>
+              <TableHead className="text-center font-black text-green-400 w-20 text-[10px] tracking-widest">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-20 text-[10px] tracking-widest">{t('d_short')}</TableHead>}
+              <TableHead className="text-center font-black text-red-400 w-20 text-[10px] tracking-widest">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
-                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 uppercase text-[10px] tracking-widest">{t('gf_short')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 uppercase text-[10px] tracking-widest">{t('ga_short')}</TableHead>
-                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 uppercase text-[10px] tracking-widest">{t('gd_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 text-[10px] tracking-widest">{t('gf_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 text-[10px] tracking-widest">{t('ga_short')}</TableHead>
+                    <TableHead className="hidden md:table-cell text-center font-black text-primary w-20 text-[10px] tracking-widest">{t('gd_short')}</TableHead>
                 </>
               )}
-              <TableHead className="text-center font-black text-primary w-24 uppercase text-[10px] tracking-widest">{t('pts_short')}</TableHead>
-              {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 uppercase text-[10px] tracking-widest">{t('actions')}</TableHead>}
+              <TableHead className="text-center font-black text-primary w-24 text-[10px] tracking-widest">{t('pts_short')}</TableHead>
+              {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-widest">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -132,7 +131,7 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                        </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                           <span className={cn("font-black uppercase tracking-tight group-hover:text-primary transition-colors truncate", isFirst ? "text-base" : "text-sm")}>{entry.playerName}</span>
+                           <span className={cn("font-black tracking-tight group-hover:text-primary transition-colors truncate", isFirst ? "text-base" : "text-sm")}>{entry.playerName}</span>
                             {isUnbeaten && (
                                 <TooltipProvider>
                                     <Tooltip>
@@ -163,7 +162,7 @@ const SingleTable = ({ tableData, isLoading, onRemovePlayer, onSelectPlayer, sea
                             )}
                         </div>
                         <div className="flex items-center gap-1 text-[9px] text-muted-foreground group-hover:text-foreground/80 transition-colors">
-                            <span className="truncate uppercase font-black tracking-widest">{entry.team?.name}</span>
+                            <span className="truncate font-black tracking-widest">{entry.team?.name}</span>
                         </div>
                       </div>
                     </div>
@@ -259,9 +258,9 @@ export function LeagueTable({
         {isHybrid ? (
              <Tabs defaultValue="group_a">
                 <TabsList className="grid w-full grid-cols-3 rounded-b-none rounded-t-lg bg-background/50 h-12 p-1">
-                    <TabsTrigger value="group_a" className="rounded-tl-md font-black uppercase tracking-tighter data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">Grup A ({groupA.length})</TabsTrigger>
-                    <TabsTrigger value="group_b" className="font-black uppercase tracking-tighter data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">Grup B ({groupB.length})</TabsTrigger>
-                    <TabsTrigger value="playoff" className="rounded-tr-md flex items-center gap-2 font-black uppercase tracking-tighter data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                    <TabsTrigger value="group_a" className="rounded-tl-md font-black tracking-tighter data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">Grup A ({groupA.length})</TabsTrigger>
+                    <TabsTrigger value="group_b" className="font-black tracking-tighter data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">Grup B ({groupB.length})</TabsTrigger>
+                    <TabsTrigger value="playoff" className="rounded-tr-md flex items-center gap-2 font-black tracking-tighter data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                         <LayoutGrid className="h-4 w-4" /> Playoff
                     </TabsTrigger>
                 </TabsList>

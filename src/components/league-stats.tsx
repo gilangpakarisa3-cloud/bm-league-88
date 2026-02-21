@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from "react";
@@ -154,7 +153,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                     )}>
                         <Icon className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-sm font-black uppercase tracking-tight">{title}</CardTitle>
+                    <CardTitle className="text-sm font-black tracking-tight">{title}</CardTitle>
                 </div>
                 <CardDescription className="text-[10px] font-medium leading-tight pt-1 opacity-80">
                     {desc}
@@ -171,7 +170,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                             </Avatar>
                             <div className="overflow-hidden">
                                 <p className="text-xs font-bold truncate">{player.playerName}</p>
-                                <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter truncate">{player.teamName}</p>
+                                <p className="text-[9px] text-muted-foreground font-black tracking-tighter truncate">{player.teamName}</p>
                             </div>
                         </div>
                         <div className="text-right ml-2 flex-shrink-0">
@@ -181,7 +180,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                             )}>
                                 {player[valueKey]}
                             </span>
-                            {valueSuffix && <span className="text-[9px] ml-1 font-bold text-muted-foreground uppercase">{valueSuffix}</span>}
+                            {valueSuffix && <span className="text-[9px] ml-1 font-bold text-muted-foreground">{valueSuffix}</span>}
                         </div>
                     </div>
                 ))}
@@ -261,7 +260,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                             <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                                 <ShieldCheck className="h-5 w-5" />
                             </div>
-                            <CardTitle className="text-sm font-black uppercase tracking-tight">{t('fun_stats_unbeaten')}</CardTitle>
+                            <CardTitle className="text-sm font-black tracking-tight">{t('fun_stats_unbeaten')}</CardTitle>
                         </div>
                         <CardDescription className="text-[10px] font-medium leading-tight pt-1 opacity-80">{t('fun_stats_unbeaten_desc')}</CardDescription>
                     </CardHeader>
@@ -274,7 +273,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                                 </Avatar>
                                 <div>
                                     <p className="text-xs font-bold">{player.playerName}</p>
-                                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter">{player.teamName}</p>
+                                    <p className="text-[9px] text-muted-foreground font-black tracking-tighter">{player.teamName}</p>
                                 </div>
                             </div>
                         ))}
@@ -291,7 +290,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                             <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                                 <Flame className="h-5 w-5" />
                             </div>
-                            <CardTitle className="text-sm font-black uppercase tracking-tight">{t('fun_stats_championship_contender')}</CardTitle>
+                            <CardTitle className="text-sm font-black tracking-tight">{t('fun_stats_championship_contender')}</CardTitle>
                         </div>
                         <CardDescription className="text-[10px] font-medium leading-tight pt-1 opacity-80">{t('fun_stats_championship_contender_desc')}</CardDescription>
                     </CardHeader>
@@ -300,7 +299,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                              <div key={player.id} className="flex items-center justify-between bg-muted/20 p-2 rounded-md border border-transparent hover:border-primary/30 transition-all">
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-8 w-8 border-2 border-background"><AvatarImage src={player.team?.logoUrl} alt={player.playerName} /><AvatarFallback><User /></AvatarFallback></Avatar>
-                                    <div><p className="text-xs font-bold">{player.playerName}</p><p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter">{player.teamName}</p></div>
+                                    <div><p className="text-xs font-bold">{player.playerName}</p><p className="text-[9px] text-muted-foreground font-black tracking-tighter">{player.teamName}</p></div>
                                 </div>
                                 <Badge variant="outline" className="text-[10px] font-black border-primary/50 text-primary bg-primary/5">-{player.pointsBehind} Poin</Badge>
                             </div>
