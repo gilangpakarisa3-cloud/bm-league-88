@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -136,7 +135,7 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
         if (current >= totalToReveal) {
             clearInterval(interval);
             setIsRevealing(false);
-            toast({ title: "Undian Selesai!", description: "Seluruh tim telah terbagi ke dalam grup kompetisi." });
+            toast({ title: "Undian selesai!", description: "Seluruh tim telah terbagi ke dalam grup kompetisi." });
         }
     }, 1200);
 
@@ -157,10 +156,10 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                 <div className="p-2 rounded-lg bg-primary/10 text-primary">
                     <Trophy className="w-6 h-6" />
                 </div>
-                <DialogTitle className="text-3xl font-black tracking-tighter">Undian Grup: {season?.name}</DialogTitle>
+                <DialogTitle className="text-3xl font-black tracking-tighter">Undian grup: {season?.name}</DialogTitle>
               </div>
               <DialogDescription className="text-base font-medium">
-                Sistem Seeded Draw: Pemain dibagi menjadi Pot Unggulan dan Non-Unggulan. Tim akan diundi secara acak bergantian antara Grup A dan Grup B untuk menjaga keseimbangan kompetisi.
+                Sistem seeded draw: Pemain dibagi menjadi pot unggulan dan penantang. Tim akan diundi secara acak bergantian antara grup A dan grup B untuk menjaga keseimbangan kompetisi.
               </DialogDescription>
             </DialogHeader>
             
@@ -176,8 +175,8 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                  <div className="space-y-8">
                     {!drawnGroups ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-500">
-                            <PotDisplay title="Pot 1" subtitle="Unggulan Utama" players={pot1} variant="primary" />
-                            <PotDisplay title="Pot 2" subtitle="Penantang" players={pot2} variant="muted" />
+                            <PotDisplay title="Pot 1" subtitle="Unggulan utama" players={pot1} variant="primary" />
+                            <PotDisplay title="Pot 2" subtitle="Penantang" players={pot2} variant="gold" />
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -214,14 +213,14 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                         ) : (
                             <>
                                 <Sparkles className="mr-2 h-5 w-5"/>
-                                Kunci & Simpan Grup
+                                Kunci & simpan grup
                             </>
                         )}
                     </Button>
                 ) : (
                     <Button onClick={handleDraw} className="w-full h-14 text-lg font-black tracking-tighter shadow-[0_10px_25px_rgba(204,253,1,0.2)]" disabled={isLoading || registeredPlayers.length < 2}>
                         <Shuffle className="mr-2 h-5 w-5"/>
-                        Mulai Undian Sekarang
+                        Mulai undian sekarang
                     </Button>
                 )}
             </DialogFooter>
@@ -232,25 +231,39 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
   );
 }
 
-const PotDisplay = ({ title, subtitle, players, variant }: { title: string; subtitle: string; players: PlayerInPot[]; variant: 'primary' | 'muted' }) => (
-    <Card className={cn("overflow-hidden border-2", variant === 'primary' ? "border-primary/30 bg-primary/5" : "border-muted/30 bg-muted/5")}>
+const PotDisplay = ({ title, subtitle, players, variant }: { title: string; subtitle: string; players: PlayerInPot[]; variant: 'primary' | 'gold' }) => (
+    <Card className={cn(
+        "overflow-hidden border-2 transition-all duration-300", 
+        variant === 'primary' 
+            ? "border-primary/30 bg-primary/5" 
+            : "border-yellow-500/30 bg-yellow-500/5 shadow-[0_0_20px_rgba(234,179,8,0.05)]"
+    )}>
         <CardHeader className="pb-4">
             <div className="flex flex-col items-center text-center gap-1">
-                <CardTitle className={cn("text-2xl font-black tracking-tighter", variant === 'primary' ? "text-primary" : "text-muted-foreground")}>{title}</CardTitle>
+                <CardTitle className={cn(
+                    "text-2xl font-black tracking-tighter", 
+                    variant === 'primary' ? "text-primary" : "text-yellow-500"
+                )}>{title}</CardTitle>
                 <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">{subtitle}</p>
-                <Badge variant="outline" className="h-6 font-black mt-1">{players.length} Pemain</Badge>
+                <Badge variant="outline" className={cn("h-6 font-black mt-1", variant === 'gold' && "border-yellow-500/50 text-yellow-500")}>{players.length} Pemain</Badge>
             </div>
         </CardHeader>
         <CardContent>
             <ScrollArea className="h-[300px]">
                 <div className="space-y-2 pr-4">
                     {players.map((player, idx) => (
-                        <div key={player.id} className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-white/5 hover:border-primary/30 transition-all group">
+                        <div key={player.id} className={cn(
+                            "flex items-center justify-between p-3 rounded-xl bg-background/50 border border-white/5 transition-all group",
+                            variant === 'primary' ? "hover:border-primary/30" : "hover:border-yellow-500/30"
+                        )}>
                            <div className="flex items-center gap-3">
-                               <span className="text-xs font-black opacity-30 group-hover:opacity-100 transition-opacity">#{idx + 1}</span>
+                               <span className={cn(
+                                   "text-xs font-black opacity-30 group-hover:opacity-100 transition-opacity",
+                                   variant === 'gold' && "group-hover:text-yellow-500"
+                                )}>#{idx + 1}</span>
                                <span className="font-bold text-sm">{player.playerName}</span>
                            </div>
-                           <Badge variant="secondary" className="text-[9px] font-bold">Lalu: {player.prevRank === Infinity ? 'N/A' : `Rank ${player.prevRank}`}</Badge>
+                           <Badge variant="secondary" className={cn("text-[9px] font-bold", variant === 'gold' && "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20")}>Lalu: {player.prevRank === Infinity ? 'N/A' : `Rank ${player.prevRank}`}</Badge>
                         </div>
                     ))}
                 </div>
