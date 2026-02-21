@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -13,13 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PlusCircle, Lock, Unlock } from 'lucide-react';
+import { PlusCircle, Lock, Unlock, Shield, LayoutGrid } from 'lucide-react';
 import type { Team, WithId } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 import { useSharedPassword } from '@/context/password-context';
+import { cn } from '@/lib/utils';
 
 
 export default function TeamsPage() {
@@ -76,37 +76,62 @@ export default function TeamsPage() {
 
 
   return (
-    <div className="container mx-auto px-4 py-8">
-       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="text-center mb-8">
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">
-            {t('teams_page_title')}
-            </h1>
-            <p className="mt-2 text-lg text-muted-foreground">
-              {t('teams_page_subtitle', { defaultValue: "A complete list of all registered teams in the league."})}
-            </p>
-        </div>
-        <div className="flex justify-end mb-8">
-            <div className="flex gap-2">
+    <div className="container mx-auto px-4 py-8 relative">
+       {/* Background decorative glows */}
+       <div className="absolute top-0 left-0 -z-10 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+       <div className="absolute top-1/2 right-0 -z-10 w-80 h-80 bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
+
+       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 border-b border-white/10 pb-10">
+            <div className="text-center md:text-left space-y-3">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        <Shield className="w-6 h-6" />
+                    </div>
+                    <h1 className="font-headline text-4xl sm:text-5xl font-black tracking-tighter text-primary uppercase italic">
+                        {t('teams_page_title')}
+                    </h1>
+                </div>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] max-w-lg">
+                  {t('teams_page_subtitle', { defaultValue: "Arsip resmi klub elit Engineering EightyEight."})}
+                </p>
+            </div>
+
+            <div className="flex items-center gap-3">
                 {isAdmin && (
-                  <Button onClick={handleAdd}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
+                  <Button onClick={handleAdd} className="h-12 px-6 font-black tracking-tighter text-lg gap-2 shadow-[0_0_20px_rgba(204,253,1,0.2)]">
+                      <PlusCircle className="w-5 h-5" />
                       {t('add_new_team')}
                   </Button>
                 )}
-                 <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline" disabled={!isPasswordLoaded}>
-                    {isAdmin ? <Unlock className="mr-2" /> : <Lock className="mr-2" />}
+                 <Button 
+                    onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} 
+                    variant="outline" 
+                    disabled={!isPasswordLoaded}
+                    className={cn(
+                        "h-12 px-6 font-black tracking-widest text-xs uppercase transition-all duration-500",
+                        isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "border-white/20"
+                    )}
+                >
+                    {isAdmin ? <Unlock className="mr-2 w-4 h-4" /> : <Lock className="mr-2 w-4 h-4" />}
                     {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                 </Button>
             </div>
         </div>
-        <TeamList onEdit={handleEdit} isAdmin={isAdmin} withAdminCheck={withAdminCheck} />
+
+        <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+                <LayoutGrid className="w-4 h-4 text-primary" />
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Authorized Club Members</h2>
+            </div>
+            <TeamList onEdit={handleEdit} isAdmin={isAdmin} withAdminCheck={withAdminCheck} />
+        </div>
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-            <DialogContent>
+            <DialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl">
             <DialogHeader>
-                <DialogTitle>{editingTeam ? t('edit_team_title') : t('add_new_team')}</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{editingTeam ? t('edit_team_title') : t('add_new_team')}</DialogTitle>
+                <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
                 {editingTeam ? t('edit_team_desc', { teamName: editingTeam.name}) : t('add_team_desc')}
                 </DialogDescription>
             </DialogHeader>
@@ -115,14 +140,14 @@ export default function TeamsPage() {
         </Dialog>
 
         <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}>
-            <DialogContent>
+            <DialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl">
                 <DialogHeader>
-                    <DialogTitle>{t('admin_auth')}</DialogTitle>
-                    <DialogDescription>{t('admin_auth_desc')}</DialogDescription>
+                    <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('admin_auth')}</DialogTitle>
+                    <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{t('admin_auth_desc')}</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="password-input" className="text-right">
+                    <Label htmlFor="password-input" className="text-right text-[10px] font-black uppercase tracking-widest">
                     {t('password')}
                     </Label>
                     <Input
@@ -130,13 +155,13 @@ export default function TeamsPage() {
                     type="password"
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
-                    className="col-span-3"
+                    className="col-span-3 h-12 bg-white/5 border-white/10"
                     onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
                     />
                 </div>
                 </div>
                 <DialogFooter>
-                <Button onClick={handlePasswordCheck}>{t('unlock')}</Button>
+                <Button onClick={handlePasswordCheck} className="w-full h-12 font-black tracking-tighter">{t('unlock')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -21,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { Pencil, Trash2, Shield } from 'lucide-react';
+import { Pencil, Trash2, Shield, LayoutGrid } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 
@@ -69,17 +68,13 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
 
   if (isLoading) {
     return (
-       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {[...Array(10)].map((_, i) => (
-          <Card key={i}>
-            <CardContent className="flex flex-col items-center justify-center p-4">
-               <Skeleton className="h-16 w-16 rounded-full mb-3" />
-               <Skeleton className="h-5 w-3/4" />
+          <Card key={i} className="h-48 border-white/5 bg-white/5 animate-pulse rounded-2xl">
+            <CardContent className="flex flex-col items-center justify-center p-6">
+               <Skeleton className="h-20 w-20 rounded-full mb-4" />
+               <Skeleton className="h-4 w-3/4" />
             </CardContent>
-             <CardFooter className="flex justify-center gap-2 p-2">
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-8 w-16" />
-            </CardFooter>
           </Card>
         ))}
       </div>
@@ -88,9 +83,10 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
   
   if (!sortedTeams || sortedTeams.length === 0) {
     return (
-      <div className="w-full overflow-hidden rounded-lg border bg-card p-8 text-center">
-        <h2 className="text-xl font-medium text-muted-foreground">{t('no_teams_found_title')}</h2>
-        <p className="text-sm text-muted-foreground mt-2">
+      <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-white/10 bg-card/40 p-16 text-center backdrop-blur-md">
+        <Shield className="w-16 h-16 text-white/10 mx-auto mb-4" />
+        <h2 className="text-xl font-black text-muted-foreground uppercase tracking-widest">{t('no_teams_found_title')}</h2>
+        <p className="text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">
           {t('no_teams_found_desc')}
         </p>
       </div>
@@ -99,45 +95,74 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
 
   return (
     <>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {sortedTeams.map((team: WithId<Team>) => (
-                <Card key={team.id} className="flex flex-col text-center">
-                    <CardContent className="flex flex-col flex-grow items-center justify-center p-4">
-                        <Avatar className="h-16 w-16 mb-3">
-                            <AvatarImage src={team.logoUrl} alt={`${team.name} logo`} />
-                            <AvatarFallback><Shield /></AvatarFallback>
-                        </Avatar>
-                        <p className="font-semibold text-sm">{team.name}</p>
-                    </CardContent>
-                    {isAdmin && (
-                        <CardFooter className="flex justify-center gap-2 p-2 border-t mt-auto">
-                            <Button variant="ghost" size="sm" onClick={() => onEdit(team)}>
-                                <Pencil className="h-3.5 w-3.5" />
-                                <span className="sr-only">{t('edit_team_title')}</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => confirmDelete(team)}>
-                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                <span className="sr-only">{t('delete_team')}</span>
-                            </Button>
-                        </CardFooter>
-                    )}
-                </Card>
+                <div key={team.id} className="group relative">
+                    {/* Background Glow Effect */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
+                    
+                    <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 overflow-hidden rounded-2xl">
+                        {/* Ghost Text Background */}
+                        <span className="absolute top-2 left-4 text-4xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors">
+                            {team.name}
+                        </span>
+
+                        <CardContent className="flex flex-col flex-grow items-center justify-center p-8 relative z-10">
+                            <div className="relative mb-6">
+                                {/* Logo Background Glow */}
+                                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                
+                                <Avatar className="h-24 w-24 border-4 border-white/5 shadow-2xl group-hover:border-primary transition-all duration-500 group-hover:scale-110">
+                                    <AvatarImage src={team.logoUrl} alt={`${team.name} logo`} />
+                                    <AvatarFallback className="bg-white/5"><Shield className="h-12 w-12 text-white/10" /></AvatarFallback>
+                                </Avatar>
+                            </div>
+                            
+                            <p className="font-black text-lg text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-300">
+                                {team.name}
+                            </p>
+                        </CardContent>
+
+                        {isAdmin && (
+                            <CardFooter className="flex justify-center gap-2 p-3 border-t border-white/5 bg-black/20 backdrop-blur-md mt-auto">
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => onEdit(team)}
+                                    className="h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary transition-colors border border-white/5"
+                                >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                    <span className="sr-only">{t('edit_team_title')}</span>
+                                </Button>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => confirmDelete(team)}
+                                    className="h-9 w-9 p-0 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <span className="sr-only">{t('delete_team')}</span>
+                                </Button>
+                            </CardFooter>
+                        )}
+                    </Card>
+                </div>
             ))}
         </div>
 
         <AlertDialog open={!!deletingTeam} onOpenChange={(isOpen) => !isOpen && setDeletingTeam(null)}>
-            <AlertDialogContent>
+            <AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl">
                 <AlertDialogHeader>
-                <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle>
+                <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
                     {t('delete_team_confirm_desc', { teamName: deletingTeam?.name })}
                 </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                <AlertDialogFooter className="gap-3">
+                <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                     onClick={handleDelete}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12"
                 >
                     {t('delete')}
                 </AlertDialogAction>
