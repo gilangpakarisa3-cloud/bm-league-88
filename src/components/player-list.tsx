@@ -163,10 +163,10 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                             </Avatar>
                             
                             {/* Performance Indicator Badge (OVR) with Rank */}
-                            <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground h-12 w-12 rounded-lg flex flex-col items-center justify-center border-2 border-background shadow-lg rotate-12 group-hover:rotate-0 transition-transform">
-                                <span className="text-[7px] font-black leading-none uppercase opacity-70">#{player.ovrRank}</span>
-                                <span className="text-[10px] font-black leading-none uppercase">OVR</span>
-                                <span className="text-sm font-black leading-none">{player.ovrRating.toFixed(0)}</span>
+                            <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground h-14 w-14 rounded-xl flex flex-col items-center justify-center border-2 border-background shadow-2xl rotate-12 group-hover:rotate-0 transition-all duration-500">
+                                <span className="text-sm font-black leading-none">#{player.ovrRank}</span>
+                                <span className="text-[8px] font-black leading-none uppercase opacity-60 mt-1 mb-0.5">OVR</span>
+                                <span className="text-base font-black leading-none italic">{player.ovrRating.toFixed(0)}</span>
                             </div>
                         </div>
                     </div>
