@@ -225,7 +225,7 @@ export function PlayerPerformanceDialog({
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
-        if (avgGF > 1.8) {
+        if (avgGF > 1.6) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
         } else if (avgGA < 1.2 && stats.played >= 3) {
