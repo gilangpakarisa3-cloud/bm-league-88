@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, getDocs, where, runTransaction, Timestamp, orderBy, increment } from 'firebase/firestore';
-import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry, MatchRound } from '@/lib/types';
+import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -47,16 +47,7 @@ import { Badge } from '@/components/ui/badge';
 const LEAGUE_ID = 'main-league';
 
 /**
- * UPDATED 12-Team Double Elimination Logic:
- * M1-M4: UB Quarter-Finals (Ranks 1-4)
- * M5-M8: LB Round 1 (Ranks 5-6 vs Losers UB QF)
- * M9-M10: UB Semis
- * M11-M12: LB Round 2 (Winners M5-M8 play each other)
- * M13-M14: LB Round 3 (Winners M11-M12 vs Losers UB Semi)
- * M15: UB Final
- * M16: LB Semifinal (Winners M13-M14)
- * M17: LB Final (Winner M16 vs Loser UB Final M15)
- * M18: Grand Final
+ * Playoff Successor Map for Bracket Logic
  */
 const PLAYOFF_SUCCESSOR_MAP: Record<string, { winner: { bid: string, slot: 1 | 2 }, loser?: { bid: string, slot: 1 | 2 } }> = {
     // Upper Bracket
@@ -287,8 +278,8 @@ export default function FixturesPage() {
 
             // 1. Revert old stats from Player collection if match was already completed
             if (orig.isCompleted) {
-                const oldS1 = isMatchBo3 ? orig.player1Wins! : orig.player1Score!;
-                const oldS2 = isMatchBo3 ? orig.player2Wins! : orig.player2Score!;
+                const oldS1 = isMatchBo3 ? (orig.player1Wins || 0) : (orig.player1Score || 0);
+                const oldS2 = isMatchBo3 ? (orig.player2Wins || 0) : (orig.player2Score || 0);
                 const outcome = getOutcome(oldS1, oldS2);
                 const isCoop = sData.type === 'Co-Op';
                 
@@ -310,8 +301,10 @@ export default function FixturesPage() {
                     ]);
                     if (e1.exists() && e2.exists()) {
                         const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                        await processRevert(d1.player1Id, outcome.p1, 0, 0); await processRevert(d1.player2Id, outcome.p1, 0, 0);
-                        await processRevert(d2.player1Id, outcome.p2, 0, 0); await processRevert(d2.player2Id, outcome.p2, 0, 0);
+                        await processRevert(d1.player1Id, outcome.p1, values.player1Score || 0, values.player2Score || 0);
+                        await processRevert(d1.player2Id, outcome.p1, values.player1Score || 0, values.player2Score || 0);
+                        await processRevert(d2.player1Id, outcome.p2, values.player2Score || 0, values.player1Score || 0);
+                        await processRevert(d2.player2Id, outcome.p2, values.player2Score || 0, values.player1Score || 0);
                     }
                 } else {
                     await processRevert(orig.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
@@ -343,15 +336,17 @@ export default function FixturesPage() {
                 ]);
                 if (e1.exists() && e2.exists()) {
                     const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                    await processApply(d1.player1Id, newOutcome.p1, 0, 0); await processApply(d1.player2Id, newOutcome.p1, 0, 0);
-                    await processApply(d2.player1Id, newOutcome.p2, 0, 0); await processApply(d2.player2Id, newOutcome.p2, 0, 0);
+                    await processApply(d1.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
+                    await processApply(d1.player2Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
+                    await processApply(d2.player1Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
+                    await processApply(d2.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
                 }
             } else {
                 await processApply(orig.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
                 await processApply(orig.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
             }
 
-            // 3. Bracket Logic
+            // 3. Bracket & Table Logic
             if (orig.round && orig.round !== 'Group' && orig.bracketId) {
                 const winnerId = isMatchBo3 ? (values.player1Wins > values.player2Wins ? orig.player1Id : orig.player2Id) : (values.player1Score > values.player2Score ? orig.player1Id : orig.player2Id);
                 const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
@@ -367,7 +362,7 @@ export default function FixturesPage() {
                         if (!losSnap.empty) transaction.update(losSnap.docs[0].ref, { [`player${succ.loser.slot}Id`]: loserId });
                     }
                 }
-            } else if (orig.round === 'Group') {
+            } else if (orig.round === 'Group' || !orig.round) {
                 const tblName = sData.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
                 let p1S, p2S;
                 if (sData.type === 'Co-Op') {
@@ -401,7 +396,7 @@ export default function FixturesPage() {
                 }
             }
             const [h, m] = values.time.split(':').map(Number); const ts = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
-            transaction.update(matchRef, { ...values, matchDate: ts, isCompleted: true, ...(isMatchBo3 ? { player1Score: null, player2Score: null } : { player1Wins: null, player2Wins: null }) });
+            transaction.update(matchRef, { ...values, matchDate: ts, isCompleted: true, ...(isMatchBo3 ? { player1Score: values.player1Score || 0, player2Score: values.player2Score || 0 } : { player1Wins: null, player2Wins: null }) });
         });
         toast({ title: t('score_updated_title') });
     } catch (e) { toast({ variant: 'destructive', title: t('update_failed_title'), description: (e as Error).message }); }
@@ -439,8 +434,8 @@ export default function FixturesPage() {
             };
 
             // 1. Revert Stats from Player collection
-            const oldS1 = isMatchBo3 ? mToRev.player1Wins! : mToRev.player1Score!;
-            const oldS2 = isMatchBo3 ? mToRev.player2Wins! : mToRev.player2Score!;
+            const oldS1 = isMatchBo3 ? (mToRev.player1Wins || 0) : (mToRev.player1Score || 0);
+            const oldS2 = isMatchBo3 ? (mToRev.player2Wins || 0) : (mToRev.player2Score || 0);
             const outcome = getOutcome(oldS1, oldS2);
             const isCoop = sData.type === 'Co-Op';
 
@@ -462,8 +457,10 @@ export default function FixturesPage() {
                 ]);
                 if (e1.exists() && e2.exists()) {
                     const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                    await processRevert(d1.player1Id, outcome.p1, 0, 0); await processRevert(d1.player2Id, outcome.p1, 0, 0);
-                    await processRevert(d2.player1Id, outcome.p2, 0, 0); await processRevert(d2.player2Id, outcome.p2, 0, 0);
+                    await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
+                    await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
+                    await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
+                    await processRevert(d2.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
                 }
             } else {
                 await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
@@ -471,12 +468,12 @@ export default function FixturesPage() {
             }
 
             // 2. Revert League Table
-            if (mToRev.round === 'Group') {
+            if (mToRev.round === 'Group' || !mToRev.round) {
                 const tbl = isCoop ? 'coopLeagueTable' : 'leagueTable';
                 let p1S, p2S;
                 if (isCoop) {
                     const [d1, d2] = await Promise.all([transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player1Id)), transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player2Id))]);
-                    p1S = { docs: [d1] }; p2S = { docs: [d2] };
+                    p1S = { docs: d1.exists() ? [d1] : [] }; p2S = { docs: d2.exists() ? [d2] : [] };
                 } else {
                     const qCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`);
                     const [sn1, sn2] = await Promise.all([getDocs(query(qCol, where('playerId', '==', mToRev.player1Id))), getDocs(query(qCol, where('playerId', '==', mToRev.player2Id)))]); p1S = sn1; p2S = sn2;

@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PasswordManager } from '@/components/password-manager';
 import { useTranslation } from '@/hooks/use-translation';
-import { KeyRound, RefreshCw, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { KeyRound, RefreshCw, Loader2, AlertTriangle, Database } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, getDocs, writeBatch, doc, query, where } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import type { Season, Match, Player, CoOpLeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,43 +39,57 @@ export default function SettingsPage() {
         }
     };
 
+    /**
+     * SYNC LOGIC:
+     * Scans ALL seasons (Season 1, 2, 3, etc.) and ALL matches.
+     * Recalculates the permanent "Overall" stats for every player.
+     */
     const handleSyncCareerStats = async () => {
         if (!firestore) return;
         setIsSyncing(true);
 
         try {
-            // 1. Get all players
+            // 1. Get all registered players to reset their stats
             const playersSnap = await getDocs(collection(firestore, 'players'));
             const playerStats: Record<string, any> = {};
             playersSnap.docs.forEach(d => {
-                playerStats[d.id] = { overallPlayed: 0, overallWin: 0, overallDraw: 0, overallLoss: 0, overallGoalsFor: 0, overallGoalsAgainst: 0 };
+                playerStats[d.id] = { 
+                    overallPlayed: 0, 
+                    overallWin: 0, 
+                    overallDraw: 0, 
+                    overallLoss: 0, 
+                    overallGoalsFor: 0, 
+                    overallGoalsAgainst: 0 
+                };
             });
 
-            // 2. Get all seasons
+            // 2. Get all seasons from the league
             const seasonsSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons`));
             
-            // 3. For each season, get matches and co-op table
+            // 3. Iterate through every single season
             for (const seasonDoc of seasonsSnap.docs) {
                 const sId = seasonDoc.id;
                 const sData = seasonDoc.data() as Season;
                 const isCoop = sData.type === 'Co-Op';
 
-                // Map co-op entries to players if needed
-                const coopPlayers: Record<string, { p1: string, p2: string }> = {};
+                // Map co-op teams back to individual players
+                const coopPlayersMap: Record<string, { p1: string, p2: string }> = {};
                 if (isCoop) {
                     const coopSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/coopLeagueTable`));
                     coopSnap.docs.forEach(d => {
                         const data = d.data() as CoOpLeagueEntry;
-                        coopPlayers[d.id] = { p1: data.player1Id, p2: data.player2Id };
+                        coopPlayersMap[d.id] = { p1: data.player1Id, p2: data.player2Id };
                     });
                 }
 
+                // Get all matches for this specific season
                 const matchesSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/matches`));
                 
                 matchesSnap.docs.forEach(mDoc => {
                     const m = mDoc.data() as Match;
                     if (!m.isCompleted) return;
 
+                    // Determine format (Bo3 for Co-Op and Playoffs)
                     const isMatchBo3 = isCoop || (m.round && m.round !== 'Group');
                     const s1 = isMatchBo3 ? (m.player1Wins || 0) : (m.player1Score || 0);
                     const s2 = isMatchBo3 ? (m.player2Wins || 0) : (m.player2Score || 0);
@@ -95,15 +109,17 @@ export default function SettingsPage() {
                         if (res === 'W') p.overallWin++;
                         else if (res === 'L') p.overallLoss++;
                         else p.overallDraw++;
+                        
+                        // Co-Op matches don't usually track individual GF/GA in table but we sum them if present
                         p.overallGoalsFor += gf;
                         p.overallGoalsAgainst += ga;
                     };
 
                     if (isCoop) {
-                        const pair1 = coopPlayers[m.player1Id];
-                        const pair2 = coopPlayers[m.player2Id];
-                        if (pair1) { addStats(pair1.p1, res1, 0, 0); addStats(pair1.p2, res1, 0, 0); }
-                        if (pair2) { addStats(pair2.p1, res2, 0, 0); addStats(pair2.p2, res2, 0, 0); }
+                        const pair1 = coopPlayersMap[m.player1Id];
+                        const pair2 = coopPlayersMap[m.player2Id];
+                        if (pair1) { addStats(pair1.p1, res1, gf1, ga1); addStats(pair1.p2, res1, gf1, ga1); }
+                        if (pair2) { addStats(pair2.p1, res2, gf2, ga2); addStats(pair2.p2, res2, gf2, ga2); }
                     } else {
                         addStats(m.player1Id, res1, gf1, ga1);
                         addStats(m.player2Id, res2, gf2, ga2);
@@ -111,17 +127,20 @@ export default function SettingsPage() {
                 });
             }
 
-            // 4. Batch update players
+            // 4. Update the database in one go
             const batch = writeBatch(firestore);
             Object.entries(playerStats).forEach(([id, stats]) => {
                 batch.update(doc(firestore, 'players', id), stats);
             });
             await batch.commit();
 
-            toast({ title: 'Sinkronisasi Berhasil!', description: 'Statistik karir seluruh pemain telah diperbarui berdasarkan histori pertandingan.' });
+            toast({ 
+                title: 'Rekap Selesai!', 
+                description: 'Seluruh data Season 1, 2, dan 3 telah berhasil dikompilasi ke dalam Career Overview.' 
+            });
         } catch (error) {
             console.error("Sync error:", error);
-            toast({ variant: 'destructive', title: 'Gagal Sinkronisasi', description: 'Terjadi kesalahan saat menghitung ulang statistik.' });
+            toast({ variant: 'destructive', title: 'Gagal Sinkronisasi', description: 'Terjadi kesalahan saat memproses data histori.' });
         } finally {
             setIsSyncing(false);
         }
@@ -132,7 +151,7 @@ export default function SettingsPage() {
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto space-y-8">
                 <div className="text-center">
                     <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary uppercase italic">
-                        {t('settings_page_title', { defaultValue: 'Aplication Settings' })}
+                        {t('settings_page_title', { defaultValue: 'Application Settings' })}
                     </h1>
                     <p className="mt-2 text-lg text-muted-foreground font-bold tracking-tight">
                         {t('settings_page_subtitle', { defaultValue: 'Kelola konfigurasi global liga Anda.' })}
@@ -140,7 +159,8 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="grid gap-6">
-                    <Card className="border-2 border-primary/20 bg-card/60 backdrop-blur-xl">
+                    <Card className="border-2 border-primary/20 bg-card/60 backdrop-blur-xl overflow-hidden relative group">
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-widest text-primary">
                                 <KeyRound className="w-5 h-5" /> Keamanan Admin
@@ -154,31 +174,38 @@ export default function SettingsPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-2 border-amber-500/20 bg-card/60 backdrop-blur-xl">
+                    <Card className="border-2 border-amber-500/20 bg-card/60 backdrop-blur-xl overflow-hidden relative group">
+                        <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-widest text-amber-500">
-                                <RefreshCw className={cn("w-5 h-5", isSyncing && "animate-spin")} /> Sinkronisasi Karir
+                                <RefreshCw className={cn("w-5 h-5", isSyncing && "animate-spin")} /> Rekap Histori Musim
                             </CardTitle>
-                            <CardDescription className="text-xs font-bold text-muted-foreground uppercase">Hitung ulang statistik karir (Win/Loss/GP) dari semua musim.</CardDescription>
+                            <CardDescription className="text-xs font-bold text-muted-foreground uppercase">Kompilasi data Season 1, 2, 3 ke Career Overview.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-3 items-start">
                                 <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                                <p className="text-xs font-bold text-amber-200/70 leading-relaxed">Gunakan fitur ini jika angka statistik karir di halaman Pemain terasa tidak akurat atau "0" padahal sudah ada pertandingan yang selesai.</p>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-black text-amber-200 uppercase">Perhatian Data Histori</p>
+                                    <p className="text-[10px] font-bold text-amber-200/60 leading-relaxed">Sistem akan memindai Season 1, 2, dan 3 untuk menghitung ulang total Menang/Kalah/Poin setiap pemain agar tampil akurat di halaman Profil.</p>
+                                </div>
                             </div>
                             <Button 
                                 onClick={() => setPasswordPromptOpen(true)} 
                                 disabled={isSyncing || !isPasswordLoaded} 
                                 variant="outline"
-                                className="w-full h-12 font-black tracking-tighter uppercase italic border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                                className="w-full h-14 font-black tracking-tighter uppercase italic border-amber-500/30 text-amber-500 hover:bg-amber-500/10 gap-2"
                             >
                                 {isSyncing ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Sedang Menghitung...
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        Sedang Merekap...
                                     </>
                                 ) : (
-                                    <>Sinkronkan Seluruh Data Musim</>
+                                    <>
+                                        <Database className="h-5 w-5" />
+                                        Sinkronkan Seluruh Season
+                                    </>
                                 )}
                             </Button>
                         </CardContent>
@@ -190,8 +217,8 @@ export default function SettingsPage() {
                 <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
                     <DialogContent className="border-amber-500/50 bg-card/95 backdrop-blur-xl">
                         <DialogHeader>
-                            <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-amber-500">Otorisasi Sinkronisasi</DialogTitle>
-                            <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tindakan ini akan memindai database secara menyeluruh.</DialogDescription>
+                            <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-amber-500">Otorisasi Rekap Data</DialogTitle>
+                            <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tindakan ini akan memindai database secara menyeluruh dari Season 1.</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
