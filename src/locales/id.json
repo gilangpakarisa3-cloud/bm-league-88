@@ -1,4 +1,3 @@
-
 {
   "header_league": "Liga",
   "header_fixtures": "Jadwal",
@@ -261,5 +260,7 @@
   "generate_knockout_fixtures": "Buat Babak Gugur",
   "finish_group_early_button": "Selesaikan Grup & Lanjut Playoff",
   "finish_group_early_title": "Selesaikan Fase Grup Lebih Awal?",
-  "finish_group_early_desc": "Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan 4 tim teratas dari masing-masing grup saat ini akan melaju ke babak playoff."
+  "finish_group_early_desc": "Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan 4 tim teratas dari masing-masing grup saat ini akan melaju ke babak playoff.",
+  "fun_stats_best_gd": "Selisih Gol Terbaik",
+  "fun_stats_best_gd_desc": "Pemain dengan selisih gol (SG) tertinggi."
 }

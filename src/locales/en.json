@@ -1,4 +1,3 @@
-
 {
   "header_league": "League",
   "header_fixtures": "Fixtures",
@@ -261,5 +260,7 @@
   "generate_knockout_fixtures": "Generate Knockout Fixtures",
   "finish_group_early_button": "Finish Group & Start Playoffs",
   "finish_group_early_title": "Finish Group Stage Early?",
-  "finish_group_early_desc": "There are still unplayed matches. If you proceed, these matches will be ignored and the current top 4 teams from each group will advance to the playoffs."
+  "finish_group_early_desc": "There are still unplayed matches. If you proceed, these matches will be ignored and the current top 4 teams from each group will advance to the playoffs.",
+  "fun_stats_best_gd": "Best Goal Difference",
+  "fun_stats_best_gd_desc": "Player with the highest goal difference."
 }

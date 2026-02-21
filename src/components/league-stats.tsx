@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { LeagueEntry, Player, Team, WithId, Season } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import { Award, ShieldCheck, User, ShieldAlert, TrendingUp, Handshake, Flame } from "lucide-react";
+import { Award, ShieldCheck, User, ShieldAlert, TrendingUp, Handshake, Flame, Target } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
 import { Badge } from "./ui/badge";
@@ -38,6 +38,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 unbeaten: [],
                 bestAttacker: [],
                 bestDefense: [],
+                bestGD: [],
                 worstDefender: [],
                 kingOfDraws: [],
                 championshipContenders: [],
@@ -46,7 +47,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
 
         const playersWhoPlayed = tableData.filter(p => p.played > 0);
         if (playersWhoPlayed.length === 0) {
-             return { mostWins: [], unbeaten: [], bestAttacker: [], bestDefense: [], worstDefender: [], kingOfDraws: [], championshipContenders: [] };
+             return { mostWins: [], unbeaten: [], bestAttacker: [], bestDefense: [], bestGD: [], worstDefender: [], kingOfDraws: [], championshipContenders: [] };
         }
 
         const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
@@ -56,6 +57,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
         
         let bestAttacker: any[] = [];
         let bestDefense: any[] = [];
+        let bestGD: any[] = [];
         let worstDefender: any[] = [];
         let kingOfDraws: any[] = [];
         let championshipContenders: any[] = [];
@@ -67,6 +69,10 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             const maxGoalsFor = Math.max(...playersWhoPlayed.map(p => p.goalsFor || 0));
             bestAttacker = playersWhoPlayed.filter(p => p.goalsFor === maxGoalsFor && maxGoalsFor > 0);
             
+            // Best GD logic
+            const maxGoalDiff = Math.max(...playersWhoPlayed.map(p => p.goalDifference || 0));
+            bestGD = playersWhoPlayed.filter(p => p.goalDifference === maxGoalDiff && maxGoalDiff > 0);
+
             // Best Defense logic: fewest goals conceded with min 3 matches
             const qualifiedForDefense = playersWhoPlayed.filter(p => p.played >= 3);
             if (qualifiedForDefense.length > 0) {
@@ -88,7 +94,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             }
         }
 
-        return { mostWins, unbeaten, bestAttacker, bestDefense, worstDefender, kingOfDraws, championshipContenders };
+        return { mostWins, unbeaten, bestAttacker, bestDefense, bestGD, worstDefender, kingOfDraws, championshipContenders };
     }, [tableData, seasonType]);
 
     if (isLoading) {
@@ -104,7 +110,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
     
     const showUnbeaten = stats.unbeaten.length > 0;
 
-    if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.bestDefense.length === 0 && stats.worstDefender.length === 0 && stats.kingOfDraws.length === 0 && stats.championshipContenders.length === 0) {
+    if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.bestDefense.length === 0 && stats.bestGD.length === 0 && stats.worstDefender.length === 0 && stats.kingOfDraws.length === 0 && stats.championshipContenders.length === 0) {
         return (
              <Card className="border-dashed border-2">
                 <CardContent className="p-6 text-center text-muted-foreground text-sm">
@@ -202,6 +208,18 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 />
             )}
 
+            {/* 1.5. Selisih Gol Terbaik (Best GA) */}
+            {seasonType !== 'Co-Op' && stats.bestGD.length > 0 && (
+                <StatCard 
+                    title={t('fun_stats_best_gd')}
+                    desc={t('fun_stats_best_gd_desc')}
+                    icon={TrendingUp}
+                    players={stats.bestGD}
+                    valueKey="goalDifference"
+                    valueSuffix={t('gd_short')}
+                />
+            )}
+
             {/* 2. Pertahanan Terbaik */}
             {seasonType !== 'Co-Op' && stats.bestDefense.length > 0 && (
                 <StatCard 
@@ -219,7 +237,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 <StatCard 
                     title={t('fun_stats_best_attacker')}
                     desc={t('fun_stats_best_attacker_desc')}
-                    icon={TrendingUp}
+                    icon={Target}
                     players={stats.bestAttacker}
                     valueKey="goalsFor"
                     valueSuffix="Gol"
