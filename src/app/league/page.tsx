@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Group, Swords } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, DollarSign, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -782,21 +782,21 @@ export default function LeaguePage() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
           <div className="space-y-2 flex-1">
-            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary">{t('league_standings_page_title')}</h1>
+            <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary uppercase italic pr-4">{t('league_standings_page_title')}</h1>
             {activeSeason && (
               <div className="space-y-1">
-                <p className="text-xl font-bold text-white/90 tracking-tight">{activeSeason.name}</p>
+                <p className="text-xl font-black text-white/90 tracking-tight uppercase italic">{activeSeason.name}</p>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                  <Badge className="bg-primary/20 text-primary border-primary/30 font-bold tracking-widest text-[10px]">{activeSeason.status}</Badge>
-                  {formattedDateRange && <p className="text-sm font-medium opacity-70 text-white/60">{formattedDateRange}</p>}
+                  <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[10px] uppercase">{activeSeason.status}</Badge>
+                  {formattedDateRange && <p className="text-xs font-black opacity-70 text-white/60 uppercase tracking-widest">{formattedDateRange}</p>}
                 </div>
               </div>
             )}
             {matches && matches.length > 0 && (
               <div className="max-w-xs pt-2">
-                <Progress value={seasonProgress} className="h-1.5" />
-                <p className="text-[10px] font-bold mt-1 tracking-tighter opacity-70 text-primary">
-                  {completedMatchesCount} / {matches.length} Pertandingan Selesai ({seasonProgress.toFixed(0)}%)
+                <Progress value={seasonProgress} className="h-1.5 bg-white/5" />
+                <p className="text-[10px] font-black mt-1 tracking-widest uppercase opacity-70 text-primary">
+                  {completedMatchesCount} / {matches.length} Laga tuntas ({seasonProgress.toFixed(0)}%)
                 </p>
               </div>
             )}
@@ -811,13 +811,13 @@ export default function LeaguePage() {
             isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
           <div className="flex items-center gap-2">
-            <Badge className="text-[10px] font-black tracking-widest bg-primary text-primary-foreground border-primary h-10 px-3 hidden sm:flex shadow-[0_0_10px_rgba(204,253,1,0.4)]">Musim</Badge>
+            <Badge className="text-[10px] font-black tracking-widest bg-primary text-primary-foreground border-primary h-10 px-3 hidden sm:flex shadow-[0_0_10px_rgba(204,253,1,0.4)] uppercase">Musim</Badge>
             <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                <SelectTrigger className="w-full sm:w-[200px] h-10 bg-background/50 border-primary/30">
+                <SelectTrigger className="w-full sm:w-[200px] h-10 bg-background/50 border-primary/30 font-bold uppercase text-xs">
                     <SelectValue placeholder={t('select_a_season')} />
                 </SelectTrigger>
                 <SelectContent>
-                    {seasons?.map(season => <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>)}
+                    {seasons?.map(season => <SelectItem key={season.id} value={season.id} className="uppercase font-bold text-xs">{season.name}</SelectItem>)}
                 </SelectContent>
             </Select>
             {isAdmin && (
@@ -835,26 +835,26 @@ export default function LeaguePage() {
             <div className="flex flex-wrap items-center gap-2">
                 {activeSeason.status === 'Not Started' && (
                     <div className="flex flex-wrap gap-2">
-                        <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</Button>
-                        {activeSeason?.type === 'Co-Op' && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30"><Shuffle className="mr-2 h-4 w-4" />Undi Pasangan</Button>}
-                        {activeSeason?.type === 'Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30"><Group className="mr-2 h-4 w-4" />Undi Grup</Button>}
-                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-bold border-primary/30"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</Button>
-                        <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant={(!hasFixtures || (sortedTable || []).length < 2) ? "outline" : "default"} size="sm" className="h-10 px-4 font-bold" disabled={!hasFixtures || (sortedTable || []).length < 2}><Play className="mr-2 h-4 w-4" />{t('start_season')}</Button>
+                        <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" size="sm" className="h-10 px-4 font-black text-[10px] uppercase tracking-widest border-primary/30"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</Button>
+                        {activeSeason?.type === 'Co-Op' && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-black text-[10px] uppercase tracking-widest border-primary/30"><Shuffle className="mr-2 h-4 w-4" />Undi Pasangan</Button>}
+                        {activeSeason?.type === 'Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-black text-[10px] uppercase tracking-widest border-primary/30"><Group className="mr-2 h-4 w-4" />Undi Grup</Button>}
+                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2} variant="outline" size="sm" className="h-10 px-4 font-black text-[10px] uppercase tracking-widest border-primary/30"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</Button>
+                        <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant={(!hasFixtures || (sortedTable || []).length < 2) ? "outline" : "default"} size="sm" className="h-10 px-4 font-black text-[10px] uppercase tracking-widest" disabled={!hasFixtures || (sortedTable || []).length < 2}><Play className="mr-2 h-4 w-4" />{t('start_season')}</Button>
                     </div>
                 )}
                 {activeSeason.status === 'In Progress' && (
                     <div className="flex flex-wrap gap-2">
                         {activeSeason?.type === 'Hybrid' && groupStageMatches.length > 0 && !hasPlayoffs && (
-                            <Button onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateDoubleElimination) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} variant={areGroupStageMatchesComplete ? "default" : "outline"} size="sm" className="h-10 px-4 font-bold"><Swords className="mr-2 h-4 w-4" />Start Playoff (Double Elim)</Button>
+                            <Button onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateDoubleElimination) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} variant={areGroupStageMatchesComplete ? "default" : "outline"} size="sm" className="h-10 px-4 font-black text-[10px] uppercase tracking-widest"><Swords className="mr-2 h-4 w-4" />Start Playoff (Double Elim)</Button>
                         )}
-                        <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" size="sm" className="h-10 px-4 font-bold"><Flag className="mr-2 h-4 w-4" />{t('finish_season')}</Button>
+                        <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" size="sm" className="h-10 px-4 font-black text-[10px] uppercase tracking-widest"><Flag className="mr-2 h-4 w-4" />{t('finish_season')}</Button>
                     </div>
                 )}
             </div>
           )}
 
           <div className={cn("flex items-center gap-2", isAdmin && "ml-auto")}>
-            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline" size="sm" className={cn("h-10 px-4 font-bold border-primary/30", isAdmin && "bg-primary/10 text-primary border-primary/50")}>{isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}{isAdmin ? t('lock_admin') : t('unlock_admin')}</Button>
+            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline" size="sm" className={cn("h-10 px-4 font-black text-[10px] uppercase tracking-widest border-primary/30", isAdmin && "bg-primary/10 text-primary border-primary/50 shadow-[0_0_15px_rgba(204,253,1,0.1)]")}>{isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}{isAdmin ? t('lock_admin') : t('unlock_admin')}</Button>
             <Button onClick={handleShareParticipants} variant="ghost" size="sm" className="h-10 w-10 p-0" disabled={!sortedTable || sortedTable.length === 0} title={t('share_participants')}><Share2 className="h-4 w-4" /></Button>
             <Button asChild variant="ghost" size="sm" className="h-10 w-10 p-0" title={t('view_champion')}><Link href={`/league/winner?seasonId=${activeSeasonId}`}><Trophy className="h-4 w-4 text-yellow-400" /></Link></Button>
           </div>
@@ -879,40 +879,71 @@ export default function LeaguePage() {
             </div>
             <div className="lg:col-span-1 space-y-6">
                 <div className="flex flex-col gap-1 items-center justify-center">
-                    <h2 className="font-bold text-2xl tracking-tighter text-primary">Statistik Musim</h2>
-                    <div className="h-1 w-12 bg-primary rounded-full shadow-[0_0_10px_rgba(204,253,1,0.5)]" />
+                    <h2 className="font-black text-xl uppercase tracking-[0.3em] text-primary italic pr-2">Statistik Musim</h2>
+                    <div className="h-1 w-12 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
                 </div>
+                
                 <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} />
+                
                 {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
-                    <Card className="group relative overflow-hidden transition-all duration-300 border-2 border-primary/20 hover:border-primary bg-card hover:shadow-lg hover:shadow-primary/10">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none" />
-                        <CardHeader className="relative z-10">
-                            <CardTitle className="flex items-center gap-3 text-sm font-bold tracking-tight"><div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300"><DollarSign className="w-5 h-5" /></div>Keuangan Musim</CardTitle>
-                            <CardDescription className="text-[10px] font-medium opacity-80">Lacak pembayaran registrasi dan total hadiah.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4 relative z-10">
-                             <div className="border-2 border-primary/10 bg-muted/20 p-4 rounded-xl text-center space-y-1 group-hover:border-primary/30 transition-colors">
-                                <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Total Hadiah Terkumpul</p>
-                                <p className="text-3xl font-bold text-primary drop-shadow-sm">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}</p>
-                                {sponsorshipPool > 0 && <p className="text-[9px] text-foreground font-bold tracking-tighter mt-1 opacity-80">(<span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</span> pendaftaran + <span className='text-primary'>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</span> sponsor)</p>}
-                                <p className="text-[10px] font-bold text-foreground mt-2 border-t border-primary/10 pt-2"><span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> dari <span className="text-primary">{registeredPlayers?.length}</span> pemain lunas</p>
-                            </div>
-                            <div>
-                                <h4 className="text-[10px] font-bold tracking-widest text-muted-foreground mb-3 flex items-center gap-2 uppercase"><Users className="w-3 h-3" /> Status Pembayaran</h4>
-                                <div className="max-h-60 overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-primary/20">
-                                    {(registeredPlayers || []).map(player => (
-                                        <div key={player.id} className="flex items-center justify-between bg-muted/10 p-2 rounded-lg border border-transparent hover:border-primary/20 transition-all">
-                                            <div className='flex items-center gap-2 overflow-hidden'>
-                                                <Avatar className="h-6 w-6 border">
-                                                    <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
-                                                    <AvatarFallback><User className="w-3 h-3 text-muted-foreground" /></AvatarFallback>
-                                                </Avatar>
-                                                <Label htmlFor={`paid-${player.id}`} className="text-xs font-bold truncate cursor-pointer">{player.playerName}</Label>
-                                            </div>
-                                            <Checkbox id={`paid-${player.id}`} checked={!!player.hasPaid} onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} disabled={!isAdmin} className="border-primary/50" />
-                                        </div>
-                                    ))}
+                    <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-primary/20 hover:border-primary/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_30px_rgba(204,253,1,0.15)]">
+                        <span className="absolute -bottom-2 -right-2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none">FUNDS</span>
+                        <CardHeader className="relative z-10 pb-4">
+                            <CardTitle className="flex items-center gap-3 text-xs font-black uppercase tracking-widest italic pr-2">
+                                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 shadow-lg">
+                                    <Wallet className="w-5 h-5" />
                                 </div>
+                                Keuangan Musim
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6 relative z-10">
+                             <div className="bg-black/40 border-2 border-primary/10 p-5 rounded-2xl text-center space-y-1 group-hover:border-primary/30 transition-all shadow-inner">
+                                <p className="text-[9px] font-black text-muted-foreground tracking-[0.2em] uppercase mb-1">Total Hadiah Terkumpul</p>
+                                <p className="text-3xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.4)] tabular-nums">
+                                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
+                                </p>
+                                {sponsorshipPool > 0 && (
+                                    <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-white/5">
+                                        <Badge variant="outline" className="text-[8px] font-black border-primary/30 text-primary/80 uppercase">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge>
+                                        <Badge variant="outline" className="text-[8px] font-black border-yellow-500/30 text-yellow-500/80 uppercase">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge>
+                                    </div>
+                                )}
+                                <div className="mt-4 flex flex-col items-center gap-1">
+                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                                        <span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> / {registeredPlayers?.length} Atlet Lunas
+                                    </p>
+                                    <Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1 w-24 bg-white/5" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <h4 className="text-[10px] font-black tracking-[0.3em] text-muted-foreground flex items-center gap-2 uppercase">
+                                    <Receipt className="w-3 h-3" /> Status Invoice
+                                </h4>
+                                <ScrollArea className="h-64 pr-2">
+                                    <div className="space-y-2">
+                                        {(registeredPlayers || []).map(player => (
+                                            <div key={player.id} className="flex items-center justify-between bg-black/20 p-2.5 rounded-xl border border-white/5 hover:border-white/10 transition-all group/item">
+                                                <div className='flex items-center gap-3 overflow-hidden'>
+                                                    <Avatar className="h-8 w-8 border-2 border-background shadow-lg">
+                                                        <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
+                                                        <AvatarFallback><User className="w-4 h-4 text-white/20" /></AvatarFallback>
+                                                    </Avatar>
+                                                    <Label htmlFor={`paid-${player.id}`} className="text-xs font-black uppercase italic pr-1 truncate cursor-pointer group-hover/item:text-primary transition-colors">
+                                                        {player.playerName}
+                                                    </Label>
+                                                </div>
+                                                <Checkbox 
+                                                    id={`paid-${player.id}`} 
+                                                    checked={!!player.hasPaid} 
+                                                    onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
+                                                    disabled={!isAdmin} 
+                                                    className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:text-black h-5 w-5 rounded-md" 
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
                             </div>
                         </CardContent>
                     </Card>
@@ -920,14 +951,14 @@ export default function LeaguePage() {
             </div>
         </div>
       </div>
-      <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}><DialogContent><DialogHeader><DialogTitle>{t('admin_auth')}</DialogTitle><DialogDescription>{t('admin_auth_desc')}</DialogDescription></DialogHeader><div className="grid gap-4 py-4"><div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="password-input" className="text-right">{t('password')}</Label><Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="col-span-3" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} /></div></div><DialogFooter><Button onClick={handlePasswordCheck}>{t('unlock')}</Button></DialogFooter></DialogContent></Dialog>
-      <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}><DialogContent><DialogHeader><DialogTitle>{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogDescription>{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogDescription></DialogHeader><div className="space-y-4 py-4"><div className="space-y-2"><Label>Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="flex gap-4"><div className="flex items-center space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single">Single (1v1)</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op">Co-Op (2v2)</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid">Hybrid (Liga+Piala)</Label></div></RadioGroup></div>{newSeasonType === 'Hybrid' && (<div className="space-y-2 pt-2"><Label>Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-4"><div className="flex items-center space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1">1x Main</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2">Home &amp; Away (2x)</Label></div></RadioGroup></div>)}<div className="space-y-2"><Label htmlFor="season-name">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., 2024/25 Season" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)}/></div><div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label htmlFor="season-fee">Biaya Pendaftaran (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)}/></div><div className="space-y-2"><Label htmlFor="sponsorship-amount">Jumlah Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)}/></div></div><div className="space-y-2"><Label>{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd, y")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={2}/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></DialogContent></Dialog>
-      <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription>{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeason} className="bg-destructive hover:bg-destructive/90">{t('delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={!!deletingEntry} onOpenChange={(isOpen) => !isOpen && setDeletingEntry(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t('remove_player_from_season_title')}</AlertDialogTitle><AlertDialogDescription>{t('remove_player_from_season_desc', { playerName: deletingEntry?.playerName })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteEntry} className="bg-destructive hover:bg-destructive/90">{t('remove')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={showFinishSeasonConfirm} onOpenChange={setShowFinishSeasonConfirm}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription>Tindakan ini akan selesaikan musim <strong>{activeSeason?.name}</strong>.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={() => { handleUpdateSeasonStatus('Completed'); setShowFinishSeasonConfirm(false); }}>Ya, Selesaikan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Selesaikan Fase Grup Lebih Awal?</AlertDialogTitle><AlertDialogDescription>Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan format Double Elimination Playoff akan dibuat.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleGenerateDoubleElimination}>Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Anda yakin?</AlertDialogTitle><AlertDialogDescription>Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru' : 'membuat jadwal pertandingan baru'}.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Batal</AlertDialogCancel><AlertDialogAction onClick={handleGenerateFixtures}>Ya, Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}><DialogContent className="max-w-lg"><DialogHeader><DialogTitle>{t('register_players')}</DialogTitle><DialogDescription>{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription></DialogHeader><RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={registeredPlayers || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} /></DialogContent></Dialog>
+      <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}><DialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl"><DialogHeader><DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('admin_auth')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{t('admin_auth_desc')}</DialogDescription></DialogHeader><div className="grid gap-4 py-4"><div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="password-input" className="text-right text-[10px] font-black uppercase tracking-widest">{t('password')}</Label><Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="col-span-3 h-12 bg-white/5 border-white/10" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} /></div></div><DialogFooter><Button onClick={handlePasswordCheck} className="w-full h-12 font-black tracking-tighter">{t('unlock')}</Button></DialogFooter></DialogContent></Dialog>
+      <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}><DialogContent className="max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl"><DialogHeader><DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogDescription></DialogHeader><div className="space-y-6 py-4"><div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="flex gap-4"><div className="flex items-center space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-xs font-bold uppercase cursor-pointer">Single (1v1)</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-xs font-bold uppercase cursor-pointer">Co-Op (2v2)</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-xs font-bold uppercase cursor-pointer">Hybrid (Liga+Piala)</Label></div></RadioGroup></div>{newSeasonType === 'Hybrid' && (<div className="space-y-3 pt-2"><Label className="text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-4"><div className="flex items-center space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-xs font-bold uppercase cursor-pointer">Home &amp; Away (2x)</Label></div></RadioGroup></div>)}<div className="space-y-3"><Label htmlFor="season-name" className="text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-12 uppercase font-bold"/></div><div className="grid grid-cols-2 gap-4"><div className="space-y-3"><Label htmlFor="season-fee" className="text-[10px] font-black uppercase tracking-widest">Biaya Pendaftaran (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-12 font-bold tabular-nums"/></div><div className="space-y-3"><Label htmlFor="sponsorship-amount" className="text-[10px] font-black uppercase tracking-widest">Jumlah Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-12 font-bold tabular-nums"/></div></div><div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-12 uppercase text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd, y")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={2}/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-14 text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)]">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></DialogContent></Dialog>
+      <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}><AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl"><AlertDialogHeader><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-3"><AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeason} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12">{t('delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={!!deletingEntry} onOpenChange={(isOpen) => !isOpen && setDeletingEntry(null)}><AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl"><AlertDialogHeader><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-red-500">{t('remove_player_from_season_title')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{t('remove_player_from_season_desc', { playerName: deletingEntry?.playerName })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-3"><AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteEntry} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12">{t('remove')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={showFinishSeasonConfirm} onOpenChange={setShowFinishSeasonConfirm}><AlertDialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl"><AlertDialogHeader><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tindakan ini akan selesaikan musim <strong>{activeSeason?.name}</strong> secara permanen.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-3"><AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={() => { handleUpdateSeasonStatus('Completed'); setShowFinishSeasonConfirm(false); }} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[10px] uppercase h-12">Ya, Selesaikan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}><AlertDialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl"><AlertDialogHeader><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic">Selesaikan Fase Grup Lebih Awal?</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan format Double Elimination Playoff akan dibuat.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-3"><AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleGenerateDoubleElimination} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[10px] uppercase h-12">Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}><AlertDialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl"><AlertDialogHeader><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic">Konfirmasi Penjadwalan</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru secara acak' : 'membuat jadwal pertandingan baru secara acak'}.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-3"><AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">Batal</AlertDialogCancel><AlertDialogAction onClick={handleGenerateFixtures} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[10px] uppercase h-12">Ya, Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}><DialogContent className="max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl"><DialogHeader><DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('register_players')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription></DialogHeader><RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={registeredPlayers || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} /></DialogContent></Dialog>
       <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} allPlayers={allPlayers || []} allTeams={allTeams || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
       <GroupDrawDialog open={showGroupDrawDialog} onOpenChange={setShowGroupDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} onSaveGroups={handleSaveGroups} />
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
