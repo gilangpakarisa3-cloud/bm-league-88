@@ -24,7 +24,7 @@ export function LiveClock() {
   if (!currentTime) {
     return (
         <div className="flex justify-center px-4">
-            <div className="h-12 sm:h-16 bg-muted/20 rounded-xl sm:rounded-2xl w-full max-w-sm animate-pulse" />
+            <div className="h-20 sm:h-28 bg-muted/20 rounded-2xl w-full max-w-sm animate-pulse" />
         </div>
     );
   }
@@ -33,23 +33,24 @@ export function LiveClock() {
   const formattedTime = format(currentTime, "HH:mm:ss");
 
   return (
-    <div className="flex flex-col items-center justify-center px-2">
-        <div className="relative group w-full max-w-sm">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl sm:rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+    <div className="flex flex-col items-center justify-center w-full">
+        <div className="relative group w-fit">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
             
-            <div className="relative flex items-center gap-3 sm:gap-6 bg-card/80 border-2 border-primary/30 px-4 sm:px-8 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-2xl backdrop-blur-md">
-                <div className="flex flex-col items-center flex-1">
-                    <span className="text-[7px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.3em] text-primary/50 leading-none mb-1">Live match time</span>
-                    <span className="text-2xl sm:text-5xl font-black tracking-tighter text-primary font-headline tabular-nums drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]">
+            <div className="relative flex flex-col items-center bg-card/80 border-2 border-primary/30 px-8 sm:px-12 py-4 sm:py-6 rounded-2xl shadow-2xl backdrop-blur-md">
+                {/* Baris 1: Waktu */}
+                <div className="flex flex-col items-center">
+                    <span className="text-3xl sm:text-6xl font-black tracking-tighter text-primary font-headline tabular-nums drop-shadow-[0_0_15px_rgba(204,253,1,0.4)] leading-none">
                         {formattedTime}
                     </span>
                 </div>
                 
-                <div className="w-px h-8 sm:h-12 bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
+                {/* Pembatas Horizontal */}
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent my-3 sm:my-5" />
                 
-                <div className="flex flex-col items-center text-center flex-1">
-                    <span className="text-[7px] sm:text-[10px] font-black tracking-[0.15em] sm:tracking-[0.2em] text-muted-foreground leading-none mb-1">Tournament date</span>
-                    <span className="text-[9px] sm:text-base font-black tracking-tight text-foreground uppercase">
+                {/* Baris 2: Tanggal */}
+                <div className="flex flex-col items-center text-center">
+                    <span className="text-xs sm:text-xl font-black tracking-[0.1em] sm:tracking-[0.2em] text-foreground uppercase italic pr-2 leading-none">
                         {formattedDate}
                     </span>
                 </div>
