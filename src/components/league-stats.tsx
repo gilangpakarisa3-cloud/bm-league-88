@@ -99,7 +99,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
 
     if (isLoading) {
         return (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <StatCardSkeleton />
                 <StatCardSkeleton />
                 <StatCardSkeleton />
@@ -112,7 +112,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
 
     if (stats.mostWins.length === 0 && !showUnbeaten && stats.bestAttacker.length === 0 && stats.bestDefense.length === 0 && stats.bestGD.length === 0 && stats.worstDefender.length === 0 && stats.kingOfDraws.length === 0 && stats.championshipContenders.length === 0) {
         return (
-             <Card className="border-dashed border-2 border-white/10 bg-white/5">
+             <Card className="border-dashed border-2 border-white/10 bg-white/5 w-full">
                 <CardContent className="p-6 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest">
                     Belum ada data statistik.
                 </CardContent>
@@ -193,7 +193,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
     );
 
     return (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 1. Raja Kemenangan */}
             {stats.mostWins.length > 0 && (
                 <StatCard 

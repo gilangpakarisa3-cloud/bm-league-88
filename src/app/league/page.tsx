@@ -861,8 +861,8 @@ export default function LeaguePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-            <div className="lg:col-span-4">
+        <div className="space-y-12">
+            <div className="w-full">
                 <LeagueTable 
                     tableData={sortedTable} 
                     isLoading={isLoadingTableFinal}
@@ -878,77 +878,84 @@ export default function LeaguePage() {
                     activeSeason={activeSeason}
                 />
             </div>
-            <div className="lg:col-span-1 space-y-6">
+            
+            <div className="space-y-8">
                 <div className="flex flex-col gap-1 items-center justify-center">
-                    <h2 className="font-black text-xl uppercase tracking-[0.3em] text-primary italic pr-2">Statistik Musim</h2>
-                    <div className="h-1 w-12 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
+                    <h2 className="font-black text-2xl uppercase tracking-[0.3em] text-primary italic pr-2">Season Insights & Management</h2>
+                    <div className="h-1 w-20 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
                 </div>
                 
-                <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} />
-                
-                {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
-                    <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-primary/20 hover:border-primary/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_30px_rgba(204,253,1,0.15)]">
-                        <span className="absolute -bottom-2 -right-2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none">FUNDS</span>
-                        <CardHeader className="relative z-10 pb-4">
-                            <CardTitle className="flex items-center gap-3 text-xs font-black uppercase tracking-widest italic pr-2">
-                                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 shadow-lg">
-                                    <Wallet className="w-5 h-5" />
-                                </div>
-                                Keuangan Musim
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6 relative z-10">
-                             <div className="bg-black/40 border-2 border-primary/10 p-5 rounded-2xl text-center space-y-1 group-hover:border-primary/30 transition-all shadow-inner">
-                                <p className="text-[9px] font-black text-muted-foreground tracking-[0.2em] uppercase mb-1">Total Hadiah Terkumpul</p>
-                                <p className="text-3xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.4)] tabular-nums">
-                                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
-                                </p>
-                                {sponsorshipPool > 0 && (
-                                    <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-white/5">
-                                        <Badge variant="outline" className="text-[8px] font-black border-primary/30 text-primary/80 uppercase">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge>
-                                        <Badge variant="outline" className="text-[8px] font-black border-yellow-500/30 text-yellow-500/80 uppercase">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge>
-                                    </div>
-                                )}
-                                <div className="mt-4 flex flex-col items-center gap-1">
-                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">
-                                        <span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> / {registeredPlayers?.length} Atlet Lunas
-                                    </p>
-                                    <Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1 w-24 bg-white/5" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <h4 className="text-[10px] font-black tracking-[0.3em] text-muted-foreground flex items-center gap-2 uppercase">
-                                    <Receipt className="w-3 h-3" /> Status Invoice
-                                </h4>
-                                <ScrollArea className="h-64 pr-2">
-                                    <div className="space-y-2">
-                                        {(registeredPlayers || []).map(player => (
-                                            <div key={player.id} className="flex items-center justify-between bg-black/20 p-2.5 rounded-xl border border-white/5 hover:border-white/10 transition-all group/item">
-                                                <div className='flex items-center gap-3 overflow-hidden'>
-                                                    <Avatar className="h-8 w-8 border-2 border-background shadow-lg">
-                                                        <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
-                                                        <AvatarFallback><User className="w-4 h-4 text-white/20" /></AvatarFallback>
-                                                    </Avatar>
-                                                    <Label htmlFor={`paid-${player.id}`} className="text-xs font-black uppercase italic pr-1 truncate cursor-pointer group-hover/item:text-primary transition-colors">
-                                                        {player.playerName}
-                                                    </Label>
-                                                </div>
-                                                <Checkbox 
-                                                    id={`paid-${player.id}`} 
-                                                    checked={!!player.hasPaid} 
-                                                    onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
-                                                    disabled={!isAdmin} 
-                                                    className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:text-black h-5 w-5 rounded-md" 
-                                                />
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div className="lg:col-span-8">
+                        <LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} />
+                    </div>
+                    
+                    <div className="lg:col-span-4">
+                        {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
+                            <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-primary/20 hover:border-primary/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_30px_rgba(204,253,1,0.15)]">
+                                <span className="absolute -bottom-2 -right-2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none">FUNDS</span>
+                                <CardHeader className="relative z-10 pb-4">
+                                    <CardTitle className="flex items-center gap-3 text-xs font-black uppercase tracking-widest italic pr-2">
+                                        <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 shadow-lg">
+                                            <Wallet className="w-5 h-5" />
+                                        </div>
+                                        Keuangan Musim
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6 relative z-10">
+                                    <div className="bg-black/40 border-2 border-primary/10 p-5 rounded-2xl text-center space-y-1 group-hover:border-primary/30 transition-all shadow-inner">
+                                        <p className="text-[9px] font-black text-muted-foreground tracking-[0.2em] uppercase mb-1">Total Hadiah Terkumpul</p>
+                                        <p className="text-3xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.4)] tabular-nums">
+                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
+                                        </p>
+                                        {sponsorshipPool > 0 && (
+                                            <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-white/5">
+                                                <Badge variant="outline" className="text-[8px] font-black border-primary/30 text-primary/80 uppercase">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge>
+                                                <Badge variant="outline" className="text-[8px] font-black border-yellow-500/30 text-yellow-500/80 uppercase">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge>
                                             </div>
-                                        ))}
+                                        )}
+                                        <div className="mt-4 flex flex-col items-center gap-1">
+                                            <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                                                <span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> / {registeredPlayers?.length} Atlet Lunas
+                                            </p>
+                                            <Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1 w-24 bg-white/5" />
+                                        </div>
                                     </div>
-                                </ScrollArea>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+
+                                    <div className="space-y-3">
+                                        <h4 className="text-[10px] font-black tracking-[0.3em] text-muted-foreground flex items-center gap-2 uppercase">
+                                            <Receipt className="w-3 h-3" /> Status Invoice
+                                        </h4>
+                                        <ScrollArea className="h-64 pr-2">
+                                            <div className="space-y-2">
+                                                {(registeredPlayers || []).map(player => (
+                                                    <div key={player.id} className="flex items-center justify-between bg-black/20 p-2.5 rounded-xl border border-white/5 hover:border-white/10 transition-all group/item">
+                                                        <div className='flex items-center gap-3 overflow-hidden'>
+                                                            <Avatar className="h-8 w-8 border-2 border-background shadow-lg">
+                                                                <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
+                                                                <AvatarFallback><User className="w-4 h-4 text-white/20" /></AvatarFallback>
+                                                            </Avatar>
+                                                            <Label htmlFor={`paid-${player.id}`} className="text-xs font-black uppercase italic pr-1 truncate cursor-pointer group-hover/item:text-primary transition-colors">
+                                                                {player.playerName}
+                                                            </Label>
+                                                        </div>
+                                                        <Checkbox 
+                                                            id={`paid-${player.id}`} 
+                                                            checked={!!player.hasPaid} 
+                                                            onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
+                                                            disabled={!isAdmin} 
+                                                            className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:text-black h-5 w-5 rounded-md" 
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
       </div>
