@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -182,7 +181,7 @@ const SingleTable = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                            <span className={cn(
-                               "font-black tracking-tight transition-colors truncate uppercase italic pr-1 sm:pr-2", 
+                               "font-black tracking-tight transition-colors truncate uppercase italic pr-4", 
                                isFirst ? "text-xs sm:text-lg text-yellow-400" : "text-[11px] sm:text-base text-white group-hover:text-primary"
                             )}>
                                 {entry.playerName}
@@ -304,7 +303,7 @@ export function LeagueTable({
     return (
       <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-card/40 p-10 sm:p-16 text-center backdrop-blur-md">
         <LayoutGrid className="w-12 h-12 sm:w-16 sm:h-16 text-primary/10 mx-auto mb-4" />
-        <h2 className="text-xl sm:text-2xl font-black text-muted-foreground uppercase tracking-widest">{t('no_players_registered_title')}</h2>
+        <h2 className="text-xl sm:text-2xl font-black text-muted-foreground uppercase tracking-widest pr-4">{t('no_players_registered_title')}</h2>
         <p className="text-[10px] sm:text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">{t('no_players_registered_desc')}</p>
       </div>
     );

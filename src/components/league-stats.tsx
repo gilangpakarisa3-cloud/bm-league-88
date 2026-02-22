@@ -143,7 +143,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                 ? "border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]" 
                 : "border-primary/20 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(204,253,1,0.15)]"
         )}>
-            {/* Ghost Text Background - Adjusted for left alignment */}
+            {/* Ghost Text Background - Left aligned */}
             <span className="absolute bottom-0 left-0 text-7xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none group-hover:text-white/[0.06] transition-all duration-500 leading-none pl-6 pb-2">
                 {title.split(' ')[0]}
             </span>
@@ -158,7 +158,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                     )}>
                         <Icon className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-xs font-black tracking-widest uppercase italic pr-2">{title}</CardTitle>
+                    <CardTitle className="text-xs font-black tracking-widest uppercase italic pr-4">{title}</CardTitle>
                 </div>
             </CardHeader>
             
@@ -276,7 +276,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                             <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 shadow-lg">
                                 <ShieldCheck className="h-5 w-5" />
                             </div>
-                            <CardTitle className="text-xs font-black tracking-widest uppercase italic pr-2">{t('fun_stats_unbeaten')}</CardTitle>
+                            <CardTitle className="text-xs font-black tracking-widest uppercase italic pr-4">{t('fun_stats_unbeaten')}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-2 pt-2 relative z-10">
@@ -305,7 +305,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                             <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-500 group-hover:bg-yellow-500 group-hover:text-black transition-all duration-500 shadow-lg">
                                 <Flame className="h-5 w-5" />
                             </div>
-                            <CardTitle className="text-xs font-black tracking-widest uppercase italic pr-2">{t('fun_stats_championship_contender')}</CardTitle>
+                            <CardTitle className="text-xs font-black tracking-widest uppercase italic pr-4">{t('fun_stats_championship_contender')}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-2 pt-2 relative z-10">

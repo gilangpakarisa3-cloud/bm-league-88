@@ -100,9 +100,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
     
+    // Consistent OVR logic: (Poin / Max Poin) * 100
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
-    const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
+    const ovrEfficiency = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
 
     const form = playerMatches.slice(-5).map(m => {
       const isP1 = m.player1Id === playerId;
@@ -128,7 +129,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     }
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
     if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
-    return { stats, winRate, form, chartData, playStyleText: `Gaya bermain: ${pST}`, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
+    return { stats, winRate: ovrEfficiency, form, chartData, playStyleText: `Gaya bermain: ${pST}`, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
   };
 
   const projections = useMemo(() => {
@@ -170,8 +171,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
             <Card className="w-52 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', t1: p.p1.teamId ? teamsById[p.p1.teamId] : null, t2: p.p2.teamId ? teamsById[p.p2.teamId] : null, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
                 <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-22">
-                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic pr-2" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
-                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic pr-2" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
+                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate uppercase italic pr-2 text-white/40" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
+                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate uppercase italic pr-2 text-white/40" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
                 </CardContent>
             </Card>
         </div>
@@ -224,7 +225,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   return (
     <div className="w-full relative">
-        <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
+        <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[6rem] font-black italic leading-none pr-4">BM LEAGUE</span><span className="text-[2rem] font-black italic -mt-4 tracking-[0.8em] pr-4">EIGHTY EIGHT</span></div>
         {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
             <div className="mb-8 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-2xl p-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-4"><div className="p-3 rounded-xl bg-amber-500/10 text-amber-500 shadow-lg"><Scan className="w-6 h-6" /></div><div className="flex-1">
@@ -237,7 +238,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <div className="flex-1 flex flex-col gap-6 sm:gap-8 relative">
                     <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm transition-all duration-700">
                         <div className="space-y-8 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-4"><div className="h-8 w-1.5 bg-primary rounded-full shadow-[0_0_20px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-xl sm:text-2xl font-black tracking-widest text-primary uppercase italic">UPPER BRACKET</h3><span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Enabled</span></div></div>
+                            <div className="flex items-center gap-4"><div className="h-8 w-1.5 bg-primary rounded-full shadow-[0_0_20px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-xl sm:text-2xl font-black tracking-widest text-primary uppercase italic pr-4">UPPER BRACKET</h3><span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Enabled</span></div></div>
                             <div className="flex items-center gap-6 sm:gap-8 pl-4 sm:pl-8">
                                 <div className="flex flex-col gap-12 relative"><MatchCard bid="playoff-m1" label="UB Quarter 1" /><MatchCard bid="playoff-m2" label="UB Quarter 2" /><MatchCard bid="playoff-m3" label="UB Quarter 3" /><MatchCard bid="playoff-m4" label="UB Quarter 4" /></div>
                                 <div className="flex flex-col gap-44 py-16 opacity-30"><ChevronRight className="w-4 h-4 text-primary"/><ChevronRight className="w-4 h-4 text-primary"/></div>
@@ -249,7 +250,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
                     <div className="flex-1 relative bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm transition-all duration-700">
                         <div className="space-y-8 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-4"><div className="h-8 w-1.5 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-xl sm:text-2xl font-black tracking-widest text-amber-500 uppercase italic">LOWER BRACKET</h3><span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
+                            <div className="flex items-center gap-4"><div className="h-8 w-1.5 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-xl sm:text-2xl font-black tracking-widest text-amber-500 uppercase italic pr-4">LOWER BRACKET</h3><span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
                             <div className="flex items-center gap-6 pl-4 sm:pl-8">
                                 <div className="flex flex-col gap-12"><MatchCard bid="playoff-m5" label="LB Round 1" /><MatchCard bid="playoff-m6" label="LB Round 1" /><MatchCard bid="playoff-m7" label="LB Round 1" /><MatchCard bid="playoff-m8" label="LB Round 1" /></div>
                                 <div className="flex flex-col gap-44 py-16 opacity-30"><ChevronRight className="w-4 h-4 text-amber-500"/><ChevronRight className="w-4 h-4 text-amber-500"/></div>
@@ -323,7 +324,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
                                     </div>
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-black uppercase italic text-white pr-2" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
+                                        <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
                                         <div className="flex flex-col items-center gap-1.5">
                                             <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
                                             <Popover>
@@ -336,7 +337,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic">SLOT TERSEDIA</h3></div>
+                                <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
                             )}
                         </div>
 
@@ -367,7 +368,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
                                     </div>
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-black uppercase italic text-white pr-2" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
+                                        <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
                                         <div className="flex flex-col items-center gap-1.5">
                                             <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
                                             <Popover>
@@ -380,7 +381,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic">SLOT TERSEDIA</h3></div>
+                                <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
                             )}
                         </div>
                     </div>
@@ -390,7 +391,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="h-0.5 flex-1 bg-gradient-to-l from-primary/40 to-transparent rounded-full mr-4" />
                             <div className="flex items-center gap-2">
                                 <Binary className="w-5 h-5" />
-                                <h4 className="text-lg font-black tracking-widest uppercase italic">Indeks Momentum</h4>
+                                <h4 className="text-lg font-black tracking-widest uppercase italic pr-4">Indeks Momentum</h4>
                             </div>
                             <div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" />
                         </div>
@@ -403,7 +404,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <CardHeader className="p-4 bg-black/20 border-b border-white/10">
                                                 <div className="flex flex-col items-center gap-2 text-center">
                                                     <div className="flex items-center justify-center gap-3">
-                                                        <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-2">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                        <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-4">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
                                                         <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
                                                     </div>
                                                     <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>
@@ -414,7 +415,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                     <div className="space-y-2 text-center">
                                                         <p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
                                                         <div className="grid gap-2">
-                                                            <IntelCard icon={Percent} label="Winrate Fase" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
+                                                            <IntelCard icon={Percent} label="OVR Musim" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
                                                             <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${an.entry?.rank || '?'}`} />
                                                         </div>
                                                     </div>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -99,7 +98,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             "flex items-center gap-2 sm:gap-4 text-[10px] sm:text-base font-black tracking-tighter uppercase italic overflow-hidden transition-all duration-500", 
             { 'justify-end': alignment === 'right', 'justify-start': alignment === 'left', 'text-primary': isWinner, 'text-white/60': !isWinner && match.isCompleted, 'text-white': !match.isCompleted }
         )}>
-             {alignment === 'right' && <span className="truncate flex-1 text-right pr-1">{name}</span>}
+             {alignment === 'right' && <span className="truncate flex-1 text-right pr-2">{name}</span>}
             <div className="relative shrink-0">
                 <div className={cn(
                     "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity duration-500",
@@ -113,7 +112,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     <AvatarFallback className="bg-white/5 font-black text-xs">{team?.name?.charAt(0) || (name === 'TBD' ? '?' : name.charAt(0))}</AvatarFallback>
                 </Avatar>
             </div>
-            {alignment === 'left' && <span className="truncate flex-1 text-left pl-1">{name}</span>}
+            {alignment === 'left' && <span className="truncate flex-1 text-left pl-2">{name}</span>}
         </div>
     );
     
@@ -141,7 +140,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     </div>
                 ) : (
                     <div className="bg-primary/10 border-2 border-primary/20 px-3 py-1 rounded-lg backdrop-blur-sm">
-                        <span className="text-[10px] sm:text-xs font-black tracking-[0.3em] text-primary uppercase italic">vs</span>
+                        <span className="text-[10px] sm:text-xs font-black tracking-[0.3em] text-primary uppercase italic pr-1">vs</span>
                     </div>
                 )}
             </div>
@@ -488,7 +487,7 @@ export default function FixturesPage() {
 
             // 2. Apply new stats to Player collection
             const newS1 = isMatchBo3 ? (values.player1Wins ?? values.player1Score ?? 0) : (values.player1Score ?? 0);
-            const newS2 = isMatchBo3 ? (values.player2Wins ?? values.player2Score ?? 0) : (values.player2Score ?? 0);
+            const newS2 = isBestOfThree ? (values.player2Wins ?? values.player2Score ?? 0) : (values.player2Score ?? 0);
             const newOutcome = getOutcome(newS1, newS2);
             const isCoopNow = sData.type === 'Co-Op';
 
@@ -635,7 +634,7 @@ export default function FixturesPage() {
                     await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                     await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                     await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
-                    await processRevert(d2.player2Id, outcome.p2, mToRev.player1Score || 0, mToRev.player1Score || 0);
+                    await processRevert(d2.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
                 }
             } else {
                 await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
@@ -695,7 +694,7 @@ export default function FixturesPage() {
                 </div>
                 {activeSeason && (
                   <div className="space-y-0.5">
-                    <p className="text-lg sm:text-3xl font-black text-white/90 tracking-tight uppercase italic">{activeSeason.name}</p>
+                    <p className="text-lg sm:text-3xl font-black text-white/90 tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
                     <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-[0.2em] text-[10px] uppercase h-6 px-3">{activeSeason.status}</Badge>
                   </div>
                 )}
@@ -716,15 +715,15 @@ export default function FixturesPage() {
         </div>
 
         <div className={cn(
-            "bg-card/40 border-2 border-white/5 rounded-2xl p-2 sm:p-4 flex flex-wrap items-center gap-4 shadow-2xl backdrop-blur-xl transition-all duration-500", 
+            "bg-black/40 border-2 border-white/5 rounded-2xl p-2 sm:p-4 mb-6 sm:mb-10 flex flex-wrap items-center gap-4 shadow-2xl backdrop-blur-xl transition-all duration-500", 
             isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="p-2 bg-primary/10 rounded-lg text-primary hidden xs:block">
+                <div className="p-2.5 bg-primary/10 rounded-xl text-primary hidden xs:block shadow-[0_0_15px_rgba(204,253,1,0.2)]">
                     <LayoutGrid className="w-4 h-4" />
                 </div>
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                    <SelectTrigger className="flex-1 sm:w-[240px] h-12 bg-black/40 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-xl focus:border-primary/50">
+                    <SelectTrigger className="flex-1 sm:w-[240px] h-12 bg-black/40 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-xl focus:border-primary/50 transition-all">
                         <SelectValue placeholder={t('select_a_season')} />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0A192F] border-primary/30 rounded-xl overflow-hidden">
@@ -768,7 +767,7 @@ export default function FixturesPage() {
                 <DialogHeader className="p-8 border-b border-white/5 bg-black/20">
                     <div className="flex items-center gap-4 text-primary mb-2">
                         <Zap className="w-8 h-8" />
-                        <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic">{t('update_match_score_title')}</DialogTitle>
+                        <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-4">{t('update_match_score_title')}</DialogTitle>
                     </div>
                     {editingMatch && (<DialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
                 </DialogHeader>
@@ -786,7 +785,7 @@ export default function FixturesPage() {
                 <AlertDialogHeader>
                     <div className="flex items-center gap-4 text-amber-500 mb-2">
                         <Undo2 className="w-8 h-8" />
-                        <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('revert_match_confirm_title')}</AlertDialogTitle>
+                        <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('revert_match_confirm_title')}</AlertDialogTitle>
                     </div>
                     {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: playersById[revertingMatch.player1Id]?.name, player2: playersById[revertingMatch.player2Id]?.name })}</AlertDialogDescription>)}
                 </AlertDialogHeader>
@@ -802,7 +801,7 @@ export default function FixturesPage() {
                 <DialogHeader>
                     <div className="flex items-center gap-4 text-primary mb-2">
                         <KeyRound className="w-8 h-8" />
-                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('admin_auth')}</DialogTitle>
+                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle>
                     </div>
                     <DialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('admin_auth_desc')}</DialogDescription>
                 </DialogHeader>
