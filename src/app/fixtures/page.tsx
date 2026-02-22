@@ -24,7 +24,7 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, query, getDocs, where, runTransaction, Timestamp, orderBy, increment } from 'firebase/firestore';
 import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,7 +42,6 @@ import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -419,200 +418,43 @@ export default function FixturesPage() {
   const handleUpdateScore = async (matchId: string, values: any) => {
     if (!firestore || !activeSeasonId) return;
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const mDoc = await transaction.get(matchRef);
-            if (!mDoc.exists()) throw new Error("Match not found!");
-            const orig = mDoc.data() as Match;
-            const sDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
-            const sData = sDoc.data() as Season;
-            
-            // Standardize Bo3 detection: Co-Op mode OR Playoff round in Hybrid mode
-            const isMatchBo3 = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
+    
+    runTransaction(firestore, async (transaction) => {
+        const mDoc = await transaction.get(matchRef);
+        if (!mDoc.exists()) throw new Error("Match not found!");
+        const orig = mDoc.data() as Match;
+        const sDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
+        const sData = sDoc.data() as Season;
+        
+        // Standardize Bo3 detection: Co-Op mode OR Playoff round in Hybrid mode
+        const isMatchBo3 = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
 
-            const getOutcome = (p1Score: number, p2Score: number) => {
-                if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
-                if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
-                return { p1: 'D', p2: 'D' };
-            };
+        const getOutcome = (p1Score: number, p2Score: number) => {
+            if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
+            if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
+            return { p1: 'D', p2: 'D' };
+        };
 
-            const updatePlayerStats = async (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD') return;
-                const pRef = doc(firestore, 'players', pId);
-                transaction.update(pRef, {
-                    overallPlayed: increment(change.played || 0),
-                    overallWin: increment(change.win || 0),
-                    overallDraw: increment(change.draw || 0),
-                    overallLoss: increment(change.loss || 0),
-                    overallGoalsFor: increment(change.gf || 0),
-                    overallGoalsAgainst: increment(change.ga || 0),
-                });
-            };
+        const updatePlayerStats = async (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
+            if (!pId || pId === 'TBD') return;
+            const pRef = doc(firestore, 'players', pId);
+            transaction.update(pRef, {
+                overallPlayed: increment(change.played || 0),
+                overallWin: increment(change.win || 0),
+                overallDraw: increment(change.draw || 0),
+                overallLoss: increment(change.loss || 0),
+                overallGoalsFor: increment(change.gf || 0),
+                overallGoalsAgainst: increment(change.ga || 0),
+            });
+        };
 
-            // 1. Revert old stats from Player collection if match was already completed
-            if (orig.isCompleted) {
-                const oldS1 = isMatchBo3 ? (orig.player1Wins ?? orig.player1Score ?? 0) : (orig.player1Score ?? 0);
-                const oldS2 = isMatchBo3 ? (orig.player2Wins ?? orig.player2Score ?? 0) : (orig.player2Score ?? 0);
-                const outcome = getOutcome(oldS1, oldS2);
-                const isCoop = sData.type === 'Co-Op';
-                
-                const processRevert = async (pId: string, res: string, gf: number, ga: number) => {
-                    await updatePlayerStats(pId, { 
-                        played: -1, 
-                        win: res === 'W' ? -1 : 0, 
-                        draw: res === 'D' ? -1 : 0, 
-                        loss: res === 'L' ? -1 : 0, 
-                        gf: -(gf || 0), 
-                        ga: -(ga || 0) 
-                    });
-                };
-
-                if (isCoop) {
-                    const [e1, e2] = await Promise.all([
-                        transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player1Id)),
-                        transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player2Id))
-                    ]);
-                    if (e1.exists() && e2.exists()) {
-                        const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                        await processRevert(d1.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
-                        await processRevert(d1.player2Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
-                        await processRevert(d2.player1Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
-                        await processRevert(d2.player2Id, outcome.p2, orig.player1Score || 0, orig.player1Score || 0);
-                    }
-                } else {
-                    await processRevert(orig.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
-                    await processRevert(orig.player2Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
-                }
-            }
-
-            // 2. Apply new stats to Player collection
-            const newS1 = isMatchBo3 ? (values.player1Wins ?? values.player1Score ?? 0) : (values.player1Score ?? 0);
-            const newS2 = isBestOfThree ? (values.player2Wins ?? values.player2Score ?? 0) : (values.player2Score ?? 0);
-            const newOutcome = getOutcome(newS1, newS2);
-            const isCoopNow = sData.type === 'Co-Op';
-
-            const processApply = async (pId: string, res: string, gf: number, ga: number) => {
-                await updatePlayerStats(pId, { 
-                    played: 1, 
-                    win: res === 'W' ? 1 : 0, 
-                    draw: res === 'D' ? 1 : 0, 
-                    loss: res === 'L' ? 1 : 0, 
-                    gf: gf || 0, 
-                    ga: ga || 0 
-                });
-            };
-
-            if (isCoopNow) {
-                const [e1, e2] = await Promise.all([
-                    transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player1Id)),
-                    transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player2Id))
-                ]);
-                if (e1.exists() && e2.exists()) {
-                    const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                    await processApply(d1.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
-                    await processApply(d1.player2Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
-                    await processApply(d2.player1Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
-                    await processApply(d2.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
-                }
-            } else {
-                await processApply(orig.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
-                await processApply(orig.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
-            }
-
-            // 3. Bracket & Table Logic
-            if (orig.round && orig.round !== 'Group' && orig.bracketId) {
-                const winnerId = newS1 > newS2 ? orig.player1Id : orig.player2Id;
-                const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
-                const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId];
-                if (succ) {
-                    const mCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
-                    const qWin = query(mCol, where('bracketId', '==', succ.winner.bid));
-                    const winSnap = await getDocs(qWin);
-                    if (!winSnap.empty) transaction.update(winSnap.docs[0].ref, { [`player${succ.winner.slot}Id`]: winnerId });
-                    if (succ.loser) {
-                        const qLos = query(mCol, where('bracketId', '==', succ.loser.bid));
-                        const losSnap = await getDocs(qLos);
-                        if (!losSnap.empty) transaction.update(losSnap.docs[0].ref, { [`player${succ.loser.slot}Id`]: loserId });
-                    }
-                }
-            } else if (orig.round === 'Group' || !orig.round) {
-                const tblName = sData.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
-                let p1S, p2S;
-                if (sData.type === 'Co-Op') {
-                    const [d1, d2] = await Promise.all([transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`, orig.player1Id)), transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`, orig.player2Id))]);
-                    p1S = { docs: d1.exists() ? [d1] : [] }; p2S = { docs: d2.exists() ? [d2] : [] };
-                } else {
-                    const col = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
-                    const [snap1, snap2] = await Promise.all([getDocs(query(col, where('playerId', '==', orig.player1Id))), getDocs(query(col, where('playerId', '==', orig.player2Id)))]);
-                    p1S = snap1; p2S = snap2;
-                }
-                if (p1S.docs.length && p2S.docs.length) {
-                    const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;
-                    if (orig.isCompleted) {
-                        e1.played--; e2.played--;
-                        if (sData.type === 'Co-Op') {
-                            const oW1 = orig.player1Wins ?? 0; const oW2 = orig.player2Wins ?? 0;
-                            if (oW1 > oW2) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
-                        } else {
-                            e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
-                            if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
-                        }
-                    }
-                    e1.played++; e2.played++;
-                    if (sData.type === 'Co-Op') {
-                        if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
-                    } else {
-                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
-                        if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
-                        e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
-                    }
-                    transaction.set(p1S.docs[0].ref, e1); transaction.set(p2S.docs[0].ref, e2);
-                }
-            }
-            const [h, m] = values.time.split(':').map(Number); const ts = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
-            transaction.update(matchRef, { ...values, matchDate: ts, isCompleted: true, ...(isMatchBo3 ? { player1Score: values.player1Score || 0, player2Score: values.player2Score || 0 } : { player1Wins: null, player2Wins: null }) });
-        });
-        toast({ title: t('score_updated_title') });
-    } catch (e) { toast({ variant: 'destructive', title: t('update_failed_title'), description: (e as Error).message }); }
-    setEditingMatch(null);
-  };
-
-  const handleRevertMatch = useCallback(async () => {
-    if (!firestore || !activeSeasonId || !revertingMatch) return;
-    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, revertingMatch.id);
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const mDoc = await transaction.get(matchRef); if (!mDoc.exists() || !mDoc.data().isCompleted) throw new Error("Match not completed.");
-            const mToRev = mDoc.data() as Match;
-            const sDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
-            const sData = sDoc.data() as Season;
-            const isMatchBo3 = sData.type === 'Co-Op' || (mToRev.round && mToRev.round !== 'Group');
-
-            const getOutcome = (p1Score: number, p2Score: number) => {
-                if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
-                if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
-                return { p1: 'D', p2: 'D' };
-            };
-
-            const updatePlayerStats = async (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD') return;
-                const pRef = doc(firestore, 'players', pId);
-                transaction.update(pRef, {
-                    overallPlayed: increment(change.played || 0),
-                    overallWin: increment(change.win || 0),
-                    overallDraw: increment(change.draw || 0),
-                    overallLoss: increment(change.loss || 0),
-                    overallGoalsFor: increment(change.gf || 0),
-                    overallGoalsAgainst: increment(change.ga || 0),
-                });
-            };
-
-            // 1. Revert Stats from Player collection
-            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0);
-            const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0);
+        // 1. Revert old stats from Player collection if match was already completed
+        if (orig.isCompleted) {
+            const oldS1 = isMatchBo3 ? (orig.player1Wins ?? orig.player1Score ?? 0) : (orig.player1Score ?? 0);
+            const oldS2 = isMatchBo3 ? (orig.player2Wins ?? orig.player2Score ?? 0) : (orig.player2Score ?? 0);
             const outcome = getOutcome(oldS1, oldS2);
             const isCoop = sData.type === 'Co-Op';
-
+            
             const processRevert = async (pId: string, res: string, gf: number, ga: number) => {
                 await updatePlayerStats(pId, { 
                     played: -1, 
@@ -626,50 +468,225 @@ export default function FixturesPage() {
 
             if (isCoop) {
                 const [e1, e2] = await Promise.all([
-                    transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, mToRev.player1Id)),
-                    transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, mToRev.player2Id))
+                    transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player1Id)),
+                    transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player2Id))
                 ]);
                 if (e1.exists() && e2.exists()) {
                     const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                    await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
-                    await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
-                    await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
-                    await processRevert(d2.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
+                    await processRevert(d1.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
+                    await processRevert(d1.player2Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
+                    await processRevert(d2.player1Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
+                    await processRevert(d2.player2Id, outcome.p2, orig.player1Score || 0, orig.player1Score || 0);
                 }
             } else {
-                await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
-                await processRevert(mToRev.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
+                await processRevert(orig.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
+                await processRevert(orig.player2Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
             }
+        }
 
-            // 2. Revert League Table
-            if (mToRev.round === 'Group' || !mToRev.round) {
-                const tbl = isCoop ? 'coopLeagueTable' : 'leagueTable';
-                let p1S, p2S;
-                if (isCoop) {
-                    const [d1, d2] = await Promise.all([transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player1Id)), transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player2Id))]);
-                    p1S = { docs: d1.exists() ? [d1] : [] }; p2S = { docs: d2.exists() ? [d2] : [] };
-                } else {
-                    const qCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`);
-                    const [sn1, sn2] = await Promise.all([getDocs(query(qCol, where('playerId', '==', mToRev.player1Id))), getDocs(query(qCol, where('playerId', '==', mToRev.player2Id)))]); p1S = sn1; p2S = sn2;
-                }
-                if (p1S.docs.length && p2S.docs.length) {
-                    const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;
-                    e1.played--; e2.played--;
-                    if (isCoop) { 
-                        const oW1 = mToRev.player1Wins ?? 0; const oW2 = mToRev.player2Wins ?? 0;
-                        if (oW1 > oW2) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } 
-                    } else {
-                        e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
-                        if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
-                        e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
-                    }
-                    transaction.set(p1S.docs[0].ref, e1); transaction.set(p2S.docs[0].ref, e2);
+        // 2. Apply new stats to Player collection
+        const isBestOfThree = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
+        const newS1 = isMatchBo3 ? (values.player1Wins ?? values.player1Score ?? 0) : (values.player1Score ?? 0);
+        const newS2 = isBestOfThree ? (values.player2Wins ?? values.player2Score ?? 0) : (values.player2Score ?? 0);
+        const newOutcome = getOutcome(newS1, newS2);
+        const isCoopNow = sData.type === 'Co-Op';
+
+        const processApply = async (pId: string, res: string, gf: number, ga: number) => {
+            await updatePlayerStats(pId, { 
+                played: 1, 
+                win: res === 'W' ? 1 : 0, 
+                draw: res === 'D' ? 1 : 0, 
+                loss: res === 'L' ? 1 : 0, 
+                gf: gf || 0, 
+                ga: ga || 0 
+            });
+        };
+
+        if (isCoopNow) {
+            const [e1, e2] = await Promise.all([
+                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player1Id)),
+                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player2Id))
+            ]);
+            if (e1.exists() && e2.exists()) {
+                const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
+                await processApply(d1.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
+                await processApply(d1.player2Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
+                await processApply(d2.player1Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
+                await processApply(d2.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
+            }
+        } else {
+            await processApply(orig.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
+            await processApply(orig.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
+        }
+
+        // 3. Bracket & Table Logic
+        if (orig.round && orig.round !== 'Group' && orig.bracketId) {
+            const winnerId = newS1 > newS2 ? orig.player1Id : orig.player2Id;
+            const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
+            const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId];
+            if (succ) {
+                const mCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+                const qWin = query(mCol, where('bracketId', '==', succ.winner.bid));
+                const winSnap = await getDocs(qWin);
+                if (!winSnap.empty) transaction.update(winSnap.docs[0].ref, { [`player${succ.winner.slot}Id`]: winnerId });
+                if (succ.loser) {
+                    const qLos = query(mCol, where('bracketId', '==', succ.loser.bid));
+                    const losSnap = await getDocs(qLos);
+                    if (!losSnap.empty) transaction.update(losSnap.docs[0].ref, { [`player${succ.loser.slot}Id`]: loserId });
                 }
             }
-            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
+        } else if (orig.round === 'Group' || !orig.round) {
+            const tblName = sData.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+            let p1S, p2S;
+            if (sData.type === 'Co-Op') {
+                const [d1, d2] = await Promise.all([transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`, orig.player1Id)), transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`, orig.player2Id))]);
+                p1S = { docs: d1.exists() ? [d1] : [] }; p2S = { docs: d2.exists() ? [d2] : [] };
+            } else {
+                const col = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
+                const [snap1, snap2] = await Promise.all([getDocs(query(col, where('playerId', '==', orig.player1Id))), getDocs(query(col, where('playerId', '==', orig.player2Id)))]);
+                p1S = snap1; p2S = snap2;
+            }
+            if (p1S.docs.length && p2S.docs.length) {
+                const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;
+                if (orig.isCompleted) {
+                    e1.played--; e2.played--;
+                    if (sData.type === 'Co-Op') {
+                        const oW1 = orig.player1Wins ?? 0; const oW2 = orig.player2Wins ?? 0;
+                        if (oW1 > oW2) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
+                    } else {
+                        e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
+                        if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
+                    }
+                }
+                e1.played++; e2.played++;
+                if (sData.type === 'Co-Op') {
+                    if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
+                } else {
+                    e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
+                    if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                }
+                transaction.set(p1S.docs[0].ref, e1); transaction.set(p2S.docs[0].ref, e2);
+            }
+        }
+        const [h, m] = values.time.split(':').map(Number); const ts = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
+        transaction.update(matchRef, { ...values, matchDate: ts, isCompleted: true, ...(isMatchBo3 ? { player1Score: values.player1Score || 0, player2Score: values.player2Score || 0 } : { player1Wins: null, player2Wins: null }) });
+    })
+    .then(() => {
+        toast({ title: t('score_updated_title') });
+    })
+    .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: matchRef.path,
+            operation: 'update',
+            requestResourceData: values,
         });
+        errorEmitter.emit('permission-error', permissionError);
+    });
+    setEditingMatch(null);
+  };
+
+  const handleRevertMatch = useCallback(async () => {
+    if (!firestore || !activeSeasonId || !revertingMatch) return;
+    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, revertingMatch.id);
+    
+    runTransaction(firestore, async (transaction) => {
+        const mDoc = await transaction.get(matchRef); if (!mDoc.exists() || !mDoc.data().isCompleted) throw new Error("Match not completed.");
+        const mToRev = mDoc.data() as Match;
+        const sDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
+        const sData = sDoc.data() as Season;
+        const isMatchBo3 = sData.type === 'Co-Op' || (mToRev.round && mToRev.round !== 'Group');
+
+        const getOutcome = (p1Score: number, p2Score: number) => {
+            if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
+            if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
+            return { p1: 'D', p2: 'D' };
+        };
+
+        const updatePlayerStats = async (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
+            if (!pId || pId === 'TBD') return;
+            const pRef = doc(firestore, 'players', pId);
+            transaction.update(pRef, {
+                overallPlayed: increment(change.played || 0),
+                overallWin: increment(change.win || 0),
+                overallDraw: increment(change.draw || 0),
+                overallLoss: increment(change.loss || 0),
+                overallGoalsFor: increment(change.gf || 0),
+                overallGoalsAgainst: increment(change.ga || 0),
+            });
+        };
+
+        // 1. Revert Stats from Player collection
+        const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0);
+        const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0);
+        const outcome = getOutcome(oldS1, oldS2);
+        const isCoop = sData.type === 'Co-Op';
+
+        const processRevert = async (pId: string, res: string, gf: number, ga: number) => {
+            await updatePlayerStats(pId, { 
+                played: -1, 
+                win: res === 'W' ? -1 : 0, 
+                draw: res === 'D' ? -1 : 0, 
+                loss: res === 'L' ? -1 : 0, 
+                gf: -(gf || 0), 
+                ga: -(ga || 0) 
+            });
+        };
+
+        if (isCoop) {
+            const [e1, e2] = await Promise.all([
+                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, mToRev.player1Id)),
+                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, mToRev.player2Id))
+            ]);
+            if (e1.exists() && e2.exists()) {
+                const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
+                await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
+                await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
+                await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
+                await processRevert(d2.player2Id, outcome.p2, mToRev.player1Score || 0, mToRev.player1Score || 0);
+            }
+        } else {
+            await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
+            await processRevert(mToRev.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
+        }
+
+        // 2. Revert League Table
+        if (mToRev.round === 'Group' || !mToRev.round) {
+            const tbl = isCoop ? 'coopLeagueTable' : 'leagueTable';
+            let p1S, p2S;
+            if (isCoop) {
+                const [d1, d2] = await Promise.all([transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player1Id)), transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`, mToRev.player2Id))]);
+                p1S = { docs: d1.exists() ? [d1] : [] }; p2S = { docs: d2.exists() ? [d2] : [] };
+            } else {
+                const qCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`);
+                const [sn1, sn2] = await Promise.all([getDocs(query(qCol, where('playerId', '==', mToRev.player1Id))), getDocs(query(qCol, where('playerId', '==', mToRev.player2Id)))]); p1S = sn1; p2S = sn2;
+            }
+            if (p1S.docs.length && p2S.docs.length) {
+                const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;
+                e1.played--; e2.played--;
+                if (isCoop) { 
+                    const oW1 = mToRev.player1Wins ?? 0; const oW2 = mToRev.player2Wins ?? 0;
+                    if (oW1 > oW2) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } 
+                } else {
+                    e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
+                    if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                }
+                transaction.set(p1S.docs[0].ref, e1); transaction.set(p2S.docs[0].ref, e2);
+            }
+        }
+        transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
+    })
+    .then(() => {
         toast({ title: t('match_reverted_title') });
-    } catch(e) { toast({ variant: 'destructive', title: t('revert_failed_title'), description: (e as Error).message }); }
+    })
+    .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: matchRef.path,
+            operation: 'update',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
     setRevertingMatch(null);
   }, [firestore, activeSeasonId, revertingMatch, t, toast]);
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { PasswordManager } from '@/components/password-manager';
 import { useTranslation } from '@/hooks/use-translation';
 import { KeyRound, RefreshCw, Loader2, AlertTriangle, Database } from 'lucide-react';
-import { useFirestore } from '@/firebase';
+import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import type { Season, Match, Player, CoOpLeagueEntry, LeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -183,12 +183,21 @@ export default function SettingsPage() {
             Object.values(currentPlayerMap).forEach(player => {
                 batch.update(doc(firestore, 'players', player.id), player.stats);
             });
-            await batch.commit();
+            batch.commit()
+              .then(() => {
+                toast({ 
+                    title: 'Rekap Selesai!', 
+                    description: 'Sinkronisasi berhasil. Data Agus M telah digabung ke profil Aguii secara otomatis.' 
+                });
+              })
+              .catch(async (serverError) => {
+                const permissionError = new FirestorePermissionError({
+                  path: 'players',
+                  operation: 'update',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+              });
 
-            toast({ 
-                title: 'Rekap Selesai!', 
-                description: 'Sinkronisasi berhasil. Data Agus M telah digabung ke profil Aguii secara otomatis.' 
-            });
         } catch (error) {
             console.error("Sync error:", error);
             toast({ variant: 'destructive', title: 'Gagal Sinkronisasi', description: 'Terjadi kesalahan saat memproses histori.' });

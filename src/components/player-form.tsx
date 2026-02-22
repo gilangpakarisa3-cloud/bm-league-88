@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -16,8 +15,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Combobox } from './ui/combobox';
-import type { Player, Team, WithId, League, LeagueEntry, Season } from '@/lib/types';
-import { useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import type { Player, Team, WithId, League, Season } from '@/lib/types';
+import { useCollection, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { collection, doc, writeBatch, query, where, getDocs } from 'firebase/firestore';
 import React, { useEffect } from 'react';
@@ -40,7 +39,7 @@ interface PlayerFormProps {
 export function PlayerForm({ player, onSave }: PlayerFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { t, t_dynamic } = useTranslation();
+  const { t } = useTranslation();
 
   const teamsCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'teams') : null),
@@ -165,11 +164,21 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
             }
         }
 
-        await batch.commit();
-        toast({
-          title: t('player_updated_title'),
-          description: t('player_updated_desc', { playerName: data.name }),
-        });
+        batch.commit()
+          .then(() => {
+            toast({
+              title: t('player_updated_title'),
+              description: t('player_updated_desc', { playerName: data.name }),
+            });
+          })
+          .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+              path: playerRef.path,
+              operation: 'update',
+              requestResourceData: playerData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          });
 
       } catch (error) {
         console.error("Failed to update player and their entries: ", error);
