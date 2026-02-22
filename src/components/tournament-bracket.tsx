@@ -239,9 +239,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         const t1 = p.p1?.teamId ? teamsById[p.p1.teamId] : null;
         const t2 = p.p2?.teamId ? teamsById[p.p2.teamId] : null;
         return (
-            <div className="flex flex-col gap-1 opacity-70 group/card relative">
-                <div className="flex items-center justify-between px-1">
-                    <span className="text-[8px] font-black tracking-[0.2em] text-primary/40 ml-1 uppercase">{label}</span>
+            <div className="flex flex-col gap-1 opacity-70 group/card relative items-center">
+                <div className="flex items-center justify-center gap-2 px-1">
+                    <span className="text-[8px] font-black tracking-[0.2em] text-primary/40 uppercase">{label}</span>
                     <Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black tracking-tighter uppercase italic">Projection</Badge>
                 </div>
                 <Card 
@@ -269,8 +269,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     }
     
     if (!m) return (
-        <div className="flex flex-col gap-1 opacity-30">
-            <span className="text-[8px] font-black tracking-[0.2em] text-white/20 ml-1 uppercase">{label}</span>
+        <div className="flex flex-col gap-1 opacity-30 items-center">
+            <span className="text-[8px] font-black tracking-[0.2em] text-white/20 uppercase">{label}</span>
             <div className="w-52 h-24 bg-black/20 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-2">
                 <div className="relative">
                     <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" />
@@ -282,8 +282,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     );
 
     return (
-        <div className="flex flex-col gap-1 group/card relative">
-            <span className="text-[8px] font-black tracking-[0.2em] text-primary/60 ml-1 uppercase">{label}</span>
+        <div className="flex flex-col gap-1 group/card relative items-center">
+            <span className="text-[8px] font-black tracking-[0.2em] text-primary/60 uppercase">{label}</span>
             <Card 
                 className={cn(
                     "w-52 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 hover:scale-[1.02] shadow-2xl rounded-xl", 
@@ -509,7 +509,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </div>
                         <div className="text-center space-y-4">
-                            <h3 className="text-7xl font-black tracking-[0.4em] text-white uppercase italic pr-8 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">Grand Final</h3>
+                            <h3 className="text-7xl font-black tracking-[0.4em] text-white uppercase italic drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">Grand Final</h3>
                             <p className="text-base font-black text-primary tracking-[0.6em] uppercase opacity-60">The Ultimate Apex Battle</p>
                         </div>
                     </div>
