@@ -144,7 +144,7 @@ const SingleTable = ({
                     isRelegationZone ? "bg-red-500/[0.05] hover:bg-red-500/[0.1]" : "hover:bg-white/[0.03]"
                   )}
                 >
-                  <TableCell className={cn("p-0 w-1 sm:w-1.5", 
+                  <TableCell className={cn("p-0 w-1.5", 
                     isFirst ? 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' :
                     isQualificationZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
                     isLowerBracketZone ? 'bg-amber-500' :
