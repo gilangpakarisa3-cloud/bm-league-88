@@ -45,10 +45,6 @@ service cloud.firestore {
 
     /**
      * @description Rules for user-specific profiles. Restricted to the owner.
-     * @path /userProfiles/{userProfileId}
-     * @allow (get) If the UID in the path matches the authenticated user's UID.
-     * @deny (list) If a user tries to list all user profiles.
-     * @principle Ownership-based access and Relational Integrity.
      */
     match /userProfiles/{userProfileId} {
       allow get: if isOwner(userProfileId);
@@ -60,10 +56,6 @@ service cloud.firestore {
 
     /**
      * @description Publicly readable football team data. Managed by admins.
-     * @path /teams/{teamId}
-     * @allow (get, list) For any user (including anonymous/unauthenticated).
-     * @deny (create, update, delete) For any non-admin user.
-     * @principle Public Read with Admin-Only Writes.
      */
     match /teams/{teamId} {
       allow get, list: if true;
@@ -72,24 +64,35 @@ service cloud.firestore {
     }
 
     /**
+     * @description Publicly readable player master data.
+     */
+    match /players/{playerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /**
      * @description Publicly readable league tournament data. Managed by admins.
-     * @path /leagues/{leagueId}
-     * @allow (get, list) For any user.
-     * @deny (create, update, delete) For any non-admin user.
-     * @principle Public Read with Admin-Only Writes.
      */
     match /leagues/{leagueId} {
       allow get, list: if true;
       allow create: if isAdmin();
       allow update, delete: if isAdmin() && resource != null;
+      
+      // Seasons and subcollections (matches, leagueTable, coopLeagueTable)
+      match /seasons/{seasonId} {
+        allow read: if true;
+        allow write: if isAdmin();
+        
+        match /{document=**} {
+          allow read: if true;
+          allow write: if isAdmin();
+        }
+      }
     }
 
     /**
      * @description Publicly readable cup tournament data. Managed by admins.
-     * @path /cups/{cupId}
-     * @allow (get, list) For any user.
-     * @deny (create, update, delete) For any non-admin user.
-     * @principle Public Read with Admin-Only Writes.
      */
     match /cups/{cupId} {
       allow get, list: if true;
@@ -98,11 +101,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Publicly readable match data. Managed by admins.
-     * @path /matches/{matchId}
-     * @allow (get, list) For any user.
-     * @deny (create, update, delete) For any non-admin user.
-     * @principle Public Read with Admin-Only Writes.
+     * @description Publicly readable match data (Top-level). Managed by admins.
      */
     match /matches/{matchId} {
       allow get, list: if true;
@@ -111,16 +110,36 @@ service cloud.firestore {
     }
 
     /**
+     * @description Publicly readable notice board data.
+     */
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /**
+     * @description Publicly readable hall of fame data.
+     */
+    match /hallOfFame/{recordId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /**
+     * @description Publicly readable app configuration (shared password).
+     */
+    match /appConfig/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /**
      * @description Database Access Control (DBAC) collection defining admin roles.
-     * @path /admins/{adminId}
-     * @allow (get) For any authenticated user to check admin status.
-     * @deny (list, create, update, delete) To prevent unauthorized role escalation.
-     * @principle Structural Segregation for Role-Based Access Control.
      */
     match /admins/{adminId} {
       allow get: if isSignedIn();
       allow list: if false;
-      allow create, update, delete: if false; // Admins must be managed via Firebase Console or privileged environment.
+      allow create, update, delete: if false;
     }
   }
 }
