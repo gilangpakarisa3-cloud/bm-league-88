@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords, Award, Zap, Activity, Flame } from 'lucide-react';
+import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords, Award, Zap, Activity, Flame, Scan } from 'lucide-react';
 import { EditableNotice } from '@/components/notice/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -392,12 +392,20 @@ export default function Home() {
             <EditableNotice />
         </section>
         
-        <section className="space-y-4 sm:space-y-6">
-            <div className="flex flex-col items-center gap-2">
-                <h2 className="text-[8px] sm:text-[10px] font-black text-primary uppercase tracking-[0.3em] sm:tracking-[0.5em] flex items-center justify-center gap-2 sm:gap-3 italic">
-                    <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4"/> Registered Participants
-                </h2>
-                <div className="h-0.5 w-12 sm:w-16 bg-primary/30 rounded-full" />
+        <section className="space-y-6 sm:space-y-8 relative overflow-hidden">
+            <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-4">
+                    <div className="h-px w-12 sm:w-20 bg-gradient-to-r from-transparent to-primary/40" />
+                    <h2 className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-[0.4em] sm:tracking-[0.6em] flex items-center justify-center gap-3 italic pr-4">
+                        <Scan className="w-4 h-4 text-primary animate-pulse"/> ROSTER TRANSMISSION
+                    </h2>
+                    <div className="h-px w-12 sm:w-20 bg-gradient-to-l from-transparent to-primary/40" />
+                </div>
+                <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-primary/40 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-primary/20 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-primary/10 rounded-full" />
+                </div>
             </div>
             <PlayerMarquee />
         </section>
