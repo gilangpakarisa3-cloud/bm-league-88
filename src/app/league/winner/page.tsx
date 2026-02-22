@@ -1,12 +1,11 @@
-
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { WinnerDisplay } from '@/components/winner-display';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { collection, doc, query, orderBy, limit, getDocs, where, getDoc } from 'firebase/firestore';
-import type { LeagueEntry, Season, WithId, Player, Team, Match, CoOpLeagueEntry } from '@/lib/types';
+import { collection, doc, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import type { LeagueEntry, Season, WithId, Team, Match, CoOpLeagueEntry } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -49,7 +48,7 @@ function LeagueWinnerPageContents() {
     
     useEffect(() => {
         if (!firestore || !seasonId || !season) {
-            if (!seasonId) router.push('/league');
+            if (!seasonId && !isLoading) router.push('/league');
             return;
         }
 
@@ -64,7 +63,7 @@ function LeagueWinnerPageContents() {
                 
                 // 1. Identify Winner
                 if (season.type === 'Hybrid') {
-                    const finalMatch = allMatches.find(m => m.round === 'Final' && m.isCompleted);
+                    const finalMatch = allMatches.find(m => m.round === 'Grand-Final' && m.isCompleted);
                     if (finalMatch) {
                         const s1 = finalMatch.player1Wins !== null ? finalMatch.player1Wins : (finalMatch.player1Score ?? 0);
                         const s2 = finalMatch.player2Wins !== null ? finalMatch.player2Wins : (finalMatch.player2Score ?? 0);
@@ -196,15 +195,21 @@ function LeagueWinnerPageContents() {
 
 
     return (
-        <WinnerDisplay
-            title={winnerTitle}
-            subtitle={subtitle}
-            winnerName={winner.playerName}
-            teamName={winner.teamName}
-            imageUrl={winnerImage}
-            stats={stats}
-            imageHint="team logo"
-        />
+        <div className="relative min-h-screen bg-[#0A192F]">
+            {/* Background decorative glows to match other pages */}
+            <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
+
+            <WinnerDisplay
+                title={winnerTitle}
+                subtitle={subtitle}
+                winnerName={winner.playerName}
+                teamName={winner.teamName}
+                imageUrl={winnerImage}
+                stats={stats}
+                imageHint="team logo"
+            />
+        </div>
     );
 }
 
