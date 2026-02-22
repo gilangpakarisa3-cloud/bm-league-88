@@ -173,22 +173,47 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
 
   return (
     <>
-      <div className="space-y-20">
+      <div className="space-y-24">
         {tiers.map((tier) => (
-          <div key={tier.title} className="flex flex-col md:flex-row gap-6 md:gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div key={tier.title} className="flex flex-col md:flex-row gap-6 md:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             
-            {/* Sidebar Label Section */}
-            <div className="flex md:flex-col items-center justify-between md:justify-start gap-4 md:py-4 shrink-0 md:w-24">
-                <div className={cn("h-1.5 w-full md:h-full md:w-1.5 rounded-full", tier.bgShadow)} />
-                <div className="flex md:flex-col items-center gap-3 md:gap-6 md:rotate-180 md:[writing-mode:vertical-lr]">
-                    <h2 className={cn("text-2xl md:text-5xl font-black uppercase italic tracking-tighter whitespace-nowrap", tier.color)}>
-                        {tier.title}
-                    </h2>
-                    <span className="text-white/10 text-[8px] md:text-[10px] tracking-[0.3em] font-black uppercase whitespace-nowrap">
-                        Elite Division
-                    </span>
+            {/* Modular HUD Sidebar Label Section */}
+            <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4 md:pt-10 shrink-0 md:w-32 relative group/sidebar">
+                {/* HUD Signal Segments */}
+                <div className="flex md:flex-col gap-1.5 h-1.5 w-full md:h-fit md:w-1.5 order-1 md:order-none">
+                    {[...Array(5)].map((_, i) => (
+                        <div 
+                            key={i} 
+                            className={cn(
+                                "rounded-full transition-all duration-1000",
+                                i < 3 ? tier.bgShadow : "bg-white/5",
+                                i === 0 ? "flex-[3] md:h-20" : "flex-1 md:h-4"
+                            )} 
+                        />
+                    ))}
                 </div>
-                <div className="hidden md:block h-1.5 w-full bg-white/5 rounded-full mt-auto" />
+
+                <div className="flex md:flex-col items-center md:items-end gap-2 md:gap-6 md:rotate-180 md:[writing-mode:vertical-lr] relative z-10">
+                    <div className="flex flex-col md:flex-row-reverse items-center gap-2">
+                        <div className={cn("w-2 h-2 rounded-full animate-pulse hidden md:block", tier.bgShadow)} />
+                        <h2 className={cn("text-3xl md:text-6xl font-black uppercase italic tracking-tighter whitespace-nowrap leading-none", tier.color)}>
+                            {tier.title}
+                        </h2>
+                    </div>
+                    <div className="flex items-center gap-2 opacity-30 mt-1 md:mt-0">
+                        <span className="text-white text-[8px] md:text-[11px] tracking-[0.4em] font-black uppercase whitespace-nowrap">
+                            Scouting • Level
+                        </span>
+                        <Target className="w-3 h-3 text-white" />
+                    </div>
+                </div>
+
+                {/* HUD Geometric Details */}
+                <div className="hidden md:flex flex-col gap-1 mt-auto items-end opacity-10">
+                    <div className="w-8 h-0.5 bg-white" />
+                    <div className="w-4 h-0.5 bg-white" />
+                    <div className="w-12 h-0.5 bg-white" />
+                </div>
             </div>
 
             {/* Players Grid Section */}
