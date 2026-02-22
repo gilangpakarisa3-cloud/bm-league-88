@@ -104,9 +104,9 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
       { 
         title: 'Amateur', 
         players: sortedPlayers.slice(12), 
-        color: 'text-white/40', 
-        bgShadow: 'bg-white/20',
-        cardBorder: 'group-hover:border-white/20'
+        color: 'text-pink-500', 
+        bgShadow: 'bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]',
+        cardBorder: 'group-hover:border-pink-500/30'
       },
     ].filter(t => t.players.length > 0);
   }, [sortedPlayers]);
