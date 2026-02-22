@@ -600,11 +600,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <AvatarImage src={analysis1.team?.logoUrl} />
                                             <AvatarFallback className="bg-black/40"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/10"/></AvatarFallback>
                                         </Avatar>
+                                        {/* Group Badge - Top Left */}
+                                        {analysis1.entry?.group && (
+                                            <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20">
+                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] sm:text-sm px-1.5 sm:px-2.5 h-6 sm:h-8 min-w-[24px] sm:min-w-[32px] justify-center italic">
+                                                    GRUP {analysis1.entry.group}
+                                                </Badge>
+                                            </div>
+                                        )}
                                         <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-primary text-black font-black text-sm sm:text-xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0" suppressHydrationWarning>
                                             {analysis1.entry?.rank || '?'}
                                         </div>
                                         {analysis1.isDefendingChampion && (
-                                            <div className="absolute -top-3 -left-3 sm:-top-5 sm:-left-5 transform -rotate-12 z-20">
+                                            <div className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 transform rotate-12 z-20">
                                                 <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1 sm:p-2 rounded-lg sm:rounded-xl shadow-2xl">
                                                     <Award className="w-4 h-4 sm:w-6 sm:h-6"/>
                                                 </Badge>
@@ -659,11 +667,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <AvatarImage src={analysis2.team?.logoUrl} />
                                             <AvatarFallback className="bg-black/40"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/10"/></AvatarFallback>
                                         </Avatar>
+                                        {/* Group Badge - Top Left */}
+                                        {analysis2.entry?.group && (
+                                            <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20">
+                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] sm:text-sm px-1.5 sm:px-2.5 h-6 sm:h-8 min-w-[24px] sm:min-w-[32px] justify-center italic">
+                                                    GRUP {analysis2.entry.group}
+                                                </Badge>
+                                            </div>
+                                        )}
                                         <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-white text-black font-black text-sm sm:text-xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0" suppressHydrationWarning>
                                             {analysis2.entry?.rank || '?'}
                                         </div>
                                         {analysis2.isDefendingChampion && (
-                                            <div className="absolute -top-3 -left-3 sm:-top-5 sm:-left-5 transform -rotate-12 z-20">
+                                            <div className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 transform rotate-12 z-20">
                                                 <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1 sm:p-2 rounded-lg sm:rounded-xl shadow-2xl">
                                                     <Award className="w-4 h-4 sm:w-6 sm:h-6"/>
                                                 </Badge>
