@@ -75,7 +75,7 @@ function LeagueWinnerPageContents() {
                 const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
                 const tableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/${tableName}`);
                 
-                let winnerData: WithId<LeagueEntry> | null = null;
+                let winnerData: any = null;
 
                 if (winnerPlayerId) {
                     const qWinner = query(tableRef, where(isCoop ? '__name__' : 'playerId', '==', winnerPlayerId));
@@ -92,9 +92,9 @@ function LeagueWinnerPageContents() {
                                 points: data.points,
                                 win: data.win,
                                 loss: data.loss
-                            } as any;
+                            };
                         } else {
-                            winnerData = { id: doc.id, ...doc.data() } as WithId<LeagueEntry>;
+                            winnerData = { id: doc.id, ...doc.data() };
                         }
                     }
                 } else {
@@ -114,9 +114,9 @@ function LeagueWinnerPageContents() {
                                 points: data.points,
                                 win: data.win,
                                 loss: data.loss
-                            } as any;
+                            };
                         } else {
-                            winnerData = { id: doc.id, ...doc.data() } as WithId<LeagueEntry>;
+                            winnerData = { id: doc.id, ...doc.data() };
                         }
                     }
                 }
@@ -124,24 +124,34 @@ function LeagueWinnerPageContents() {
                 if (winnerData && winnerPlayerId) {
                     setWinner(winnerData);
                     
-                    // 2. Aggregate Stats across ALL matches (League + Knockout)
-                    let totalWin = 0, totalLoss = 0;
-                    const relevantMatches = allMatches.filter(m => m.isCompleted && (m.player1Id === winnerPlayerId || m.player2Id === winnerPlayerId));
-                    
-                    relevantMatches.forEach(m => {
-                        const isP1 = m.player1Id === winnerPlayerId;
-                        const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-                        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-                        const pResult = isP1 ? s1 : s2;
-                        const oResult = isP1 ? s2 : s1;
-                        if (pResult > oResult) totalWin++;
-                        else if (pResult < oResult) totalLoss++;
-                    });
+                    // 2. Base stats from the table (already aggregated for group/single/coop)
+                    let totalWin = Number(winnerData.win) || 0;
+                    let totalLoss = Number(winnerData.loss) || 0;
+                    let totalPoints = Number(winnerData.points) || 0;
+
+                    // 3. For Hybrid seasons, we must add stats from knockout matches manually
+                    if (season.type === 'Hybrid') {
+                        const knockoutMatches = allMatches.filter(m => 
+                            !!m.isCompleted && 
+                            m.round !== 'Group' && 
+                            (m.player1Id === winnerPlayerId || m.player2Id === winnerPlayerId)
+                        );
+                        
+                        knockoutMatches.forEach(m => {
+                            const isP1 = m.player1Id === winnerPlayerId;
+                            const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
+                            const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+                            const pResult = isP1 ? s1 : s2;
+                            const oResult = isP1 ? s2 : s1;
+                            if (pResult > oResult) totalWin++;
+                            else if (pResult < oResult) totalLoss++;
+                        });
+                    }
 
                     setAggregatedStats({
                         win: totalWin,
                         loss: totalLoss,
-                        points: winnerData.points 
+                        points: totalPoints 
                     });
                 }
 
@@ -186,8 +196,8 @@ function LeagueWinnerPageContents() {
 
     const stats = [
         { label: t('pts'), value: aggregatedStats.points },
-        { label: t('win_long', {defaultValue: 'Menang'}), value: aggregatedStats.win },
-        { label: t('loss_long', { defaultValue: 'Kalah'}), value: aggregatedStats.loss },
+        { label: t('win_long'), value: aggregatedStats.win },
+        { label: t('loss_long'), value: aggregatedStats.loss },
     ];
 
     const winnerTitle = isSeasonCompleted && season ? t('winner_of_season', { seasonName: season.name }) : t('current_league_leader');
