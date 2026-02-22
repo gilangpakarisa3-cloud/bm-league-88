@@ -390,7 +390,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing no-scrollbar">
             <div className="min-w-[1600px] flex items-stretch gap-10 p-8">
                 {/* Main Tournament Column (Upper + Lower) */}
-                <div className="flex-1 flex flex-col gap-12 relative">
+                <div className="flex-1 flex flex-col gap-24 relative">
                     
                     {/* Upper Bracket Vibrant Container */}
                     <div className="flex-1 relative group/ub bg-primary/[0.02] border-2 border-primary/10 rounded-[2.5rem] p-10 backdrop-blur-sm transition-all duration-700 hover:bg-primary/[0.04] hover:border-primary/20">
@@ -496,7 +496,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 </div>
 
                 {/* Grand Final Section - Full Height Integrated */}
-                <div className="flex flex-col items-center justify-center gap-12 border-l-2 border-white/5 bg-black/30 px-16 rounded-r-[3.5rem] relative group/final overflow-hidden">
+                <div className="flex flex-col items-center justify-center gap-12 border-l-2 border-white/5 bg-black/30 px-10 rounded-r-[3.5rem] relative group/final overflow-hidden">
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-[150px] group-hover/final:bg-primary/[0.06] transition-all duration-1000" />
                     </div>
