@@ -477,7 +477,7 @@ export default function FixturesPage() {
                     await processRevert(d1.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
                     await processRevert(d1.player2Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
                     await processRevert(d2.player1Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
-                    await processRevert(d2.player2Id, outcome.p2, orig.player1Score || 0, orig.player1Score || 0);
+                    await processRevert(d2.player2Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
                 }
             } else {
                 await processRevert(orig.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
@@ -644,7 +644,7 @@ export default function FixturesPage() {
                 await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                 await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                 await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
-                await processRevert(d2.player2Id, outcome.p2, mToRev.player1Score || 0, mToRev.player1Score || 0);
+                await processRevert(d2.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
             }
         } else {
             await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
@@ -793,7 +793,7 @@ export default function FixturesPage() {
                     {editingMatch && activeSeason && (<ScoreForm match={editingMatch} onSave={(v) => handleUpdateScore(editingMatch.id, v)} seasonType={activeSeason.type} hybridGroupMeetings={activeSeason.hybridGroupMeetings} player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }} player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }} />)}
                 </ScrollArea>
                 <DialogFooter className="p-4 bg-black/20 border-t border-white/5 shrink-0">
-                    <Button variant="ghost" onClick={() => setEditingMatch(null)} className="font-black uppercase tracking-widest italic text-[10px] text-white/40 hover:text-white">{t('cancel')}</Button>
+                    <Button variant="ghost" onClick={() => setEditingMatch(null)} className="font-black uppercase tracking-widest italic text-[10px] text-white/70 hover:bg-white/10 hover:text-white border border-white/10">{t('cancel')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
