@@ -974,12 +974,17 @@ export default function LeaguePage() {
 
                                     <div className="space-y-3">
                                         <h4 className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.3em] text-primary/60 flex items-center gap-2 uppercase italic">
-                                            <Receipt className="w-3 h-3" /> Status Invoice & Verifikasi
+                                            <Receipt className="w-3 h-3" /> Status Verifikasi Pembayaran
                                         </h4>
                                         <ScrollArea className="h-[500px] sm:h-[800px] pr-2">
-                                            <div className="space-y-2">
+                                            <div className="space-y-2.5">
                                                 {(registeredPlayers || []).map(player => (
-                                                    <div key={player.id} className="flex items-center justify-between bg-black/20 p-2 sm:p-3 rounded-xl border border-white/5 hover:border-primary/20 hover:bg-primary/[0.03] transition-all duration-500 group/item relative overflow-hidden">
+                                                    <div key={player.id} className={cn(
+                                                        "flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-500 group/item relative overflow-hidden",
+                                                        player.hasPaid 
+                                                            ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(204,253,1,0.05)]" 
+                                                            : "bg-black/20 border-white/5 hover:border-white/10"
+                                                    )}>
                                                         {/* HUD Line Indicator */}
                                                         <div className={cn(
                                                             "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
@@ -988,38 +993,50 @@ export default function LeaguePage() {
                                                         
                                                         <div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'>
                                                             <div className="relative">
-                                                                <div className={cn(
-                                                                    "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity duration-500",
-                                                                    player.hasPaid ? "bg-primary/20 opacity-100" : ""
-                                                                )} />
-                                                                <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-background shadow-xl relative z-10">
+                                                                <Avatar className={cn(
+                                                                    "h-9 w-9 sm:h-11 sm:w-11 border-2 transition-all duration-500 shadow-xl",
+                                                                    player.hasPaid ? "border-primary" : "border-white/10"
+                                                                )}>
                                                                     <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
-                                                                    <AvatarFallback><User className="w-4 h-4 text-white/20" /></AvatarFallback>
+                                                                    <AvatarFallback><User className="w-5 h-5 text-white/20" /></AvatarFallback>
                                                                 </Avatar>
                                                             </div>
                                                             <div className="flex flex-col overflow-hidden">
-                                                                <Label htmlFor={`paid-${player.id}`} className="text-[11px] sm:text-sm font-black uppercase italic pr-4 truncate cursor-pointer group-hover/item:text-primary transition-colors">
+                                                                <Label htmlFor={`paid-${player.id}`} className={cn(
+                                                                    "text-[12px] sm:text-[15px] font-black uppercase italic pr-4 truncate cursor-pointer transition-colors",
+                                                                    player.hasPaid ? "text-primary" : "text-white/80 group-hover/item:text-white"
+                                                                )}>
                                                                     {player.playerName}
                                                                 </Label>
-                                                                <span className="text-[7px] sm:text-[9px] font-bold text-white/30 uppercase tracking-widest truncate">
-                                                                    ID: {player.id.split('-')[0].toUpperCase()} • VOID CHECK
+                                                                <span className={cn(
+                                                                    "text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] truncate transition-colors",
+                                                                    player.hasPaid ? "text-primary/40" : "text-white/20"
+                                                                )}>
+                                                                    {player.teamName || 'Athlete Protocol'}
                                                                 </span>
                                                             </div>
                                                         </div>
                                                         
                                                         <div className="flex items-center gap-3 relative z-10 shrink-0">
-                                                            <Badge variant="outline" className={cn(
-                                                                "text-[7px] sm:text-[8px] font-black uppercase tracking-tighter px-1.5 h-4 sm:h-5 transition-all",
-                                                                player.hasPaid ? "border-primary/30 text-primary bg-primary/5" : "border-white/10 text-white/20"
+                                                            <div className={cn(
+                                                                "px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter transition-all border",
+                                                                player.hasPaid 
+                                                                    ? "border-primary/30 bg-primary/10 text-primary" 
+                                                                    : "border-white/10 bg-black/20 text-white/20"
                                                             )}>
-                                                                {player.hasPaid ? "VERIFIED" : "PENDING"}
-                                                            </Badge>
+                                                                {player.hasPaid ? "Verified" : "Pending"}
+                                                            </div>
                                                             <Checkbox 
                                                                 id={`paid-${player.id}`} 
                                                                 checked={!!player.hasPaid} 
                                                                 onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
                                                                 disabled={!isAdmin} 
-                                                                className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:text-black h-4 w-4 sm:h-5 sm:w-5 rounded-md transition-all shadow-lg" 
+                                                                className={cn(
+                                                                    "h-5 w-5 sm:h-6 sm:w-6 rounded-md transition-all shadow-lg border-2",
+                                                                    player.hasPaid 
+                                                                        ? "border-primary bg-primary data-[state=checked]:text-black" 
+                                                                        : "border-white/20 bg-black/40"
+                                                                )} 
                                                             />
                                                         </div>
                                                     </div>
