@@ -551,9 +551,29 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 )}
                             </div>
-                            <div className="text-right flex flex-col items-end gap-2">
-                                <Badge className="bg-white/5 text-white/60 border-white/10 font-black px-4 py-1.5 rounded-lg text-xs tracking-tighter shadow-inner uppercase">Status: Operational</Badge>
-                                <div className="flex gap-1.5">
+                            <div className="text-right flex flex-col items-end gap-3">
+                                <div className="flex gap-6 items-center bg-white/5 px-4 py-3 rounded-xl border border-white/10 shadow-inner backdrop-blur-md">
+                                    {analysis1?.entry && (
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-[8px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1.5 truncate max-w-[120px]">{selectedMatch?.p1?.name} Group Intel</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-base font-black text-primary italic leading-none tracking-tighter">{analysis1.entry.points} PTS</span>
+                                                <span className="text-[9px] font-bold text-white/30 tabular-nums leading-none">{analysis1.entry.win}W-{analysis1.entry.draw ?? 0}D-{analysis1.entry.loss}L</span>
+                                            </div>
+                                        </div>
+                                     )}
+                                    <div className="w-px h-8 bg-white/10" />
+                                    {analysis2?.entry && (
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none mb-1.5 truncate max-w-[120px]">{selectedMatch?.p2?.name} Group Intel</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-base font-black text-white italic leading-none tracking-tighter">{analysis2.entry.points} PTS</span>
+                                                <span className="text-[9px] font-bold text-white/30 tabular-nums leading-none">{analysis2.entry.win}W-{analysis2.entry.draw ?? 0}D-{analysis2.entry.loss}L</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex gap-1.5 pr-1">
                                     {[...Array(5)].map((_, i) => <div key={i} className={cn("w-4 h-1 rounded-full", i < 3 ? "bg-primary" : "bg-white/10")} />)}
                                 </div>
                             </div>
