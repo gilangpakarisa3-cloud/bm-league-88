@@ -2,23 +2,22 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, KeyRound, Target, Zap } from 'lucide-react';
+import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, KeyRound, Target, Zap, Activity, Scan, Binary, LayoutGrid, Star, Flame } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { Progress } from './ui/progress';
 import { ScrollArea } from './ui/scroll-area';
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
-
+import { ChartContainer, ChartConfig } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
@@ -29,7 +28,6 @@ interface PlayerPerformanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defendingChampionId?: string;
-  previousSeasonName?: string;
   isAdmin: boolean;
   activeSeason: WithId<Season> | null;
   coopLeagueTable: WithId<CoOpLeagueEntry>[];
@@ -45,35 +43,33 @@ export function PlayerPerformanceDialog({
     open, 
     onOpenChange, 
     defendingChampionId, 
-    previousSeasonName, 
     isAdmin, 
     activeSeason, 
     coopLeagueTable,
     singleLeagueTable
 }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
-  
   const [activeTab, setActiveTab] = useState('history');
-  
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
-    if (player) {
-      setActiveTab('history');
-    }
+    setIsMounted(true);
+    if (player) setActiveTab('history');
   }, [player]);
   
-  const playersById = useMemo(() => {
-    return allPlayers.reduce((acc, p) => {
-      acc[p.id] = p;
-      return acc;
-    }, {} as Record<string, WithId<Player>>);
-  }, [allPlayers]);
+  const playersById = useMemo(() => allPlayers.reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
+  const teamsById = useMemo(() => allTeams.reduce((acc, t) => { acc[t.id] = t; return acc; }, {} as Record<string, WithId<Team>>), [allTeams]);
 
-  const teamsById = useMemo(() => {
-    return allTeams.reduce((acc, t) => {
-        acc[t.id] = t;
-        return acc;
-    }, {} as Record<string, WithId<Team>>);
-  }, [allTeams]);
+  // Calculate Master Rank
+  const masterPlayersRanked = useMemo(() => {
+    const players = Object.values(playersById);
+    const withOvr = players.map(p => {
+        const poss = (p.overallPlayed || 0) * 3;
+        const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
+        return { ...p, ovrRating: poss > 0 ? (act / poss) * 100 : 0 };
+    });
+    return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed).map((p, i) => ({ ...p, masterRank: i + 1 }));
+  }, [playersById]);
 
   const performanceStats = useMemo(() => {
     if (!player || !activeSeason) return null;
@@ -81,15 +77,8 @@ export function PlayerPerformanceDialog({
     const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
     const playerIdToFilter = isCoop ? player.id : player.playerId;
 
-    const coopTableById = (coopLeagueTable || []).reduce((acc, entry) => {
-        acc[entry.id] = entry;
-        return acc;
-    }, {} as Record<string, WithId<CoOpLeagueEntry>>);
-
-    const singleTableByPlayerId = (singleLeagueTable || []).reduce((acc, entry) => {
-        acc[entry.playerId] = entry;
-        return acc;
-    }, {} as Record<string, WithId<LeagueEntry>>);
+    const coopTableById = (coopLeagueTable || []).reduce((acc, entry) => { acc[entry.id] = entry; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>);
+    const singleTableByPlayerId = (singleLeagueTable || []).reduce((acc, entry) => { acc[entry.playerId] = entry; return acc; }, {} as Record<string, WithId<LeagueEntry>>);
 
     const playerMatches = matches.filter(m => (m.player1Id === playerIdToFilter || m.player2Id === playerIdToFilter));
 
@@ -99,38 +88,23 @@ export function PlayerPerformanceDialog({
       .map(m => {
         const isPlayer1 = m.player1Id === playerIdToFilter;
         const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
-
-        let opponent: { name: string } | null = null;
-        let opponentTeam: WithId<Team> | null = null;
+        let opponent = null; let opponentTeam = null;
         
         if (isCoop) {
             const opponentEntry = coopTableById[opponentId];
-            if (opponentEntry) {
-                opponent = { name: opponentEntry.teamName };
-                opponentTeam = teamsById[opponentEntry.player1TeamId] || null;
-            }
+            if (opponentEntry) { opponent = { name: opponentEntry.teamName }; opponentTeam = teamsById[opponentEntry.player1TeamId] || null; }
         } else {
             const opponentEntry = singleTableByPlayerId[opponentId];
-            if (opponentEntry) {
-                opponent = { name: opponentEntry.playerName };
-                opponentTeam = teamsById[opponentEntry.teamId];
-            } else {
-                const opponentPlayer = playersById[opponentId];
-                if(opponentPlayer){
-                    opponent = { name: opponentPlayer.name };
-                    opponentTeam = teamsById[opponentPlayer.teamId];
-                }
-            }
+            if (opponentEntry) { opponent = { name: opponentEntry.playerName }; opponentTeam = teamsById[opponentEntry.teamId]; }
+            else { const opponentPlayer = playersById[opponentId]; if(opponentPlayer){ opponent = { name: opponentPlayer.name }; opponentTeam = teamsById[opponentPlayer.teamId]; } }
         }
 
         let result: 'W' | 'L' | 'D';
         let playerResult, opponentResult;
-
         if (isCoop) {
             playerResult = isPlayer1 ? m.player1Wins! : m.player2Wins!;
             opponentResult = isPlayer1 ? m.player2Wins! : m.player1Wins!;
-            if (playerResult > opponentResult) result = 'W';
-            else result = 'L';
+            result = playerResult > opponentResult ? 'W' : 'L';
         } else {
             playerResult = isPlayer1 ? m.player1Score! : m.player2Score!;
             opponentResult = isPlayer1 ? m.player2Score! : m.player1Score!;
@@ -138,16 +112,7 @@ export function PlayerPerformanceDialog({
             else if (playerResult < opponentResult) result = 'L';
             else result = 'D';
         }
-        
-        return {
-          ...m,
-          isPlayer1,
-          opponent,
-          opponentTeam,
-          playerResult,
-          opponentResult,
-          result,
-        };
+        return { ...m, isPlayer1, opponent, opponentTeam, playerResult, opponentResult, result };
       });
       
     const upcomingMatches = playerMatches
@@ -156,44 +121,23 @@ export function PlayerPerformanceDialog({
       .map(m => {
           const isPlayer1 = m.player1Id === playerIdToFilter;
           const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
-          
-          let opponent: { name: string } | null = null;
-          let opponentTeam: WithId<Team> | null = null;
-
+          let opponent = null; let opponentTeam = null;
           if (isCoop) {
             const opponentEntry = coopTableById[opponentId];
-            if (opponentEntry) {
-                opponent = { name: opponentEntry.teamName };
-                opponentTeam = teamsById[opponentEntry.player1TeamId] || null;
-            }
+            if (opponentEntry) { opponent = { name: opponentEntry.teamName }; opponentTeam = teamsById[opponentEntry.player1TeamId] || null; }
           } else {
               const opponentEntry = singleTableByPlayerId[opponentId];
-              if (opponentEntry) {
-                  opponent = { name: opponentEntry.playerName };
-                  opponentTeam = teamsById[opponentEntry.teamId];
-              } else {
-                  const opponentPlayer = playersById[opponentId];
-                  if (opponentPlayer) {
-                    opponent = { name: opponentPlayer.name };
-                    opponentTeam = teamsById[opponentPlayer.teamId];
-                  }
-              }
+              if (opponentEntry) { opponent = { name: opponentEntry.playerName }; opponentTeam = teamsById[opponentEntry.teamId]; }
+              else { const opponentPlayer = playersById[opponentId]; if (opponentPlayer) { opponent = { name: opponentPlayer.name }; opponentTeam = teamsById[opponentPlayer.teamId]; } }
           }
-          return {
-              ...m,
-              isPlayer1,
-              opponent,
-              opponentTeam
-          }
+          return { ...m, isPlayer1, opponent, opponentTeam }
       });
 
-    // Calculate detailed stats from actual matches
     const stats = completedMatches.reduce((acc, m) => {
         acc.played++;
         if (m.result === 'W') acc.win++;
         else if (m.result === 'L') acc.loss++;
         else acc.draw++;
-
         if (m.player1Score !== null && m.player2Score !== null) {
             const isP1 = m.player1Id === playerIdToFilter;
             acc.gf += isP1 ? m.player1Score : m.player2Score;
@@ -205,29 +149,23 @@ export function PlayerPerformanceDialog({
     const totalMatchesCount = playerMatches.length;
     const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
     
-    // Calculate OVR Rating (Points Efficiency)
+    // Standard OVR Efficiency calculation
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
 
     let trendScore = 0;
-    const chartData = [{ match: 0, points: 0, tooltip: 'Awal Musim' }, ...[...completedMatches].reverse().map((match, index) => {
+    const chartData = [{ match: 0, points: 0 }, ...[...completedMatches].reverse().map((match, index) => {
         if (match.result === 'W') trendScore += 1;
         else if (match.result === 'L') trendScore -= 1;
-        
-        return {
-            match: index + 1,
-            points: trendScore,
-            tooltip: `vs ${match.opponent?.name}: ${match.playerResult}-${match.opponentResult} (${match.result})`
-        };
+        return { match: index + 1, points: trendScore };
     })];
 
-    const finalTrendScore = chartData.length > 1 ? chartData[chartData.length - 1].points : 0;
+    const masterInfo = masterPlayersRanked.find(p => p.id === playerIdToFilter);
 
-    // Play Style Analysis (3 Parameters)
     let playStyleText = "Gaya bermain: Balanced";
     let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
-    let playStyleDescription = t('play_style_balanced_desc', { defaultValue: "Statistik menyerang dan bertahan yang seimbang. Pemain ini memiliki strategi yang adaptif." });
+    let playStyleDescription = t('play_style_balanced_desc');
     
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
@@ -235,11 +173,11 @@ export function PlayerPerformanceDialog({
         if (avgGF > 1.6) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
-            playStyleDescription = t('play_style_attacking_desc', { defaultValue: "Rata-rata gol memasukkan tinggi (> 1.6 per laga). Pemain ini sangat agresif di lini depan." });
+            playStyleDescription = t('play_style_attacking_desc');
         } else if (avgGA < 1.2 && stats.played >= 3) {
             playStyleText = "Gaya bermain: Defensive & Counter";
             playStyleType = 'defensive';
-            playStyleDescription = t('play_style_defensive_desc', { defaultValue: "Rata-rata gol kemasukan rendah (< 1.2 per laga). Pertahanan pemain ini sangat solid." });
+            playStyleDescription = t('play_style_defensive_desc');
         }
     }
 
@@ -248,322 +186,251 @@ export function PlayerPerformanceDialog({
     if (last5Matches.length > 0) {
         const winCount = last5Matches.filter(m => m.result === 'W').length;
         const lossCount = last5Matches.filter(m => m.result === 'L').length;
-
         if (winCount === 5) performanceStatus = { text: "Merasa tak terkalahkan", color: "text-green-400" };
-        else if (winCount >= 3) performanceStatus = { text: "Dalam performa yang bagus", color: "text-green-400" };
-        else if (lossCount >= 3) performanceStatus = { text: "Performa sedang menurun", color: "text-red-400" };
+        else if (winCount >= 3) performanceStatus = { text: "Performa Unggul", color: "text-green-400" };
+        else if (lossCount >= 3) performanceStatus = { text: "Performa Menurun", color: "text-red-400" };
     }
 
     const groupSize = activeSeason.type === 'Hybrid' 
         ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
         : totalPlayersInSeason;
 
-    return {
-        completedMatches,
-        upcomingMatches,
-        ovrRating,
-        seasonProgress,
-        totalMatchesCount,
-        chartData,
-        finalTrendScore,
-        performanceStatus,
-        stats,
-        groupSize,
-        playStyleText,
-        playStyleType,
-        playStyleDescription
-    }
-
-  }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t]);
+    return { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo }
+  }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t, masterPlayersRanked]);
 
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription } = performanceStats;
+  const { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo } = performanceStats;
   
-   const chartConfig = {
-    points: {
-      label: "Tren",
-      color: "hsl(var(--primary))",
-    },
-  } satisfies ChartConfig;
+  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
 
-  const StatDisplay = ({ label, value }: { label: string, value: string | number }) => (
-    <div className="flex flex-col items-center justify-center p-2 rounded-md bg-card">
-      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
-      <span className="text-lg font-black text-primary">{value}</span>
+  const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
+    <div className={cn(
+        "flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-300",
+        variant === "primary" ? "bg-primary/5 border-primary/20" : 
+        variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
+    )}>
+      <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{label}</span>
+      <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+    </div>
+  );
+
+  const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
+    <div className={cn(
+        "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
+        variant === "primary" ? "bg-primary/5 border-primary/20" : 
+        variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
+    )}>
+        <div className="flex items-center justify-center gap-1.5">
+            <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
+            <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span>
+        </div>
+        <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
     </div>
   );
   
   const isTopRank = player.rank === 1;
   const isBottomRank = player.rank >= groupSize - 2 && groupSize > 3;
-  const isUnbeaten = stats.played > 0 && stats.loss === 0;
   const isDefendingChampion = player.playerId === defendingChampionId;
 
-
-  const rankBadgeStyle = cn(
-    "absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background text-sm font-black shadow-lg",
-    {
-      "bg-yellow-400 border-yellow-300 text-black": isTopRank,
-      "bg-red-500 border-red-400 text-white": isBottomRank,
-      "bg-primary text-primary-foreground": !isTopRank && !isBottomRank
-    }
-  );
-
-  const rankTextStyle = cn("text-xl font-black mt-1", {
-    "text-yellow-400": isTopRank,
-    "text-red-500": isBottomRank,
-    "text-primary": !isTopRank && !isBottomRank,
-  });
-
-  const isCoop = (activeSeason?.type || 'Single') === 'Co-Op';
-
-  const getPlayStyleClass = (type: 'attacking' | 'defensive' | 'balanced') => {
-    switch (type) {
-        case 'attacking': return "bg-red-500/20 text-red-400 border-red-500/30";
-        case 'defensive': return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-        default: return "bg-primary/20 text-primary border-primary/30";
-    }
-  }
-
-
   return (
-    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-primary border-2 p-0 overflow-hidden bg-[#0A192F]/95 backdrop-blur-xl">
+      <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
         <ScrollArea className="max-h-[90vh]">
-            <div className="p-6">
-                <DialogHeader className="flex flex-col items-center text-center">
-                    <div className="relative">
-                      <Avatar className="h-20 w-20 border-4 border-primary shadow-2xl shadow-primary/20">
+            <div className="p-6 relative">
+                {/* HUD Overlay Scanlines */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
+
+                <DialogHeader className="flex flex-col items-center text-center relative z-10">
+                    <div className="relative group">
+                      <div className="absolute -inset-4 bg-primary/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse" />
+                      
+                      {/* Group Badge - Left Top */}
+                      {player.group && (
+                          <div className="absolute -top-2 -left-2 z-20">
+                              <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] px-2 h-7 italic shadow-xl">
+                                  GRUP {player.group}
+                              </Badge>
+                          </div>
+                      )}
+
+                      <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl relative z-10 group-hover:scale-105 transition-all duration-500">
                         <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.playerName} />
-                        <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
+                        <AvatarFallback className="bg-black/40"><User className="h-12 w-12 text-white/10" /></AvatarFallback>
                       </Avatar>
-                      <div className={rankBadgeStyle}>
+                      
+                      <div className={cn(
+                        "absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-xl border-4 border-background text-sm font-black shadow-xl z-20 rotate-12 transition-transform group-hover:rotate-0",
+                        isTopRank ? "bg-yellow-400 text-black" : isBottomRank ? "bg-red-500 text-white" : "bg-primary text-black"
+                      )} suppressHydrationWarning>
                         {player.rank}
                       </div>
 
                        {isDefendingChampion && (
-                          <TooltipProvider>
-                              <Tooltip>
-                                  <TooltipTrigger asChild>
-                                      <div className="absolute -top-2 -left-2 transform -rotate-12 z-20">
-                                          <Badge variant="outline" className="border-amber-500/50 bg-amber-500/20 text-amber-400 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
-                                              <Award className="w-5 h-5"/>
-                                          </Badge>
-                                      </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                      <p>Juara Bertahan</p>
-                                  </TooltipContent>
-                              </Tooltip>
-                          </TooltipProvider>
-                      )}
-
-                      {isUnbeaten && (
-                          <TooltipProvider>
-                              <Tooltip>
-                                  <TooltipTrigger asChild>
-                                      <div className="absolute -top-2 -right-2 transform rotate-12">
-                                          <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 backdrop-blur-sm p-1.5 rounded-full shadow-lg">
-                                              <ShieldCheck className="w-5 h-5"/>
-                                          </Badge>
-                                      </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                      <p>Tak Terkalahkan</p>
-                                  </TooltipContent>
-                              </Tooltip>
-                          </TooltipProvider>
+                          <div className="absolute -top-3 -right-3 transform rotate-12 z-20 animate-bounce">
+                              <Badge className="bg-amber-500 text-black border-2 border-white p-1.5 rounded-lg shadow-2xl">
+                                  <Award className="w-5 h-5"/>
+                              </Badge>
+                          </div>
                       )}
                     </div>
-                    <div className="flex flex-col items-center space-y-1 pt-3">
-                      <DialogTitle className="text-2xl font-black tracking-tight">{player.playerName}</DialogTitle>
-                      <DialogDescription className="flex items-center justify-center gap-2 font-bold text-white/60">
-                        <Avatar className="h-5 w-5">
-                            <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.teamName} />
-                            <AvatarFallback><Shield className="w-3 h-3"/></AvatarFallback>
-                        </Avatar>
-                        {player.teamName || 'Tanpa Tim'}
+
+                    <div className="space-y-1 pt-4">
+                      <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-2 text-white" suppressHydrationWarning>{player.playerName}</DialogTitle>
+                      <DialogDescription asChild>
+                        <div className="flex items-center justify-center gap-2 font-black text-white/40 uppercase tracking-widest text-[10px]">
+                            <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={playerTeamDetails?.logoUrl} /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                            <span suppressHydrationWarning>{player.teamName || 'Independent'}</span>
+                        </div>
                       </DialogDescription>
-                      <div className="pt-1">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge className={cn("text-[11px] font-black uppercase tracking-tighter px-3 py-1 border cursor-help", getPlayStyleClass(playStyleType))}>
-                                        {playStyleText}
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-[200px] text-center bg-black/90 border-primary/30">
-                                    <p className="text-[10px] font-bold leading-relaxed">{playStyleDescription}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                      <div className="pt-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-4 py-1.5 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                    playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                                    playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
+                                    "bg-primary/20 text-primary border-primary/30")}>
+                                    {playStyleText}
+                                </Badge>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl rounded-xl">
+                                <p className="text-[10px] sm:text-xs font-bold leading-relaxed text-white">{playStyleDescription}</p>
+                            </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                 </DialogHeader>
 
-                <div className="py-2 space-y-6 mt-6">
-                    <div className='space-y-4'>
+                <div className="space-y-6 mt-8 relative z-10">
+                    <div className="bg-white/[0.02] border-2 border-white/5 rounded-2xl p-5 space-y-5 shadow-inner">
                         <div>
-                            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Progres Musim</h3>
-                            <Progress value={seasonProgress} className="h-2 bg-white/5" />
-                            <p className="text-[10px] font-bold text-muted-foreground mt-2">{stats.played} dari {totalMatchesCount} laga dimainkan ({seasonProgress.toFixed(0)}%)</p>
-                        </div>
-                         <div className={cn("grid gap-2 text-center", isCoop ? 'grid-cols-4' : 'grid-cols-5')}>
-                           <StatDisplay label="M" value={stats.played} />
-                           <StatDisplay label="W" value={stats.win} />
-                           {!isCoop && <StatDisplay label="S" value={stats.draw} />}
-                           <StatDisplay label="K" value={stats.loss} />
-                           <StatDisplay label="Pts" value={player.points} />
-                        </div>
-                         <div className="grid grid-cols-2 gap-3">
-                            <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/5">
-                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                    <Percent className="w-3 h-3 text-primary"/>
-                                    <span>OVR Rating</span>
-                                </div>
-                                <p className="text-xl font-black text-primary mt-1">% {ovrRating.toFixed(0)}</p>
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
+                                    <Scan className="w-3 h-3"/> Progres Musim
+                                </h3>
+                                <span className="text-[10px] font-black text-primary italic" suppressHydrationWarning>{seasonProgress.toFixed(0)}%</span>
                             </div>
-                            <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/5">
-                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                    <Trophy className="w-3 h-3 text-primary"/>
-                                    <span>Rank</span>
+                            <Progress value={seasonProgress} className="h-1.5 bg-white/5" />
+                            <p className="text-[8px] font-black text-white/30 mt-2 uppercase tracking-widest" suppressHydrationWarning>Data Sinkronisasi: {stats.played} / {totalMatchesCount} Pertempuran Selesai</p>
+                        </div>
+
+                         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                           <StatDisplay label="Main" value={stats.played} />
+                           <StatDisplay label="Menang" value={stats.win} />
+                           {activeSeason?.type !== 'Co-Op' && <StatDisplay label="Seri" value={stats.draw} />}
+                           <StatDisplay label="Kalah" value={stats.loss} />
+                           <StatDisplay label="Poin" value={player.points} variant="primary" />
+                        </div>
+
+                        {/* Momentum & Career Intel */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div className="space-y-2">
+                                <p className="text-[8px] font-black text-primary/60 uppercase tracking-widest text-center">Intel Musim</p>
+                                <div className="grid gap-2">
+                                    <IntelCard icon={Percent} label="Winrate Fase" value={`${ovrRating.toFixed(0)}%`} variant="primary" />
+                                    <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${player.rank}`} />
                                 </div>
-                                <p className={rankTextStyle}>{player.rank}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-[8px] font-black text-white/60 uppercase tracking-widest text-center">Intel Karir</p>
+                                <div className="grid gap-2">
+                                    <IntelCard icon={Flame} label="OVR Master" value={masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                    <IntelCard icon={Star} label="Peringkat Global" value={`#${masterInfo?.masterRank || '?'}`} />
+                                </div>
                             </div>
                         </div>
                     </div>
                   
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 bg-white/5">
-                          <TabsTrigger value="history" className="text-[10px] font-black uppercase tracking-widest">Riwayat</TabsTrigger>
-                          <TabsTrigger value="upcoming" className="text-[10px] font-black uppercase tracking-widest">Sisa Laga</TabsTrigger>
-                          <TabsTrigger value="trend" className="text-[10px] font-black uppercase tracking-widest">Tren</TabsTrigger>
+                      <TabsList className="grid w-full grid-cols-3 bg-black/40 h-12 p-1 border-2 border-white/5 rounded-xl">
+                          <TabsTrigger value="history" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Log</TabsTrigger>
+                          <TabsTrigger value="upcoming" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Queue</TabsTrigger>
+                          <TabsTrigger value="trend" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Tren</TabsTrigger>
                       </TabsList>
                       
-                      <TabsContent value="history" className="pt-4">
+                      <TabsContent value="history" className="pt-4 outline-none">
                            {completedMatches.length > 0 ? (
                               <div className="space-y-2">
-                              {completedMatches.map(match => {
-                              const scoreColorPlayer = cn({
-                                      'text-green-400': match.result === 'W',
-                                      'text-red-400': match.result === 'L',
-                                      'text-yellow-400': match.result === 'D',
-                                  });
-                              const scoreColorOpponent = cn({
-                                      'text-white/80': match.result !== 'D',
-                                      'text-yellow-400': match.result === 'D',
-                              });
-                              
-                              return (
-                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border-l-4 border-primary/50 transition-all hover:bg-white/10">
+                              {completedMatches.map(match => (
+                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] transition-all group/match">
                                   <div className="flex items-center gap-3">
-                                      <div className={cn("w-6 h-6 rounded flex items-center justify-center text-[10px] font-black border", match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{match.result}</div>
+                                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm", 
+                                          match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
+                                          match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                                          "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")}>
+                                          {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
+                                      </div>
                                       <div>
                                           <div className="flex items-center gap-2">
-                                              <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
-                                              <Badge variant="outline" className={cn("text-[8px] h-4 px-1 font-bold uppercase", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/50")}>
+                                              <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                              <Badge variant="outline" className={cn("text-[7px] h-4 px-1.5 font-black uppercase italic tracking-tighter", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/40")}>
                                                   {match.isPlayer1 ? 'Home' : 'Away'}
                                               </Badge>
                                           </div>
-                                          <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>
+                                          <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]" suppressHydrationWarning>{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>
                                       </div>
                                   </div>
-                                  <p className="text-base font-black tabular-nums">
+                                  <p className="text-lg font-black tabular-nums italic" suppressHydrationWarning>
                                       {match.isPlayer1 ? (
-                                          <>
-                                          <span className={scoreColorPlayer}>{match.playerResult}</span>
-                                          <span className="mx-1.5 text-white/20">-</span>
-                                          <span className={scoreColorOpponent}>{match.opponentResult}</span>
-                                          </>
+                                          <><span className={match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-400' : 'text-yellow-400'}>{match.playerResult}</span><span className="mx-1 text-white/10">-</span><span className="text-white/40">{match.opponentResult}</span></>
                                       ) : (
-                                          <>
-                                          <span className={scoreColorOpponent}>{match.opponentResult}</span>
-                                          <span className="mx-1.5 text-white/20">-</span>
-                                          <span className={scoreColorPlayer}>{match.playerResult}</span>
-                                          </>
+                                          <><span className="text-white/40">{match.opponentResult}</span><span className="mx-1 text-white/10">-</span><span className={match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-400' : 'text-yellow-400'}>{match.playerResult}</span></>
                                       )}
                                   </p>
                                   </div>
-                              )
-                              })}
+                              ))}
                               </div>
-                          ) : (
-                              <div className="text-center py-12 opacity-30">
-                                  <p className="text-[10px] font-black uppercase tracking-[0.2em]">Belum ada laga selesai</p>
-                              </div>
-                          )}
+                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Activity className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">No Mission Data</p></div>}
                       </TabsContent>
                       
-                      <TabsContent value="upcoming" className="pt-4">
+                      <TabsContent value="upcoming" className="pt-4 outline-none">
                            {upcomingMatches.length > 0 ? (
                               <div className="space-y-2">
                               {upcomingMatches.map(match => (
-                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-dashed border-white/10 opacity-70">
+                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border-2 border-dashed border-white/5 opacity-60">
                                       <div className="flex items-center gap-3">
-                                          <div className="w-6 h-6 rounded flex items-center justify-center bg-white/10"><CalendarClock className="w-3 h-3 text-white/40"/></div>
+                                          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><CalendarClock className="w-4 h-4 text-white/20"/></div>
                                           <div>
-                                              <div className="flex items-center gap-2">
-                                                  <p className="text-xs font-black tracking-tight">vs {match.opponent?.name || 'Unknown'}</p>
-                                                  <Badge variant="outline" className={cn("text-[8px] h-4 px-1 font-bold uppercase", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/50")}>
-                                                      {match.isPlayer1 ? 'Home' : 'Away'}
-                                                  </Badge>
-                                              </div>
-                                              <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Jadwal belum ditentukan</p>
+                                              <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                              <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Deployment Scheduled</p>
                                           </div>
                                       </div>
                                   </div>
                               ))}
                               </div>
-                          ) : (
-                               <div className="text-center py-12 opacity-30">
-                                  <p className="text-[10px] font-black uppercase tracking-[0.2em]">Seluruh laga telah tuntas</p>
-                              </div>
-                          )}
+                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Zap className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Campaign Finalized</p></div>}
                       </TabsContent>
                       
-                       <TabsContent value="trend" className="pt-4">
-                          <Card className="bg-white/5 border-white/10">
-                              <CardHeader className="pb-2">
+                       <TabsContent value="trend" className="pt-4 outline-none">
+                          <Card className="bg-black/40 border-2 border-white/5 overflow-hidden rounded-2xl shadow-inner">
+                              <CardHeader className="p-4 pb-2">
                                   <div className="flex justify-between items-center">
-                                      <CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase">
-                                          <TrendingUp className="inline w-3 h-3 mr-1"/>
-                                          Stabilitas Performa
+                                      <CardTitle className="text-[10px] font-black tracking-[0.2em] text-primary uppercase flex items-center gap-2 italic">
+                                          <TrendingUp className="w-3 h-3"/> Stabilitas
                                       </CardTitle>
-                                      <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black">
-                                          {finalTrendScore > 0 ? `+${finalTrendScore}` : finalTrendScore} Pts
+                                      <Badge className="bg-primary/10 border-primary/30 text-primary text-[9px] font-black italic" suppressHydrationWarning>
+                                          {chartData.length > 1 ? chartData[chartData.length - 1].points : 0} PTS
                                       </Badge>
                                   </div>
                                    {performanceStatus && (
-                                      <CardDescription className={cn("text-[9px] font-black italic mt-1", performanceStatus.color)}>
-                                          "{performanceStatus.text}"
+                                      <CardDescription className={cn("text-[9px] font-black italic mt-1 uppercase tracking-tighter", performanceStatus.color)}>
+                                          Level: "{performanceStatus.text}"
                                       </CardDescription>
                                   )}
                               </CardHeader>
-                              <CardContent className="pt-2">
-                                  {chartData.length > 1 ? (
-                                      <ChartContainer config={chartConfig} className="h-40 w-full">
+                              <CardContent className="p-4 pt-2">
+                                  {isMounted && chartData.length > 1 ? (
+                                      <ChartContainer config={chartConfig} className="h-32 w-full opacity-80">
                                           <LineChart data={chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                               <XAxis dataKey="match" hide />
-                                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} allowDecimals={false} />
-                                              <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" />
-                                              <Line 
-                                                  type="monotone" 
-                                                  dataKey="points" 
-                                                  stroke="hsl(var(--primary))" 
-                                                  strokeWidth={3} 
-                                                  dot={{ fill: "hsl(var(--primary))", r: 4 }} 
-                                                  activeDot={{ r: 6 }} 
-                                              />
+                                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} allowDecimals={false} />
+                                              <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
+                                              <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", r: 4, strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }} />
                                           </LineChart>
                                       </ChartContainer>
-                                  ) : (
-                                      <div className="text-center py-12 opacity-30">
-                                          <p className="text-[10px] font-black uppercase tracking-[0.2em]">Butuh minimal 2 laga</p>
-                                      </div>
-                                  )}
+                                  ) : <div className="text-center py-12 opacity-20 text-[10px] font-black uppercase italic">Insufficient Data Points</div>}
                               </CardContent>
                           </Card>
                        </TabsContent>
@@ -573,6 +440,5 @@ export function PlayerPerformanceDialog({
         </ScrollArea>
       </DialogContent>
     </Dialog>
-    </>
   );
 }

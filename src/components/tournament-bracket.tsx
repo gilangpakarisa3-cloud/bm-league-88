@@ -6,20 +6,19 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2, Award, Flame, ChevronRight, Binary, BarChart3, Scan, Percent, Star } from 'lucide-react';
+import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2, Award, Flame, ChevronRight, Binary, BarChart3, Scan, Percent, Star, LayoutGrid } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
+import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
@@ -37,23 +36,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const { t } = useTranslation();
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const mouseMoved = useRef(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  useEffect(() => { setIsMounted(true); }, []);
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
-    isDragging.current = true;
-    mouseMoved.current = false;
-    startX.current = e.pageX - scrollRef.current.offsetLeft;
-    scrollLeft.current = scrollRef.current.scrollLeft;
+    isDragging.current = true; mouseMoved.current = false;
+    startX.current = e.pageX - scrollRef.current.offsetLeft; scrollLeft.current = scrollRef.current.scrollLeft;
     document.body.style.userSelect = 'none';
   };
 
@@ -61,782 +55,302 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     if (!isDragging.current || !scrollRef.current) return;
     const x = e.pageX - scrollRef.current.offsetLeft;
     const walk = (x - startX.current);
-    if (Math.abs(walk) > 10) {
-      mouseMoved.current = true;
-      scrollRef.current.scrollLeft = scrollLeft.current - walk;
-    }
+    if (Math.abs(walk) > 10) { mouseMoved.current = true; scrollRef.current.scrollLeft = scrollLeft.current - walk; }
   };
 
-  const onMouseUp = () => {
-    isDragging.current = false;
-    document.body.style.userSelect = '';
-  };
-
-  const onMouseLeave = () => {
-    isDragging.current = false;
-    document.body.style.userSelect = '';
-  };
-
-  const handleCardClick = (matchData: any) => {
-    if (!mouseMoved.current) {
-      setSelectedMatch(matchData);
-    }
-  };
+  const onMouseUp = () => { isDragging.current = false; document.body.style.userSelect = ''; };
+  const onMouseLeave = () => { isDragging.current = false; document.body.style.userSelect = ''; };
+  const handleCardClick = (matchData: any) => { if (!mouseMoved.current) setSelectedMatch(matchData); };
 
   const rankedTable = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return [];
-    
-    const sortFn = (a: any, b: any) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-      return a.playerName.localeCompare(b.playerName);
-    };
-
+    const sortFn = (a: any, b: any) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor || a.playerName.localeCompare(b.playerName);
     if (season?.type === 'Hybrid') {
       const gA = [...leagueTable].filter(p => p.group === 'A').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
       const gB = [...leagueTable].filter(p => p.group === 'B').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
       return [...gA, ...gB];
     }
-    
     return [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
   }, [leagueTable, season]);
 
-  // Master Career Stats Ranking
   const masterPlayersRanked = useMemo(() => {
     const players = Object.values(playersById);
     const withOvr = players.map(p => {
-        const possiblePoints = (p.overallPlayed || 0) * 3;
-        const actualPoints = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-        const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
-        return { ...p, ovrRating };
+        const poss = (p.overallPlayed || 0) * 3;
+        const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
+        return { ...p, ovrRating: poss > 0 ? (act / poss) * 100 : 0 };
     });
-    return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed)
-      .map((p, i) => ({ ...p, masterRank: i + 1 }));
+    return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed).map((p, i) => ({ ...p, masterRank: i + 1 }));
   }, [playersById]);
 
   const getPlayerAnalysis = (playerId: string) => {
     if (!playerId || playerId === 'TBD' || playerId.includes('TBD') || playerId.includes('Loser')) return null;
-
-    const playerMatches = matches
-      .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
-      .sort((a, b) => a.matchDate.toMillis() - a.matchDate.toMillis());
-
+    const playerMatches = matches.filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId)).sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
     const entry = rankedTable.find(e => e.playerId === playerId);
     const team = entry?.teamId ? teamsById[entry.teamId] : (playersById[playerId]?.teamId ? teamsById[playersById[playerId].teamId] : null);
     const masterInfo = masterPlayersRanked.find(p => p.id === playerId);
-
     const stats = playerMatches.reduce((acc, m) => {
-      acc.played++;
-      const isP1 = m.player1Id === playerId;
+      acc.played++; const isP1 = m.player1Id === playerId;
       const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-      const pRes = isP1 ? s1 : s2;
-      const oRes = isP1 ? s2 : s1;
-
-      if (pRes > oRes) acc.win++;
-      else if (pRes < oRes) acc.loss++;
-      else acc.draw++;
-
-      if (m.player1Score !== null && m.player2Score !== null) {
-        acc.gf += isP1 ? m.player1Score : m.player2Score;
-        acc.ga += isP1 ? m.player2Score : m.player1Score;
-      }
+      const pRes = isP1 ? s1 : s2; const oRes = isP1 ? s2 : s1;
+      if (pRes > oRes) acc.win++; else if (pRes < oRes) acc.loss++; else acc.draw++;
+      if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += isP1 ? m.player2Score : m.player1Score; }
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
-
-    // Calculate Points Efficiency (matches OVR RATING in profile)
-    const actualPoints = (stats.win * 3) + (stats.draw * 1);
+    
+    // Efficiency calculation
     const possiblePoints = stats.played * 3;
+    const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
 
-    const formMatches = [...playerMatches].reverse().slice(0, 5).reverse();
-    const form = formMatches.map(m => {
+    const form = playerMatches.slice(-5).map(m => {
       const isP1 = m.player1Id === playerId;
       const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-      const pRes = isP1 ? s1 : s2;
-      const oRes = isP1 ? s2 : s1;
-      return pRes > oRes ? 'W' : (pRes < oRes ? 'L' : 'D');
+      const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
+      return pR > oR ? 'W' : (pR < oR ? 'L' : 'D');
     });
-
-    let cumulativeScore = 0;
-    const chartData = [{ match: 0, points: 0 }, ...playerMatches.map((m, i) => {
+    let cum = 0; const chartData = [{ match: 0, points: 0 }, ...playerMatches.map((m, i) => {
       const isP1 = m.player1Id === playerId;
       const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-      const pRes = isP1 ? s1 : s2;
-      const oRes = isP1 ? s2 : s1;
-      const res = pRes > oRes ? 1 : (pRes < oRes ? -1 : 0);
-      cumulativeScore += res;
-      return { match: i + 1, points: cumulativeScore };
+      const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
+      cum += (pR > oR ? 1 : (pR < oR ? -1 : 0)); return { match: i + 1, points: cum };
     })];
-
-    let playStyleText = "Gaya bermain: Balanced";
-    let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
-    let playStyleDescription = t('play_style_balanced_desc', { defaultValue: "Statistik menyerang dan bertahan yang seimbang. Pemain ini memiliki strategi yang adaptif." });
-    
+    let pST = "Balanced"; let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; let pSD = t('play_style_balanced_desc');
     if (stats.played > 0) {
-        const avgGF = stats.gf / stats.played;
-        const avgGA = stats.ga / stats.played;
-        if (avgGF > 1.6) {
-            playStyleText = "Gaya bermain: Attacking";
-            playStyleType = 'attacking';
-            playStyleDescription = t('play_style_attacking_desc', { defaultValue: "Rata-rata gol memasukkan tinggi (> 1.6 per laga). Pemain ini sangat agresif di lini depan." });
-        } else if (avgGA < 1.2 && stats.played >= 3) {
-            playStyleText = "Gaya bermain: Defensive & Counter";
-            playStyleType = 'defensive';
-            playStyleDescription = t('play_style_defensive_desc', { defaultValue: "Rata-rata gol kemasukan rendah (< 1.2 per laga). Pertahanan pemain ini sangat solid." });
-        }
+        const avgGF = stats.gf / stats.played; const avgGA = stats.ga / stats.played;
+        if (avgGF > 1.6) { pST = "Attacking"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); }
+        else if (avgGA < 1.2 && stats.played >= 3) { pST = "Defensive & Counter"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); }
     }
-
-    let quote = "Stabil";
-    let quoteColor = "text-foreground";
-    const recentWinCount = form.filter(f => f === 'W').length;
-    if (recentWinCount === 5) { quote = "Tak terkalahkan"; quoteColor = "text-green-400"; }
-    else if (recentWinCount >= 3) { quote = "Performa bagus"; quoteColor = "text-green-400"; }
-    else if (form.filter(f => f === 'L').length >= 3) { quote = "Performa menurun"; quoteColor = "text-red-400"; }
-
-    return { 
-      stats, 
-      winRate, 
-      form, 
-      chartData, 
-      playStyleText, 
-      playStyleType, 
-      playStyleDescription,
-      quote, 
-      quoteColor, 
-      team, 
-      entry, 
-      masterInfo,
-      cumulativeScore, 
-      isDefendingChampion: playerId === defendingChampionId 
-    };
+    let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
+    if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
+    return { stats, winRate, form, chartData, playStyleText: `Gaya bermain: ${pST}`, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
   };
 
   const projections = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return null;
-    const sortAndRank = (data: any[]) => [...data].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
-    const gA = sortAndRank(leagueTable.filter(p => p.group === 'A'));
-    const gB = sortAndRank(leagueTable.filter(p => p.group === 'B'));
-    
+    const sR = (data: any[]) => [...data].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
+    const gA = sR(leagueTable.filter(p => p.group === 'A')); const gB = sR(leagueTable.filter(p => p.group === 'B'));
     const proj: Record<string, any> = {};
-    
     if (gA.length >= 4 && gB.length >= 4) {
-        proj['playoff-m1'] = { p1: gA[0], p2: gB[3], isProjection: true, round: 'UB-Quarter Final' };
-        proj['playoff-m2'] = { p1: gB[1], p2: gA[2], isProjection: true, round: 'UB-Quarter Final' };
-        proj['playoff-m3'] = { p1: gB[0], p2: gA[3], isProjection: true, round: 'UB-Quarter Final' };
-        proj['playoff-m4'] = { p1: gA[1], p2: gB[2], isProjection: true, round: 'UB-Quarter Final' };
+        proj['playoff-m1'] = { p1: gA[0], p2: gB[3] }; proj['playoff-m2'] = { p1: gB[1], p2: gA[2] };
+        proj['playoff-m3'] = { p1: gB[0], p2: gA[3] }; proj['playoff-m4'] = { p1: gA[1], p2: gB[2] };
     }
-
     if (gA.length >= 6 && gB.length >= 6) {
-        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', playerId: 'TBD-L1' }, isProjection: true, round: 'LB-Round 1' };
-        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', playerId: 'TBD-L2' }, isProjection: true, round: 'LB-Round 1' };
-        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', playerId: 'TBD-L3' }, isProjection: true, round: 'LB-Round 1' };
-        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', playerId: 'TBD-L4' }, isProjection: true, round: 'LB-Round 1' };
+        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', playerId: 'TBD-L1' } };
+        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', playerId: 'TBD-L2' } };
+        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', playerId: 'TBD-L3' } };
+        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', playerId: 'TBD-L4' } };
     }
-    
     return proj;
   }, [leagueTable]);
 
   const bracketData = useMemo(() => {
-    const data: Record<string, any> = {};
+    const d: Record<string, any> = {};
     matches.forEach(m => {
       if (m.bracketId) {
-        const e1 = rankedTable.find(e => e.playerId === m.player1Id);
-        const e2 = rankedTable.find(e => e.playerId === m.player2Id);
-        const t1 = e1 ? teamsById[e1.teamId] : (playersById[m.player1Id] ? teamsById[playersById[m.player1Id].teamId] : null);
-        const t2 = e2 ? teamsById[e2.teamId] : (playersById[m.player2Id] ? teamsById[playersById[m.player2Id].teamId] : null);
-        const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
-        data[m.bracketId] = {
-          ...m,
-          p1: e1 ? { name: e1.playerName, playerId: e1.playerId } : (playersById[m.player1Id] || { name: m.player1Id === 'TBD' ? 'TBD' : m.player1Id, playerId: m.player1Id }),
-          p2: e2 ? { name: e2.playerName, playerId: e2.playerId } : (playersById[m.player2Id] || { name: m.player2Id === 'TBD' ? 'TBD' : m.player2Id, playerId: m.player2Id }),
-          t1, t2, s1, s2,
-          isW1: m.isCompleted && s1 > s2,
-          isW2: m.isCompleted && s2 > s1
-        };
+        const e1 = rankedTable.find(e => e.playerId === m.player1Id); const e2 = rankedTable.find(e => e.playerId === m.player2Id);
+        const t1 = e1 ? teamsById[e1.teamId] : (playersById[m.player1Id]?.teamId ? teamsById[playersById[m.player1Id].teamId] : null);
+        const t2 = e2 ? teamsById[e2.teamId] : (playersById[m.player2Id]?.teamId ? teamsById[playersById[m.player2Id].teamId] : null);
+        const s1 = m.player1Wins ?? m.player1Score ?? 0; const s2 = m.player2Wins ?? m.player2Score ?? 0;
+        d[m.bracketId] = { ...m, p1: e1 ? { name: e1.playerName, playerId: e1.playerId } : (playersById[m.player1Id] || { name: m.player1Id, playerId: m.player1Id }), p2: e2 ? { name: e2.playerName, playerId: e2.playerId } : (playersById[m.player2Id] || { name: m.player2Id, playerId: m.player2Id }), t1, t2, s1, s2, isW1: m.isCompleted && s1 > s2, isW2: m.isCompleted && s2 > s1 };
       }
     });
-    return data;
+    return d;
   }, [matches, playersById, teamsById, rankedTable]);
 
   const MatchCard = ({ bid, label }: { bid: string, label: string }) => {
-    const m = bracketData[bid];
-    const p = projections?.[bid];
-    
-    if (!m && p) {
-        const t1 = p.p1?.teamId ? teamsById[p.p1.teamId] : null;
-        const t2 = p.p2?.teamId ? teamsById[p.p2.teamId] : null;
-        return (
-            <div className="flex flex-col gap-1 opacity-70 group/card relative items-center">
-                <div className="flex items-center justify-center gap-2 px-1">
-                    <span className="text-[8px] font-black tracking-[0.2em] text-primary/60 uppercase">{label}</span>
-                    <Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black tracking-tighter uppercase italic">Proyeksi</Badge>
-                </div>
-                <Card 
-                    className="w-52 overflow-hidden border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 transition-all duration-500 hover:scale-[1.02] shadow-xl rounded-xl" 
-                    onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', t1, t2, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}
-                >
-                    <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent pointer-events-none" />
-                        <div className="flex items-center justify-between px-3 py-2 h-11">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                                <Avatar className="h-7 w-7 border border-white/10 opacity-40"><AvatarImage src={t1?.logoUrl} /><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar>
-                                <span className="text-[11px] font-black truncate text-white/40 uppercase italic pr-2" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between px-3 py-2 h-11">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                                <Avatar className="h-7 w-7 border border-white/10 opacity-40"><AvatarImage src={t2?.logoUrl} /><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar>
-                                <span className="text-[11px] font-black truncate text-white/40 uppercase italic pr-2" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-    
-    if (!m) return (
-        <div className="flex flex-col gap-1 opacity-30 items-center">
-            <span className="text-[8px] font-black tracking-[0.2em] text-white/40 uppercase">{label}</span>
-            <div className="w-52 h-24 bg-black/20 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-2">
-                <div className="relative">
-                    <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" />
-                    <Loader2 className="w-4 h-4 text-white/10 animate-spin" />
-                </div>
-                <span className="text-[7px] font-black tracking-[0.3em] text-white/20 uppercase">KALIBRASI JALUR</span>
-            </div>
+    const m = bracketData[bid]; const p = projections?.[bid];
+    if (!m && p) return (
+        <div className="flex flex-col gap-1 opacity-70 items-center">
+            <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
+            <Card className="w-52 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', t1: p.p1.teamId ? teamsById[p.p1.teamId] : null, t2: p.p2.teamId ? teamsById[p.p2.teamId] : null, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
+                <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-22">
+                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
+                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
+                </CardContent>
+            </Card>
         </div>
     );
-
+    if (!m) return (
+        <div className="flex flex-col gap-1 opacity-30 items-center">
+            <span className="text-[8px] font-black tracking-widest text-white/40 uppercase">{label}</span>
+            <div className="w-52 h-22 bg-black/20 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-1.5"><Loader2 className="w-4 h-4 text-white/10 animate-spin"/><span className="text-[7px] font-black tracking-widest text-white/20 uppercase">KALIBRASI JALUR</span></div>
+        </div>
+    );
     return (
-        <div className="flex flex-col gap-1 group/card relative items-center">
-            <span className="text-[8px] font-black tracking-[0.2em] text-primary/80 uppercase">{label}</span>
-            <Card 
-                className={cn(
-                    "w-52 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 hover:scale-[1.02] shadow-2xl rounded-xl", 
-                    m.isCompleted ? "border-primary/30 bg-card/60 backdrop-blur-xl" : "border-white/20 bg-white/5 border-dashed"
-                )} 
-                onClick={() => handleCardClick(m)}
-            >
+        <div className="flex flex-col gap-1 relative items-center">
+            <span className="text-[8px] font-black tracking-widest text-primary/80 uppercase">{label}</span>
+            <Card className={cn("w-52 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl", m.isCompleted ? "border-primary/30 bg-card/60 backdrop-blur-xl" : "border-white/20 bg-white/5 border-dashed")} onClick={() => handleCardClick(m)}>
                 <CardContent className="p-0 flex flex-col divide-y divide-white/5">
-                    {/* Player 1 Row */}
-                    <div className={cn("flex items-center justify-between px-3 py-2 h-11 transition-all duration-500 relative", m.isW1 ? "bg-primary/10" : "bg-transparent")}>
-                        {m.isW1 && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <div className="relative">
-                                <Avatar className={cn("h-7 w-7 border-2 transition-all duration-500", m.isW1 ? "border-primary shadow-[0_0_10px_rgba(204,253,1,0.3)] scale-110" : "border-white/10")}>
-                                    <AvatarImage src={m.t1?.logoUrl} />
-                                    <AvatarFallback><User className="w-3 h-3"/></AvatarFallback>
-                                </Avatar>
-                                {m.isW1 && <div className="absolute -top-1.5 -right-1.5 bg-primary rounded-full p-0.5 border border-background animate-bounce"><Trophy className="w-2.5 h-2.5 text-black"/></div>}
+                    {[1, 2].map(i => {
+                        const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
+                        return (
+                            <div key={i} className={cn("flex items-center justify-between px-3 h-11 relative", isW ? "bg-primary/10" : "bg-transparent")}>
+                                {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <Avatar className={cn("h-7 w-7 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}><AvatarImage src={t?.logoUrl} /><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar>
+                                    <span className={cn("text-[11px] font-black truncate uppercase italic transition-colors", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
+                                </div>
+                                <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", isW && "border-primary/30")}><span className={cn("text-sm font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
                             </div>
-                            <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW1 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/80")} suppressHydrationWarning>{m.p1.name}</span>
-                        </div>
-                        <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", m.isW1 && "border-primary/30")}>
-                            <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW1 ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? m.s1 : '-'}</span>
-                        </div>
-                    </div>
-                    {/* Player 2 Row */}
-                    <div className={cn("flex items-center justify-between px-3 py-2 h-11 transition-all duration-500 relative", m.isW2 ? "bg-primary/10" : "bg-transparent")}>
-                        {m.isW2 && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <div className="relative">
-                                <Avatar className={cn("h-7 w-7 border-2 transition-all duration-500", m.isW2 ? "border-primary shadow-[0_0_10px_rgba(204,253,1,0.3)] scale-110" : "border-white/10")}>
-                                    <AvatarImage src={m.t2?.logoUrl} />
-                                    <AvatarFallback><User className="w-3 h-3"/></AvatarFallback>
-                                </Avatar>
-                                {m.isW2 && <div className="absolute -top-1.5 -right-1.5 bg-primary rounded-full p-0.5 border border-background animate-bounce"><Trophy className="w-2.5 h-2.5 text-black"/></div>}
-                            </div>
-                            <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW2 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/80")} suppressHydrationWarning>{m.p2.name}</span>
-                        </div>
-                        <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", m.isW2 && "border-primary/30")}>
-                            <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW2 ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? m.s2 : '-'}</span>
-                        </div>
-                    </div>
+                        )
+                    })}
                 </CardContent>
             </Card>
         </div>
     );
   };
 
-  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
-  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
-
-  const sharedChartDomain = useMemo(() => {
-    const defaultDomain = [-5, 5];
-    if (!analysis1 && !analysis2) return defaultDomain;
-    const points1 = analysis1?.chartData.map(d => d.points) || [];
-    const points2 = analysis2?.chartData.map(d => d.points) || [];
-    const allPoints = [...points1, ...points2];
-    if (allPoints.length === 0) return defaultDomain;
-    const maxVal = Math.max(...allPoints.map(Math.abs));
-    const finalMax = Math.max(maxVal, 5); 
-    return [-finalMax, finalMax];
-  }, [analysis1, analysis2]);
-
-  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
-
-  const getPlayStyleClass = (type: 'attacking' | 'defensive' | 'balanced') => {
-    switch (type) {
-        case 'attacking': return "bg-red-500/20 text-red-400 border-red-500/30";
-        case 'defensive': return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-        default: return "bg-primary/20 text-primary border-primary/30";
-    }
-  }
-
-  const IntelCard = ({ icon: Icon, label, value, subValue, variant = "default" }: { icon: any, label: string, value: string | number, subValue?: string, variant?: "default" | "primary" | "gold" }) => (
-    <div className={cn(
-        "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
-        variant === "primary" ? "bg-primary/5 border-primary/20" : 
-        variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
-    )}>
-        <div className="flex items-center justify-center gap-1.5">
-            <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
-            <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span>
-        </div>
-        <div className="flex items-baseline justify-center gap-2">
-            <span className={cn("font-black text-sm uppercase italic", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
-            {subValue && <span className="text-[8px] font-bold text-white/40 uppercase">{subValue}</span>}
-        </div>
+  const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
+    <div className={cn("flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300", variant === "primary" ? "bg-primary/5 border-primary/20" : variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10")}>
+        <div className="flex items-center justify-center gap-1.5"><Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} /><span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span></div>
+        <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
     </div>
   );
 
+  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
+  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
+  
+  const sCD = useMemo(() => {
+    const dD = [-5, 5]; if (!analysis1 && !analysis2) return dD;
+    const aP = [...(analysis1?.chartData.map(d=>d.points) || []), ...(analysis2?.chartData.map(d=>d.points) || [])];
+    if (aP.length === 0) return dD; const mV = Math.max(...aP.map(Math.abs), 5); return [-mV, mV];
+  }, [analysis1, analysis2]);
+
   return (
     <div className="w-full relative">
-        {/* Decorative Watermark Overlay */}
-        <div className="absolute top-0 right-0 pointer-events-none opacity-[0.03] flex flex-col items-end pt-4 pr-10">
-            <span className="text-[6rem] font-black italic select-none leading-none tracking-tighter">BM LEAGUE</span>
-            <span className="text-[2rem] font-black italic select-none -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span>
-        </div>
-
+        <div className="absolute top-0 right-0 pointer-events-none opacity-[0.03] flex flex-col items-end pt-4 pr-10"><span className="text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
         {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
-            <div className="mb-10 group/sim px-4 sm:px-8">
-                <div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-2xl p-4 sm:p-6 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" />
-                    <div className="flex items-start gap-3 sm:gap-5">
-                        <div className="p-2.5 sm:p-3.5 rounded-xl bg-amber-500/10 text-amber-500 shadow-lg ring-1 ring-amber-500/20">
-                            <Scan className="w-5 h-5 sm:w-7 sm:h-7" />
-                        </div>
-                        <div className="flex-1 pt-0.5 sm:pt-1">
-                            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                                <Badge className="bg-amber-500 text-black font-black uppercase italic tracking-tighter px-2 sm:px-3 text-[10px]">Live Simulation v2.4</Badge>
-                                <div className="flex gap-1">
-                                    {[...Array(3)].map((_, i) => <div key={i} className={cn("w-1 h-1 rounded-full bg-amber-500/40 animate-pulse")} style={{ animationDelay: `${i * 200}ms` }} />)}
-                                </div>
-                            </div>
-                            <p className="text-sm sm:text-base font-bold text-amber-200/90 leading-tight">Bagan ini adalah proyeksi dinamis berdasarkan peringkat grup saat ini. Jadwal final akan dikunci saat Admin memulai babak playoff.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div className="mb-8 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-2xl p-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-4"><div className="p-3 rounded-xl bg-amber-500/10 text-amber-500 shadow-lg"><Scan className="w-6 h-6" /></div><div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1"><Badge className="bg-amber-500 text-black font-black uppercase italic text-[10px]">Live Simulation v2.4</Badge></div><p className="text-sm font-bold text-amber-200/90 leading-tight">Bagan ini adalah proyeksi dinamis berdasarkan peringkat grup saat ini. Jadwal final akan dikunci saat Admin memulai babak playoff.</p>
+                </div></div>
+            </div></div>
         )}
-
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20">
-            <div className="min-w-max flex items-stretch gap-4 sm:gap-10 p-4 sm:p-8">
-                <div className="flex-1 flex flex-col gap-4 sm:gap-8 relative">
-                    <div className="flex-1 relative group/ub bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-10 backdrop-blur-sm transition-all duration-700 hover:bg-primary/[0.04] hover:border-primary/20">
-                        <div className="space-y-6 sm:space-y-10 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-3 sm:gap-5">
-                                <div className="h-6 sm:h-10 w-1.5 sm:w-2 bg-primary rounded-full shadow-[0_0_20px_rgba(204,253,1,0.8)]" />
-                                <div className="flex flex-col">
-                                    <h3 className="text-lg sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.4em] text-primary uppercase italic">Upper Bracket</h3>
-                                    <span className="text-[8px] sm:text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Protokol Survivor: Nyawa Ganda Aktif</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-8">
-                                <div className="flex flex-col gap-10 sm:gap-14 relative">
-                                    <MatchCard bid="playoff-m1" label="UB Quarter 1" />
-                                    <MatchCard bid="playoff-m2" label="UB Quarter 2" />
-                                    <MatchCard bid="playoff-m3" label="UB Quarter 3" />
-                                    <MatchCard bid="playoff-m4" label="UB Quarter 4" />
-                                </div>
-                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
-                                </div>
-                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
-                                    <MatchCard bid="playoff-m9" label="UB Semifinal 1" />
-                                    <MatchCard bid="playoff-m10" label="UB Semifinal 2" />
-                                </div>
-                                <div className="flex flex-col justify-center h-full opacity-30">
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary"/></div>
-                                </div>
-                                <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m15" label="Upper Final" />
-                                </div>
+            <div className="min-w-max flex items-stretch gap-6 sm:gap-10 p-4 sm:p-8">
+                <div className="flex-1 flex flex-col gap-6 sm:gap-8 relative">
+                    <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm transition-all duration-700">
+                        <div className="space-y-8 relative h-full flex flex-col justify-center">
+                            <div className="flex items-center gap-4"><div className="h-8 w-1.5 bg-primary rounded-full shadow-[0_0_20px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-xl sm:text-2xl font-black tracking-widest text-primary uppercase italic">Protokol Survivor</h3><span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Enabled</span></div></div>
+                            <div className="flex items-center gap-6 sm:gap-8 pl-4 sm:pl-8">
+                                <div className="flex flex-col gap-12 relative"><MatchCard bid="playoff-m1" label="UB Quarter 1" /><MatchCard bid="playoff-m2" label="UB Quarter 2" /><MatchCard bid="playoff-m3" label="UB Quarter 3" /><MatchCard bid="playoff-m4" label="UB Quarter 4" /></div>
+                                <div className="flex flex-col gap-44 py-16 opacity-30"><ChevronRight className="w-4 h-4 text-primary"/><ChevronRight className="w-4 h-4 text-primary"/></div>
+                                <div className="flex flex-col gap-44 py-16"><MatchCard bid="playoff-m9" label="UB Semifinal 1" /><MatchCard bid="playoff-m10" label="UB Semifinal 2" /></div>
+                                <div className="flex flex-col justify-center opacity-30"><ChevronRight className="w-5 h-5 text-primary"/></div>
+                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="Upper Final" /></div>
                             </div>
                         </div>
                     </div>
-                    <div className="flex-1 relative group/lb bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-10 backdrop-blur-sm transition-all duration-700 hover:bg-yellow-500/[0.04] hover:border-yellow-500/20">
-                        <div className="space-y-6 sm:space-y-10 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-3 sm:gap-5">
-                                <div className="h-6 sm:h-10 w-1.5 sm:w-2 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.8)]" />
-                                <div className="flex flex-col">
-                                    <h3 className="text-lg sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.4em] text-amber-500 uppercase italic">Lower Bracket</h3>
-                                    <span className="text-[8px] sm:text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Protokol Eliminasi: Sudden Death</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-8">
-                                <div className="flex flex-col gap-10 sm:gap-14">
-                                    <MatchCard bid="playoff-m5" label="LB Round 1" />
-                                    <MatchCard bid="playoff-m6" label="LB Round 1" />
-                                    <MatchCard bid="playoff-m7" label="LB Round 1" />
-                                    <MatchCard bid="playoff-m8" label="LB Round 1" />
-                                </div>
-                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
-                                </div>
-                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
-                                    <MatchCard bid="playoff-m11" label="LB Round 2" />
-                                    <MatchCard bid="playoff-m12" label="LB Round 2" />
-                                </div>
-                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
-                                </div>
-                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
-                                    <MatchCard bid="playoff-m13" label="LB Round 3" />
-                                    <MatchCard bid="playoff-m14" label="LB Round 3" />
-                                </div>
-                                <div className="flex flex-col justify-center h-full opacity-30">
-                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"/></div>
-                                </div>
-                                <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m16" label="LB Semifinal" />
-                                </div>
-                                <div className="flex flex-col justify-center h-full">
-                                    <MatchCard bid="playoff-m17" label="Lower Final" />
-                                </div>
+                    <div className="flex-1 relative bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm transition-all duration-700">
+                        <div className="space-y-8 relative h-full flex flex-col justify-center">
+                            <div className="flex items-center gap-4"><div className="h-8 w-1.5 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-xl sm:text-2xl font-black tracking-widest text-amber-500 uppercase italic">Protokol Eliminasi</h3><span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
+                            <div className="flex items-center gap-6 pl-4 sm:pl-8">
+                                <div className="flex flex-col gap-12"><MatchCard bid="playoff-m5" label="LB Round 1" /><MatchCard bid="playoff-m6" label="LB Round 1" /><MatchCard bid="playoff-m7" label="LB Round 1" /><MatchCard bid="playoff-m8" label="LB Round 1" /></div>
+                                <div className="flex flex-col gap-44 py-16 opacity-30"><ChevronRight className="w-4 h-4 text-amber-500"/><ChevronRight className="w-4 h-4 text-amber-500"/></div>
+                                <div className="flex flex-col gap-44 py-16"><MatchCard bid="playoff-m11" label="LB Round 2" /><MatchCard bid="playoff-m12" label="LB Round 2" /></div>
+                                <div className="flex flex-col gap-44 py-16 opacity-30"><ChevronRight className="w-4 h-4 text-amber-500"/><ChevronRight className="w-4 h-4 text-amber-500"/></div>
+                                <div className="flex flex-col gap-44 py-16"><MatchCard bid="playoff-m13" label="LB Round 3" /><MatchCard bid="playoff-m14" label="LB Round 3" /></div>
+                                <div className="flex flex-col justify-center opacity-30"><ChevronRight className="w-5 h-5 text-amber-500"/></div>
+                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m16" label="LB Semifinal" /></div>
+                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m17" label="Lower Final" /></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 border-l-2 border-white/5 bg-black/30 px-4 sm:px-10 rounded-r-[1.5rem] sm:rounded-r-[3.5rem] relative group/final overflow-hidden min-w-[280px] sm:min-w-[340px]">
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/[0.03] rounded-full blur-[80px] sm:blur-[120px] group-hover/final:bg-primary/[0.06] transition-all duration-1000" />
+                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[280px] sm:min-w-[340px]">
+                    <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px]" /></div>
+                    <div className="flex flex-col items-center gap-6 relative z-10">
+                        <div className="relative group/trophy"><div className="absolute -inset-10 bg-yellow-400/20 rounded-full blur-2xl opacity-40 animate-pulse" /><div className="relative p-8 bg-yellow-400/10 rounded-full border-4 border-yellow-400/50 shadow-[0_0_60px_rgba(250,204,21,0.2)]"><Trophy className="text-yellow-400 w-16 h-16 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]" /></div></div>
+                        <div className="text-center space-y-1"><h3 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase italic">Grand Final</h3><p className="text-[8px] font-black text-primary tracking-[0.4em] uppercase opacity-60">Apex Battle Station</p></div>
                     </div>
-                    <div className="flex flex-col items-center gap-4 sm:gap-6 relative z-10">
-                        <div className="relative group/trophy">
-                            <div className="absolute -inset-8 sm:-inset-12 bg-yellow-400/20 rounded-full blur-xl sm:blur-2xl opacity-40 group-hover/trophy:opacity-100 transition-all duration-1000 animate-pulse" />
-                            <div className="relative p-6 sm:p-10 bg-yellow-400/10 rounded-full border-2 sm:border-4 border-yellow-400/50 shadow-[0_0_40px_rgba(250,204,21,0.2)] sm:shadow-[0_0_80px_rgba(250,204,21,0.3)] ring-4 sm:ring-8 ring-yellow-400/5">
-                                <Trophy className="text-yellow-400 w-12 h-12 sm:w-20 sm:h-20 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] sm:drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]" />
-                            </div>
-                        </div>
-                        <div className="text-center space-y-1 sm:space-y-2">
-                            <h3 className="text-2xl sm:text-5xl font-black tracking-[0.15em] sm:tracking-[0.3em] text-white uppercase italic drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">Grand Final</h3>
-                            <p className="text-[8px] sm:text-[10px] font-black text-primary tracking-[0.3em] sm:tracking-[0.5em] uppercase opacity-60">Pertempuran Puncak Utama</p>
-                        </div>
-                    </div>
-                    <div className="scale-[1.0] sm:scale-[1.25] transform transition-all duration-700 hover:scale-[1.1] sm:hover:scale-[1.35] py-8 sm:py-16 relative z-10">
-                        <MatchCard bid="playoff-m18" label="Championship Final" />
-                    </div>
+                    <div className="scale-[1.15] transform transition-all duration-700 py-12 relative z-10"><MatchCard bid="playoff-m18" label="Battle For Glory" /></div>
                 </div>
             </div>
         </div>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
-            <DialogContent className="max-w-5xl border-primary border-2 sm:border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl max-h-[95vh] overflow-y-auto shadow-[0_0_150px_rgba(204,253,1,0.2)] rounded-[1.5rem] sm:rounded-[2rem]">
-                <div className="p-3 sm:p-10 space-y-4 sm:space-y-8 relative">
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
-
-                    <DialogHeader className="border-b border-white/10 pb-4 sm:pb-8 relative z-10">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
-                            <div className="flex items-center gap-3 sm:gap-6 text-primary">
-                                <div className="p-2 sm:p-4 bg-primary/10 rounded-xl sm:rounded-2xl ring-1 sm:ring-2 ring-primary/20 shadow-lg">
-                                    <BarChart3 className="w-5 h-5 sm:w-10 sm:h-10" />
-                                </div>
-                                {selectedMatch && (
-                                    <div>
-                                        <DialogTitle className="text-xl sm:text-5xl font-black tracking-tighter uppercase italic sm:pr-6 leading-none">HUD Analisis Pertandingan</DialogTitle>
-                                        <div className="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-3">
-                                            <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[7px] sm:text-[10px] uppercase">{selectedMatch.round || 'Pertarungan'}</Badge>
-                                            <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-white/20" />
-                                            <span className="text-[8px] sm:text-xs font-bold text-white/60 uppercase tracking-widest">Sistem HUD Taktis v4.0.1</span>
-                                        </div>
-                                    </div>
-                                )}
+            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
+                <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
+                    <DialogHeader className="border-b border-white/10 pb-6 relative z-10">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                            <div className="flex items-center gap-4 text-primary">
+                                <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
+                                <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD Analisis Pertandingan</DialogTitle>
+                                <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                             </div>
-                            <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-2 sm:gap-3">
-                                <div className="flex flex-wrap gap-3 sm:gap-6 items-center bg-white/5 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-white/10 shadow-inner backdrop-blur-md">
-                                    {analysis1?.entry && (
-                                        <div className="flex flex-col items-start sm:items-end">
-                                            <span className="text-[7px] sm:text-[8px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1 sm:mb-1.5 truncate max-w-[100px] sm:max-w-[120px]">Intel Grup {selectedMatch?.p1?.name}</span>
-                                            <div className="flex items-center gap-1.5 sm:gap-2">
-                                                <span className="text-xs sm:text-base font-black text-primary italic leading-none tracking-tighter" suppressHydrationWarning>{analysis1.entry.points} POIN</span>
-                                                <span className="text-[7px] sm:text-[9px] font-bold text-white/60 tabular-nums leading-none" suppressHydrationWarning>{analysis1.entry.win}M-{analysis1.entry.draw ?? 0}S-{analysis1.entry.loss}K</span>
-                                            </div>
-                                        </div>
-                                     )}
-                                    <div className="hidden sm:block w-px h-8 bg-white/10" />
-                                    {analysis2?.entry && (
-                                        <div className="flex flex-col items-start">
-                                            <span className="text-[7px] sm:text-[8px] font-black text-white/60 uppercase tracking-widest leading-none mb-1 sm:mb-1.5 truncate max-w-[100px] sm:max-w-[120px]">Intel Grup {selectedMatch?.p2?.name}</span>
-                                            <div className="flex items-center gap-1.5 sm:gap-2">
-                                                <span className="text-xs sm:text-base font-black text-white italic leading-none tracking-tighter" suppressHydrationWarning>{analysis2.entry.points} POIN</span>
-                                                <span className="text-[7px] sm:text-[9px] font-bold text-white/60 tabular-nums leading-none" suppressHydrationWarning>{analysis2.entry.win}M-{analysis2.entry.draw ?? 0}S-{analysis2.entry.loss}K</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex gap-1 pr-1">
-                                    {[...Array(5)].map((_, i) => <div key={i} className={cn("w-2 sm:w-4 h-1 rounded-full", i < 3 ? "bg-primary" : "bg-white/10")} />)}
-                                </div>
+                            <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+                                {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {selectedMatch?.p1?.name}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
+                                <div className="w-px h-6 bg-white/10" />
+                                {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {selectedMatch?.p2?.name}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
                             </div>
                         </div>
                     </DialogHeader>
 
-                    <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center gap-6 sm:gap-8 lg:gap-12 relative z-10">
-                        <div className="flex flex-col items-center text-center gap-3 sm:gap-6 group w-full lg:w-auto">
-                            {analysis1 ? (
-                                <>
-                                    <div className="relative">
-                                        <div className={cn(
-                                            "absolute -inset-3 sm:-inset-6 rounded-full blur-xl sm:blur-3xl opacity-20 transition-all duration-1000 group-hover:opacity-50 group-hover:scale-110",
-                                            analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary"
-                                        )} />
-                                        <Avatar className="h-20 w-20 sm:h-32 sm:w-32 border-2 sm:border-4 border-primary shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-all duration-700 ring-4 sm:ring-8 ring-primary/5">
-                                            <AvatarImage src={analysis1.team?.logoUrl} />
-                                            <AvatarFallback className="bg-black/40"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/10"/></AvatarFallback>
-                                        </Avatar>
-                                        {/* Group Badge - Top Left */}
-                                        {analysis1.entry?.group && (
-                                            <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20">
-                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] sm:text-sm px-1.5 sm:px-2.5 h-6 sm:h-8 min-w-[24px] sm:min-w-[32px] justify-center italic shadow-xl">
-                                                    GRUP {analysis1.entry.group}
-                                                </Badge>
+                    <div className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] items-center gap-8 relative z-10">
+                        {[1, 2].map(i => {
+                            const an = i === 1 ? analysis1 : analysis2; const pN = i === 1 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name;
+                            return (
+                                <div key={i} className="flex flex-col items-center text-center gap-4 group w-full">
+                                    {an ? (<><div className="relative">
+                                        <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", an.playStyleType === 'attacking' ? "bg-red-500" : an.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
+                                        
+                                        {/* Group Badge - Left Top */}
+                                        {an.entry?.group && (
+                                            <div className="absolute -top-1 -left-1 z-20">
+                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic">GRUP {an.entry.group}</Badge>
                                             </div>
                                         )}
-                                        <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-primary text-black font-black text-sm sm:text-xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0" suppressHydrationWarning>
-                                            {analysis1.entry?.rank || '?'}
-                                        </div>
-                                        {analysis1.isDefendingChampion && (
-                                            <div className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 transform rotate-12 z-20">
-                                                <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1 sm:p-2 rounded-lg sm:rounded-xl shadow-2xl">
-                                                    <Award className="w-4 h-4 sm:w-6 sm:h-6"/>
-                                                </Badge>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="space-y-1 sm:space-y-2">
-                                        <h3 className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic sm:pr-4 text-white group-hover:text-primary transition-colors" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
-                                        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                                            <span className="text-[7px] sm:text-[10px] font-black text-white/60 uppercase tracking-[0.2em] sm:tracking-[0.3em]" suppressHydrationWarning>{analysis1.team?.name || 'Agen Independen'}</span>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Badge className={cn("text-[7px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 sm:px-5 py-1 sm:py-2 border sm:border-2 cursor-help shadow-lg", getPlayStyleClass(analysis1.playStyleType))}>
-                                                        {analysis1.playStyleText}
-                                                    </Badge>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl">
-                                                    <p className="text-[10px] sm:text-xs font-bold leading-relaxed text-white">{analysis1.playStyleDescription}</p>
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center gap-4 sm:gap-6 opacity-10">
-                                    <div className="h-20 w-20 sm:h-32 sm:w-32 rounded-full border-2 sm:border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/20" /></div>
-                                    <h3 className="text-lg sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.3em] text-white uppercase italic">SLOT TERSEDIA</h3>
-                                </div>
-                            )}
-                        </div>
 
-                        <div className="flex flex-col items-center justify-center relative py-4 lg:py-0">
-                            <div className="absolute -inset-8 sm:-inset-12 bg-primary/5 rounded-full blur-xl sm:blur-2xl animate-pulse" />
-                            <div className="bg-primary border-4 sm:border-[8px] border-background rounded-xl sm:rounded-2xl w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center shadow-lg sm:shadow-2xl ring-2 sm:ring-4 ring-primary/20 relative z-10 rotate-45 group">
-                                <span className="text-black font-black text-xl sm:text-3xl tracking-tighter italic -rotate-45 pr-0.5 sm:pr-1">VS</span>
-                            </div>
-                            <div className="mt-4 sm:mt-8 space-y-1 text-center relative z-10">
-                                <div className="flex items-center gap-1.5 justify-center" suppressHydrationWarning><Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/><span className="text-[7px] sm:text-[9px] font-black text-white uppercase tracking-widest">{selectedMatch?.matchDate ? format(selectedMatch.matchDate.toDate(), 'd MMM yyyy', { locale: localeId }) : 'TBD'}</span></div>
-                                <div className="flex items-center gap-1.5 justify-center" suppressHydrationWarning><Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/><span className="text-[7px] sm:text-[9px] font-black text-white uppercase tracking-widest">{selectedMatch?.matchDate ? format(selectedMatch.matchDate.toDate(), 'HH:mm') : 'TBD'}</span></div>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col items-center text-center gap-3 sm:gap-6 group w-full lg:w-auto">
-                            {analysis2 ? (
-                                <>
-                                    <div className="relative">
-                                        <div className={cn(
-                                            "absolute -inset-3 sm:-inset-6 rounded-full blur-xl sm:blur-3xl opacity-20 transition-all duration-1000 group-hover:opacity-50 group-hover:scale-110",
-                                            analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary"
-                                        )} />
-                                        <Avatar className="h-20 w-20 sm:h-32 sm:w-32 border-2 sm:border-4 border-white shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-all duration-700 ring-4 sm:ring-8 ring-white/5">
-                                            <AvatarImage src={analysis2.team?.logoUrl} />
-                                            <AvatarFallback className="bg-black/40"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/10"/></AvatarFallback>
+                                        <Avatar className={cn("h-24 w-24 sm:h-28 sm:w-28 border-4 shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105", i === 1 ? "border-primary" : "border-white")}>
+                                            <AvatarImage src={an.team?.logoUrl} /><AvatarFallback><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                         </Avatar>
-                                        {/* Group Badge - Top Left */}
-                                        {analysis2.entry?.group && (
-                                            <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20">
-                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] sm:text-sm px-1.5 sm:px-2.5 h-6 sm:h-8 min-w-[24px] sm:min-w-[32px] justify-center italic shadow-xl">
-                                                    GRUP {analysis2.entry.group}
+                                        
+                                        {an.isDefendingChampion && (
+                                            <div className="absolute -top-1 -right-1 z-20">
+                                                <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg">
+                                                    <Award className="w-3 h-3"/>
                                                 </Badge>
                                             </div>
                                         )}
-                                        <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-white text-black font-black text-sm sm:text-xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0" suppressHydrationWarning>
-                                            {analysis2.entry?.rank || '?'}
-                                        </div>
-                                        {analysis2.isDefendingChampion && (
-                                            <div className="absolute -top-3 -right-3 sm:-top-5 sm:-right-5 transform rotate-12 z-20">
-                                                <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1 sm:p-2 rounded-lg sm:rounded-xl shadow-2xl">
-                                                    <Award className="w-4 h-4 sm:w-6 sm:h-6"/>
-                                                </Badge>
-                                            </div>
-                                        )}
+
+                                        <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12" suppressHydrationWarning>{an.entry?.rank || '?'}</div>
                                     </div>
-                                    <div className="space-y-1 sm:space-y-2">
-                                        <h3 className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic sm:pr-4 text-white group-hover:text-primary transition-colors" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
-                                        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                                            <span className="text-[7px] sm:text-[10px] font-black text-white/60 uppercase tracking-[0.2em] sm:tracking-[0.3em]" suppressHydrationWarning>{analysis2.team?.name || 'Agen Independen'}</span>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Badge className={cn("text-[7px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 sm:px-5 py-1 sm:py-2 border sm:border-2 cursor-help shadow-lg", getPlayStyleClass(analysis2.playStyleType))}>
-                                                        {analysis2.playStyleText}
-                                                    </Badge>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl">
-                                                    <p className="text-[10px] sm:text-xs font-bold leading-relaxed text-white">{analysis2.playStyleDescription}</p>
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center gap-4 sm:gap-6 opacity-10">
-                                    <div className="h-20 w-20 sm:h-32 sm:w-32 rounded-full border-2 sm:border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/20" /></div>
-                                    <h3 className="text-lg sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.3em] text-white uppercase italic">SLOT TERSEDIA</h3>
+                                    <div className="space-y-1"><h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{pN}</h3>
+                                    <div className="flex flex-col items-center gap-1.5"><span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{an.team?.name || 'Independent'}</span>
+                                    <Popover><PopoverTrigger asChild><Badge className={cn("text-[8px] font-black uppercase px-3 py-1 border cursor-help shadow-lg", an.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : an.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-primary/20 text-primary border-primary/30")}>{an.playStyleText}</Badge></PopoverTrigger><PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{an.playStyleDescription}</p></PopoverContent></Popover></div></div></>) : <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic">SLOT TERSEDIA</h3></div>}
                                 </div>
-                            )}
-                        </div>
+                            )
+                        })}
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary border-4 border-background rounded-xl w-14 h-14 flex items-center justify-center shadow-2xl z-10 rotate-45"><span className="text-black font-black text-xl italic -rotate-45 pr-0.5">VS</span></div>
                     </div>
 
-                    <div className="space-y-6 sm:space-y-10 relative z-10">
-                        <div className="flex items-center gap-3 sm:gap-5 text-primary">
-                            <Binary className="w-6 h-6 sm:w-8 sm:h-8" /> 
-                            <h4 className="text-lg sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.4em] uppercase italic">Indeks Momentum</h4>
-                            <div className="h-0.5 sm:h-1 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-2 sm:ml-6" />
+                    <div className="space-y-6 relative z-10">
+                        <div className="flex items-center gap-4 text-primary"><Binary className="w-6 h-6" /><h4 className="text-lg font-black tracking-widest uppercase italic">Indeks Momentum</h4><div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" /></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            {[analysis1, analysis2].map((an, i) => (
+                                <div key={i} className="space-y-4">
+                                    {an && an.stats.played > 0 ? (
+                                        <Card className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all">
+                                            <CardHeader className="p-4 bg-black/20 border-b border-white/10 text-center"><div className="flex justify-between items-center"><CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase italic">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</CardTitle><Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>Winrate: {an.winRate.toFixed(0)}%</Badge></div><p className={cn("text-[9px] font-black italic mt-1 uppercase", an.quoteColor)}>Level: "{an.quote}"</p></CardHeader>
+                                            <CardContent className="p-5 space-y-6">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2 text-center"><p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p><div className="grid gap-2"><IntelCard icon={Percent} label="Winrate Fase" value={`${an.winRate.toFixed(0)}%`} variant="primary" /><IntelCard icon={Trophy} label="Peringkat Grup" value={`#${an.entry?.rank || '?'}`} /></div></div>
+                                                    <div className="space-y-2 text-center"><p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p><div className="grid gap-2"><IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" /><IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} /></div></div>
+                                                </div>
+                                                {isMounted && <ChartContainer config={chartConfig} className="h-24 w-full opacity-80"><LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}><CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" /><XAxis dataKey="match" hide /><YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} /><Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 3 }} activeDot={{ r: 6 }} /></LineChart></ChartContainer>}
+                                                <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
+                                            </CardContent>
+                                        </Card>
+                                    ) : <div className="h-full flex items-center justify-center opacity-10 p-10 border-2 border-dashed border-white/10 rounded-[1.5rem]"><Loader2 className="w-8 h-8 animate-spin" /></div>}
+                                </div>
+                            ))}
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-                            {/* Player 1 Analytics */}
-                            <div className="space-y-4 sm:space-y-6">
-                                {analysis1 && analysis1.stats.played > 0 ? (
-                                    <Card className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
-                                        <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 bg-black/20 border-b border-white/10 text-center">
-                                            <div className="flex justify-between items-center">
-                                                <CardTitle className="text-[10px] sm:text-xs font-black tracking-widest text-primary uppercase italic flex items-center gap-2">
-                                                    <Zap className="w-3 h-3 sm:w-4 h-4 fill-primary animate-pulse"/> Pelacakan: {selectedMatch?.p1?.name}
-                                                </CardTitle>
-                                                <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px] sm:text-[10px]" suppressHydrationWarning>Rasio Efisiensi: {analysis1.winRate.toFixed(0)}%</Badge>
-                                            </div>
-                                            <p className={cn("text-[9px] sm:text-[11px] font-black italic mt-1 sm:mt-2 uppercase tracking-tighter", analysis1.quoteColor)}>Level: "{analysis1.quote}"</p>
-                                        </CardHeader>
-                                        <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
-                                            {/* Unified Stats Grid */}
-                                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                                                <div className="space-y-2 sm:space-y-3 text-center">
-                                                    <p className="text-[7px] sm:text-[8px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
-                                                    <div className="grid grid-cols-1 gap-2">
-                                                        <IntelCard icon={Percent} label="Winrate Fase" value={`${analysis1.winRate.toFixed(0)}%`} variant="primary" />
-                                                        <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${analysis1.entry?.rank || '?'}`} />
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2 sm:space-y-3 text-center">
-                                                    <p className="text-[7px] sm:text-[8px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
-                                                    <div className="grid grid-cols-1 gap-2">
-                                                        <IntelCard icon={Flame} label="OVR Master" value={analysis1.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
-                                                        <IntelCard icon={Star} label="Peringkat Global" value={`#${analysis1.masterInfo?.masterRank || '?'}`} />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {isMounted && (
-                                                <ChartContainer config={chartConfig} className="h-24 sm:h-36 w-full opacity-80">
-                                                    <LineChart data={analysis1.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                        <XAxis dataKey="match" hide />
-                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sharedChartDomain} />
-                                                        <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
-                                                        <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} activeDot={{ r: 8, stroke: 'white', strokeWidth: 3 }} />
-                                                    </LineChart>
-                                                </ChartContainer>
-                                            )}
-                                            
-                                            <div className="flex justify-center gap-1.5 sm:gap-2">
-                                                {analysis1.form.map((f, i) => (
-                                                    <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all shadow-md", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
-                                                ))}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ) : <div className="h-full flex items-center justify-center opacity-10 grayscale p-10 sm:p-20 border-2 border-dashed border-white/10 rounded-2xl sm:rounded-[2rem]"><Loader2 className="w-8 h-8 sm:w-12 sm:h-12 animate-spin" /></div>}
-                            </div>
-
-                            {/* Player 2 Analytics */}
-                            <div className="space-y-4 sm:space-y-6">
-                                {analysis2 && analysis2.stats.played > 0 ? (
-                                    <Card className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
-                                        <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 bg-black/20 border-b border-white/10 text-center">
-                                            <div className="flex justify-between items-center">
-                                                <CardTitle className="text-[10px] sm:text-xs font-black tracking-widest text-primary uppercase italic flex items-center gap-2">
-                                                    <Zap className="w-3 h-3 sm:w-4 h-4 fill-primary animate-pulse"/> Pelacakan: {selectedMatch?.p2?.name}
-                                                </CardTitle>
-                                                <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px] sm:text-[10px]" suppressHydrationWarning>Rasio Efisiensi: {analysis2.winRate.toFixed(0)}%</Badge>
-                                            </div>
-                                            <p className={cn("text-[9px] sm:text-[11px] font-black italic mt-1 sm:mt-2 uppercase tracking-tighter", analysis2.quoteColor)}>Level: "{analysis2.quote}"</p>
-                                        </CardHeader>
-                                        <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
-                                            {/* Unified Stats Grid */}
-                                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                                                <div className="space-y-2 sm:space-y-3 text-center">
-                                                    <p className="text-[7px] sm:text-[8px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
-                                                    <div className="grid grid-cols-1 gap-2">
-                                                        <IntelCard icon={Percent} label="Winrate Fase" value={`${analysis2.winRate.toFixed(0)}%`} variant="primary" />
-                                                        <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${analysis2.entry?.rank || '?'}`} />
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2 sm:space-y-3 text-center">
-                                                    <p className="text-[7px] sm:text-[8px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
-                                                    <div className="grid grid-cols-1 gap-2">
-                                                        <IntelCard icon={Flame} label="OVR Master" value={analysis2.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
-                                                        <IntelCard icon={Star} label="Peringkat Global" value={`#${analysis2.masterInfo?.masterRank || '?'}`} />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {isMounted && (
-                                                <ChartContainer config={chartConfig} className="h-24 sm:h-36 w-full opacity-80">
-                                                    <LineChart data={analysis2.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                        <XAxis dataKey="match" hide />
-                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sharedChartDomain} />
-                                                        <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
-                                                        <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} activeDot={{ r: 8, stroke: 'white', strokeWidth: 3 }} />
-                                                    </LineChart>
-                                                </ChartContainer>
-                                            )}
-                                            
-                                            <div className="flex justify-center gap-1.5 sm:gap-2">
-                                                {analysis2.form.map((f, i) => (
-                                                    <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all shadow-md", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
-                                                ))}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ) : <div className="h-full flex items-center justify-center opacity-10 grayscale p-10 sm:p-20 border-2 border-dashed border-white/10 rounded-2xl sm:rounded-[2rem]"><Loader2 className="w-8 h-8 sm:w-12 sm:h-12 animate-spin" /></div>}
-                            </div>
-                        </div>
-                        
-                        <div className="bg-primary/5 border border-primary/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
-                            <p className="text-[8px] sm:text-[10px] text-white/60 font-black tracking-[0.3em] uppercase mb-1 sm:mb-2">Technical Analysis Disclaimer</p>
-                            <p className="text-[10px] sm:text-xs font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p>
-                        </div>
+                        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center"><p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p><p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p></div>
                     </div>
                 </div>
             </DialogContent>
