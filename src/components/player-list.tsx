@@ -73,39 +73,43 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     }));
   }, [players]);
 
+  const sortedPlayers = useMemo(() => {
+    return [...playersWithRanks].sort((a, b) => a.ovrRank - b.ovrRank);
+  }, [playersWithRanks]);
+
   const tiers = useMemo(() => {
-    if (playersWithRanks.length === 0) return [];
+    if (sortedPlayers.length === 0) return [];
     return [
       { 
         title: 'Legend', 
-        players: playersWithRanks.slice(0, 4), 
+        players: sortedPlayers.slice(0, 4), 
         color: 'text-yellow-400', 
         bgShadow: 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)]',
         cardBorder: 'group-hover:border-yellow-400/30'
       },
       { 
         title: 'Top Player', 
-        players: playersWithRanks.slice(4, 8), 
+        players: sortedPlayers.slice(4, 8), 
         color: 'text-primary', 
         bgShadow: 'bg-primary shadow-[0_0_15px_rgba(204,253,1,0.4)]',
         cardBorder: 'group-hover:border-primary/30'
       },
       { 
         title: 'Reguler', 
-        players: playersWithRanks.slice(8, 12), 
+        players: sortedPlayers.slice(8, 12), 
         color: 'text-accent', 
         bgShadow: 'bg-accent shadow-[0_0_15px_rgba(100,255,218,0.4)]',
         cardBorder: 'group-hover:border-accent/30'
       },
       { 
         title: 'Amateur', 
-        players: playersWithRanks.slice(12), 
+        players: sortedPlayers.slice(12), 
         color: 'text-white/40', 
         bgShadow: 'bg-white/20',
         cardBorder: 'group-hover:border-white/20'
       },
     ].filter(t => t.players.length > 0);
-  }, [playersWithRanks]);
+  }, [sortedPlayers]);
 
   const teamsById = useMemo(() => {
     if (!teams) return {};
@@ -178,7 +182,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
           <div key={tier.title} className="flex flex-col md:flex-row gap-6 md:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             
             {/* Modular HUD Sidebar Label Section */}
-            <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4 md:pt-2 shrink-0 md:w-32 relative group/sidebar">
+            <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4 md:pt-8 shrink-0 md:w-32 relative group/sidebar">
                 {/* HUD Signal Segments */}
                 <div className="flex md:flex-col gap-1.5 h-1.5 w-full md:h-fit md:w-1.5 order-1 md:order-none">
                     {[...Array(5)].map((_, i) => (
