@@ -262,5 +262,8 @@
   "finish_group_early_title": "Finish Group Stage Early?",
   "finish_group_early_desc": "There are still unplayed matches. If you proceed, these matches will be ignored and the current top 4 teams from each group will advance to the playoffs.",
   "fun_stats_best_gd": "Best Goal Difference",
-  "fun_stats_best_gd_desc": "Player with the highest goal difference."
+  "fun_stats_best_gd_desc": "Player with the highest goal difference.",
+  "play_style_attacking_desc": "ATTACKING STRATEGY: High goal production (>1.6 AVG). Signature aggressive forward play detected.",
+  "play_style_defensive_desc": "DEFENSIVE PROTOCOL: Superior defensive stability (<1.2 GA). Strong low-block and counter-attack signature.",
+  "play_style_balanced_desc": "BALANCED TACTICS: Neutral offensive/defensive metrics detected. High adaptability across all match phases."
 }

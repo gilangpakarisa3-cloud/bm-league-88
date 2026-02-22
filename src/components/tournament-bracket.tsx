@@ -20,6 +20,7 @@ import { id as localeId } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -32,6 +33,7 @@ interface TournamentBracketProps {
 }
 
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId }: TournamentBracketProps) {
+  const { t } = useTranslation();
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -148,6 +150,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     let playStyleText = "Gaya bermain: Balanced";
     let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
+    let playStyleDescription = t('play_style_balanced_desc', { defaultValue: "Statistik menyerang dan bertahan yang seimbang. Pemain ini memiliki strategi yang adaptif." });
     
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
@@ -155,9 +158,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         if (avgGF > 1.6) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
+            playStyleDescription = t('play_style_attacking_desc', { defaultValue: "Rata-rata gol memasukkan tinggi (> 1.6 per laga). Pemain ini sangat agresif di lini depan." });
         } else if (avgGA < 1.2 && stats.played >= 3) {
             playStyleText = "Gaya bermain: Defensive & Counter";
             playStyleType = 'defensive';
+            playStyleDescription = t('play_style_defensive_desc', { defaultValue: "Rata-rata gol kemasukan rendah (< 1.2 per laga). Pertahanan pemain ini sangat solid." });
         }
     }
 
@@ -175,6 +180,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       chartData, 
       playStyleText, 
       playStyleType, 
+      playStyleDescription,
       quote, 
       quoteColor, 
       team, 
@@ -582,9 +588,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <h3 className="text-4xl font-black tracking-tighter uppercase italic pr-6 text-white group-hover:text-primary transition-colors">{selectedMatch?.p1?.name}</h3>
                                         <div className="flex flex-col items-center gap-3">
                                             <span className="text-xs font-black text-white/40 uppercase tracking-[0.3em]">{analysis1.team?.name || 'Independent Agent'}</span>
-                                            <Badge className={cn("text-xs font-black uppercase tracking-widest px-5 py-2 border-2", getPlayStyleClass(analysis1.playStyleType))}>
-                                                {analysis1.playStyleText}
-                                            </Badge>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Badge className={cn("text-xs font-black uppercase tracking-widest px-5 py-2 border-2 cursor-help", getPlayStyleClass(analysis1.playStyleType))}>
+                                                            {analysis1.playStyleText}
+                                                        </Badge>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="max-w-[200px] text-center bg-black/90 border-primary/30">
+                                                        <p className="text-[10px] font-bold leading-relaxed">{analysis1.playStyleDescription}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         </div>
                                     </div>
                                 </>
@@ -634,9 +649,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <h3 className="text-4xl font-black tracking-tighter uppercase italic pr-6 text-white group-hover:text-primary transition-colors">{selectedMatch?.p2?.name}</h3>
                                         <div className="flex flex-col items-center gap-3">
                                             <span className="text-xs font-black text-white/40 uppercase tracking-[0.3em]">{analysis2.team?.name || 'Independent Agent'}</span>
-                                            <Badge className={cn("text-xs font-black uppercase tracking-widest px-5 py-2 border-2", getPlayStyleClass(analysis2.playStyleType))}>
-                                                {analysis2.playStyleText}
-                                            </Badge>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Badge className={cn("text-xs font-black uppercase tracking-widest px-5 py-2 border-2 cursor-help", getPlayStyleClass(analysis2.playStyleType))}>
+                                                            {analysis2.playStyleText}
+                                                        </Badge>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="max-w-[200px] text-center bg-black/90 border-primary/30">
+                                                        <p className="text-[10px] font-bold leading-relaxed">{analysis2.playStyleDescription}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         </div>
                                     </div>
                                 </>

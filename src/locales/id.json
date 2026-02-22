@@ -262,5 +262,8 @@
   "finish_group_early_title": "Selesaikan Fase Grup Lebih Awal?",
   "finish_group_early_desc": "Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan 4 tim teratas dari masing-masing grup saat ini akan melaju ke babak playoff.",
   "fun_stats_best_gd": "Selisih Gol Terbaik",
-  "fun_stats_best_gd_desc": "Pemain dengan selisih gol (SG) tertinggi."
+  "fun_stats_best_gd_desc": "Pemain dengan selisih gol (SG) tertinggi.",
+  "play_style_attacking_desc": "STRATEGI MENYERANG: Produksi gol tinggi (>1.6 rata-rata). Karakter permainan sangat agresif di lini depan.",
+  "play_style_defensive_desc": "PROTOKOL BERTAHAN: Stabilitas pertahanan unggul (<1.2 rata-rata kebobolan). Sangat kuat dalam bertahan dan serangan balik.",
+  "play_style_balanced_desc": "TAKTIK SEIMBANG: Metrik serangan dan pertahanan terdeteksi seimbang. Adaptabilitas tinggi di segala situasi."
 }

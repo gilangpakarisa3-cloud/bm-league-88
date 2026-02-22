@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -226,15 +227,19 @@ export function PlayerPerformanceDialog({
     // Play Style Analysis (3 Parameters)
     let playStyleText = "Gaya bermain: Balanced";
     let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
+    let playStyleDescription = t('play_style_balanced_desc', { defaultValue: "Statistik menyerang dan bertahan yang seimbang. Pemain ini memiliki strategi yang adaptif." });
+    
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
         if (avgGF > 1.6) {
             playStyleText = "Gaya bermain: Attacking";
             playStyleType = 'attacking';
+            playStyleDescription = t('play_style_attacking_desc', { defaultValue: "Rata-rata gol memasukkan tinggi (> 1.6 per laga). Pemain ini sangat agresif di lini depan." });
         } else if (avgGA < 1.2 && stats.played >= 3) {
             playStyleText = "Gaya bermain: Defensive & Counter";
             playStyleType = 'defensive';
+            playStyleDescription = t('play_style_defensive_desc', { defaultValue: "Rata-rata gol kemasukan rendah (< 1.2 per laga). Pertahanan pemain ini sangat solid." });
         }
     }
 
@@ -265,15 +270,16 @@ export function PlayerPerformanceDialog({
         stats,
         groupSize,
         playStyleText,
-        playStyleType
+        playStyleType,
+        playStyleDescription
     }
 
-  }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable]);
+  }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t]);
 
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize, playStyleText, playStyleType } = performanceStats;
+  const { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, finalTrendScore, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription } = performanceStats;
   
    const chartConfig = {
     points: {
@@ -381,9 +387,18 @@ export function PlayerPerformanceDialog({
                         {player.teamName || 'Tanpa Tim'}
                       </DialogDescription>
                       <div className="pt-1">
-                        <Badge className={cn("text-[11px] font-black uppercase tracking-tighter px-3 py-1 border", getPlayStyleClass(playStyleType))}>
-                            {playStyleText}
-                        </Badge>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge className={cn("text-[11px] font-black uppercase tracking-tighter px-3 py-1 border cursor-help", getPlayStyleClass(playStyleType))}>
+                                        {playStyleText}
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-[200px] text-center bg-black/90 border-primary/30">
+                                    <p className="text-[10px] font-bold leading-relaxed">{playStyleDescription}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
                 </DialogHeader>
