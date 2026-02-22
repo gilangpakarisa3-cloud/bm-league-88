@@ -42,6 +42,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const scrollLeft = useRef(0);
   const mouseMoved = useRef(false);
 
+  // Define chartConfig early to avoid runtime errors
+  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
+
   useEffect(() => { setIsMounted(true); }, []);
 
   const onMouseDown = (e: React.MouseEvent) => {
@@ -99,6 +102,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
     
+    // OVR Efficiency calculation
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
@@ -161,8 +165,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     });
     return d;
   }, [matches, playersById, teamsById, rankedTable]);
-
-  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
 
   const MatchCard = ({ bid, label }: { bid: string, label: string }) => {
     const m = bracketData[bid]; const p = projections?.[bid];
@@ -264,13 +266,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[240px] sm:min-w-[300px]">
+                {/* WIDENED GRAND FINAL SECTION (+50%) */}
+                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[360px] sm:min-w-[450px]">
                     <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px]" /></div>
                     <div className="flex flex-col items-center gap-6 relative z-10">
                         <div className="relative group/trophy"><div className="absolute -inset-10 bg-yellow-400/20 rounded-full blur-2xl opacity-40 animate-pulse" /><div className="relative p-8 bg-yellow-400/10 rounded-full border-4 border-yellow-400/50 shadow-[0_0_60px_rgba(250,204,21,0.2)]"><Trophy className="text-yellow-400 w-16 h-16 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]" /></div></div>
                         <div className="text-center space-y-1"><h3 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase italic">Grand Final</h3><p className="text-[8px] font-black text-primary tracking-[0.4em] uppercase opacity-60">Apex Battle Station</p></div>
                     </div>
-                    <div className="scale-[1.05] transform transition-all duration-700 py-12 relative z-10"><MatchCard bid="playoff-m18" label="Battle For Glory" /></div>
+                    <div className="scale-[1.5] transform transition-all duration-700 py-12 relative z-10"><MatchCard bid="playoff-m18" label="Battle For Glory" /></div>
                 </div>
             </div>
         </div>
@@ -296,7 +299,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                     {/* Symmetrical Per-Player Comparison Grid */}
                     <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10">
-                        {/* Player 1 Side */}
                         <div className="flex flex-col items-center text-center gap-4 group w-full">
                             {analysis1 ? (
                                 <>
@@ -304,7 +306,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
                                         {analysis1.entry?.group && (
                                             <div className="absolute -top-1 -left-1 z-20">
-                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg">GRUP {analysis1.entry.group}</Badge>
+                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis1.entry.group}</Badge>
                                             </div>
                                         )}
                                         <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
@@ -335,14 +337,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             )}
                         </div>
 
-                        {/* Centered VS Logo */}
                         <div className="flex items-center justify-center py-8 sm:py-0 h-full relative">
                             <div className="bg-primary border-4 border-background rounded-xl w-14 h-14 flex items-center justify-center shadow-2xl z-10 rotate-45">
                                 <span className="text-black font-black text-xl italic -rotate-45 pr-0.5">VS</span>
                             </div>
                         </div>
 
-                        {/* Player 2 Side */}
                         <div className="flex flex-col items-center text-center gap-4 group w-full">
                             {analysis2 ? (
                                 <>
@@ -350,7 +350,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-white")} />
                                         {analysis2.entry?.group && (
                                             <div className="absolute -top-1 -left-1 z-20">
-                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg">GRUP {analysis2.entry.group}</Badge>
+                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis2.entry.group}</Badge>
                                             </div>
                                         )}
                                         <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
@@ -400,7 +400,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <CardHeader className="p-4 bg-black/20 border-b border-white/10">
                                                 <div className="flex flex-col items-center gap-2">
                                                     <div className="flex items-center justify-center gap-3">
-                                                        <h3 className="text-[10px] font-black tracking-widest text-primary uppercase italic">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                        <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
                                                         <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>Winrate: {an.winRate.toFixed(0)}%</Badge>
                                                     </div>
                                                     <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>

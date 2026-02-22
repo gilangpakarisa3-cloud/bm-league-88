@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, CheckCircle, XCircle, MinusCircle, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, KeyRound, Target, Zap, Activity, Scan, Binary, LayoutGrid, Star, Flame } from 'lucide-react';
+import { User, Shield, Percent, Trophy, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, Target, Zap, Activity, Scan, Binary, Star, Flame } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';

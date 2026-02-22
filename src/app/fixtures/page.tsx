@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -42,6 +43,7 @@ import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
