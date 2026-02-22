@@ -366,7 +366,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </div>
 
         {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
-            <div className="mb-10 group/sim">
+            <div className="mb-10 group/sim px-8">
                 <div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-2xl p-6 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
                     <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" />
                     <div className="flex items-start gap-5">
@@ -388,155 +388,134 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         )}
 
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing no-scrollbar">
-            <div className="min-w-[1500px] flex items-stretch gap-10 p-8">
-                {/* Upper Bracket Section */}
-                <div className="flex-1 flex flex-col gap-20 relative">
-                    <div className="space-y-10 relative">
-                        <div className="flex items-center gap-5">
-                            <div className="h-10 w-2 bg-primary rounded-full shadow-[0_0_20px_rgba(204,253,1,0.8)]" />
-                            <div className="flex flex-col">
-                                <h3 className="text-xl font-black tracking-[0.4em] text-primary uppercase italic">Upper Bracket</h3>
-                                <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">Survivor Protocol: Double Life Enabled</span>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-4 pl-8">
-                            {/* QF */}
-                            <div className="flex flex-col gap-8 relative">
-                                <MatchCard bid="playoff-m1" label="UB Quarter 1" />
-                                <MatchCard bid="playoff-m2" label="UB Quarter 2" />
-                                <MatchCard bid="playoff-m3" label="UB Quarter 3" />
-                                <MatchCard bid="playoff-m4" label="UB Quarter 4" />
+            <div className="min-w-[1600px] flex items-stretch gap-10 p-8">
+                {/* Main Tournament Column (Upper + Lower) */}
+                <div className="flex-1 flex flex-col gap-12 relative">
+                    
+                    {/* Upper Bracket Vibrant Container */}
+                    <div className="flex-1 relative group/ub bg-primary/[0.02] border-2 border-primary/10 rounded-[2.5rem] p-10 backdrop-blur-sm transition-all duration-700 hover:bg-primary/[0.04] hover:border-primary/20">
+                        <div className="space-y-10 relative h-full flex flex-col justify-center">
+                            <div className="flex items-center gap-5">
+                                <div className="h-10 w-2 bg-primary rounded-full shadow-[0_0_20px_rgba(204,253,1,0.8)]" />
+                                <div className="flex flex-col">
+                                    <h3 className="text-2xl font-black tracking-[0.4em] text-primary uppercase italic">Upper Bracket</h3>
+                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Survivor Protocol: Double Life Enabled</span>
+                                </div>
                             </div>
                             
-                            {/* Compact Connector QF to SF */}
-                            <div className="flex flex-col gap-40 py-16 opacity-30">
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-4 h-4 text-primary"/>
+                            <div className="flex items-center gap-4 pl-8">
+                                {/* QF */}
+                                <div className="flex flex-col gap-8 relative">
+                                    <MatchCard bid="playoff-m1" label="UB Quarter 1" />
+                                    <MatchCard bid="playoff-m2" label="UB Quarter 2" />
+                                    <MatchCard bid="playoff-m3" label="UB Quarter 3" />
+                                    <MatchCard bid="playoff-m4" label="UB Quarter 4" />
                                 </div>
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-4 h-4 text-primary"/>
+                                
+                                <div className="flex flex-col gap-40 py-16 opacity-30">
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-4 h-4 text-primary"/></div>
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-4 h-4 text-primary"/></div>
                                 </div>
-                            </div>
 
-                            {/* Semi */}
-                            <div className="flex flex-col gap-40 py-16">
-                                <MatchCard bid="playoff-m9" label="UB Semifinal 1" />
-                                <MatchCard bid="playoff-m10" label="UB Semifinal 2" />
-                            </div>
-
-                            {/* Compact Connector Semi to Final */}
-                            <div className="flex flex-col justify-center h-full opacity-30">
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-5 h-5 text-primary"/>
+                                {/* Semi */}
+                                <div className="flex flex-col gap-40 py-16">
+                                    <MatchCard bid="playoff-m9" label="UB Semifinal 1" />
+                                    <MatchCard bid="playoff-m10" label="UB Semifinal 2" />
                                 </div>
-                            </div>
 
-                            {/* UB Final */}
-                            <div className="flex flex-col justify-center h-full">
-                                <MatchCard bid="playoff-m15" label="Upper Final" />
+                                <div className="flex flex-col justify-center h-full opacity-30">
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-5 h-5 text-primary"/></div>
+                                </div>
+
+                                {/* UB Final */}
+                                <div className="flex flex-col justify-center h-full">
+                                    <MatchCard bid="playoff-m15" label="Upper Final" />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent relative">
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-4">
-                            <Binary className="w-4 h-4 text-white/10" />
-                        </div>
-                    </div>
-
-                    {/* Lower Bracket Section */}
-                    <div className="space-y-10">
-                        <div className="flex items-center gap-5">
-                            <div className="h-10 w-2 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.8)]" />
-                            <div className="flex flex-col">
-                                <h3 className="text-xl font-black tracking-[0.4em] text-amber-500 uppercase italic">Lower Bracket</h3>
-                                <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">Extermination Protocol: Sudden Death</span>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 pl-8">
-                            {/* R1 */}
-                            <div className="flex flex-col gap-8">
-                                <MatchCard bid="playoff-m5" label="LB Round 1" />
-                                <MatchCard bid="playoff-m6" label="LB Round 1" />
-                                <MatchCard bid="playoff-m7" label="LB Round 1" />
-                                <MatchCard bid="playoff-m8" label="LB Round 1" />
-                            </div>
-
-                            {/* Compact Connect R1 to R2 */}
-                            <div className="flex flex-col gap-40 py-16 opacity-30">
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
-                                </div>
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
+                    {/* Lower Bracket Vibrant Container */}
+                    <div className="flex-1 relative group/lb bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[2.5rem] p-10 backdrop-blur-sm transition-all duration-700 hover:bg-yellow-500/[0.04] hover:border-yellow-500/20">
+                        <div className="space-y-10 relative h-full flex flex-col justify-center">
+                            <div className="flex items-center gap-5">
+                                <div className="h-10 w-2 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.8)]" />
+                                <div className="flex flex-col">
+                                    <h3 className="text-2xl font-black tracking-[0.4em] text-amber-500 uppercase italic">Lower Bracket</h3>
+                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Extermination Protocol: Sudden Death</span>
                                 </div>
                             </div>
 
-                            {/* R2 */}
-                            <div className="flex flex-col gap-40 py-16">
-                                <MatchCard bid="playoff-m11" label="LB Round 2" />
-                                <MatchCard bid="playoff-m12" label="LB Round 2" />
-                            </div>
-
-                            {/* Compact Connect R2 to R3 */}
-                            <div className="flex flex-col gap-40 py-16 opacity-30">
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
+                            <div className="flex items-center gap-4 pl-8">
+                                {/* R1 */}
+                                <div className="flex flex-col gap-8">
+                                    <MatchCard bid="playoff-m5" label="LB Round 1" />
+                                    <MatchCard bid="playoff-m6" label="LB Round 1" />
+                                    <MatchCard bid="playoff-m7" label="LB Round 1" />
+                                    <MatchCard bid="playoff-m8" label="LB Round 1" />
                                 </div>
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
+
+                                <div className="flex flex-col gap-40 py-16 opacity-30">
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
                                 </div>
-                            </div>
 
-                            {/* R3 */}
-                            <div className="flex flex-col gap-40 py-16">
-                                <MatchCard bid="playoff-m13" label="LB Round 3" />
-                                <MatchCard bid="playoff-m14" label="LB Round 3" />
-                            </div>
-
-                            {/* Compact Connect R3 to LB Semi */}
-                            <div className="flex flex-col justify-center h-full opacity-30">
-                                <div className="flex items-center justify-center h-24">
-                                    <ChevronRight className="w-5 h-5 text-amber-500"/>
+                                {/* R2 */}
+                                <div className="flex flex-col gap-40 py-16">
+                                    <MatchCard bid="playoff-m11" label="LB Round 2" />
+                                    <MatchCard bid="playoff-m12" label="LB Round 2" />
                                 </div>
-                            </div>
 
-                            {/* LB Semi */}
-                            <div className="flex flex-col justify-center h-full">
-                                <MatchCard bid="playoff-m16" label="LB Semifinal" />
-                            </div>
+                                <div className="flex flex-col gap-40 py-16 opacity-30">
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
+                                </div>
 
-                            {/* LB Final */}
-                            <div className="flex flex-col justify-center h-full">
-                                <MatchCard bid="playoff-m17" label="Lower Final" />
+                                {/* R3 */}
+                                <div className="flex flex-col gap-40 py-16">
+                                    <MatchCard bid="playoff-m13" label="LB Round 3" />
+                                    <MatchCard bid="playoff-m14" label="LB Round 3" />
+                                </div>
+
+                                <div className="flex flex-col justify-center h-full opacity-30">
+                                    <div className="flex items-center justify-center h-24"><ChevronRight className="w-5 h-5 text-amber-500"/></div>
+                                </div>
+
+                                {/* LB Semi */}
+                                <div className="flex flex-col justify-center h-full">
+                                    <MatchCard bid="playoff-m16" label="LB Semifinal" />
+                                </div>
+
+                                {/* LB Final */}
+                                <div className="flex flex-col justify-center h-full">
+                                    <MatchCard bid="playoff-m17" label="Lower Final" />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Grand Final Section - Optimized Spacing */}
-                <div className="flex flex-col items-center justify-center gap-12 pl-10 border-l-2 border-white/5 bg-black/30 px-12 rounded-r-[3rem] relative group/final">
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-r-[3rem]">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/[0.02] rounded-full blur-[120px] group-hover/final:bg-primary/[0.05] transition-all duration-1000" />
+                {/* Grand Final Section - Full Height Integrated */}
+                <div className="flex flex-col items-center justify-center gap-12 border-l-2 border-white/5 bg-black/30 px-16 rounded-r-[3.5rem] relative group/final overflow-hidden">
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-[150px] group-hover/final:bg-primary/[0.06] transition-all duration-1000" />
                     </div>
 
-                    <div className="flex flex-col items-center gap-8 relative z-10">
+                    <div className="flex flex-col items-center gap-10 relative z-10">
                         <div className="relative group/trophy">
-                            <div className="absolute -inset-12 bg-yellow-400/20 rounded-full blur-3xl opacity-40 group-hover/trophy:opacity-100 transition-all duration-1000 animate-pulse" />
-                            <div className="relative p-10 bg-yellow-400/10 rounded-full border-4 border-yellow-400/50 shadow-[0_0_80px_rgba(250,204,21,0.3)] ring-8 ring-yellow-400/5">
-                                <Trophy className="text-yellow-400 w-28 h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]" />
+                            <div className="absolute -inset-16 bg-yellow-400/20 rounded-full blur-3xl opacity-40 group-hover/trophy:opacity-100 transition-all duration-1000 animate-pulse" />
+                            <div className="relative p-12 bg-yellow-400/10 rounded-full border-4 border-yellow-400/50 shadow-[0_0_100px_rgba(250,204,21,0.3)] ring-8 ring-yellow-400/5">
+                                <Trophy className="text-yellow-400 w-32 h-32 drop-shadow-[0_0_40px_rgba(250,204,21,0.8)]" />
                             </div>
                         </div>
-                        <div className="text-center space-y-3">
-                            <h3 className="text-6xl font-black tracking-[0.4em] text-white uppercase italic pr-6 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">Grand Final</h3>
-                            <p className="text-sm font-black text-primary tracking-[0.5em] uppercase opacity-60">The Apex Predation Battle</p>
+                        <div className="text-center space-y-4">
+                            <h3 className="text-7xl font-black tracking-[0.4em] text-white uppercase italic pr-8 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">Grand Final</h3>
+                            <p className="text-base font-black text-primary tracking-[0.6em] uppercase opacity-60">The Ultimate Apex Battle</p>
                         </div>
                     </div>
 
-                    <div className="scale-[1.8] transform transition-all duration-700 hover:scale-[1.95] py-24 relative z-10">
-                        <MatchCard bid="playoff-m18" label="Championship Match" />
+                    <div className="scale-[2.0] transform transition-all duration-700 hover:scale-[2.15] py-32 relative z-10">
+                        <MatchCard bid="playoff-m18" label="Championship Final" />
                     </div>
                 </div>
             </div>
@@ -546,7 +525,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-5xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl max-h-[95vh] overflow-y-auto shadow-[0_0_150px_rgba(204,253,1,0.2)] rounded-[2rem]">
                 <div className="p-12 space-y-12 relative">
-                    {/* Scanline Effect */}
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
 
                     <DialogHeader className="border-b border-white/10 pb-10 relative z-10">
@@ -575,7 +553,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </DialogHeader>
 
-                    {/* HUD Versus View */}
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-12 relative z-10">
                         <div className="flex flex-col items-center text-center gap-8 group">
                             {analysis1 ? (
@@ -671,7 +648,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
 
-                    {/* HUD Statistics & Stability Section */}
                     <div className="space-y-10 relative z-10">
                         <div className="flex items-center gap-5 text-primary">
                             <Binary className="w-8 h-8" /> 
@@ -680,7 +656,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
 
                         <div className="grid grid-cols-2 gap-12">
-                            {/* Player 1 Analysis */}
                             <div className="space-y-6">
                                 {analysis1 && analysis1.stats.played > 0 ? (
                                     <Card className="bg-white/[0.02] border-2 border-white/5 rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
@@ -713,7 +688,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 ) : <div className="h-full flex items-center justify-center opacity-10 grayscale p-20 border-2 border-dashed border-white/10 rounded-[2rem]"><Loader2 className="w-12 h-12 animate-spin" /></div>}
                             </div>
 
-                            {/* Player 2 Analysis */}
                             <div className="space-y-6">
                                 {analysis2 && analysis2.stats.played > 0 ? (
                                     <Card className="bg-white/[0.02] border-2 border-white/5 rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
