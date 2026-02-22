@@ -409,10 +409,16 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m4" label="UB Quarter 4" />
                             </div>
                             
-                            {/* Connector QF to Semi */}
-                            <div className="flex flex-col justify-around h-full opacity-20 py-12">
-                                <div className="flex items-center gap-2"><div className="w-8 h-0.5 bg-primary/40"/><ChevronRight className="w-5 h-5 text-primary"/></div>
-                                <div className="flex items-center gap-2"><div className="w-8 h-0.5 bg-primary/40"/><ChevronRight className="w-5 h-5 text-primary"/></div>
+                            {/* Connector QF to SF - Aligned with SF Py-16 and Gap-40 */}
+                            <div className="flex flex-col gap-40 py-16 opacity-20">
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-8 h-0.5 bg-primary/40"/>
+                                    <ChevronRight className="w-5 h-5 text-primary"/>
+                                </div>
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-8 h-0.5 bg-primary/40"/>
+                                    <ChevronRight className="w-5 h-5 text-primary"/>
+                                </div>
                             </div>
 
                             {/* Semi */}
@@ -421,9 +427,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m10" label="UB Semifinal 2" />
                             </div>
 
-                            {/* Connector Semi to Final */}
+                            {/* Connector Semi to Final - Aligned with Final's center */}
                             <div className="flex flex-col justify-center h-full opacity-20">
-                                <div className="flex items-center gap-2"><div className="w-10 h-0.5 bg-primary/40"/><ChevronRight className="w-6 h-6 text-primary"/></div>
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-10 h-0.5 bg-primary/40"/>
+                                    <ChevronRight className="w-6 h-6 text-primary"/>
+                                </div>
                             </div>
 
                             {/* UB Final */}
@@ -458,16 +467,43 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m8" label="LB Round 1" />
                             </div>
 
+                            {/* Connect R1 to R2 */}
+                            <div className="flex flex-col gap-40 py-16 opacity-20">
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                                </div>
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                                </div>
+                            </div>
+
                             {/* R2 */}
                             <div className="flex flex-col gap-40 py-16">
                                 <MatchCard bid="playoff-m11" label="LB Round 2" />
                                 <MatchCard bid="playoff-m12" label="LB Round 2" />
                             </div>
 
+                            {/* Connect R2 to R3 */}
+                            <div className="flex flex-col gap-40 py-16 opacity-20">
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                                </div>
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                                </div>
+                            </div>
+
                             {/* R3 */}
                             <div className="flex flex-col gap-40 py-16">
                                 <MatchCard bid="playoff-m13" label="LB Round 3" />
                                 <MatchCard bid="playoff-m14" label="LB Round 3" />
+                            </div>
+
+                            {/* Connect R3 to LB Semi */}
+                            <div className="flex flex-col justify-center h-full opacity-20">
+                                <div className="flex items-center justify-center h-24 gap-2">
+                                    <div className="w-10 h-0.5 bg-amber-500/40"/><ChevronRight className="w-6 h-6 text-amber-500"/>
+                                </div>
                             </div>
 
                             {/* LB Semi */}
