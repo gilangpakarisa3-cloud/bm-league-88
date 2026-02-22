@@ -390,7 +390,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing no-scrollbar">
             <div className="min-w-[1600px] flex items-stretch gap-10 p-8">
                 {/* Main Tournament Column (Upper + Lower) */}
-                <div className="flex-1 flex flex-col gap-24 relative">
+                <div className="flex-1 flex flex-col gap-2 relative">
                     
                     {/* Upper Bracket Vibrant Container */}
                     <div className="flex-1 relative group/ub bg-primary/[0.02] border-2 border-primary/10 rounded-[2.5rem] p-10 backdrop-blur-sm transition-all duration-700 hover:bg-primary/[0.04] hover:border-primary/20">
