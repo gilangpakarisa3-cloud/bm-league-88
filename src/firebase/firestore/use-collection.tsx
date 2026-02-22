@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -77,14 +76,6 @@ export function useCollection<T = any>(
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
-        // When passing a DocumentReference to useCollection, snapshot.docs will be undefined.
-        // This check prevents the error.
-        if (!snapshot.docs) {
-          setData([]); // or null, depending on desired behavior for single doc
-          setIsLoading(false);
-          return;
-        }
-
         const results: ResultItemType[] = [];
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
