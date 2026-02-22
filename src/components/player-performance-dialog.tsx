@@ -60,7 +60,6 @@ export function PlayerPerformanceDialog({
   const playersById = useMemo(() => allPlayers.reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
   const teamsById = useMemo(() => allTeams.reduce((acc, t) => { acc[t.id] = t; return acc; }, {} as Record<string, WithId<Team>>), [allTeams]);
 
-  // Calculate Master Rank
   const masterPlayersRanked = useMemo(() => {
     const players = Object.values(playersById);
     const withOvr = players.map(p => {
@@ -149,7 +148,7 @@ export function PlayerPerformanceDialog({
     const totalMatchesCount = playerMatches.length;
     const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
     
-    // Standard OVR Efficiency calculation
+    // OVR Efficiency calculation
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
@@ -198,13 +197,13 @@ export function PlayerPerformanceDialog({
     return { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo }
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t, masterPlayersRanked]);
 
+  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
+
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
   const { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo } = performanceStats;
   
-  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
-
   const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
     <div className={cn(
         "flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-300",
@@ -239,14 +238,12 @@ export function PlayerPerformanceDialog({
       <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
         <ScrollArea className="max-h-[90vh]">
             <div className="p-6 relative">
-                {/* HUD Overlay Scanlines */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
 
                 <DialogHeader className="flex flex-col items-center text-center relative z-10">
                     <div className="relative group">
                       <div className="absolute -inset-4 bg-primary/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse" />
                       
-                      {/* Group Badge - Left Top */}
                       {player.group && (
                           <div className="absolute -top-2 -left-2 z-20">
                               <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] px-2 h-7 italic shadow-xl">
@@ -312,7 +309,7 @@ export function PlayerPerformanceDialog({
                                 <span className="text-[10px] font-black text-primary italic" suppressHydrationWarning>{seasonProgress.toFixed(0)}%</span>
                             </div>
                             <Progress value={seasonProgress} className="h-1.5 bg-white/5" />
-                            <p className="text-[8px] font-black text-white/30 mt-2 uppercase tracking-widest" suppressHydrationWarning>Data Sinkronisasi: {stats.played} / {totalMatchesCount} Pertempuran Selesai</p>
+                            <p className="text-[8px] font-black text-white/30 mt-2 uppercase tracking-widest" suppressHydrationWarning>Data Sinkronisasi: {stats.played} / {totalMatchesCount} Laga Selesai</p>
                         </div>
 
                          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
@@ -323,7 +320,6 @@ export function PlayerPerformanceDialog({
                            <StatDisplay label="Poin" value={player.points} variant="primary" />
                         </div>
 
-                        {/* Momentum & Career Intel */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                             <div className="space-y-2">
                                 <p className="text-[8px] font-black text-primary/60 uppercase tracking-widest text-center">Intel Musim</p>
@@ -344,8 +340,8 @@ export function PlayerPerformanceDialog({
                   
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                       <TabsList className="grid w-full grid-cols-3 bg-black/40 h-12 p-1 border-2 border-white/5 rounded-xl">
-                          <TabsTrigger value="history" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Log</TabsTrigger>
-                          <TabsTrigger value="upcoming" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Queue</TabsTrigger>
+                          <TabsTrigger value="history" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Riwayat</TabsTrigger>
+                          <TabsTrigger value="upcoming" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Sisa Laga</TabsTrigger>
                           <TabsTrigger value="trend" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Tren</TabsTrigger>
                       </TabsList>
                       
@@ -381,7 +377,7 @@ export function PlayerPerformanceDialog({
                                   </div>
                               ))}
                               </div>
-                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Activity className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">No Mission Data</p></div>}
+                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Activity className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Tidak Ada Data</p></div>}
                       </TabsContent>
                       
                       <TabsContent value="upcoming" className="pt-4 outline-none">
@@ -393,13 +389,13 @@ export function PlayerPerformanceDialog({
                                           <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><CalendarClock className="w-4 h-4 text-white/20"/></div>
                                           <div>
                                               <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
-                                              <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Deployment Scheduled</p>
+                                              <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Terjadwal</p>
                                           </div>
                                       </div>
                                   </div>
                               ))}
                               </div>
-                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Zap className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Campaign Finalized</p></div>}
+                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Zap className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Musim Selesai</p></div>}
                       </TabsContent>
                       
                        <TabsContent value="trend" className="pt-4 outline-none">
@@ -415,7 +411,7 @@ export function PlayerPerformanceDialog({
                                   </div>
                                    {performanceStatus && (
                                       <CardDescription className={cn("text-[9px] font-black italic mt-1 uppercase tracking-tighter", performanceStatus.color)}>
-                                          Level: "{performanceStatus.text}"
+                                          Status: "{performanceStatus.text}"
                                       </CardDescription>
                                   )}
                               </CardHeader>
@@ -430,7 +426,7 @@ export function PlayerPerformanceDialog({
                                               <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", r: 4, strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }} />
                                           </LineChart>
                                       </ChartContainer>
-                                  ) : <div className="text-center py-12 opacity-20 text-[10px] font-black uppercase italic">Insufficient Data Points</div>}
+                                  ) : <div className="text-center py-12 opacity-20 text-[10px] font-black uppercase italic">Data Tidak Cukup</div>}
                               </CardContent>
                           </Card>
                        </TabsContent>

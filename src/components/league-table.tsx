@@ -233,7 +233,7 @@ const SingleTable = ({
                   </TableCell>
                   <TableCell className={cn(
                       "text-center font-black text-lg sm:text-2xl px-1 sm:px-2 italic", 
-                      isFirst ? "text-yellow-300 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] scale-110" : "text-primary"
+                      isFirst ? "text-yellow-300 drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] scale-110" : "text-primary"
                     )}>
                     {entry.points}
                   </TableCell>
