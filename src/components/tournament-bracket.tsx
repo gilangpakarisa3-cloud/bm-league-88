@@ -21,6 +21,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, Responsive
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { useTranslation } from '@/hooks/use-translation';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -313,7 +314,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW1 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/60")}>{m.p1.name}</span>
                         </div>
                         <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", m.isW1 && "border-primary/30")}>
-                            <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW1 ? "text-primary" : "text-white/30")}>{m.isCompleted ? m.s1 : '-'}</span>
+                            <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW1 ? "text-primary" : "text-white/30")} suppressHydrationWarning>{m.isCompleted ? m.s1 : '-'}</span>
                         </div>
                     </div>
                     {/* Player 2 Row */}
@@ -330,7 +331,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW2 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/60")}>{m.p2.name}</span>
                         </div>
                         <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", m.isW2 && "border-primary/30")}>
-                            <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW2 ? "text-primary" : "text-white/30")}>{m.isCompleted ? m.s2 : '-'}</span>
+                            <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW2 ? "text-primary" : "text-white/30")} suppressHydrationWarning>{m.isCompleted ? m.s2 : '-'}</span>
                         </div>
                     </div>
                 </CardContent>
@@ -384,7 +385,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
                                 <Badge className="bg-amber-500 text-black font-black uppercase italic tracking-tighter px-2 sm:px-3 text-[10px]">Live Simulation v2.4</Badge>
                                 <div className="flex gap-1">
-                                    {[...Array(3)].map((_, i) => <div key={i} className="w-1 h-1 rounded-full bg-amber-500/40 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />)}
+                                    {[...Array(3)].map((_, i) => <div key={i} className={cn("w-1 h-1 rounded-full bg-amber-500/40 animate-pulse")} style={{ animationDelay: `${i * 200}ms` }} />)}
                                 </div>
                             </div>
                             <p className="text-sm sm:text-base font-bold text-amber-200/90 leading-tight">Bagan ini adalah proyeksi dinamis berdasarkan peringkat grup saat ini. Jadwal final akan dikunci saat Admin memulai babak playoff.</p>
@@ -394,10 +395,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div>
         )}
 
-        <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing">
-            <div className="min-w-max flex items-stretch gap-4 sm:gap-10 p-2 sm:p-8">
+        <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20">
+            <div className="min-w-max flex items-stretch gap-4 sm:gap-10 p-4 sm:p-8">
                 {/* Main Tournament Column (Upper + Lower) */}
-                <div className="flex-1 flex flex-col gap-2 relative">
+                <div className="flex-1 flex flex-col gap-4 sm:gap-8 relative">
                     
                     {/* Upper Bracket Vibrant Container */}
                     <div className="flex-1 relative group/ub bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-10 backdrop-blur-sm transition-all duration-700 hover:bg-primary/[0.04] hover:border-primary/20">
@@ -410,28 +411,28 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </div>
                             </div>
                             
-                            <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-8">
+                            <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-8">
                                 {/* QF */}
-                                <div className="flex flex-col gap-14 sm:gap-14 relative">
+                                <div className="flex flex-col gap-10 sm:gap-14 relative">
                                     <MatchCard bid="playoff-m1" label="UB Quarter 1" />
                                     <MatchCard bid="playoff-m2" label="UB Quarter 2" />
                                     <MatchCard bid="playoff-m3" label="UB Quarter 3" />
                                     <MatchCard bid="playoff-m4" label="UB Quarter 4" />
                                 </div>
                                 
-                                <div className="flex flex-col gap-52 sm:gap-52 py-20 sm:py-20 opacity-30">
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
+                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
                                 </div>
 
                                 {/* Semi */}
-                                <div className="flex flex-col gap-52 sm:gap-52 py-20 sm:py-20">
+                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
                                     <MatchCard bid="playoff-m9" label="UB Semifinal 1" />
                                     <MatchCard bid="playoff-m10" label="UB Semifinal 2" />
                                 </div>
 
                                 <div className="flex flex-col justify-center h-full opacity-30">
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary"/></div>
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary"/></div>
                                 </div>
 
                                 {/* UB Final */}
@@ -453,39 +454,39 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-8">
+                            <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-8">
                                 {/* R1 */}
-                                <div className="flex flex-col gap-14 sm:gap-14">
+                                <div className="flex flex-col gap-10 sm:gap-14">
                                     <MatchCard bid="playoff-m5" label="LB Round 1" />
                                     <MatchCard bid="playoff-m6" label="LB Round 1" />
                                     <MatchCard bid="playoff-m7" label="LB Round 1" />
                                     <MatchCard bid="playoff-m8" label="LB Round 1" />
                                 </div>
 
-                                <div className="flex flex-col gap-52 sm:gap-52 py-20 sm:py-20 opacity-30">
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
+                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
                                 </div>
 
                                 {/* R2 */}
-                                <div className="flex flex-col gap-52 sm:gap-52 py-20 sm:py-20">
+                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
                                     <MatchCard bid="playoff-m11" label="LB Round 2" />
                                     <MatchCard bid="playoff-m12" label="LB Round 2" />
                                 </div>
 
-                                <div className="flex flex-col gap-52 sm:gap-52 py-20 sm:py-20 opacity-30">
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
+                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
                                 </div>
 
                                 {/* R3 */}
-                                <div className="flex flex-col gap-52 sm:gap-52 py-20 sm:py-20">
+                                <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
                                     <MatchCard bid="playoff-m13" label="LB Round 3" />
                                     <MatchCard bid="playoff-m14" label="LB Round 3" />
                                 </div>
 
                                 <div className="flex flex-col justify-center h-full opacity-30">
-                                    <div className="flex items-center justify-center h-24 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"/></div>
+                                    <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"/></div>
                                 </div>
 
                                 {/* LB Semi */}
@@ -502,26 +503,26 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
                 </div>
 
-                {/* Grand Final Section - Full Height Integrated */}
-                <div className="flex flex-col items-center justify-center gap-8 sm:gap-12 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[1.5rem] sm:rounded-r-[3.5rem] relative group/final overflow-hidden">
+                {/* Grand Final Section - Optimized Width */}
+                <div className="flex flex-col items-center justify-center gap-6 sm:gap-10 border-l-2 border-white/5 bg-black/30 px-6 sm:px-12 rounded-r-[1.5rem] sm:rounded-r-[3.5rem] relative group/final overflow-hidden min-w-[300px] sm:min-w-[400px]">
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-primary/[0.03] rounded-full blur-[100px] sm:blur-[150px] group-hover/final:bg-primary/[0.06] transition-all duration-1000" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/[0.03] rounded-full blur-[80px] sm:blur-[120px] group-hover/final:bg-primary/[0.06] transition-all duration-1000" />
                     </div>
 
-                    <div className="flex flex-col items-center gap-6 sm:gap-10 relative z-10">
+                    <div className="flex flex-col items-center gap-4 sm:gap-8 relative z-10">
                         <div className="relative group/trophy">
-                            <div className="absolute -inset-10 sm:-inset-16 bg-yellow-400/20 rounded-full blur-2xl sm:blur-3xl opacity-40 group-hover/trophy:opacity-100 transition-all duration-1000 animate-pulse" />
-                            <div className="relative p-8 sm:p-12 bg-yellow-400/10 rounded-full border-2 sm:border-4 border-yellow-400/50 shadow-[0_0_60px_rgba(250,204,21,0.2)] sm:shadow-[0_0_100px_rgba(250,204,21,0.3)] ring-4 sm:ring-8 ring-yellow-400/5">
-                                <Trophy className="text-yellow-400 w-20 h-20 sm:w-32 sm:h-32 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] sm:drop-shadow-[0_0_40px_rgba(250,204,21,0.8)]" />
+                            <div className="absolute -inset-8 sm:-inset-12 bg-yellow-400/20 rounded-full blur-xl sm:blur-2xl opacity-40 group-hover/trophy:opacity-100 transition-all duration-1000 animate-pulse" />
+                            <div className="relative p-6 sm:p-10 bg-yellow-400/10 rounded-full border-2 sm:border-4 border-yellow-400/50 shadow-[0_0_40px_rgba(250,204,21,0.2)] sm:shadow-[0_0_80px_rgba(250,204,21,0.3)] ring-4 sm:ring-8 ring-yellow-400/5">
+                                <Trophy className="text-yellow-400 w-16 h-16 sm:w-24 sm:h-24 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] sm:drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]" />
                             </div>
                         </div>
-                        <div className="text-center space-y-2 sm:space-y-4">
-                            <h3 className="text-4xl sm:text-7xl font-black tracking-[0.2em] sm:tracking-[0.4em] text-white uppercase italic drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">Grand Final</h3>
-                            <p className="text-xs sm:text-base font-black text-primary tracking-[0.4em] sm:tracking-[0.6em] uppercase opacity-60">The Ultimate Apex Battle</p>
+                        <div className="text-center space-y-1 sm:space-y-3">
+                            <h3 className="text-3xl sm:text-6xl font-black tracking-[0.15em] sm:tracking-[0.3em] text-white uppercase italic drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">Grand Final</h3>
+                            <p className="text-[8px] sm:text-xs font-black text-primary tracking-[0.3em] sm:tracking-[0.5em] uppercase opacity-60">The Ultimate Apex Battle</p>
                         </div>
                     </div>
 
-                    <div className="scale-[1.2] sm:scale-[2.0] transform transition-all duration-700 hover:scale-[1.3] sm:hover:scale-[2.15] py-16 sm:py-32 relative z-10">
+                    <div className="scale-[1.1] sm:scale-[1.5] transform transition-all duration-700 hover:scale-[1.2] sm:hover:scale-[1.6] py-12 sm:py-24 relative z-10">
                         <MatchCard bid="playoff-m18" label="Championship Final" />
                     </div>
                 </div>
@@ -531,34 +532,34 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         {/* HUD Match Analysis Dialog */}
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-5xl border-primary border-2 sm:border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl max-h-[95vh] overflow-y-auto shadow-[0_0_150px_rgba(204,253,1,0.2)] rounded-[1.5rem] sm:rounded-[2rem]">
-                <div className="p-4 sm:p-12 space-y-8 sm:space-y-12 relative">
+                <div className="p-4 sm:p-12 space-y-6 sm:space-y-10 relative">
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
 
-                    <DialogHeader className="border-b border-white/10 pb-6 sm:pb-10 relative z-10">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                            <div className="flex items-center gap-4 sm:gap-6 text-primary">
-                                <div className="p-3 sm:p-4 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg">
-                                    <BarChart3 className="w-6 h-6 sm:w-10 sm:h-10" />
+                    <DialogHeader className="border-b border-white/10 pb-4 sm:pb-8 relative z-10">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+                            <div className="flex items-center gap-3 sm:gap-6 text-primary">
+                                <div className="p-2 sm:p-4 bg-primary/10 rounded-xl sm:rounded-2xl ring-1 sm:ring-2 ring-primary/20 shadow-lg">
+                                    <BarChart3 className="w-5 h-5 sm:w-10 sm:h-10" />
                                 </div>
                                 {selectedMatch && (
                                     <div>
-                                        <DialogTitle className="text-2xl sm:text-5xl font-black tracking-tighter uppercase italic sm:pr-6 leading-none">Match Analytics HUD</DialogTitle>
-                                        <div className="flex items-center gap-3 mt-2 sm:mt-3">
-                                            <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] sm:text-[10px] uppercase">{selectedMatch.round || 'Battle'}</Badge>
+                                        <DialogTitle className="text-xl sm:text-5xl font-black tracking-tighter uppercase italic sm:pr-6 leading-none">Match Analytics HUD</DialogTitle>
+                                        <div className="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-3">
+                                            <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[7px] sm:text-[10px] uppercase">{selectedMatch.round || 'Battle'}</Badge>
                                             <div className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-white/20" />
-                                            <span className="text-[10px] sm:text-xs font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span>
+                                            <span className="text-[8px] sm:text-xs font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span>
                                         </div>
                                     </div>
                                 )}
                             </div>
-                            <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-3">
-                                <div className="flex flex-wrap gap-4 sm:gap-6 items-center bg-white/5 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-white/10 shadow-inner backdrop-blur-md">
+                            <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-2 sm:gap-3">
+                                <div className="flex flex-wrap gap-3 sm:gap-6 items-center bg-white/5 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-white/10 shadow-inner backdrop-blur-md">
                                     {analysis1?.entry && (
                                         <div className="flex flex-col items-start sm:items-end">
                                             <span className="text-[7px] sm:text-[8px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1 sm:mb-1.5 truncate max-w-[100px] sm:max-w-[120px]">{selectedMatch?.p1?.name} Group Intel</span>
                                             <div className="flex items-center gap-1.5 sm:gap-2">
-                                                <span className="text-sm sm:text-base font-black text-primary italic leading-none tracking-tighter">{analysis1.entry.points} PTS</span>
-                                                <span className="text-[8px] sm:text-[9px] font-bold text-white/30 tabular-nums leading-none">{analysis1.entry.win}W-{analysis1.entry.draw ?? 0}D-{analysis1.entry.loss}L</span>
+                                                <span className="text-xs sm:text-base font-black text-primary italic leading-none tracking-tighter" suppressHydrationWarning>{analysis1.entry.points} PTS</span>
+                                                <span className="text-[7px] sm:text-[9px] font-bold text-white/30 tabular-nums leading-none" suppressHydrationWarning>{analysis1.entry.win}W-{analysis1.entry.draw ?? 0}D-{analysis1.entry.loss}L</span>
                                             </div>
                                         </div>
                                      )}
@@ -567,127 +568,123 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="flex flex-col items-start">
                                             <span className="text-[7px] sm:text-[8px] font-black text-white/40 uppercase tracking-widest leading-none mb-1 sm:mb-1.5 truncate max-w-[100px] sm:max-w-[120px]">{selectedMatch?.p2?.name} Group Intel</span>
                                             <div className="flex items-center gap-1.5 sm:gap-2">
-                                                <span className="text-sm sm:text-base font-black text-white italic leading-none tracking-tighter">{analysis2.entry.points} PTS</span>
-                                                <span className="text-[8px] sm:text-[9px] font-bold text-white/30 tabular-nums leading-none">{analysis2.entry.win}W-{analysis2.entry.draw ?? 0}D-{analysis2.entry.loss}L</span>
+                                                <span className="text-xs sm:text-base font-black text-white italic leading-none tracking-tighter" suppressHydrationWarning>{analysis2.entry.points} PTS</span>
+                                                <span className="text-[7px] sm:text-[9px] font-bold text-white/30 tabular-nums leading-none" suppressHydrationWarning>{analysis2.entry.win}W-{analysis2.entry.draw ?? 0}D-{analysis2.entry.loss}L</span>
                                             </div>
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex gap-1.5 pr-1">
-                                    {[...Array(5)].map((_, i) => <div key={i} className={cn("w-3 sm:w-4 h-1 rounded-full", i < 3 ? "bg-primary" : "bg-white/10")} />)}
+                                <div className="flex gap-1 pr-1">
+                                    {[...Array(5)].map((_, i) => <div key={i} className={cn("w-2 sm:w-4 h-1 rounded-full", i < 3 ? "bg-primary" : "bg-white/10")} />)}
                                 </div>
                             </div>
                         </div>
                     </DialogHeader>
 
-                    <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center gap-8 lg:gap-12 relative z-10">
-                        <div className="flex flex-col items-center text-center gap-4 sm:gap-8 group w-full lg:w-auto">
+                    <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center gap-6 sm:gap-8 lg:gap-12 relative z-10">
+                        <div className="flex flex-col items-center text-center gap-3 sm:gap-6 group w-full lg:w-auto">
                             {analysis1 ? (
                                 <>
                                     <div className="relative">
                                         <div className={cn(
-                                            "absolute -inset-4 sm:-inset-6 rounded-full blur-2xl sm:blur-3xl opacity-20 transition-all duration-1000 group-hover:opacity-50 group-hover:scale-110",
+                                            "absolute -inset-3 sm:-inset-6 rounded-full blur-xl sm:blur-3xl opacity-20 transition-all duration-1000 group-hover:opacity-50 group-hover:scale-110",
                                             analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary"
                                         )} />
-                                        <Avatar className="h-28 w-28 sm:h-40 sm:w-40 border-2 sm:border-4 border-primary shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-all duration-700 ring-4 sm:ring-8 ring-primary/5">
+                                        <Avatar className="h-20 w-20 sm:h-32 sm:w-32 border-2 sm:border-4 border-primary shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-all duration-700 ring-4 sm:ring-8 ring-primary/5">
                                             <AvatarImage src={analysis1.team?.logoUrl} />
-                                            <AvatarFallback className="bg-black/40"><User className="w-12 h-12 sm:w-20 sm:h-20 text-white/10"/></AvatarFallback>
+                                            <AvatarFallback className="bg-black/40"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/10"/></AvatarFallback>
                                         </Avatar>
-                                        <div className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-primary text-black font-black text-lg sm:text-2xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0">
+                                        <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-primary text-black font-black text-sm sm:text-xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0" suppressHydrationWarning>
                                             {analysis1.entry?.rank || '?'}
                                         </div>
                                         {analysis1.isDefendingChampion && (
-                                            <div className="absolute -top-4 -left-4 sm:-top-6 sm:-left-6 transform -rotate-12 z-20">
-                                                <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl shadow-2xl">
-                                                    <Award className="w-5 h-5 sm:w-8 sm:h-8"/>
+                                            <div className="absolute -top-3 -left-3 sm:-top-5 sm:-left-5 transform -rotate-12 z-20">
+                                                <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1 sm:p-2 rounded-lg sm:rounded-xl shadow-2xl">
+                                                    <Award className="w-4 h-4 sm:w-6 sm:h-6"/>
                                                 </Badge>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="space-y-2 sm:space-y-3">
-                                        <h3 className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic sm:pr-6 text-white group-hover:text-primary transition-colors">{selectedMatch?.p1?.name}</h3>
-                                        <div className="flex flex-col items-center gap-2 sm:gap-3">
-                                            <span className="text-[10px] sm:text-xs font-black text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.3em]">{analysis1.team?.name || 'Independent Agent'}</span>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Badge className={cn("text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 sm:px-5 py-1.5 sm:py-2 border sm:border-2 cursor-help", getPlayStyleClass(analysis1.playStyleType))}>
-                                                            {analysis1.playStyleText}
-                                                        </Badge>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="max-w-[200px] text-center bg-black/90 border-primary/30">
-                                                        <p className="text-[10px] font-bold leading-relaxed">{analysis1.playStyleDescription}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                    <div className="space-y-1 sm:space-y-2">
+                                        <h3 className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic sm:pr-4 text-white group-hover:text-primary transition-colors">{selectedMatch?.p1?.name}</h3>
+                                        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                                            <span className="text-[7px] sm:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.3em]">{analysis1.team?.name || 'Independent Agent'}</span>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Badge className={cn("text-[7px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 sm:px-5 py-1 sm:py-2 border sm:border-2 cursor-help", getPlayStyleClass(analysis1.playStyleType))}>
+                                                        {analysis1.playStyleText}
+                                                    </Badge>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl">
+                                                    <p className="text-[10px] sm:text-xs font-bold leading-relaxed text-white">{analysis1.playStyleDescription}</p>
+                                                </PopoverContent>
+                                            </Popover>
                                         </div>
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex flex-col items-center gap-4 sm:gap-8 opacity-10">
-                                    <div className="h-28 w-28 sm:h-40 sm:w-40 rounded-full border-2 sm:border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 sm:w-20 sm:h-20 text-white/20" /></div>
-                                    <h3 className="text-xl sm:text-3xl font-black tracking-[0.2em] sm:tracking-[0.3em] text-white uppercase italic">PENDING SLOT</h3>
+                                <div className="flex flex-col items-center gap-4 sm:gap-6 opacity-10">
+                                    <div className="h-20 w-20 sm:h-32 sm:w-32 rounded-full border-2 sm:border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/20" /></div>
+                                    <h3 className="text-lg sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.3em] text-white uppercase italic">PENDING SLOT</h3>
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex flex-col items-center justify-center relative py-6 lg:py-0">
-                            <div className="absolute -inset-10 sm:-inset-16 bg-primary/5 rounded-full blur-2xl sm:blur-3xl animate-pulse" />
-                            <div className="bg-primary border-4 sm:border-[10px] border-background rounded-xl sm:rounded-[2rem] w-16 h-16 sm:w-28 sm:h-28 flex items-center justify-center shadow-[0_0_40px_rgba(204,253,1,0.2)] sm:shadow-[0_0_80px_rgba(204,253,1,0.4)] ring-2 sm:ring-4 ring-primary/20 relative z-10 rotate-45 group">
-                                <span className="text-black font-black text-2xl sm:text-5xl tracking-tighter italic -rotate-45 pr-0.5 sm:pr-1">VS</span>
+                        <div className="flex flex-col items-center justify-center relative py-4 lg:py-0">
+                            <div className="absolute -inset-8 sm:-inset-12 bg-primary/5 rounded-full blur-xl sm:blur-2xl animate-pulse" />
+                            <div className="bg-primary border-4 sm:border-[8px] border-background rounded-xl sm:rounded-2xl w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center shadow-lg sm:shadow-2xl ring-2 sm:ring-4 ring-primary/20 relative z-10 rotate-45 group">
+                                <span className="text-black font-black text-xl sm:text-3xl tracking-tighter italic -rotate-45 pr-0.5 sm:pr-1">VS</span>
                             </div>
-                            <div className="mt-6 sm:mt-12 space-y-1 sm:space-y-2 text-center relative z-10">
-                                <div className="flex items-center gap-1.5 sm:gap-2 justify-center"><Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/><span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-widest">{selectedMatch?.matchDate ? format(selectedMatch.matchDate.toDate(), 'd MMM yyyy', { locale: localeId }) : 'TBD'}</span></div>
-                                <div className="flex items-center gap-1.5 sm:gap-2 justify-center"><Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/><span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-widest">{selectedMatch?.matchDate ? format(selectedMatch.matchDate.toDate(), 'HH:mm') : 'TBD'}</span></div>
+                            <div className="mt-4 sm:mt-8 space-y-1 text-center relative z-10">
+                                <div className="flex items-center gap-1.5 justify-center" suppressHydrationWarning><Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/><span className="text-[7px] sm:text-[9px] font-black text-white uppercase tracking-widest">{selectedMatch?.matchDate ? format(selectedMatch.matchDate.toDate(), 'd MMM yyyy', { locale: localeId }) : 'TBD'}</span></div>
+                                <div className="flex items-center gap-1.5 justify-center" suppressHydrationWarning><Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/><span className="text-[7px] sm:text-[9px] font-black text-white uppercase tracking-widest">{selectedMatch?.matchDate ? format(selectedMatch.matchDate.toDate(), 'HH:mm') : 'TBD'}</span></div>
                             </div>
                         </div>
 
-                        <div className="flex flex-col items-center text-center gap-4 sm:gap-8 group w-full lg:w-auto">
+                        <div className="flex flex-col items-center text-center gap-3 sm:gap-6 group w-full lg:w-auto">
                             {analysis2 ? (
                                 <>
                                     <div className="relative">
                                         <div className={cn(
-                                            "absolute -inset-4 sm:-inset-6 rounded-full blur-2xl sm:blur-3xl opacity-20 transition-all duration-1000 group-hover:opacity-50 group-hover:scale-110",
+                                            "absolute -inset-3 sm:-inset-6 rounded-full blur-xl sm:blur-3xl opacity-20 transition-all duration-1000 group-hover:opacity-50 group-hover:scale-110",
                                             analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary"
                                         )} />
-                                        <Avatar className="h-28 w-28 sm:h-40 sm:w-40 border-2 sm:border-4 border-white shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-all duration-700 ring-4 sm:ring-8 ring-white/5">
+                                        <Avatar className="h-20 w-20 sm:h-32 sm:w-32 border-2 sm:border-4 border-white shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-all duration-700 ring-4 sm:ring-8 ring-white/5">
                                             <AvatarImage src={analysis2.team?.logoUrl} />
-                                            <AvatarFallback className="bg-black/40"><User className="w-12 h-12 sm:w-20 sm:h-20 text-white/10"/></AvatarFallback>
+                                            <AvatarFallback className="bg-black/40"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/10"/></AvatarFallback>
                                         </Avatar>
-                                        <div className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-white text-black font-black text-lg sm:text-2xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0">
+                                        <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-white text-black font-black text-sm sm:text-xl shadow-2xl border-2 sm:border-4 border-background z-20 rotate-12 transition-transform group-hover:rotate-0" suppressHydrationWarning>
                                             {analysis2.entry?.rank || '?'}
                                         </div>
                                         {analysis2.isDefendingChampion && (
-                                            <div className="absolute -top-4 -left-4 sm:-top-6 sm:-left-6 transform -rotate-12 z-20">
-                                                <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl shadow-2xl">
-                                                    <Award className="w-5 h-5 sm:w-8 sm:h-8"/>
+                                            <div className="absolute -top-3 -left-3 sm:-top-5 sm:-left-5 transform -rotate-12 z-20">
+                                                <Badge className="bg-amber-500 text-black border-2 sm:border-4 border-white p-1 sm:p-2 rounded-lg sm:rounded-xl shadow-2xl">
+                                                    <Award className="w-4 h-4 sm:w-6 sm:h-6"/>
                                                 </Badge>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="space-y-2 sm:space-y-3">
-                                        <h3 className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic sm:pr-6 text-white group-hover:text-primary transition-colors">{selectedMatch?.p2?.name}</h3>
-                                        <div className="flex flex-col items-center gap-2 sm:gap-3">
-                                            <span className="text-[10px] sm:text-xs font-black text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.3em]">{analysis2.team?.name || 'Independent Agent'}</span>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Badge className={cn("text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 sm:px-5 py-1.5 sm:py-2 border sm:border-2 cursor-help", getPlayStyleClass(analysis2.playStyleType))}>
-                                                            {analysis2.playStyleText}
-                                                        </Badge>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="max-w-[200px] text-center bg-black/90 border-primary/30">
-                                                        <p className="text-[10px] font-bold leading-relaxed">{analysis2.playStyleDescription}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                    <div className="space-y-1 sm:space-y-2">
+                                        <h3 className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic sm:pr-4 text-white group-hover:text-primary transition-colors">{selectedMatch?.p2?.name}</h3>
+                                        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                                            <span className="text-[7px] sm:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.3em]">{analysis2.team?.name || 'Independent Agent'}</span>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Badge className={cn("text-[7px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 sm:px-5 py-1 sm:py-2 border sm:border-2 cursor-help", getPlayStyleClass(analysis2.playStyleType))}>
+                                                        {analysis2.playStyleText}
+                                                    </Badge>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl">
+                                                    <p className="text-[10px] sm:text-xs font-bold leading-relaxed text-white">{analysis2.playStyleDescription}</p>
+                                                </PopoverContent>
+                                            </Popover>
                                         </div>
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex flex-col items-center gap-4 sm:gap-8 opacity-10">
-                                    <div className="h-28 w-28 sm:h-40 sm:w-40 rounded-full border-2 sm:border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 sm:w-20 sm:h-20 text-white/20" /></div>
-                                    <h3 className="text-xl sm:text-3xl font-black tracking-[0.2em] sm:tracking-[0.3em] text-white uppercase italic">PENDING SLOT</h3>
+                                <div className="flex flex-col items-center gap-4 sm:gap-6 opacity-10">
+                                    <div className="h-20 w-20 sm:h-32 sm:w-32 rounded-full border-2 sm:border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-10 h-10 sm:w-16 sm:h-16 text-white/20" /></div>
+                                    <h3 className="text-lg sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.3em] text-white uppercase italic">PENDING SLOT</h3>
                                 </div>
                             )}
                         </div>
@@ -703,13 +700,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
                             <div className="space-y-4 sm:space-y-6">
                                 {analysis1 && analysis1.stats.played > 0 ? (
-                                    <Card className="bg-white/[0.02] border sm:border-2 border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
+                                    <Card className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
                                         <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 bg-black/20 border-b border-white/10">
                                             <div className="flex justify-between items-center">
                                                 <CardTitle className="text-[10px] sm:text-xs font-black tracking-widest text-primary uppercase italic flex items-center gap-2">
                                                     <Zap className="w-3 h-3 sm:w-4 h-4 fill-primary animate-pulse"/> Tracking: {selectedMatch?.p1?.name}
                                                 </CardTitle>
-                                                <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px] sm:text-[10px]">Win Rate: {analysis1.winRate.toFixed(0)}%</Badge>
+                                                <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px] sm:text-[10px]" suppressHydrationWarning>Win Rate: {analysis1.winRate.toFixed(0)}%</Badge>
                                             </div>
                                             <p className={cn("text-[9px] sm:text-[11px] font-black italic mt-1 sm:mt-2 uppercase tracking-tighter", analysis1.quoteColor)}>Level: "{analysis1.quote}"</p>
                                         </CardHeader>
@@ -735,13 +732,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
                             <div className="space-y-4 sm:space-y-6">
                                 {analysis2 && analysis2.stats.played > 0 ? (
-                                    <Card className="bg-white/[0.02] border sm:border-2 border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
+                                    <Card className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
                                         <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 bg-black/20 border-b border-white/10">
                                             <div className="flex justify-between items-center">
                                                 <CardTitle className="text-[10px] sm:text-xs font-black tracking-widest text-primary uppercase italic flex items-center gap-2">
                                                     <Zap className="w-3 h-3 sm:w-4 h-4 fill-primary animate-pulse"/> Tracking: {selectedMatch?.p2?.name}
                                                 </CardTitle>
-                                                <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px] sm:text-[10px]">Win Rate: {analysis2.winRate.toFixed(0)}%</Badge>
+                                                <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px] sm:text-[10px]" suppressHydrationWarning>Win Rate: {analysis2.winRate.toFixed(0)}%</Badge>
                                             </div>
                                             <p className={cn("text-[9px] sm:text-[11px] font-black italic mt-1 sm:mt-2 uppercase tracking-tighter", analysis2.quoteColor)}>Level: "{analysis2.quote}"</p>
                                         </CardHeader>
