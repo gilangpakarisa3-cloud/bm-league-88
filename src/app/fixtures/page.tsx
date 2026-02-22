@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -75,17 +75,24 @@ const PLAYOFF_SUCCESSOR_MAP: Record<string, { winner: { bid: string, slot: 1 | 2
     'playoff-m17': { winner: { bid: 'playoff-m18', slot: 2 } },
 };
 
-const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason }: {
+const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason, hasPlayoffs }: {
     match: any;
     onEditMatch: (match: any) => void;
     onRevertMatch: (match: WithId<Match>) => void;
     isAdmin: boolean;
     activeSeason: WithId<Season> | null;
+    hasPlayoffs: boolean;
 }) {
     const { t } = useTranslation();
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm', { locale: localeId });
     const isBestOfThree = activeSeason?.type === 'Co-Op' || (match.round && match.round !== 'Group');
-    const isEditDisabled = activeSeason?.status !== 'In Progress' || (match.isCompleted && !isAdmin) || (match.player1Id === 'TBD' && match.player2Id === 'TBD');
+    
+    // Group matches should be locked if playoffs have already started
+    const isEditDisabled = 
+        activeSeason?.status !== 'In Progress' || 
+        (match.isCompleted && !isAdmin) || 
+        (match.player1Id === 'TBD' && match.player2Id === 'TBD') ||
+        (hasPlayoffs && (match.round === 'Group' || !match.round) && !isAdmin);
 
     const PlayerInfo = ({ name, team, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right', isWinner: boolean }) => (
         <div className={cn(
@@ -162,7 +169,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     ) : (
                         <div className="flex items-center gap-2 italic">
                             <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                            {t('unplayed_abbv', {defaultValue: 'TBD'})}
+                            {isEditDisabled && hasPlayoffs && !match.isCompleted ? 'LOCKED' : t('unplayed_abbv', {defaultValue: 'TBD'})}
                         </div>
                     )}
                 </Button>
@@ -182,7 +189,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     );
 });
 
-const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatch, onRevertMatch, isAdmin, allPlayers, allTeams, matches, isLoadingMatches, activeSeason }: { activeSeasonId: string | null; onEditMatch: (match: any) => void; onRevertMatch: (match: WithId<Match>) => void; isAdmin: boolean; allPlayers: WithId<Player>[]; allTeams: WithId<Team>[]; matches: WithId<Match>[] | null; isLoadingMatches: boolean; activeSeason: WithId<Season> | null; }) {
+const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatch, onRevertMatch, isAdmin, allPlayers, allTeams, matches, isLoadingMatches, activeSeason, hasPlayoffs }: { activeSeasonId: string | null; onEditMatch: (match: any) => void; onRevertMatch: (match: WithId<Match>) => void; isAdmin: boolean; allPlayers: WithId<Player>[]; allTeams: WithId<Team>[]; matches: WithId<Match>[] | null; isLoadingMatches: boolean; activeSeason: WithId<Season> | null; hasPlayoffs: boolean; }) {
     const firestore = useFirestore();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
@@ -317,7 +324,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                     <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-3xl">
                                         <CardContent className="p-0">
                                             {rms.map(m => (
-                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
+                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
                                         </CardContent>
                                     </Card>
@@ -347,7 +354,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                     <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-3xl">
                                         <CardContent className="p-0">
                                             {rms.map(m => (
-                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} />
+                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
                                         </CardContent>
                                     </Card>
@@ -394,6 +401,8 @@ export default function FixturesPage() {
   const playersById = useMemo(() => (allPlayers || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
   
+  const hasPlayoffs = useMemo(() => matches?.some(m => m.round && m.round !== 'Group') || false, [matches]);
+
   const { progressPercentage, totalMatchesForDisplay, completedMatchesForDisplay } = useMemo(() => {
     if (!matches || matches.length === 0) return { progressPercentage: 0, totalMatchesForDisplay: 0, completedMatchesForDisplay: 0 };
     const comp = matches.filter(m => m.isCompleted).length;
@@ -469,7 +478,7 @@ export default function FixturesPage() {
                         await processRevert(d1.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
                         await processRevert(d1.player2Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
                         await processRevert(d2.player1Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
-                        await processRevert(d2.player2Id, outcome.p2, orig.player2Score || 0, orig.player1Score || 0);
+                        await processRevert(d2.player2Id, outcome.p2, orig.player1Score || 0, orig.player1Score || 0);
                     }
                 } else {
                     await processRevert(orig.player1Id, outcome.p1, orig.player1Score || 0, orig.player2Score || 0);
@@ -750,7 +759,7 @@ export default function FixturesPage() {
                 <p className="font-black tracking-[0.4em] text-xs uppercase italic text-primary animate-pulse">{t('loading_fixtures')}</p>
             </div>
         ) : (
-            <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} />
+            <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
         )}
 
         {/* Dialogs Style Revise */}
@@ -812,5 +821,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-
-import { KeyRound } from 'lucide-react';

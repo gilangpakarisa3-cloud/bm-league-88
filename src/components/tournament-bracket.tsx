@@ -101,6 +101,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
     
+    // Standardizing OVR Calculation: Points earned / Possible points
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
@@ -214,8 +215,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </div>
   );
 
-  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
-  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
+  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t]);
+  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t]);
   
   const sCD = useMemo(() => {
     const dD = [-5, 5]; if (!analysis1 && !analysis2) return dD;
@@ -264,7 +265,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[360px] sm:min-w-[450px]">
+                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[450px] sm:min-w-[540px]">
                     <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px]" /></div>
                     <div className="flex flex-col items-center gap-6 relative z-10">
                         <div className="relative group/trophy"><div className="absolute -inset-10 bg-yellow-400/20 rounded-full blur-2xl opacity-40 animate-pulse" /><div className="relative p-8 bg-yellow-400/10 rounded-full border-4 border-yellow-400/50 shadow-[0_0_60px_rgba(250,204,21,0.2)]"><Trophy className="text-yellow-400 w-16 h-16 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]" /></div></div>
@@ -287,9 +288,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                             </div>
                             <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10">
-                                {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {selectedMatch?.p1?.name}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
+                                {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
                                 <div className="w-px h-6 bg-white/10" />
-                                {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {selectedMatch?.p2?.name}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
+                                {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
                             </div>
                         </div>
                     </DialogHeader>
@@ -394,10 +395,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     {an && an.stats.played > 0 ? (
                                         <Card className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all h-full">
                                             <CardHeader className="p-4 bg-black/20 border-b border-white/10">
-                                                <div className="flex flex-col items-center gap-2">
+                                                <div className="flex flex-col items-center gap-2 text-center">
                                                     <div className="flex items-center justify-center gap-3">
                                                         <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
-                                                        <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>Winrate: {an.winRate.toFixed(0)}%</Badge>
+                                                        <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
                                                     </div>
                                                     <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>
                                                 </div>
@@ -434,7 +435,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </div>
                             ))}
                         </div>
-                        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center"><p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p><p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p></div>
+                        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center mt-6"><p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p><p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p></div>
                     </div>
                 </div>
             </DialogContent>

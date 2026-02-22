@@ -148,7 +148,7 @@ export function PlayerPerformanceDialog({
     const totalMatchesCount = playerMatches.length;
     const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
     
-    // OVR Efficiency calculation
+    // OVR Efficiency calculation: Points earned / Possible points
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
@@ -324,7 +324,7 @@ export function PlayerPerformanceDialog({
                             <div className="space-y-2 text-center">
                                 <p className="text-[8px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
                                 <div className="grid gap-2">
-                                    <IntelCard icon={Percent} label="Winrate Fase" value={`${winRate.toFixed(0)}%`} variant="primary" />
+                                    <IntelCard icon={Percent} label="OVR Musim" value={`${winRate.toFixed(0)}%`} variant="primary" />
                                     <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${player.rank}`} />
                                 </div>
                             </div>

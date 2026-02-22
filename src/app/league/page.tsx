@@ -933,7 +933,7 @@ export default function LeaguePage() {
                                         <h4 className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.3em] text-muted-foreground flex items-center gap-2 uppercase">
                                             <Receipt className="w-3 h-3" /> Status Invoice
                                         </h4>
-                                        <ScrollArea className="h-[500px] sm:h-[800px] pr-2">
+                                        <ScrollArea className="h-[500px] sm:h-[1000px] pr-2">
                                             <div className="space-y-1.5 sm:space-y-2">
                                                 {(registeredPlayers || []).map(player => (
                                                     <div key={player.id} className="flex items-center justify-between bg-black/20 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-white/5 hover:border-white/10 transition-all group/item">
