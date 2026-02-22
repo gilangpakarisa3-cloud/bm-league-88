@@ -266,7 +266,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                {/* WIDENED GRAND FINAL SECTION (+50%) */}
                 <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[360px] sm:min-w-[450px]">
                     <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px]" /></div>
                     <div className="flex flex-col items-center gap-6 relative z-10">
@@ -297,7 +296,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </DialogHeader>
 
-                    {/* Symmetrical Per-Player Comparison Grid */}
                     <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10">
                         <div className="flex flex-col items-center text-center gap-4 group w-full">
                             {analysis1 ? (
