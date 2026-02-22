@@ -388,7 +388,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         )}
 
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing no-scrollbar">
-            <div className="min-w-[1700px] flex items-stretch gap-20 p-8">
+            <div className="min-w-[1500px] flex items-stretch gap-10 p-8">
                 {/* Upper Bracket Section */}
                 <div className="flex-1 flex flex-col gap-20 relative">
                     <div className="space-y-10 relative">
@@ -400,7 +400,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </div>
                         
-                        <div className="flex items-center gap-14 pl-8">
+                        <div className="flex items-center gap-4 pl-8">
                             {/* QF */}
                             <div className="flex flex-col gap-8 relative">
                                 <MatchCard bid="playoff-m1" label="UB Quarter 1" />
@@ -409,15 +409,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m4" label="UB Quarter 4" />
                             </div>
                             
-                            {/* Connector QF to SF - Aligned with SF Py-16 and Gap-40 */}
-                            <div className="flex flex-col gap-40 py-16 opacity-20">
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-8 h-0.5 bg-primary/40"/>
-                                    <ChevronRight className="w-5 h-5 text-primary"/>
+                            {/* Compact Connector QF to SF */}
+                            <div className="flex flex-col gap-40 py-16 opacity-30">
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-4 h-4 text-primary"/>
                                 </div>
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-8 h-0.5 bg-primary/40"/>
-                                    <ChevronRight className="w-5 h-5 text-primary"/>
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-4 h-4 text-primary"/>
                                 </div>
                             </div>
 
@@ -427,11 +425,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m10" label="UB Semifinal 2" />
                             </div>
 
-                            {/* Connector Semi to Final - Aligned with Final's center */}
-                            <div className="flex flex-col justify-center h-full opacity-20">
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-10 h-0.5 bg-primary/40"/>
-                                    <ChevronRight className="w-6 h-6 text-primary"/>
+                            {/* Compact Connector Semi to Final */}
+                            <div className="flex flex-col justify-center h-full opacity-30">
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-5 h-5 text-primary"/>
                                 </div>
                             </div>
 
@@ -458,7 +455,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-14 pl-8">
+                        <div className="flex items-center gap-4 pl-8">
                             {/* R1 */}
                             <div className="flex flex-col gap-8">
                                 <MatchCard bid="playoff-m5" label="LB Round 1" />
@@ -467,13 +464,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m8" label="LB Round 1" />
                             </div>
 
-                            {/* Connect R1 to R2 */}
-                            <div className="flex flex-col gap-40 py-16 opacity-20">
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                            {/* Compact Connect R1 to R2 */}
+                            <div className="flex flex-col gap-40 py-16 opacity-30">
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
                                 </div>
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
                                 </div>
                             </div>
 
@@ -483,13 +480,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m12" label="LB Round 2" />
                             </div>
 
-                            {/* Connect R2 to R3 */}
-                            <div className="flex flex-col gap-40 py-16 opacity-20">
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                            {/* Compact Connect R2 to R3 */}
+                            <div className="flex flex-col gap-40 py-16 opacity-30">
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
                                 </div>
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-8 h-0.5 bg-amber-500/40"/><ChevronRight className="w-5 h-5 text-amber-500"/>
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-4 h-4 text-amber-500"/>
                                 </div>
                             </div>
 
@@ -499,10 +496,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <MatchCard bid="playoff-m14" label="LB Round 3" />
                             </div>
 
-                            {/* Connect R3 to LB Semi */}
-                            <div className="flex flex-col justify-center h-full opacity-20">
-                                <div className="flex items-center justify-center h-24 gap-2">
-                                    <div className="w-10 h-0.5 bg-amber-500/40"/><ChevronRight className="w-6 h-6 text-amber-500"/>
+                            {/* Compact Connect R3 to LB Semi */}
+                            <div className="flex flex-col justify-center h-full opacity-30">
+                                <div className="flex items-center justify-center h-24">
+                                    <ChevronRight className="w-5 h-5 text-amber-500"/>
                                 </div>
                             </div>
 
@@ -519,8 +516,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
                 </div>
 
-                {/* Grand Final Section */}
-                <div className="flex flex-col items-center justify-center gap-12 pl-20 border-l-2 border-white/5 bg-black/30 px-24 rounded-r-[3rem] relative group/final">
+                {/* Grand Final Section - Optimized Spacing */}
+                <div className="flex flex-col items-center justify-center gap-12 pl-10 border-l-2 border-white/5 bg-black/30 px-12 rounded-r-[3rem] relative group/final">
                     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-r-[3rem]">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/[0.02] rounded-full blur-[120px] group-hover/final:bg-primary/[0.05] transition-all duration-1000" />
                     </div>
