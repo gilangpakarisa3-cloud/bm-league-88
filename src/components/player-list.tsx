@@ -173,20 +173,26 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
 
   return (
     <>
-      <div className="space-y-16">
+      <div className="space-y-20">
         {tiers.map((tier) => (
-          <div key={tier.title} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Tier Header */}
-            <div className="flex items-center gap-4">
-                <div className={cn("h-8 w-1.5 rounded-full", tier.bgShadow)} />
-                <h2 className={cn("text-2xl font-black uppercase italic tracking-wider", tier.color)}>
-                    {tier.title} <span className="text-white/10 text-[10px] tracking-[0.3em] not-italic ml-3 uppercase">Elite Division</span>
-                </h2>
-                <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+          <div key={tier.title} className="flex flex-col md:flex-row gap-6 md:gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            
+            {/* Sidebar Label Section */}
+            <div className="flex md:flex-col items-center justify-between md:justify-start gap-4 md:py-4 shrink-0 md:w-24">
+                <div className={cn("h-1.5 w-full md:h-full md:w-1.5 rounded-full", tier.bgShadow)} />
+                <div className="flex md:flex-col items-center gap-3 md:gap-6 md:rotate-180 md:[writing-mode:vertical-lr]">
+                    <h2 className={cn("text-2xl md:text-5xl font-black uppercase italic tracking-tighter whitespace-nowrap", tier.color)}>
+                        {tier.title}
+                    </h2>
+                    <span className="text-white/10 text-[8px] md:text-[10px] tracking-[0.3em] font-black uppercase whitespace-nowrap">
+                        Elite Division
+                    </span>
+                </div>
+                <div className="hidden md:block h-1.5 w-full bg-white/5 rounded-full mt-auto" />
             </div>
 
-            {/* Players Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {/* Players Grid Section */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 flex-1">
                 {tier.players.map((player) => {
                 const team = player.teamId ? teamsById[player.teamId] : null;
                 
