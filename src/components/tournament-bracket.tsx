@@ -264,13 +264,21 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[630px] sm:min-w-[756px]">
-                    <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px]" /></div>
-                    <div className="flex flex-col items-center gap-6 relative z-10">
-                        <div className="relative group/trophy"><div className="absolute -inset-10 bg-yellow-400/20 rounded-full blur-2xl opacity-40 animate-pulse" /><div className="relative p-8 bg-yellow-400/10 rounded-full border-4 border-yellow-400/50 shadow-[0_0_60px_rgba(250,204,21,0.2)]"><Trophy className="text-yellow-400 w-16 h-16 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]" /></div></div>
-                        <div className="text-center space-y-1"><h3 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase italic">Grand Final</h3><p className="text-[8px] font-black text-primary tracking-[0.4em] uppercase opacity-60">Apex Battle Station</p></div>
+                <div className="flex flex-col items-center justify-center gap-12 sm:gap-16 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[630px] sm:min-w-[756px]">
+                    <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/[0.04] rounded-full blur-[120px]" /></div>
+                    <div className="flex flex-col items-center gap-8 sm:gap-10 relative z-10">
+                        <div className="relative group/trophy">
+                            <div className="absolute -inset-20 bg-yellow-400/20 rounded-full blur-3xl opacity-40 animate-pulse" />
+                            <div className="relative p-12 sm:p-16 bg-yellow-400/10 rounded-full border-4 sm:border-8 border-yellow-400/50 shadow-[0_0_100px_rgba(250,204,21,0.3)]">
+                                <Trophy className="text-yellow-400 w-24 h-24 sm:w-32 sm:h-32 drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]" />
+                            </div>
+                        </div>
+                        <div className="text-center space-y-2 sm:space-y-4">
+                            <h3 className="text-5xl sm:text-7xl font-black tracking-widest text-white uppercase italic pr-4">Grand Final</h3>
+                            <p className="text-[10px] sm:text-sm font-black text-primary tracking-[0.6em] uppercase opacity-80">Apex Battle Station • Championship Protocol</p>
+                        </div>
                     </div>
-                    <div className="scale-[1.5] transform transition-all duration-700 py-12 relative z-10"><MatchCard bid="playoff-m18" label="Battle For Glory" /></div>
+                    <div className="scale-[2.2] sm:scale-[2.8] transform transition-all duration-700 py-24 sm:py-32 relative z-10"><MatchCard bid="playoff-m18" label="Battle For Glory" /></div>
                 </div>
             </div>
         </div>
