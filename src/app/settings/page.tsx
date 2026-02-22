@@ -48,9 +48,17 @@ export default function SettingsPage() {
             const playersSnap = await getDocs(collection(firestore, 'players'));
             const currentPlayerMap: Record<string, { id: string, stats: any }> = {};
             
+            // Helper normalization function
+            const normalize = (name: string) => name.toLowerCase().replace(/\s|\./g, '').trim();
+            
+            // Name Aliases Mapping (Old Key -> New Key)
+            const NAME_ALIASES: Record<string, string> = {
+                'agusm': 'aguii' // Maps "Agus M" to "Aguii"
+            };
+
             playersSnap.docs.forEach(d => {
                 const data = d.data();
-                const nameKey = data.name.toLowerCase().replace(/\s|\./g, '').trim();
+                const nameKey = normalize(data.name);
                 currentPlayerMap[nameKey] = {
                     id: d.id,
                     stats: { 
@@ -78,13 +86,18 @@ export default function SettingsPage() {
                     const coopSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/coopLeagueTable`));
                     coopSnap.docs.forEach(d => {
                         const data = d.data() as CoOpLeagueEntry;
-                        const p1NameKey = data.player1Name.toLowerCase().replace(/\s|\./g, '').trim();
-                        const p2NameKey = data.player2Name.toLowerCase().replace(/\s|\./g, '').trim();
                         
-                        seasonIdToNameKeyMap[d.id] = data.teamName.toLowerCase().replace(/\s|\./g, '').trim();
-                        coopPairToNamesMap[d.id] = { p1: p1NameKey, p2: p2NameKey };
+                        const rawP1 = normalize(data.player1Name);
+                        const rawP2 = normalize(data.player2Name);
+                        
+                        // Apply Aliases
+                        const p1NK = NAME_ALIASES[rawP1] || rawP1;
+                        const p2NK = NAME_ALIASES[rawP2] || rawP2;
+                        
+                        seasonIdToNameKeyMap[d.id] = normalize(data.teamName);
+                        coopPairToNamesMap[d.id] = { p1: p1NK, p2: p2NK };
 
-                        [p1NameKey, p2NameKey].forEach(nk => {
+                        [p1NK, p2NK].forEach(nk => {
                             if (currentPlayerMap[nk]) {
                                 const s = currentPlayerMap[nk].stats;
                                 s.overallPlayed += (data.played || 0);
@@ -97,7 +110,10 @@ export default function SettingsPage() {
                     const tableSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/leagueTable`));
                     tableSnap.docs.forEach(d => {
                         const data = d.data() as LeagueEntry;
-                        const nameKey = data.playerName.toLowerCase().replace(/\s|\./g, '').trim();
+                        const rawNK = normalize(data.playerName);
+                        
+                        // Apply Aliases
+                        const nameKey = NAME_ALIASES[rawNK] || rawNK;
                         
                         seasonIdToNameKeyMap[data.playerId] = nameKey;
 
@@ -132,9 +148,10 @@ export default function SettingsPage() {
                     const res1 = s1 > s2 ? 'W' : (s1 < s2 ? 'L' : 'D');
                     const res2 = s2 > s1 ? 'W' : (s2 < s1 ? 'L' : 'D');
 
-                    const applyToPlayer = (nameKey: string | undefined, res: string, gf: number, ga: number) => {
-                        if (nameKey && currentPlayerMap[nameKey]) {
-                            const s = currentPlayerMap[nameKey].stats;
+                    const applyToPlayer = (nk: string | undefined, res: string, gf: number, ga: number) => {
+                        // Alias was already applied in the map building above
+                        if (nk && currentPlayerMap[nk]) {
+                            const s = currentPlayerMap[nk].stats;
                             s.overallPlayed++;
                             if (res === 'W') s.overallWin++;
                             else if (res === 'L') s.overallLoss++;
@@ -170,7 +187,7 @@ export default function SettingsPage() {
 
             toast({ 
                 title: 'Rekap Selesai!', 
-                description: 'Sinkronisasi berhasil menggunakan data klasemen setiap musim untuk akurasi maksimal.' 
+                description: 'Sinkronisasi berhasil. Data Agus M telah digabung ke profil Aguii secara otomatis.' 
             });
         } catch (error) {
             console.error("Sync error:", error);
@@ -221,7 +238,7 @@ export default function SettingsPage() {
                                 <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                 <div className="space-y-1">
                                     <p className="text-xs font-black text-amber-200 uppercase">Akurasi Berbasis Nama</p>
-                                    <p className="text-[10px] font-bold text-amber-200/60 leading-relaxed">Sistem akan mencocokkan data pemain berdasarkan NAMA untuk mengatasi masalah histori ID pemain yang pernah berubah atau diganti.</p>
+                                    <p className="text-[10px] font-bold text-amber-200/60 leading-relaxed">Sistem akan mencocokkan data pemain berdasarkan NAMA. Data Agus M (S1) otomatis digabung ke profil Aguii.</p>
                                 </div>
                             </div>
                             <Button 
