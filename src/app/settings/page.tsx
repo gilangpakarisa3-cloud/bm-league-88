@@ -7,7 +7,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { KeyRound, RefreshCw, Loader2, AlertTriangle, Database } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
-import type { Season, Match, Player, CoOpLeagueEntry } from '@/lib/types';
+import type { Season, Match, Player, CoOpLeagueEntry, LeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSharedPassword } from '@/context/password-context';
@@ -40,61 +40,87 @@ export default function SettingsPage() {
         }
     };
 
-    /**
-     * SYNC LOGIC:
-     * Scans ALL seasons (Season 1, 2, 3, etc.) and ALL matches.
-     * Recalculates the permanent "Overall" stats for every player.
-     */
     const handleSyncCareerStats = async () => {
         if (!firestore) return;
         setIsSyncing(true);
 
         try {
-            // 1. Get all registered players to reset their stats
             const playersSnap = await getDocs(collection(firestore, 'players'));
-            const playerStats: Record<string, any> = {};
+            const currentPlayerMap: Record<string, { id: string, stats: any }> = {};
+            
             playersSnap.docs.forEach(d => {
-                playerStats[d.id] = { 
-                    overallPlayed: 0, 
-                    overallWin: 0, 
-                    overallDraw: 0, 
-                    overallLoss: 0, 
-                    overallGoalsFor: 0, 
-                    overallGoalsAgainst: 0 
+                const data = d.data();
+                const nameKey = data.name.toLowerCase().replace(/\s|\./g, '').trim();
+                currentPlayerMap[nameKey] = {
+                    id: d.id,
+                    stats: { 
+                        overallPlayed: 0, 
+                        overallWin: 0, 
+                        overallDraw: 0, 
+                        overallLoss: 0, 
+                        overallGoalsFor: 0, 
+                        overallGoalsAgainst: 0 
+                    }
                 };
             });
 
-            // 2. Get all seasons from the league
             const seasonsSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons`));
             
-            // 3. Iterate through every single season
             for (const seasonDoc of seasonsSnap.docs) {
                 const sId = seasonDoc.id;
                 const sData = seasonDoc.data() as Season;
                 const isCoop = sData.type === 'Co-Op';
 
-                // Map co-op teams back to individual players
-                const coopPlayersMap: Record<string, { p1: string, p2: string }> = {};
+                const seasonIdToNameKeyMap: Record<string, string> = {};
+                const coopPairToNamesMap: Record<string, { p1: string, p2: string }> = {};
+
                 if (isCoop) {
                     const coopSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/coopLeagueTable`));
                     coopSnap.docs.forEach(d => {
                         const data = d.data() as CoOpLeagueEntry;
-                        coopPlayersMap[d.id] = { p1: data.player1Id, p2: data.player2Id };
+                        const p1NameKey = data.player1Name.toLowerCase().replace(/\s|\./g, '').trim();
+                        const p2NameKey = data.player2Name.toLowerCase().replace(/\s|\./g, '').trim();
+                        
+                        seasonIdToNameKeyMap[d.id] = data.teamName.toLowerCase().replace(/\s|\./g, '').trim();
+                        coopPairToNamesMap[d.id] = { p1: p1NameKey, p2: p2NameKey };
+
+                        [p1NameKey, p2NameKey].forEach(nk => {
+                            if (currentPlayerMap[nk]) {
+                                const s = currentPlayerMap[nk].stats;
+                                s.overallPlayed += (data.played || 0);
+                                s.overallWin += (data.win || 0);
+                                s.overallLoss += (data.loss || 0);
+                            }
+                        });
+                    });
+                } else {
+                    const tableSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/leagueTable`));
+                    tableSnap.docs.forEach(d => {
+                        const data = d.data() as LeagueEntry;
+                        const nameKey = data.playerName.toLowerCase().replace(/\s|\./g, '').trim();
+                        
+                        seasonIdToNameKeyMap[data.playerId] = nameKey;
+
+                        if (currentPlayerMap[nameKey]) {
+                            const s = currentPlayerMap[nameKey].stats;
+                            s.overallPlayed += (data.played || 0);
+                            s.overallWin += (data.win || 0);
+                            s.overallDraw += (data.draw || 0);
+                            s.overallLoss += (data.loss || 0);
+                            s.overallGoalsFor += (data.goalsFor || 0);
+                            s.overallGoalsAgainst += (data.goalsAgainst || 0);
+                        }
                     });
                 }
 
-                // Get all matches for this specific season
                 const matchesSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/matches`));
                 
                 matchesSnap.docs.forEach(mDoc => {
                     const m = mDoc.data() as Match;
                     if (!m.isCompleted) return;
+                    if (m.round === 'Group' || !m.round) return;
 
-                    // Determine format (Bo3 for Co-Op and Playoffs)
-                    // We check for any round that isn't 'Group' as playoff format
                     const isMatchBo3 = isCoop || (m.round && m.round !== 'Group');
-                    
-                    // Robust result detection: prefer Wins for Bo3, but fallback to Scores if Wins are missing
                     const s1 = isMatchBo3 ? (m.player1Wins ?? m.player1Score ?? 0) : (m.player1Score ?? 0);
                     const s2 = isMatchBo3 ? (m.player2Wins ?? m.player2Score ?? 0) : (m.player2Score ?? 0);
                     
@@ -106,44 +132,49 @@ export default function SettingsPage() {
                     const res1 = s1 > s2 ? 'W' : (s1 < s2 ? 'L' : 'D');
                     const res2 = s2 > s1 ? 'W' : (s2 < s1 ? 'L' : 'D');
 
-                    const addStats = (pId: string, res: string, gf: number, ga: number) => {
-                        if (!pId || pId === 'TBD' || !playerStats[pId]) return;
-                        const p = playerStats[pId];
-                        p.overallPlayed++;
-                        if (res === 'W') p.overallWin++;
-                        else if (res === 'L') p.overallLoss++;
-                        else p.overallDraw++;
-                        
-                        p.overallGoalsFor += gf;
-                        p.overallGoalsAgainst += ga;
+                    const applyToPlayer = (nameKey: string | undefined, res: string, gf: number, ga: number) => {
+                        if (nameKey && currentPlayerMap[nameKey]) {
+                            const s = currentPlayerMap[nameKey].stats;
+                            s.overallPlayed++;
+                            if (res === 'W') s.overallWin++;
+                            else if (res === 'L') s.overallLoss++;
+                            else s.overallDraw++;
+                            s.overallGoalsFor += gf;
+                            s.overallGoalsAgainst += ga;
+                        }
                     };
 
                     if (isCoop) {
-                        const pair1 = coopPlayersMap[m.player1Id];
-                        const pair2 = coopPlayersMap[m.player2Id];
-                        if (pair1) { addStats(pair1.p1, res1, gf1, ga1); addStats(pair1.p2, res1, gf1, ga1); }
-                        if (pair2) { addStats(pair2.p1, res2, gf2, ga2); addStats(pair2.p2, res2, gf2, ga2); }
+                        const pair1 = coopPairToNamesMap[m.player1Id];
+                        const pair2 = coopPairToNamesMap[m.player2Id];
+                        if (pair1) { 
+                            applyToPlayer(pair1.p1, res1, gf1, ga1); 
+                            applyToPlayer(pair1.p2, res1, gf1, ga1); 
+                        }
+                        if (pair2) { 
+                            applyToPlayer(pair2.p1, res2, gf2, ga2); 
+                            applyToPlayer(pair2.p2, res2, gf2, ga2); 
+                        }
                     } else {
-                        addStats(m.player1Id, res1, gf1, ga1);
-                        addStats(m.player2Id, res2, gf2, ga2);
+                        applyToPlayer(seasonIdToNameKeyMap[m.player1Id], res1, gf1, ga1);
+                        applyToPlayer(seasonIdToNameKeyMap[m.player2Id], res2, gf2, ga2);
                     }
                 });
             }
 
-            // 4. Update the database in one go
             const batch = writeBatch(firestore);
-            Object.entries(playerStats).forEach(([id, stats]) => {
-                batch.update(doc(firestore, 'players', id), stats);
+            Object.values(currentPlayerMap).forEach(player => {
+                batch.update(doc(firestore, 'players', player.id), player.stats);
             });
             await batch.commit();
 
             toast({ 
                 title: 'Rekap Selesai!', 
-                description: 'Seluruh data Season 1, 2, dan 3 telah berhasil dikompilasi ulang dengan akurasi tinggi.' 
+                description: 'Sinkronisasi berhasil menggunakan data klasemen setiap musim untuk akurasi maksimal.' 
             });
         } catch (error) {
             console.error("Sync error:", error);
-            toast({ variant: 'destructive', title: 'Gagal Sinkronisasi', description: 'Terjadi kesalahan saat memproses data histori.' });
+            toast({ variant: 'destructive', title: 'Gagal Sinkronisasi', description: 'Terjadi kesalahan saat memproses histori.' });
         } finally {
             setIsSyncing(false);
         }
@@ -181,16 +212,16 @@ export default function SettingsPage() {
                         <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3 text-lg font-black uppercase tracking-widest text-amber-500">
-                                <RefreshCw className={cn("w-5 h-5", isSyncing && "animate-spin")} /> Rekap Histori Musim
+                                <RefreshCw className={cn("w-5 h-5", isSyncing && "animate-spin")} /> Rekap Histori Klasemen
                             </CardTitle>
-                            <CardDescription className="text-xs font-bold text-muted-foreground uppercase">Kompilasi data Season 1, 2, 3 ke Career Overview.</CardDescription>
+                            <CardDescription className="text-xs font-bold text-muted-foreground uppercase">Kompilasi data berdasarkan hasil akhir klasemen di setiap season.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-3 items-start">
                                 <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                 <div className="space-y-1">
-                                    <p className="text-xs font-black text-amber-200 uppercase">Perhatian Data Histori</p>
-                                    <p className="text-[10px] font-bold text-amber-200/60 leading-relaxed">Sistem akan memindai Season 1, 2, dan 3 untuk menghitung ulang total Menang/Kalah/Poin setiap pemain agar tampil akurat di halaman Profil.</p>
+                                    <p className="text-xs font-black text-amber-200 uppercase">Akurasi Berbasis Nama</p>
+                                    <p className="text-[10px] font-bold text-amber-200/60 leading-relaxed">Sistem akan mencocokkan data pemain berdasarkan NAMA untuk mengatasi masalah histori ID pemain yang pernah berubah atau diganti.</p>
                                 </div>
                             </div>
                             <Button 
@@ -207,7 +238,7 @@ export default function SettingsPage() {
                                 ) : (
                                     <>
                                         <Database className="h-5 w-5" />
-                                        Sinkronkan Seluruh Season
+                                        Sinkronkan Berbasis Klasemen
                                     </>
                                 )}
                             </Button>
@@ -221,7 +252,7 @@ export default function SettingsPage() {
                     <DialogContent className="border-amber-500/50 bg-card/95 backdrop-blur-xl">
                         <DialogHeader>
                             <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-amber-500">Otorisasi Rekap Data</DialogTitle>
-                            <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tindakan ini akan memindai database secara menyeluruh dari Season 1.</DialogDescription>
+                            <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tindakan ini akan memindai seluruh klasemen season 1, 2, dan 3.</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
