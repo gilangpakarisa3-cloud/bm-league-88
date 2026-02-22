@@ -187,7 +187,7 @@ function LeagueWinnerPageContents() {
     const stats = [
         { label: t('pts'), value: aggregatedStats.points },
         { label: t('win_long', {defaultValue: 'Menang'}), value: aggregatedStats.win },
-        { label: t('l_short', { defaultValue: 'Kalah'}), value: aggregatedStats.loss },
+        { label: t('loss_long', { defaultValue: 'Kalah'}), value: aggregatedStats.loss },
     ];
 
     const winnerTitle = isSeasonCompleted && season ? t('winner_of_season', { seasonName: season.name }) : t('current_league_leader');
