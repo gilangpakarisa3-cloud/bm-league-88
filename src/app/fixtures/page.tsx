@@ -635,7 +635,7 @@ export default function FixturesPage() {
                     await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                     await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                     await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
-                    await processRevert(d2.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
+                    await processRevert(d2.player2Id, outcome.p2, mToRev.player1Score || 0, mToRev.player1Score || 0);
                 }
             } else {
                 await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
@@ -684,7 +684,7 @@ export default function FixturesPage() {
 
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/10 pb-10">
-             <div className="space-y-4 flex-1 w-full">
+             <div className="flex flex-col justify-center space-y-1 flex-1 w-full py-4 border-l-4 border-primary/20 pl-4 sm:pl-8">
                 <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 rounded-xl text-primary shadow-[0_0_15px_rgba(204,253,1,0.2)]">
                         <Swords className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -694,13 +694,13 @@ export default function FixturesPage() {
                     </h1>
                 </div>
                 {activeSeason && (
-                  <div className="space-y-2">
-                    <p className="text-lg sm:text-2xl font-black text-primary tracking-tight uppercase italic">{activeSeason.name}</p>
+                  <div className="space-y-0.5">
+                    <p className="text-lg sm:text-3xl font-black text-white/90 tracking-tight uppercase italic">{activeSeason.name}</p>
                     <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-[0.2em] text-[10px] uppercase h-6 px-3">{activeSeason.status}</Badge>
                   </div>
                 )}
                 {matches && matches.length > 0 && (
-                    <div className="max-w-md pt-4 space-y-2">
+                    <div className="max-w-md pt-1 space-y-1">
                         <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-white/40">
                             <span className="flex items-center gap-2"><Activity className="w-3 h-3" /> Season Completion</span>
                             <span className="text-primary">{progressPercentage.toFixed(0)}%</span>
