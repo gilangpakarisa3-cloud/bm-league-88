@@ -49,7 +49,7 @@ import { LeagueStats } from '@/components/league-stats';
 import { LiveClock } from '@/components/live-clock';
 import { PlayerPerformanceDialog } from '@/components/player-performance-dialog';
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CoopDrawDialog } from '@/components/coop-draw-dialog';
@@ -785,28 +785,28 @@ export default function LeaguePage() {
         (activeSeason?.type === 'Hybrid' && activeLeagueTab === 'playoff') ? "max-w-[98vw] sm:max-w-[95vw]" : "container"
     )}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 sm:mb-10 gap-4 sm:gap-6">
-          <div className="space-y-1 sm:space-y-2 flex-1 w-full">
-            <h1 className="font-headline text-2xl sm:text-4xl font-extrabold tracking-tight text-primary uppercase italic pr-4">{t('league_standings_page_title')}</h1>
+        <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[160px] sm:min-h-[220px]">
+          <div className="flex flex-col justify-center space-y-3 sm:space-y-6 flex-1 w-full py-4 border-l-4 border-primary/20 pl-4 sm:pl-8">
+            <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tighter text-white uppercase italic pr-4">{t('league_standings_page_title')}</h1>
             {activeSeason && (
-              <div className="space-y-1">
-                <p className="text-sm sm:text-xl font-black text-white/90 tracking-tight uppercase italic">{activeSeason.name}</p>
-                <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1">
-                  <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] sm:text-[10px] uppercase">{activeSeason.status}</Badge>
-                  {formattedDateRange && <p className="text-[9px] sm:text-xs font-black opacity-70 text-white/60 uppercase tracking-widest">{formattedDateRange}</p>}
+              <div className="space-y-2 sm:space-y-4">
+                <p className="text-lg sm:text-3xl font-black text-white/90 tracking-tight uppercase italic">{activeSeason.name}</p>
+                <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-6 gap-y-1">
+                  <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[10px] sm:text-xs h-6 sm:h-8 px-3 sm:px-4 uppercase">{activeSeason.status}</Badge>
+                  {formattedDateRange && <p className="text-[10px] sm:text-sm font-black opacity-70 text-white/60 uppercase tracking-widest">{formattedDateRange}</p>}
                 </div>
               </div>
             )}
             {matches && matches.length > 0 && (
-              <div className="max-w-xs pt-1 sm:pt-2">
-                <Progress value={seasonProgress} className="h-1 sm:h-1.5 bg-white/5" />
-                <p className="text-[8px] sm:text-[10px] font-black mt-1 tracking-widest uppercase opacity-70 text-primary">
+              <div className="max-w-md pt-2 sm:pt-4 space-y-1.5 sm:space-y-2">
+                <Progress value={seasonProgress} className="h-1.5 sm:h-2 bg-white/5" />
+                <p className="text-[10px] sm:text-xs font-black tracking-widest uppercase opacity-70 text-primary italic">
                   {completedMatchesCount} / {matches.length} Laga tuntas ({seasonProgress.toFixed(0)}%)
                 </p>
               </div>
             )}
           </div>
-          <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0">
+          <div className="w-full md:w-auto flex items-center justify-center md:justify-end shrink-0">
             <LiveClock />
           </div>
         </div>
