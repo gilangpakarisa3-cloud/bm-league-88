@@ -87,10 +87,11 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const isBestOfThree = activeSeason?.type === 'Co-Op' || (match.round && match.round !== 'Group');
     
     // Group matches should be locked if playoffs have already started
+    // Matches with TBD should also be disabled for updates
     const isEditDisabled = 
         activeSeason?.status !== 'In Progress' || 
         (match.isCompleted && !isAdmin) || 
-        (match.player1Id === 'TBD' && match.player2Id === 'TBD') ||
+        (match.player1Id === 'TBD' || match.player2Id === 'TBD') ||
         (hasPlayoffs && (match.round === 'Group' || !match.round) && !isAdmin);
 
     const PlayerInfo = ({ name, team, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right', isWinner: boolean }) => (
@@ -168,7 +169,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     ) : (
                         <div className="flex items-center gap-2 italic">
                             <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                            {isEditDisabled && hasPlayoffs && !match.isCompleted ? 'LOCKED' : t('unplayed_abbv', {defaultValue: 'TBD'})}
+                            {isEditDisabled ? (
+                                (match.player1Id === 'TBD' || match.player2Id === 'TBD') ? 'TBD' : 
+                                (hasPlayoffs && (match.round === 'Group' || !match.round) ? 'LOCKED' : t('unplayed_abbv', {defaultValue: 'TBD'}))
+                            ) : t('unplayed_abbv', {defaultValue: 'TBD'})}
                         </div>
                     )}
                 </Button>
@@ -228,11 +232,20 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         }).filter(Boolean) as any[];
 
         const filtered = enrichedMatches.filter(m => {
-            if (!searchTerm.trim()) return true;
-            const terms = searchTerm.toLowerCase().split(' ').filter(Boolean);
-            const pn1 = m.player1?.name.toLowerCase() || '';
-            const pn2 = m.player2?.name.toLowerCase() || '';
-            return terms.every(t => pn1.includes(t) || pn2.includes(t));
+            // Search filter
+            if (searchTerm.trim()) {
+                const terms = searchTerm.toLowerCase().split(' ').filter(Boolean);
+                const pn1 = m.player1?.name.toLowerCase() || '';
+                const pn2 = m.player2?.name.toLowerCase() || '';
+                if (!terms.every(t => pn1.includes(t) || pn2.includes(t))) return false;
+            }
+
+            // User requirement: Hide unplayed group matches if playoffs have already started
+            if (hasPlayoffs && !m.isCompleted && (m.round === 'Group' || !m.round)) {
+                return false;
+            }
+
+            return true;
         });
         
         const sorted = [...filtered].sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
@@ -246,7 +259,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         
         Object.keys(grouped.completed).forEach(r => grouped.completed[r].sort((a,b) => b.matchDate.toMillis() - a.matchDate.toMillis()));
         return { groupedMatches: grouped, upcomingCount: Object.values(grouped.upcoming).flat().length, completedCount: Object.values(grouped.completed).flat().length };
-    }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId]);
+    }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId, hasPlayoffs]);
 
     const roundNames: Record<string, string> = { 
         'Group': 'Fase Grup', 
@@ -513,7 +526,7 @@ export default function FixturesPage() {
                 await processApply(d1.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
                 await processApply(d1.player2Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
                 await processApply(d2.player1Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
-                await processApply(d2.player2Id, newOutcome.p2, values.player1Score || 0, values.player1Score || 0);
+                await processApply(d2.player2Id, newOutcome.p2, values.player1Score || 0, values.player2Score || 0);
             }
         } else {
             await processApply(orig.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
