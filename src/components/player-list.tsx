@@ -182,7 +182,10 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
           <div key={tier.title} className="flex flex-col md:flex-row gap-6 md:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             
             {/* Modular HUD Sidebar Label Section */}
-            <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4 md:pt-8 shrink-0 md:w-32 relative group/sidebar">
+            <div className={cn(
+                "flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4 shrink-0 md:w-32 relative group/sidebar",
+                tier.title === 'Top Player' ? "md:pt-4" : "md:pt-8"
+            )}>
                 {/* HUD Signal Segments */}
                 <div className="flex md:flex-col gap-1.5 h-1.5 w-full md:h-fit md:w-1.5 order-1 md:order-none">
                     {[...Array(5)].map((_, i) => (
