@@ -387,15 +387,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const IntelCard = ({ icon: Icon, label, value, subValue, variant = "default" }: { icon: any, label: string, value: string | number, subValue?: string, variant?: "default" | "primary" | "gold" }) => (
     <div className={cn(
-        "flex flex-col gap-1.5 p-3 rounded-xl border transition-all duration-300",
+        "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
         variant === "primary" ? "bg-primary/5 border-primary/20" : 
         variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
     )}>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-center gap-1.5">
             <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
             <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span>
         </div>
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline justify-center gap-2">
             <span className={cn("font-black text-sm uppercase italic", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
             {subValue && <span className="text-[8px] font-bold text-white/40 uppercase">{subValue}</span>}
         </div>
@@ -736,14 +736,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
                                             {/* Unified Stats Grid */}
                                             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                                                <div className="space-y-2 sm:space-y-3">
+                                                <div className="space-y-2 sm:space-y-3 text-center">
                                                     <p className="text-[7px] sm:text-[8px] font-black text-primary/80 uppercase tracking-widest">Intel Musim</p>
                                                     <div className="grid grid-cols-1 gap-2">
                                                         <IntelCard icon={Percent} label="Winrate Fase" value={`${analysis1.winRate.toFixed(0)}%`} variant="primary" />
                                                         <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${analysis1.entry?.rank || '?'}`} />
                                                     </div>
                                                 </div>
-                                                <div className="space-y-2 sm:space-y-3">
+                                                <div className="space-y-2 sm:space-y-3 text-center">
                                                     <p className="text-[7px] sm:text-[8px] font-black text-primary/80 uppercase tracking-widest">Intel Karir</p>
                                                     <div className="grid grid-cols-1 gap-2">
                                                         <IntelCard icon={Flame} label="OVR Master" value={analysis1.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
@@ -790,14 +790,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
                                             {/* Unified Stats Grid */}
                                             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                                                <div className="space-y-2 sm:space-y-3">
+                                                <div className="space-y-2 sm:space-y-3 text-center">
                                                     <p className="text-[7px] sm:text-[8px] font-black text-primary/80 uppercase tracking-widest">Intel Musim</p>
                                                     <div className="grid grid-cols-1 gap-2">
                                                         <IntelCard icon={Percent} label="Winrate Fase" value={`${analysis2.winRate.toFixed(0)}%`} variant="primary" />
                                                         <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${analysis2.entry?.rank || '?'}`} />
                                                     </div>
                                                 </div>
-                                                <div className="space-y-2 sm:space-y-3">
+                                                <div className="space-y-2 sm:space-y-3 text-center">
                                                     <p className="text-[7px] sm:text-[8px] font-black text-primary/80 uppercase tracking-widest">Intel Karir</p>
                                                     <div className="grid grid-cols-1 gap-2">
                                                         <IntelCard icon={Flame} label="OVR Master" value={analysis2.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
