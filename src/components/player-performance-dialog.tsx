@@ -359,7 +359,7 @@ export function PlayerPerformanceDialog({
                                       </div>
                                       <div>
                                           <div className="flex items-center gap-2">
-                                              <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                              <p className="text-xs font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
                                               <Badge variant="outline" className={cn("text-[7px] h-4 px-1.5 font-black uppercase italic tracking-tighter", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/40")}>
                                                   {match.isPlayer1 ? 'Home' : 'Away'}
                                               </Badge>
@@ -388,7 +388,7 @@ export function PlayerPerformanceDialog({
                                       <div className="flex items-center gap-3">
                                           <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><CalendarClock className="w-4 h-4 text-white/20"/></div>
                                           <div>
-                                              <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                              <p className="text-xs font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
                                               <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Terjadwal</p>
                                           </div>
                                       </div>

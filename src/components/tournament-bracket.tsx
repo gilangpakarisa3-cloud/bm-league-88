@@ -171,8 +171,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
             <Card className="w-52 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', t1: p.p1.teamId ? teamsById[p.p1.teamId] : null, t2: p.p2.teamId ? teamsById[p.p2.teamId] : null, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
                 <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-22">
-                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
-                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
+                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic pr-2" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
+                    <div className="flex items-center px-3 h-11"><Avatar className="h-7 w-7 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar><span className="text-[11px] font-black truncate text-white/40 uppercase italic pr-2" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
                 </CardContent>
             </Card>
         </div>
@@ -195,7 +195,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
                                 <div className="flex items-center gap-2 overflow-hidden">
                                     <Avatar className={cn("h-7 w-7 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}><AvatarImage src={t?.logoUrl} /><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar>
-                                    <span className={cn("text-[11px] font-black truncate uppercase italic transition-colors", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
+                                    <span className={cn("text-[11px] font-black truncate uppercase italic transition-colors pr-2", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
                                 </div>
                                 <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", isW && "border-primary/30")}><span className={cn("text-sm font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
                             </div>
@@ -291,7 +291,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                             <div className="flex items-center gap-4 text-primary">
                                 <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
-                                <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD Analisis Pertandingan</DialogTitle>
+                                <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none pr-4">HUD Analisis Pertandingan</DialogTitle>
                                 <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                             </div>
                             <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10">
@@ -324,7 +324,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
                                     </div>
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
+                                        <h3 className="text-xl font-black uppercase italic text-white pr-2" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
                                         <div className="flex flex-col items-center gap-1.5">
                                             <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
                                             <Popover>
@@ -368,7 +368,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
                                     </div>
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
+                                        <h3 className="text-xl font-black uppercase italic text-white pr-2" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
                                         <div className="flex flex-col items-center gap-1.5">
                                             <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
                                             <Popover>
@@ -404,7 +404,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <CardHeader className="p-4 bg-black/20 border-b border-white/10">
                                                 <div className="flex flex-col items-center gap-2 text-center">
                                                     <div className="flex items-center justify-center gap-3">
-                                                        <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                        <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-2">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
                                                         <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
                                                     </div>
                                                     <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>

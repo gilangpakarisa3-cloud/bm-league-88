@@ -317,7 +317,7 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
                         </Avatar>
                         {isDefendingChampion && (
                             <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-amber-500 rounded-lg p-0.5 sm:p-1 border-2 border-background shadow-lg rotate-12">
-                                <Award className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
+                                <Award className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-white" />
                             </div>
                         )}
                       </div>
