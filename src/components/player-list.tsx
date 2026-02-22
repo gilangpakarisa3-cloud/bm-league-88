@@ -67,10 +67,11 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     const sortedByOvr = [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed);
     
     // 3. Map to final display objects with ovrRank
+    // Returning sortedByOvr directly mapped to display objects to maintain OVR sort order
     return sortedByOvr.map((p, index) => ({
         ...p,
         ovrRank: index + 1
-    })).sort((a, b) => a.name.localeCompare(b.name)); // Alphabetical for list view
+    }));
   }, [players]);
 
   const teamsById = useMemo(() => {
@@ -152,7 +153,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                     {/* Card Header with Profile Image */}
                     <div className="relative pt-10 pb-6 flex flex-col items-center overflow-hidden">
                         {/* Ghost name in background */}
-                        <span className="absolute top-6 left-1/2 -translate-x-1/2 text-6xl font-black text-white/[0.03] uppercase tracking-tighter whitespace-nowrap pointer-events-none pr-4">
+                        <span className="absolute top-4 left-4 text-6xl font-black text-white/[0.03] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors pr-4">
                             {player.name}
                         </span>
                         
