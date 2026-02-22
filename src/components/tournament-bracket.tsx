@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -225,7 +224,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   return (
     <div className="w-full relative">
-        <div className="absolute top-0 right-0 pointer-events-none opacity-[0.03] flex flex-col items-end pt-4 pr-10"><span className="text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
+        <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
         {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
             <div className="mb-8 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-2xl p-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-4"><div className="p-3 rounded-xl bg-amber-500/10 text-amber-500 shadow-lg"><Scan className="w-6 h-6" /></div><div className="flex-1">
