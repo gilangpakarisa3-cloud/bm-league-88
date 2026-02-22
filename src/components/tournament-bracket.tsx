@@ -750,7 +750,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             
                                             <div className="flex justify-center gap-1.5 sm:gap-2">
                                                 {analysis1.form.map((f, i) => (
-                                                    <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all", f === 'M' ? "bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]" : (f === 'K' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
+                                                    <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
                                                 ))}
                                             </div>
                                         </CardContent>
@@ -804,7 +804,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             
                                             <div className="flex justify-center gap-1.5 sm:gap-2">
                                                 {analysis2.form.map((f, i) => (
-                                                    <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all", f === 'M' ? "bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]" : (f === 'K' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
+                                                    <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
                                                 ))}
                                             </div>
                                         </CardContent>
