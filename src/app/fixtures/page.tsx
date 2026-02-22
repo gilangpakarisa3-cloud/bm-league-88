@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -713,31 +713,47 @@ export default function FixturesPage() {
        <div className="absolute bottom-0 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/10 pb-10">
-             <div className="flex flex-col justify-center space-y-1 flex-1 w-full py-4 border-l-4 border-primary/20 pl-4 sm:pl-8">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-primary/10 rounded-xl text-primary shadow-[0_0_15px_rgba(204,253,1,0.2)]">
-                        <Swords className="w-6 h-6 sm:w-8 sm:h-8" />
+        <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[160px] sm:min-h-[220px]">
+             <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-6 pl-6 sm:pl-10 relative group/header overflow-hidden">
+                {/* HUD Accent Line with Glow */}
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
+                
+                <div className="relative z-10 space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="h-px w-8 sm:w-12 bg-primary/40" />
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary/60 italic">Signal Transmission • Active</span>
                     </div>
-                    <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tighter text-white uppercase italic pr-4">
-                        {t('fixtures_page_title')}
+                    
+                    <h1 className="font-headline text-4xl sm:text-8xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
+                        {t('fixtures_page_title').split(' ')[0]} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">{t('fixtures_page_title').split(' ').slice(1).join(' ')}</span>
                     </h1>
                 </div>
+
                 {activeSeason && (
-                  <div className="space-y-0.5">
-                    <p className="text-lg sm:text-3xl font-black text-white/90 tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
-                    <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-[0.2em] text-[10px] uppercase h-6 px-3">{activeSeason.status}</Badge>
+                  <div className="space-y-2 relative z-10 pt-2">
+                    <div className="flex items-center gap-3">
+                        <p className="text-xl sm:text-4xl font-black text-white tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
+                        <Badge className="bg-primary text-black border-none font-black tracking-widest text-[9px] sm:text-[10px] h-6 px-3 uppercase italic shadow-[0_0_15px_rgba(204,253,1,0.3)]">{activeSeason.status}</Badge>
+                    </div>
                   </div>
                 )}
+
                 {matches && matches.length > 0 && (
-                    <div className="max-w-md pt-1 space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-white/40">
-                            <span className="flex items-center gap-2"><Activity className="w-3 h-3" /> Season Completion</span>
-                            <span className="text-primary">{progressPercentage.toFixed(0)}%</span>
+                    <div className="max-w-md pt-4 space-y-2 relative z-10">
+                        <div className="flex justify-between items-end mb-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
+                                <Activity className="w-3 h-3 animate-pulse" /> Season Progress
+                            </span>
+                            <span className="text-xs font-black text-primary italic" suppressHydrationWarning>{progressPercentage.toFixed(0)}%</span>
                         </div>
-                        <Progress value={progressPercentage} className="h-2 bg-white/5" />
-                        <p className="text-[10px] font-black mt-1 tracking-widest text-primary/60 uppercase italic">
-                            {completedMatchesForDisplay} / {totalMatchesForDisplay} Battles Finished
+                        <div className="relative h-2 sm:h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                            <div 
+                                className="absolute left-0 top-0 h-full bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)] transition-all duration-1000 ease-out" 
+                                style={{ width: `${progressPercentage}%` }}
+                            />
+                        </div>
+                        <p className="text-[9px] sm:text-[10px] font-black tracking-[0.2em] uppercase text-white/20 italic">
+                            {completedMatchesForDisplay} / {totalMatchesForDisplay} Engagements Finalized
                         </p>
                     </div>
                 )}
