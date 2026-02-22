@@ -91,9 +91,12 @@ export default function SettingsPage() {
                     if (!m.isCompleted) return;
 
                     // Determine format (Bo3 for Co-Op and Playoffs)
+                    // We check for any round that isn't 'Group' as playoff format
                     const isMatchBo3 = isCoop || (m.round && m.round !== 'Group');
-                    const s1 = isMatchBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
-                    const s2 = isMatchBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
+                    
+                    // Robust result detection: prefer Wins for Bo3, but fallback to Scores if Wins are missing
+                    const s1 = isMatchBo3 ? (m.player1Wins ?? m.player1Score ?? 0) : (m.player1Score ?? 0);
+                    const s2 = isMatchBo3 ? (m.player2Wins ?? m.player2Score ?? 0) : (m.player2Score ?? 0);
                     
                     const gf1 = Number(m.player1Score) || 0;
                     const ga1 = Number(m.player2Score) || 0;
@@ -136,7 +139,7 @@ export default function SettingsPage() {
 
             toast({ 
                 title: 'Rekap Selesai!', 
-                description: 'Seluruh data Season 1, 2, dan 3 telah berhasil dikompilasi ke dalam Career Overview.' 
+                description: 'Seluruh data Season 1, 2, dan 3 telah berhasil dikompilasi ulang dengan akurasi tinggi.' 
             });
         } catch (error) {
             console.error("Sync error:", error);

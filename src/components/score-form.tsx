@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -61,11 +60,8 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  const isBestOfThree = seasonType === 'Co-Op' || 
-    (seasonType === 'Hybrid' && (
-        match.round === 'Final' || 
-        (hybridGroupMeetings === 2 && (match.round === 'Quarter-Final' || match.round === 'Semi-Final'))
-    ));
+  // Best of 3 applies to Co-Op mode OR any Playoff round in Hybrid mode
+  const isBestOfThree = seasonType === 'Co-Op' || (match.round && match.round !== 'Group');
 
   const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
     const winners: (string | null)[] = [null, null, null];
@@ -142,8 +138,8 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     form.setValue('player2Wins', p2Total, { shouldValidate: true });
   }
 
-  const p1Value = isBestOfThree ? form.watch('player1Wins') : form.watch('player1Score');
-  const p2Value = isBestOfThree ? form.watch('player2Wins') : form.watch('player2Score');
+  const p1Value = isBestOfThree ? (form.watch('player1Wins') as number) : (form.watch('player1Score') as number);
+  const p2Value = isBestOfThree ? (form.watch('player2Wins') as number) : (form.watch('player2Score') as number);
 
   return (
     <Form {...form}>

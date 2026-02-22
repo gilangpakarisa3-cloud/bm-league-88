@@ -255,6 +255,8 @@ export default function FixturesPage() {
             const orig = mDoc.data() as Match;
             const sDoc = await transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`));
             const sData = sDoc.data() as Season;
+            
+            // Standardize Bo3 detection: Co-Op mode OR Playoff round in Hybrid mode
             const isMatchBo3 = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
 
             const getOutcome = (p1Score: number, p2Score: number) => {
@@ -278,8 +280,8 @@ export default function FixturesPage() {
 
             // 1. Revert old stats from Player collection if match was already completed
             if (orig.isCompleted) {
-                const oldS1 = isMatchBo3 ? (orig.player1Wins || 0) : (orig.player1Score || 0);
-                const oldS2 = isMatchBo3 ? (orig.player2Wins || 0) : (orig.player2Score || 0);
+                const oldS1 = isMatchBo3 ? (orig.player1Wins ?? orig.player1Score ?? 0) : (orig.player1Score ?? 0);
+                const oldS2 = isMatchBo3 ? (orig.player2Wins ?? orig.player2Score ?? 0) : (orig.player2Score ?? 0);
                 const outcome = getOutcome(oldS1, oldS2);
                 const isCoop = sData.type === 'Co-Op';
                 
@@ -313,8 +315,8 @@ export default function FixturesPage() {
             }
 
             // 2. Apply new stats to Player collection
-            const newS1 = isMatchBo3 ? (values.player1Wins || 0) : (values.player1Score || 0);
-            const newS2 = isMatchBo3 ? (values.player2Wins || 0) : (values.player2Score || 0);
+            const newS1 = isMatchBo3 ? (values.player1Wins ?? values.player1Score ?? 0) : (values.player1Score ?? 0);
+            const newS2 = isMatchBo3 ? (values.player2Wins ?? values.player2Score ?? 0) : (values.player2Score ?? 0);
             const newOutcome = getOutcome(newS1, newS2);
             const isCoopNow = sData.type === 'Co-Op';
 
@@ -348,7 +350,7 @@ export default function FixturesPage() {
 
             // 3. Bracket & Table Logic
             if (orig.round && orig.round !== 'Group' && orig.bracketId) {
-                const winnerId = isMatchBo3 ? (newS1 > newS2 ? orig.player1Id : orig.player2Id) : (newS1 > newS2 ? orig.player1Id : orig.player2Id);
+                const winnerId = newS1 > newS2 ? orig.player1Id : orig.player2Id;
                 const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
                 const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId];
                 if (succ) {
@@ -378,7 +380,8 @@ export default function FixturesPage() {
                     if (orig.isCompleted) {
                         e1.played--; e2.played--;
                         if (sData.type === 'Co-Op') {
-                            if (orig.player1Wins! > orig.player2Wins!) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
+                            const oW1 = orig.player1Wins ?? 0; const oW2 = orig.player2Wins ?? 0;
+                            if (oW1 > oW2) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
                         } else {
                             e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
                             if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
@@ -434,8 +437,8 @@ export default function FixturesPage() {
             };
 
             // 1. Revert Stats from Player collection
-            const oldS1 = isMatchBo3 ? (mToRev.player1Wins || 0) : (mToRev.player1Score || 0);
-            const oldS2 = isMatchBo3 ? (mToRev.player2Wins || 0) : (mToRev.player2Score || 0);
+            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0);
+            const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0);
             const outcome = getOutcome(oldS1, oldS2);
             const isCoop = sData.type === 'Co-Op';
 
@@ -481,7 +484,10 @@ export default function FixturesPage() {
                 if (p1S.docs.length && p2S.docs.length) {
                     const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;
                     e1.played--; e2.played--;
-                    if (isCoop) { if (mToRev.player1Wins! > mToRev.player2Wins!) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } } else {
+                    if (isCoop) { 
+                        const oW1 = mToRev.player1Wins ?? 0; const oW2 = mToRev.player2Wins ?? 0;
+                        if (oW1 > oW2) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } 
+                    } else {
                         e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
                         if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
                         e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
