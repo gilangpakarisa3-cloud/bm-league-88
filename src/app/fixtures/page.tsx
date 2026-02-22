@@ -504,8 +504,8 @@ export default function FixturesPage() {
 
         if (isCoopNow) {
             const [e1, e2] = await Promise.all([
-                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player1Id)),
-                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, orig.player2Id))
+                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, values.player1Id || orig.player1Id)),
+                transaction.get(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/coopLeagueTable`, values.player2Id || orig.player2Id))
             ]);
             if (e1.exists() && e2.exists()) {
                 const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
@@ -643,7 +643,7 @@ export default function FixturesPage() {
                 await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                 await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                 await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
-                await processRevert(d2.player2Id, outcome.p2, mToRev.player1Score || 0, mToRev.player1Score || 0);
+                await processRevert(d2.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
             }
         } else {
             await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
@@ -780,19 +780,19 @@ export default function FixturesPage() {
 
         {/* Dialogs Style Revise */}
         <Dialog open={!!editingMatch} onOpenChange={(open) => !open && setEditingMatch(null)}>
-            <DialogContent className="max-w-2xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)]">
-                <DialogHeader className="p-8 border-b border-white/5 bg-black/20">
-                    <div className="flex items-center gap-4 text-primary mb-2">
-                        <Zap className="w-8 h-8" />
-                        <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-4">{t('update_match_score_title')}</DialogTitle>
+            <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)]">
+                <DialogHeader className="p-6 border-b border-white/5 bg-black/20">
+                    <div className="flex items-center gap-3 text-primary mb-1">
+                        <Zap className="w-6 h-6" />
+                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('update_match_score_title')}</DialogTitle>
                     </div>
-                    {editingMatch && (<DialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
+                    {editingMatch && (<DialogDescription className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
                 </DialogHeader>
-                <div className="p-8">
+                <div className="p-6">
                     {editingMatch && activeSeason && (<ScoreForm match={editingMatch} onSave={(v) => handleUpdateScore(editingMatch.id, v)} seasonType={activeSeason.type} hybridGroupMeetings={activeSeason.hybridGroupMeetings} player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }} player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }} />)}
                 </div>
-                <DialogFooter className="p-6 bg-black/20 border-t border-white/5">
-                    <Button variant="ghost" onClick={() => setEditingMatch(null)} className="font-black uppercase tracking-widest italic text-white/40 hover:text-white">{t('cancel')}</Button>
+                <DialogFooter className="p-4 bg-black/20 border-t border-white/5">
+                    <Button variant="ghost" onClick={() => setEditingMatch(null)} className="font-black uppercase tracking-widest italic text-[10px] text-white/40 hover:text-white">{t('cancel')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
