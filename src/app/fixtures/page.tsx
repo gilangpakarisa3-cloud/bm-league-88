@@ -42,6 +42,7 @@ import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -512,7 +513,7 @@ export default function FixturesPage() {
                 await processApply(d1.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
                 await processApply(d1.player2Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
                 await processApply(d2.player1Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
-                await processApply(d2.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
+                await processApply(d2.player2Id, newOutcome.p2, values.player1Score || 0, values.player1Score || 0);
             }
         } else {
             await processApply(orig.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
@@ -643,7 +644,7 @@ export default function FixturesPage() {
                 await processRevert(d1.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                 await processRevert(d1.player2Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
                 await processRevert(d2.player1Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
-                await processRevert(d2.player2Id, outcome.p2, mToRev.player2Score || 0, mToRev.player1Score || 0);
+                await processRevert(d2.player2Id, outcome.p2, mToRev.player1Score || 0, mToRev.player1Score || 0);
             }
         } else {
             await processRevert(mToRev.player1Id, outcome.p1, mToRev.player1Score || 0, mToRev.player2Score || 0);
@@ -780,18 +781,18 @@ export default function FixturesPage() {
 
         {/* Dialogs Style Revise */}
         <Dialog open={!!editingMatch} onOpenChange={(open) => !open && setEditingMatch(null)}>
-            <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)]">
-                <DialogHeader className="p-6 border-b border-white/5 bg-black/20">
+            <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)] max-h-[90vh] flex flex-col">
+                <DialogHeader className="p-6 border-b border-white/5 bg-black/20 shrink-0">
                     <div className="flex items-center gap-3 text-primary mb-1">
                         <Zap className="w-6 h-6" />
                         <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('update_match_score_title')}</DialogTitle>
                     </div>
                     {editingMatch && (<DialogDescription className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
                 </DialogHeader>
-                <div className="p-6">
+                <ScrollArea className="flex-1 p-6 overflow-y-auto">
                     {editingMatch && activeSeason && (<ScoreForm match={editingMatch} onSave={(v) => handleUpdateScore(editingMatch.id, v)} seasonType={activeSeason.type} hybridGroupMeetings={activeSeason.hybridGroupMeetings} player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }} player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }} />)}
-                </div>
-                <DialogFooter className="p-4 bg-black/20 border-t border-white/5">
+                </ScrollArea>
+                <DialogFooter className="p-4 bg-black/20 border-t border-white/5 shrink-0">
                     <Button variant="ghost" onClick={() => setEditingMatch(null)} className="font-black uppercase tracking-widest italic text-[10px] text-white/40 hover:text-white">{t('cancel')}</Button>
                 </DialogFooter>
             </DialogContent>
