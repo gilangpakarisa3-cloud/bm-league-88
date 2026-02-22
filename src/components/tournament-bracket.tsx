@@ -517,23 +517,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-6 sm:gap-10 border-l-2 border-white/5 bg-black/30 px-6 sm:px-12 rounded-r-[1.5rem] sm:rounded-r-[3.5rem] relative group/final overflow-hidden min-w-[300px] sm:min-w-[400px]">
+                <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 border-l-2 border-white/5 bg-black/30 px-4 sm:px-10 rounded-r-[1.5rem] sm:rounded-r-[3.5rem] relative group/final overflow-hidden min-w-[280px] sm:min-w-[340px]">
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/[0.03] rounded-full blur-[80px] sm:blur-[120px] group-hover/final:bg-primary/[0.06] transition-all duration-1000" />
                     </div>
-                    <div className="flex flex-col items-center gap-4 sm:gap-8 relative z-10">
+                    <div className="flex flex-col items-center gap-4 sm:gap-6 relative z-10">
                         <div className="relative group/trophy">
                             <div className="absolute -inset-8 sm:-inset-12 bg-yellow-400/20 rounded-full blur-xl sm:blur-2xl opacity-40 group-hover/trophy:opacity-100 transition-all duration-1000 animate-pulse" />
                             <div className="relative p-6 sm:p-10 bg-yellow-400/10 rounded-full border-2 sm:border-4 border-yellow-400/50 shadow-[0_0_40px_rgba(250,204,21,0.2)] sm:shadow-[0_0_80px_rgba(250,204,21,0.3)] ring-4 sm:ring-8 ring-yellow-400/5">
-                                <Trophy className="text-yellow-400 w-16 h-16 sm:w-24 sm:h-24 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] sm:drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]" />
+                                <Trophy className="text-yellow-400 w-12 h-12 sm:w-20 sm:h-20 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] sm:drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]" />
                             </div>
                         </div>
-                        <div className="text-center space-y-1 sm:space-y-3">
-                            <h3 className="text-3xl sm:text-6xl font-black tracking-[0.15em] sm:tracking-[0.3em] text-white uppercase italic drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">Grand Final</h3>
-                            <p className="text-[8px] sm:text-xs font-black text-primary tracking-[0.3em] sm:tracking-[0.5em] uppercase opacity-60">Pertempuran Puncak Utama</p>
+                        <div className="text-center space-y-1 sm:space-y-2">
+                            <h3 className="text-2xl sm:text-5xl font-black tracking-[0.15em] sm:tracking-[0.3em] text-white uppercase italic drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">Grand Final</h3>
+                            <p className="text-[8px] sm:text-[10px] font-black text-primary tracking-[0.3em] sm:tracking-[0.5em] uppercase opacity-60">Pertempuran Puncak Utama</p>
                         </div>
                     </div>
-                    <div className="scale-[1.1] sm:scale-[1.5] transform transition-all duration-700 hover:scale-[1.2] sm:hover:scale-[1.6] py-12 sm:py-24 relative z-10">
+                    <div className="scale-[1.0] sm:scale-[1.25] transform transition-all duration-700 hover:scale-[1.1] sm:hover:scale-[1.35] py-8 sm:py-16 relative z-10">
                         <MatchCard bid="playoff-m18" label="Championship Final" />
                     </div>
                 </div>
@@ -542,7 +542,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-5xl border-primary border-2 sm:border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl max-h-[95vh] overflow-y-auto shadow-[0_0_150px_rgba(204,253,1,0.2)] rounded-[1.5rem] sm:rounded-[2rem]">
-                <div className="p-4 sm:p-12 space-y-8 sm:space-y-12 relative">
+                <div className="p-3 sm:p-10 space-y-4 sm:space-y-8 relative">
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
 
                     <DialogHeader className="border-b border-white/10 pb-4 sm:pb-8 relative z-10">

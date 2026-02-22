@@ -95,19 +95,19 @@ const SingleTable = ({
               <TableHead className="w-1.5 p-0"></TableHead>
               <TableHead className="w-8 sm:w-10 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em]">{t('rank')}</TableHead>
               <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] min-w-[100px] sm:min-w-[140px] uppercase">{t('player')}</TableHead>
-              <TableHead className="text-center font-black text-primary w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
-              <TableHead className="text-center font-black text-green-400 w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="hidden xs:table-cell text-center font-black text-yellow-400 w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
-              <TableHead className="text-center font-black text-red-400 w-10 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
+              <TableHead className="text-center font-black text-primary w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
+              <TableHead className="text-center font-black text-green-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
+              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
+              <TableHead className="text-center font-black text-red-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
               {!isCoop && (
                 <>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-24 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-24 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-primary/60 w-24 text-[10px] tracking-[0.2em] uppercase">{t('gd_short')}</TableHead>
+                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
+                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
+                    <TableHead className="hidden lg:table-cell text-center font-black text-primary/60 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gd_short')}</TableHead>
                 </>
               )}
-              <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-48 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
-              <TableHead className="text-center font-black text-primary w-12 sm:w-36 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
+              <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-40 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
+              <TableHead className="text-center font-black text-primary w-12 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-[0.2em] uppercase">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
@@ -145,7 +145,7 @@ const SingleTable = ({
                   )}
                 >
                   <TableCell className={cn("p-0 w-1 sm:w-1.5", 
-                    isFirst ? 'bg-yellow-400 shadow-[0_0:10px_rgba(250,204,21,0.5)]' :
+                    isFirst ? 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' :
                     isQualificationZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
                     isLowerBracketZone ? 'bg-amber-500' :
                     isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent'
@@ -208,7 +208,7 @@ const SingleTable = ({
                   </TableCell>
                   <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-white/80">{entry.played}</TableCell>
                   <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-green-400">{entry.win}</TableCell>
-                  {!isCoop && <TableCell className="hidden xs:table-cell text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400">{entry.draw}</TableCell>}
+                  {!isCoop && <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400">{entry.draw}</TableCell>}
                   <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400">{entry.loss}</TableCell>
                   {!isCoop && (
                     <>
@@ -227,7 +227,7 @@ const SingleTable = ({
                                   res === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : 
                                   res === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : 
                                   "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
-                              )}>{res}</div>
+                              )}>{res === 'W' ? 'M' : res === 'L' ? 'K' : 'S'}</div>
                           )) : <span className="text-[8px] font-bold text-white/10 uppercase tracking-tighter italic">No Matches</span>}
                       </div>
                   </TableCell>
