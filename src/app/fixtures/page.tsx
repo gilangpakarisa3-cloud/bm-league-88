@@ -530,7 +530,7 @@ export default function FixturesPage() {
             }
         } else {
             await processApply(orig.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
-            await processApply(orig.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
+            await processApply(orig.player2Id, newOutcome.p2, values.player1Score || 0, values.player1Score || 0);
         }
 
         // 3. Bracket & Table Logic
@@ -713,8 +713,8 @@ export default function FixturesPage() {
        <div className="absolute bottom-0 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-12">
-        <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[160px] sm:min-h-[220px]">
-             <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-6 pl-6 sm:pl-10 relative group/header overflow-hidden">
+        <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
+             <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
                 {/* HUD Accent Line with Glow */}
                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
                 
@@ -724,7 +724,7 @@ export default function FixturesPage() {
                         <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary/60 italic">Signal Transmission • Active</span>
                     </div>
                     
-                    <h1 className="font-headline text-4xl sm:text-8xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
+                    <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
                         {t('fixtures_page_title').split(' ')[0]} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">{t('fixtures_page_title').split(' ').slice(1).join(' ')}</span>
                     </h1>
                 </div>
@@ -732,7 +732,7 @@ export default function FixturesPage() {
                 {activeSeason && (
                   <div className="space-y-2 relative z-10 pt-2">
                     <div className="flex items-center gap-3">
-                        <p className="text-xl sm:text-4xl font-black text-white tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
+                        <p className="text-lg sm:text-3xl font-black text-white tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
                         <Badge className="bg-primary text-black border-none font-black tracking-widest text-[9px] sm:text-[10px] h-6 px-3 uppercase italic shadow-[0_0_15px_rgba(204,253,1,0.3)]">{activeSeason.status}</Badge>
                     </div>
                   </div>
