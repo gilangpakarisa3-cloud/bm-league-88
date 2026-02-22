@@ -101,7 +101,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
     
-    // Standardizing OVR Calculation: Points earned / Possible points
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
@@ -265,7 +264,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[900px] sm:min-w-[1080px]">
+                <div className="flex flex-col items-center justify-center gap-8 border-l-2 border-white/5 bg-black/30 px-6 sm:px-10 rounded-r-[3rem] relative group/final overflow-hidden min-w-[630px] sm:min-w-[756px]">
                     <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px]" /></div>
                     <div className="flex flex-col items-center gap-6 relative z-10">
                         <div className="relative group/trophy"><div className="absolute -inset-10 bg-yellow-400/20 rounded-full blur-2xl opacity-40 animate-pulse" /><div className="relative p-8 bg-yellow-400/10 rounded-full border-4 border-yellow-400/50 shadow-[0_0_60px_rgba(250,204,21,0.2)]"><Trophy className="text-yellow-400 w-16 h-16 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]" /></div></div>
