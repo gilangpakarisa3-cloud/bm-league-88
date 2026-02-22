@@ -151,7 +151,7 @@ export function PlayerPerformanceDialog({
     // OVR Efficiency calculation
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
-    const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
+    const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
 
     let trendScore = 0;
     const chartData = [{ match: 0, points: 0 }, ...[...completedMatches].reverse().map((match, index) => {
@@ -194,7 +194,7 @@ export function PlayerPerformanceDialog({
         ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
         : totalPlayersInSeason;
 
-    return { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo }
+    return { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo }
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t, masterPlayersRanked]);
 
   const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
@@ -202,7 +202,7 @@ export function PlayerPerformanceDialog({
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, ovrRating, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo } = performanceStats;
   
   const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
     <div className={cn(
@@ -292,7 +292,7 @@ export function PlayerPerformanceDialog({
                                 </Badge>
                             </PopoverTrigger>
                             <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl rounded-xl">
-                                <p className="text-[10px] sm:text-xs font-bold leading-relaxed text-white">{playStyleDescription}</p>
+                                <p className="text-[10px] font-bold leading-relaxed text-white">{playStyleDescription}</p>
                             </PopoverContent>
                         </Popover>
                       </div>
@@ -321,15 +321,15 @@ export function PlayerPerformanceDialog({
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                            <div className="space-y-2">
-                                <p className="text-[8px] font-black text-primary/60 uppercase tracking-widest text-center">Intel Musim</p>
+                            <div className="space-y-2 text-center">
+                                <p className="text-[8px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
                                 <div className="grid gap-2">
-                                    <IntelCard icon={Percent} label="Winrate Fase" value={`${ovrRating.toFixed(0)}%`} variant="primary" />
+                                    <IntelCard icon={Percent} label="Winrate Fase" value={`${winRate.toFixed(0)}%`} variant="primary" />
                                     <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${player.rank}`} />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <p className="text-[8px] font-black text-white/60 uppercase tracking-widest text-center">Intel Karir</p>
+                            <div className="space-y-2 text-center">
+                                <p className="text-[8px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
                                 <div className="grid gap-2">
                                     <IntelCard icon={Flame} label="OVR Master" value={masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
                                     <IntelCard icon={Star} label="Peringkat Global" value={`#${masterInfo?.masterRank || '?'}`} />

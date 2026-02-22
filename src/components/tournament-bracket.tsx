@@ -224,6 +224,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     if (aP.length === 0) return dD; const mV = Math.max(...aP.map(Math.abs), 5); return [-mV, mV];
   }, [analysis1, analysis2]);
 
+  const chartConfigLocal = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
+
   return (
     <div className="w-full relative">
         <div className="absolute top-0 right-0 pointer-events-none opacity-[0.03] flex flex-col items-end pt-4 pr-10"><span className="text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
@@ -306,7 +308,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         {/* Group Badge - Left Top */}
                                         {an.entry?.group && (
                                             <div className="absolute -top-1 -left-1 z-20">
-                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic">GRUP {an.entry.group}</Badge>
+                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg">GRUP {an.entry.group}</Badge>
                                             </div>
                                         )}
 
@@ -316,13 +318,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         
                                         {an.isDefendingChampion && (
                                             <div className="absolute -top-1 -right-1 z-20">
-                                                <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg">
+                                                <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg shadow-lg">
                                                     <Award className="w-3 h-3"/>
                                                 </Badge>
                                             </div>
                                         )}
 
-                                        <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12" suppressHydrationWarning>{an.entry?.rank || '?'}</div>
+                                        <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{an.entry?.rank || '?'}</div>
                                     </div>
                                     <div className="space-y-1"><h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{pN}</h3>
                                     <div className="flex flex-col items-center gap-1.5"><span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{an.team?.name || 'Independent'}</span>
@@ -334,20 +336,55 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
 
                     <div className="space-y-6 relative z-10">
-                        <div className="flex items-center gap-4 text-primary"><Binary className="w-6 h-6" /><h4 className="text-lg font-black tracking-widest uppercase italic">Indeks Momentum</h4><div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" /></div>
+                        <div className="flex items-center justify-center gap-4 text-primary">
+                            <div className="h-0.5 flex-1 bg-gradient-to-l from-primary/40 to-transparent rounded-full mr-4" />
+                            <div className="flex items-center gap-2">
+                                <Binary className="w-5 h-5" />
+                                <h4 className="text-lg font-black tracking-widest uppercase italic">Indeks Momentum</h4>
+                            </div>
+                            <div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" />
+                        </div>
+                        
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             {[analysis1, analysis2].map((an, i) => (
-                                <div key={i} className="space-y-4">
+                                <div key={i} className="flex-1 w-full space-y-4">
                                     {an && an.stats.played > 0 ? (
-                                        <Card className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all">
-                                            <CardHeader className="p-4 bg-black/20 border-b border-white/10 text-center"><div className="flex justify-between items-center"><CardTitle className="text-[10px] font-black tracking-widest text-primary uppercase italic">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</CardTitle><Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>Winrate: {an.winRate.toFixed(0)}%</Badge></div><p className={cn("text-[9px] font-black italic mt-1 uppercase", an.quoteColor)}>Level: "{an.quote}"</p></CardHeader>
+                                        <Card className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all h-full">
+                                            <CardHeader className="p-4 bg-black/20 border-b border-white/10">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="flex items-center justify-center gap-3">
+                                                        <h3 className="text-[10px] font-black tracking-widest text-primary uppercase italic">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                        <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>Winrate: {an.winRate.toFixed(0)}%</Badge>
+                                                    </div>
+                                                    <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>
+                                                </div>
+                                            </CardHeader>
                                             <CardContent className="p-5 space-y-6">
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2 text-center"><p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p><div className="grid gap-2"><IntelCard icon={Percent} label="Winrate Fase" value={`${an.winRate.toFixed(0)}%`} variant="primary" /><IntelCard icon={Trophy} label="Peringkat Grup" value={`#${an.entry?.rank || '?'}`} /></div></div>
-                                                    <div className="space-y-2 text-center"><p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p><div className="grid gap-2"><IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" /><IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} /></div></div>
+                                                    <div className="space-y-2 text-center">
+                                                        <p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
+                                                        <div className="grid gap-2">
+                                                            <IntelCard icon={Percent} label="Winrate Fase" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
+                                                            <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${an.entry?.rank || '?'}`} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2 text-center">
+                                                        <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
+                                                        <div className="grid gap-2">
+                                                            <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                                            <IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                {isMounted && <ChartContainer config={chartConfig} className="h-24 w-full opacity-80"><LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}><CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" /><XAxis dataKey="match" hide /><YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} /><Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 3 }} activeDot={{ r: 6 }} /></LineChart></ChartContainer>}
-                                                <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
+                                                {isMounted && <ChartContainer config={chartConfigLocal} className="h-24 w-full opacity-80">
+                                                    <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                        <XAxis dataKey="match" hide />
+                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} />
+                                                        <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 3 }} activeDot={{ r: 6 }} />
+                                                    </LineChart>
+                                                </ChartContainer>}
+                                                <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
                                             </CardContent>
                                         </Card>
                                     ) : <div className="h-full flex items-center justify-center opacity-10 p-10 border-2 border-dashed border-white/10 rounded-[1.5rem]"><Loader2 className="w-8 h-8 animate-spin" /></div>}
