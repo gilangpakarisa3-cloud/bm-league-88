@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useRef } from 'react';
@@ -361,8 +362,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     <div className="w-full relative">
         {/* Decorative Watermark Overlay */}
         <div className="absolute top-0 right-0 pointer-events-none opacity-[0.03] flex flex-col items-end pt-4 pr-10">
-            <span className="text-[12rem] font-black italic select-none leading-none tracking-tighter">BRACKET</span>
-            <span className="text-[4rem] font-black italic select-none -mt-10 tracking-[0.8em]">BATTLE STATION</span>
+            <span className="text-[6rem] font-black italic select-none leading-none tracking-tighter">BRACKET</span>
+            <span className="text-[2rem] font-black italic select-none -mt-4 tracking-[0.8em]">BATTLE STATION</span>
         </div>
 
         {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
