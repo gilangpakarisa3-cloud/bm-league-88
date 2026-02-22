@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2, Award, Flame, ChevronRight, Binary, BarChart3, Scan } from 'lucide-react';
+import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2, Award, Flame, ChevronRight, Binary, BarChart3, Scan, Percent, Star } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,12 +36,17 @@ interface TournamentBracketProps {
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId }: TournamentBracketProps) {
   const { t } = useTranslation();
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const mouseMoved = useRef(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
@@ -97,15 +102,29 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
   }, [leagueTable, season]);
 
+  // Master Career Stats Ranking
+  const masterPlayersRanked = useMemo(() => {
+    const players = Object.values(playersById);
+    const withOvr = players.map(p => {
+        const possiblePoints = (p.overallPlayed || 0) * 3;
+        const actualPoints = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
+        const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
+        return { ...p, ovrRating };
+    });
+    return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed)
+      .map((p, i) => ({ ...p, masterRank: i + 1 }));
+  }, [playersById]);
+
   const getPlayerAnalysis = (playerId: string) => {
     if (!playerId || playerId === 'TBD' || playerId.includes('TBD') || playerId.includes('Loser')) return null;
 
     const playerMatches = matches
       .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
-      .sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
+      .sort((a, b) => a.matchDate.toMillis() - a.matchDate.toMillis());
 
     const entry = rankedTable.find(e => e.playerId === playerId);
     const team = entry?.teamId ? teamsById[entry.teamId] : (playersById[playerId]?.teamId ? teamsById[playersById[playerId].teamId] : null);
+    const masterInfo = masterPlayersRanked.find(p => p.id === playerId);
 
     const stats = playerMatches.reduce((acc, m) => {
       acc.played++;
@@ -186,6 +205,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       quoteColor, 
       team, 
       entry, 
+      masterInfo,
       cumulativeScore, 
       isDefendingChampion: playerId === defendingChampionId 
     };
@@ -261,13 +281,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="flex items-center justify-between px-3 py-2 h-11">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <Avatar className="h-7 w-7 border border-white/10 opacity-40"><AvatarImage src={t1?.logoUrl} /><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar>
-                                <span className="text-[11px] font-black truncate text-white/30 uppercase italic pr-2">{p.p1.playerName || p.p1.name || 'TBD'}</span>
+                                <span className="text-[11px] font-black truncate text-white/30 uppercase italic pr-2" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span>
                             </div>
                         </div>
                         <div className="flex items-center justify-between px-3 py-2 h-11">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <Avatar className="h-7 w-7 border border-white/10 opacity-40"><AvatarImage src={t2?.logoUrl} /><AvatarFallback><User className="w-3 h-3"/></AvatarFallback></Avatar>
-                                <span className="text-[11px] font-black truncate text-white/30 uppercase italic pr-2">{p.p2.playerName || p.p2.name || 'TBD'}</span>
+                                <span className="text-[11px] font-black truncate text-white/30 uppercase italic pr-2" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -311,7 +331,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </Avatar>
                                 {m.isW1 && <div className="absolute -top-1.5 -right-1.5 bg-primary rounded-full p-0.5 border border-background animate-bounce"><Trophy className="w-2.5 h-2.5 text-black"/></div>}
                             </div>
-                            <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW1 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/60")}>{m.p1.name}</span>
+                            <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW1 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/60")} suppressHydrationWarning>{m.p1.name}</span>
                         </div>
                         <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", m.isW1 && "border-primary/30")}>
                             <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW1 ? "text-primary" : "text-white/30")} suppressHydrationWarning>{m.isCompleted ? m.s1 : '-'}</span>
@@ -328,7 +348,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </Avatar>
                                 {m.isW2 && <div className="absolute -top-1.5 -right-1.5 bg-primary rounded-full p-0.5 border border-background animate-bounce"><Trophy className="w-2.5 h-2.5 text-black"/></div>}
                             </div>
-                            <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW2 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/60")}>{m.p2.name}</span>
+                            <span className={cn("text-[11px] font-black truncate uppercase italic pr-2 transition-colors", m.isW2 ? "text-primary drop-shadow-[0_0_5px_rgba(204,253,1,0.3)]" : "text-white/60")} suppressHydrationWarning>{m.p2.name}</span>
                         </div>
                         <div className={cn("px-2 py-0.5 rounded bg-black/40 border border-white/5 min-w-[24px] text-center", m.isW2 && "border-primary/30")}>
                             <span className={cn("text-sm font-black italic tabular-nums leading-none", m.isW2 ? "text-primary" : "text-white/30")} suppressHydrationWarning>{m.isCompleted ? m.s2 : '-'}</span>
@@ -340,8 +360,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     );
   };
 
-  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, defendingChampionId]);
-  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, defendingChampionId]);
+  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
+  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId]);
 
   const sharedChartDomain = useMemo(() => {
     const defaultDomain = [-5, 5];
@@ -364,6 +384,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         default: return "bg-primary/20 text-primary border-primary/30";
     }
   }
+
+  const IntelCard = ({ icon: Icon, label, value, subValue, variant = "default" }: { icon: any, label: string, value: string | number, subValue?: string, variant?: "default" | "primary" | "gold" }) => (
+    <div className={cn(
+        "flex flex-col gap-1.5 p-3 rounded-xl border transition-all duration-300",
+        variant === "primary" ? "bg-primary/5 border-primary/20" : 
+        variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
+    )}>
+        <div className="flex items-center gap-1.5">
+            <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/40")} />
+            <span className="text-[8px] font-black uppercase tracking-widest text-white/40">{label}</span>
+        </div>
+        <div className="flex items-baseline gap-2">
+            <span className={cn("font-black text-sm uppercase italic", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+            {subValue && <span className="text-[8px] font-bold text-white/20 uppercase">{subValue}</span>}
+        </div>
+    </div>
+  );
 
   return (
     <div className="w-full relative">
@@ -397,10 +434,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-12 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20">
             <div className="min-w-max flex items-stretch gap-4 sm:gap-10 p-4 sm:p-8">
-                {/* Main Tournament Column (Upper + Lower) */}
                 <div className="flex-1 flex flex-col gap-4 sm:gap-8 relative">
-                    
-                    {/* Upper Bracket Vibrant Container */}
                     <div className="flex-1 relative group/ub bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-10 backdrop-blur-sm transition-all duration-700 hover:bg-primary/[0.04] hover:border-primary/20">
                         <div className="space-y-6 sm:space-y-10 relative h-full flex flex-col justify-center">
                             <div className="flex items-center gap-3 sm:gap-5">
@@ -410,40 +444,30 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <span className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Survivor Protocol: Double Life Enabled</span>
                                 </div>
                             </div>
-                            
                             <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-8">
-                                {/* QF */}
                                 <div className="flex flex-col gap-10 sm:gap-14 relative">
                                     <MatchCard bid="playoff-m1" label="UB Quarter 1" />
                                     <MatchCard bid="playoff-m2" label="UB Quarter 2" />
                                     <MatchCard bid="playoff-m3" label="UB Quarter 3" />
                                     <MatchCard bid="playoff-m4" label="UB Quarter 4" />
                                 </div>
-                                
                                 <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-primary"/></div>
                                 </div>
-
-                                {/* Semi */}
                                 <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
                                     <MatchCard bid="playoff-m9" label="UB Semifinal 1" />
                                     <MatchCard bid="playoff-m10" label="UB Semifinal 2" />
                                 </div>
-
                                 <div className="flex flex-col justify-center h-full opacity-30">
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary"/></div>
                                 </div>
-
-                                {/* UB Final */}
                                 <div className="flex flex-col justify-center h-full">
                                     <MatchCard bid="playoff-m15" label="Upper Final" />
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Lower Bracket Vibrant Container */}
                     <div className="flex-1 relative group/lb bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-10 backdrop-blur-sm transition-all duration-700 hover:bg-yellow-500/[0.04] hover:border-yellow-500/20">
                         <div className="space-y-6 sm:space-y-10 relative h-full flex flex-col justify-center">
                             <div className="flex items-center gap-3 sm:gap-5">
@@ -453,48 +477,35 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <span className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Extermination Protocol: Sudden Death</span>
                                 </div>
                             </div>
-
                             <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-8">
-                                {/* R1 */}
                                 <div className="flex flex-col gap-10 sm:gap-14">
                                     <MatchCard bid="playoff-m5" label="LB Round 1" />
                                     <MatchCard bid="playoff-m6" label="LB Round 1" />
                                     <MatchCard bid="playoff-m7" label="LB Round 1" />
                                     <MatchCard bid="playoff-m8" label="LB Round 1" />
                                 </div>
-
                                 <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
                                 </div>
-
-                                {/* R2 */}
                                 <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
                                     <MatchCard bid="playoff-m11" label="LB Round 2" />
                                     <MatchCard bid="playoff-m12" label="LB Round 2" />
                                 </div>
-
                                 <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20 opacity-30">
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500"/></div>
                                 </div>
-
-                                {/* R3 */}
                                 <div className="flex flex-col gap-40 sm:gap-52 py-10 sm:py-20">
                                     <MatchCard bid="playoff-m13" label="LB Round 3" />
                                     <MatchCard bid="playoff-m14" label="LB Round 3" />
                                 </div>
-
                                 <div className="flex flex-col justify-center h-full opacity-30">
                                     <div className="flex items-center justify-center h-20 sm:h-24"><ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500"/></div>
                                 </div>
-
-                                {/* LB Semi */}
                                 <div className="flex flex-col justify-center h-full">
                                     <MatchCard bid="playoff-m16" label="LB Semifinal" />
                                 </div>
-
-                                {/* LB Final */}
                                 <div className="flex flex-col justify-center h-full">
                                     <MatchCard bid="playoff-m17" label="Lower Final" />
                                 </div>
@@ -502,13 +513,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-
-                {/* Grand Final Section - Optimized Width */}
                 <div className="flex flex-col items-center justify-center gap-6 sm:gap-10 border-l-2 border-white/5 bg-black/30 px-6 sm:px-12 rounded-r-[1.5rem] sm:rounded-r-[3.5rem] relative group/final overflow-hidden min-w-[300px] sm:min-w-[400px]">
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/[0.03] rounded-full blur-[80px] sm:blur-[120px] group-hover/final:bg-primary/[0.06] transition-all duration-1000" />
                     </div>
-
                     <div className="flex flex-col items-center gap-4 sm:gap-8 relative z-10">
                         <div className="relative group/trophy">
                             <div className="absolute -inset-8 sm:-inset-12 bg-yellow-400/20 rounded-full blur-xl sm:blur-2xl opacity-40 group-hover/trophy:opacity-100 transition-all duration-1000 animate-pulse" />
@@ -521,7 +529,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <p className="text-[8px] sm:text-xs font-black text-primary tracking-[0.3em] sm:tracking-[0.5em] uppercase opacity-60">The Ultimate Apex Battle</p>
                         </div>
                     </div>
-
                     <div className="scale-[1.1] sm:scale-[1.5] transform transition-all duration-700 hover:scale-[1.2] sm:hover:scale-[1.6] py-12 sm:py-24 relative z-10">
                         <MatchCard bid="playoff-m18" label="Championship Final" />
                     </div>
@@ -529,10 +536,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div>
         </div>
 
-        {/* HUD Match Analysis Dialog */}
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-5xl border-primary border-2 sm:border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl max-h-[95vh] overflow-y-auto shadow-[0_0_150px_rgba(204,253,1,0.2)] rounded-[1.5rem] sm:rounded-[2rem]">
-                <div className="p-4 sm:p-12 space-y-6 sm:space-y-10 relative">
+                <div className="p-4 sm:p-12 space-y-8 sm:space-y-12 relative">
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
 
                     <DialogHeader className="border-b border-white/10 pb-4 sm:pb-8 relative z-10">
@@ -698,6 +704,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+                            {/* Player 1 Analytics */}
                             <div className="space-y-4 sm:space-y-6">
                                 {analysis1 && analysis1.stats.played > 0 ? (
                                     <Card className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
@@ -711,15 +718,36 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <p className={cn("text-[9px] sm:text-[11px] font-black italic mt-1 sm:mt-2 uppercase tracking-tighter", analysis1.quoteColor)}>Level: "{analysis1.quote}"</p>
                                         </CardHeader>
                                         <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
-                                            <ChartContainer config={chartConfig} className="h-32 sm:h-44 w-full">
-                                                <LineChart data={analysis1.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                    <XAxis dataKey="match" hide />
-                                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sharedChartDomain} />
-                                                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
-                                                    <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} activeDot={{ r: 8, stroke: 'white', strokeWidth: 3 }} />
-                                                </LineChart>
-                                            </ChartContainer>
+                                            {/* Unified Stats Grid */}
+                                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                                <div className="space-y-2 sm:space-y-3">
+                                                    <p className="text-[7px] sm:text-[8px] font-black text-white/20 uppercase tracking-widest">Season Intel</p>
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        <IntelCard icon={Percent} label="Phase Winrate" value={`${analysis1.winRate.toFixed(0)}%`} variant="primary" />
+                                                        <IntelCard icon={Trophy} label="Group Rank" value={`#${analysis1.entry?.rank || '?'}`} />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2 sm:space-y-3">
+                                                    <p className="text-[7px] sm:text-[8px] font-black text-white/20 uppercase tracking-widest">Career Intel</p>
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        <IntelCard icon={Flame} label="Master OVR" value={analysis1.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                                        <IntelCard icon={Star} label="Global Rank" value={`#${analysis1.masterInfo?.masterRank || '?'}`} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {isMounted && (
+                                                <ChartContainer config={chartConfig} className="h-24 sm:h-36 w-full opacity-80">
+                                                    <LineChart data={analysis1.chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                        <XAxis dataKey="match" hide />
+                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sharedChartDomain} />
+                                                        <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
+                                                        <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} activeDot={{ r: 8, stroke: 'white', strokeWidth: 3 }} />
+                                                    </LineChart>
+                                                </ChartContainer>
+                                            )}
+                                            
                                             <div className="flex justify-center gap-1.5 sm:gap-2">
                                                 {analysis1.form.map((f, i) => (
                                                     <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f}</div>
@@ -730,6 +758,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 ) : <div className="h-full flex items-center justify-center opacity-10 grayscale p-10 sm:p-20 border-2 border-dashed border-white/10 rounded-2xl sm:rounded-[2rem]"><Loader2 className="w-8 h-8 sm:w-12 sm:h-12 animate-spin" /></div>}
                             </div>
 
+                            {/* Player 2 Analytics */}
                             <div className="space-y-4 sm:space-y-6">
                                 {analysis2 && analysis2.stats.played > 0 ? (
                                     <Card className="bg-white/[0.02] border border-white/5 rounded-2xl sm:rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-500 shadow-2xl">
@@ -743,15 +772,36 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <p className={cn("text-[9px] sm:text-[11px] font-black italic mt-1 sm:mt-2 uppercase tracking-tighter", analysis2.quoteColor)}>Level: "{analysis2.quote}"</p>
                                         </CardHeader>
                                         <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
-                                            <ChartContainer config={chartConfig} className="h-32 sm:h-44 w-full">
-                                                <LineChart data={analysis2.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                    <XAxis dataKey="match" hide />
-                                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sharedChartDomain} />
-                                                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
-                                                    <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} activeDot={{ r: 8, stroke: 'white', strokeWidth: 3 }} />
-                                                </LineChart>
-                                            </ChartContainer>
+                                            {/* Unified Stats Grid */}
+                                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                                <div className="space-y-2 sm:space-y-3">
+                                                    <p className="text-[7px] sm:text-[8px] font-black text-white/20 uppercase tracking-widest">Season Intel</p>
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        <IntelCard icon={Percent} label="Phase Winrate" value={`${analysis2.winRate.toFixed(0)}%`} variant="primary" />
+                                                        <IntelCard icon={Trophy} label="Group Rank" value={`#${analysis2.entry?.rank || '?'}`} />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2 sm:space-y-3">
+                                                    <p className="text-[7px] sm:text-[8px] font-black text-white/20 uppercase tracking-widest">Career Intel</p>
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        <IntelCard icon={Flame} label="Master OVR" value={analysis2.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                                        <IntelCard icon={Star} label="Global Rank" value={`#${analysis2.masterInfo?.masterRank || '?'}`} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {isMounted && (
+                                                <ChartContainer config={chartConfig} className="h-24 sm:h-36 w-full opacity-80">
+                                                    <LineChart data={analysis2.chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                        <XAxis dataKey="match" hide />
+                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sharedChartDomain} />
+                                                        <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
+                                                        <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} activeDot={{ r: 8, stroke: 'white', strokeWidth: 3 }} />
+                                                    </LineChart>
+                                                </ChartContainer>
+                                            )}
+                                            
                                             <div className="flex justify-center gap-1.5 sm:gap-2">
                                                 {analysis2.form.map((f, i) => (
                                                     <div key={i} className={cn("w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-black border sm:border-2 transition-all", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.1)]" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"))}>{f}</div>
