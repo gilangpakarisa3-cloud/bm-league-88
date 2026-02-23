@@ -258,8 +258,24 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
             return acc;
         }, { upcoming: {} as Record<string, any[]>, completed: {} as Record<string, any[]> });
         
-        Object.keys(grouped.completed).forEach(r => grouped.completed[r].sort((a,b) => b.matchDate.toMillis() - a.matchDate.toMillis()));
-        return { groupedMatches: grouped, upcomingCount: Object.values(grouped.upcoming).flat().length, completedCount: Object.values(grouped.completed).flat().length };
+        // Dynamic round sorting: Rounds with more recent matches come first in Completed tab
+        const sortedCompletedRounds = Object.entries(grouped.completed).sort(([, aMatches], [, bMatches]) => {
+            const maxA = Math.max(...aMatches.map(m => m.matchDate.toMillis()));
+            const maxB = Math.max(...bMatches.map(m => m.matchDate.toMillis()));
+            return maxB - maxA;
+        });
+
+        // Convert sorted entries back to object for return, or we can just return the sorted entries
+        const completedSorted: Record<string, any[]> = {};
+        sortedCompletedRounds.forEach(([rd, ms]) => {
+            completedSorted[rd] = ms.sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+        });
+
+        return { 
+            groupedMatches: { ...grouped, completed: completedSorted }, 
+            upcomingCount: Object.values(grouped.upcoming).flat().length, 
+            completedCount: Object.values(grouped.completed).flat().length 
+        };
     }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId, hasPlayoffs]);
 
     const roundNames: Record<string, string> = { 
@@ -361,11 +377,6 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                     <TabsContent value="completed" className="mt-0 focus-visible:ring-0 outline-none">
                         <div className="space-y-12">
                             {Object.entries(groupedMatches.completed)
-                                .sort(([, aMatches], [, bMatches]) => {
-                                    const maxA = Math.max(...aMatches.map(m => m.matchDate.toMillis()));
-                                    const maxB = Math.max(...bMatches.map(m => m.matchDate.toMillis()));
-                                    return maxB - maxA;
-                                })
                                 .map(([rd, rms]) => (
                                 <section key={`completed-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex items-center gap-6 mb-6">
@@ -498,7 +509,7 @@ export default function FixturesPage() {
             matchDate: matchTimestamp,
             isCompleted: true,
             player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
+            player2Wins: isBestOfThree ? (values.player2Wins ?? 0) : null,
         };
 
         // Step 2: Transaction - Reads FIRST, then WRITES
@@ -634,6 +645,22 @@ export default function FixturesPage() {
         const sData = sDoc.data() as Season;
         const isMatchBo3 = sData.type === 'Co-Op' || (mToRev.round && mToRev.round !== 'Group');
 
+        // Identify successor matches to reset TBD
+        let winMatchRef = null;
+        let losMatchRef = null;
+        if (mToRev.round && mToRev.round !== 'Group' && mToRev.bracketId) {
+            const succ = PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId];
+            if (succ) {
+                const mCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+                const [winSnap, losSnap] = await Promise.all([
+                    getDocs(query(mCol, where('bracketId', '==', succ.winner.bid))),
+                    succ.loser ? getDocs(query(mCol, where('bracketId', '==', succ.loser.bid))) : Promise.resolve(null)
+                ]);
+                if (winSnap && !winSnap.empty) winMatchRef = winSnap.docs[0].ref;
+                if (losSnap && !losSnap.empty) losMatchRef = losSnap.docs[0].ref;
+            }
+        }
+
         let p1EntryRef = null;
         let p2EntryRef = null;
         if (mToRev.round === 'Group' || !mToRev.round) {
@@ -709,6 +736,19 @@ export default function FixturesPage() {
                 }
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
+
+            // Reset successor matches if they exist
+            if (winMatchRef) {
+                const succ = PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!];
+                transaction.update(winMatchRef, { [`player${succ.winner.slot}Id`]: 'TBD' });
+            }
+            if (losMatchRef) {
+                const succ = PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!];
+                if (succ.loser) {
+                    transaction.update(losMatchRef, { [`player${succ.loser.slot}Id`]: 'TBD' });
+                }
+            }
+
             transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
         })
         .then(() => {
