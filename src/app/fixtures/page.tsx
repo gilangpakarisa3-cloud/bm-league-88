@@ -708,7 +708,7 @@ export default function FixturesPage() {
   const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
   
   return (
-    <div className="max-w-7xl mx-auto px-2 sm:px-4 py-8 relative">
+    <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-8 relative">
        {/* Background decorative glows */}
        <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
        <div className="absolute bottom-0 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />

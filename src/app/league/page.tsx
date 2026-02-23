@@ -808,8 +808,8 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
 
   return (
     <div className="w-full">
-      {/* Header section: Fixed narrow width - UPDATED TO max-w-7xl */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header section: Fixed narrow width - UPDATED TO max-w-[92rem] */}
+      <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col md:flex-row justify-between items-stretch gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
           <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
@@ -911,10 +911,10 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
         </div>
       </div>
 
-      {/* Standings and data section: Adaptive width - UPDATED BASE TO max-w-7xl */}
+      {/* Standings and data section: Adaptive width - UPDATED BASE TO max-w-[92rem] */}
       <div className={cn(
           "mx-auto px-2 sm:px-4 pb-8 transition-all duration-1000 ease-in-out mt-6",
-          (activeSeason?.type === 'Hybrid' && activeLeagueTab === 'playoff') ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-7xl"
+          (activeSeason?.type === 'Hybrid' && activeLeagueTab === 'playoff') ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-[92rem]"
       )}>
         <div className="space-y-8 sm:space-y-12">
             <div className="w-full">
