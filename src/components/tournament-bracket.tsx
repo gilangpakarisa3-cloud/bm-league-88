@@ -294,7 +294,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none pr-4">HUD Analisis Pertandingan</DialogTitle>
                                     <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                                 </div>
-                                <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+                                <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto">
                                     {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
                                     <div className="w-px h-6 bg-white/10" />
                                     {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
