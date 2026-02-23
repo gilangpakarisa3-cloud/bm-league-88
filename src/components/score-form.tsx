@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Match, Season, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle } from "lucide-react";
+import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -36,7 +36,7 @@ const coopFormSchema = z.object({
     return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
            (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
 }, {
-    message: "Salah satu tim harus memiliki 2 kemenangan (Best of 3).",
+    message: "Salah satu tim harus memiliki tepat 2 kemenangan (Format Best of 3).",
     path: ["player1Wins"],
 });
 
@@ -185,14 +185,16 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     }
   }
 
-  const hasErrors = Object.keys(form.formState.errors).length > 0;
+  const errors = form.formState.errors;
+  const hasErrors = Object.keys(errors).length > 0;
+  const isBo3Incomplete = isBestOfThree && p1Wins < 2 && p2Wins < 2;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
         
         <div className="relative">
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center pointer-events-none">
                 <div className="relative group/vs">
                     <div className="absolute -inset-2 bg-primary/20 rounded-full blur-lg opacity-50 animate-pulse" />
                     <div className="bg-[#0A192F] border-2 border-primary rounded-full w-14 h-14 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.4)] ring-4 ring-[#0A192F]">
@@ -203,15 +205,26 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
               {/* Player 1 HUD */}
-              <div className="bg-gradient-to-br from-primary/[0.05] to-transparent border-2 border-primary/10 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all hover:border-primary/30 group">
+              <div className={cn(
+                  "bg-gradient-to-br from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all group",
+                  isBestOfThree ? (p1Wins >= 2 ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10") : (p1Score > p2Score ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10")
+              )}>
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/20 rounded-tl-2xl pointer-events-none" />
                 
                 <div className="relative z-10">
-                    <div className="absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Avatar className="h-16 w-16 border-2 border-primary shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-transform duration-500">
+                    <div className={cn("absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity", (isBestOfThree ? p1Wins >= 2 : p1Score > p2Score) && "opacity-100")} />
+                    <Avatar className={cn(
+                        "h-16 w-16 border-2 shadow-2xl relative z-10 transition-transform duration-500",
+                        (isBestOfThree ? p1Wins >= 2 : p1Score > p2Score) ? "border-primary scale-110" : "border-white/10 group-hover:scale-105"
+                    )}>
                         <AvatarImage src={player1Info.team?.logoUrl} className="object-cover" />
                         <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
                     </Avatar>
+                    {(isBestOfThree ? p1Wins >= 2 : p1Score > p2Score) && (
+                        <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg">
+                            <CheckCircle2 className="w-3 h-3 text-black" />
+                        </div>
+                    )}
                 </div>
 
                 <div className="space-y-1 relative z-10">
@@ -224,8 +237,11 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                 <div className="w-full relative z-10 space-y-4">
                     {isBestOfThree && (
                         <div className="flex flex-col items-center gap-1">
-                            <div className="bg-black/40 border-2 border-primary/20 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner">
-                                <span className="text-3xl font-black text-primary italic drop-shadow-[0_0:10px_rgba(204,253,1,0.6)] tabular-nums">{p1Wins}</span>
+                            <div className={cn(
+                                "bg-black/40 border-2 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner transition-colors",
+                                p1Wins >= 2 ? "border-primary" : "border-primary/20"
+                            )}>
+                                <span className={cn("text-3xl font-black italic tabular-nums", p1Wins >= 2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.6)]" : "text-white/40")}>{p1Wins}</span>
                             </div>
                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
                         </div>
@@ -241,15 +257,26 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
               </div>
 
               {/* Player 2 HUD */}
-              <div className="bg-gradient-to-bl from-primary/[0.05] to-transparent border-2 border-primary/10 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all hover:border-primary/30 group">
+              <div className={cn(
+                  "bg-gradient-to-bl from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all group",
+                  isBestOfThree ? (p2Wins >= 2 ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10") : (p2Score > p1Score ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10")
+              )}>
                 <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/20 rounded-tr-2xl pointer-events-none" />
 
                 <div className="relative z-10">
-                    <div className="absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Avatar className="h-16 w-16 border-2 border-primary shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-transform duration-500">
+                    <div className={cn("absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity", (isBestOfThree ? p2Wins >= 2 : p2Score > p1Score) && "opacity-100")} />
+                    <Avatar className={cn(
+                        "h-16 w-16 border-2 shadow-2xl relative z-10 transition-transform duration-500",
+                        (isBestOfThree ? p2Wins >= 2 : p2Score > p1Score) ? "border-primary scale-110" : "border-white/10 group-hover:scale-105"
+                    )}>
                         <AvatarImage src={player2Info.team?.logoUrl} className="object-cover" />
                         <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
                     </Avatar>
+                    {(isBestOfThree ? p2Wins >= 2 : p2Score > p1Score) && (
+                        <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg">
+                            <CheckCircle2 className="w-3 h-3 text-black" />
+                        </div>
+                    )}
                 </div>
 
                 <div className="space-y-1 relative z-10">
@@ -262,8 +289,11 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                 <div className="w-full relative z-10 space-y-4">
                     {isBestOfThree && (
                         <div className="flex flex-col items-center gap-1">
-                            <div className="bg-black/40 border-2 border-primary/20 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner">
-                                <span className="text-3xl font-black text-primary italic drop-shadow-[0_0:10px_rgba(204,253,1,0.6)] tabular-nums">{p2Wins}</span>
+                            <div className={cn(
+                                "bg-black/40 border-2 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner transition-colors",
+                                p2Wins >= 2 ? "border-primary" : "border-primary/20"
+                            )}>
+                                <span className={cn("text-3xl font-black italic tabular-nums", p2Wins >= 2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.6)]" : "text-white/40")}>{p2Wins}</span>
                             </div>
                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
                         </div>
@@ -300,13 +330,18 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
         )}
 
         {/* Validation Error Message Display */}
-        {hasErrors && (
+        {(hasErrors || isBo3Incomplete) && (
             <div className="bg-red-500/10 border-2 border-red-500/30 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
                 <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                     <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">Protocol Violation Detected</p>
                     <ul className="list-disc pl-4">
-                        {Object.values(form.formState.errors).map((error: any, i) => (
+                        {isBo3Incomplete && (
+                            <li className="text-[11px] font-bold text-white/80 leading-tight">
+                                Format Best of 3 memerlukan salah satu tim mencapai 2 kemenangan.
+                            </li>
+                        )}
+                        {Object.values(errors).map((error: any, i) => (
                             <li key={i} className="text-[11px] font-bold text-white/80 leading-tight">
                                 {error.message || "Data input tidak valid."}
                             </li>
@@ -388,11 +423,11 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
         </div>
 
         <div className="pt-2 relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500 pointer-events-none" />
             <Button 
               type="submit" 
               disabled={isSaving} 
-              className="w-full h-14 text-lg font-black tracking-tighter gap-3 shadow-2xl shadow-primary/20 rounded-xl uppercase italic group/btn overflow-hidden"
+              className="w-full h-14 text-lg font-black tracking-tighter gap-3 shadow-2xl shadow-primary/20 rounded-xl uppercase italic group/btn overflow-hidden relative z-10"
             >
               {isSaving ? (
                 <div className="flex items-center gap-2">
