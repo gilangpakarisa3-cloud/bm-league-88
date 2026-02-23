@@ -240,8 +240,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div></div>
         )}
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-10 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20">
-            <div className="min-w-max flex items-stretch gap-4 sm:gap-10 p-4 sm:p-6">
-                <div className="flex-1 flex flex-col gap-4 sm:gap-8 relative">
+            <div className="min-w-[1400px] flex items-stretch gap-0 p-4 sm:p-6">
+                <div className="basis-[65%] shrink-0 flex flex-col gap-4 sm:gap-8 relative pr-4 sm:pr-8">
                     <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
                         <div className="space-y-6 relative h-full flex flex-col justify-center">
                             <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic pr-4">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
@@ -300,7 +300,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-10 sm:gap-12 border-l-2 border-white/5 bg-black/30 px-6 sm:px-12 rounded-r-[2rem] sm:rounded-r-[3rem] relative group/final overflow-hidden min-w-[400px] sm:min-w-[500px]">
+                <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-12 border-l-2 border-white/5 bg-black/30 px-6 sm:px-12 rounded-r-[2rem] sm:rounded-r-[3rem] relative group/final overflow-hidden">
                     <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.04] rounded-full blur-[100px]" /></div>
                     <div className="flex flex-col items-center gap-6 sm:gap-8 relative z-10">
                         <div className="relative group/trophy">
