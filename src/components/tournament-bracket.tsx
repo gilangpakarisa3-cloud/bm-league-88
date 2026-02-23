@@ -20,6 +20,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'rec
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { ScrollArea } from './ui/scroll-area';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -283,166 +284,168 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
             <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
-                <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
-                    <DialogHeader className="border-b border-white/10 pb-6 relative z-10">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                            <div className="flex items-center gap-4 text-primary">
-                                <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
-                                <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none pr-4">HUD Analisis Pertandingan</DialogTitle>
-                                <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
-                            </div>
-                            <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10">
-                                {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
-                                <div className="w-px h-6 bg-white/10" />
-                                {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
-                            </div>
-                        </div>
-                    </DialogHeader>
-
-                    <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10">
-                        <div className="flex flex-col items-center text-center gap-4 group w-full">
-                            {analysis1 ? (
-                                <>
-                                    <div className="relative">
-                                        <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
-                                        {analysis1.entry?.group && (
-                                            <div className="absolute -top-1 -left-1 z-20">
-                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis1.entry.group}</Badge>
-                                            </div>
-                                        )}
-                                        <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
-                                            <AvatarImage src={analysis1.team?.logoUrl} /><AvatarFallback><User className="w-12 h-12 text-white/10"/></AvatarFallback>
-                                        </Avatar>
-                                        {analysis1.isDefendingChampion && (
-                                            <div className="absolute -top-1 -right-1 z-20">
-                                                <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg shadow-lg"><Award className="w-3 h-3"/></Badge>
-                                            </div>
-                                        )}
-                                        <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Badge className={cn("text-[8px] font-black uppercase px-3 py-1 border cursor-help shadow-lg", analysis1.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : analysis1.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-primary/20 text-primary border-primary/30")}>{analysis1.playStyleText}</Badge>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis1.playStyleDescription}</p></PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center justify-center py-8 sm:py-0 h-full relative">
-                            <div className="bg-primary border-4 border-background rounded-xl w-14 h-14 flex items-center justify-center shadow-2xl z-10 rotate-45">
-                                <span className="text-black font-black text-xl italic -rotate-45 pr-0.5">VS</span>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col items-center text-center gap-4 group w-full">
-                            {analysis2 ? (
-                                <>
-                                    <div className="relative">
-                                        <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-white")} />
-                                        {analysis2.entry?.group && (
-                                            <div className="absolute -top-1 -left-1 z-20">
-                                                <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis2.entry.group}</Badge>
-                                            </div>
-                                        )}
-                                        <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
-                                            <AvatarImage src={analysis2.team?.logoUrl} /><AvatarFallback><User className="w-12 h-12 text-white/10"/></AvatarFallback>
-                                        </Avatar>
-                                        {analysis2.isDefendingChampion && (
-                                            <div className="absolute -top-1 -right-1 z-20">
-                                                <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg shadow-lg"><Award className="w-3 h-3"/></Badge>
-                                            </div>
-                                        )}
-                                        <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Badge className={cn("text-[8px] font-black uppercase px-3 py-1 border cursor-help shadow-lg", analysis2.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : analysis2.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-primary/20 text-primary border-primary/30")}>{analysis2.playStyleText}</Badge>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis2.playStyleDescription}</p></PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="space-y-6 relative z-10">
-                        <div className="flex items-center justify-center gap-4 text-primary">
-                            <div className="h-0.5 flex-1 bg-gradient-to-l from-primary/40 to-transparent rounded-full mr-4" />
-                            <div className="flex items-center gap-2">
-                                <Binary className="w-5 h-5" />
-                                <h4 className="text-lg font-black tracking-widest uppercase italic pr-4">Indeks Momentum</h4>
-                            </div>
-                            <div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            {[analysis1, analysis2].map((an, i) => (
-                                <div key={i} className="flex-1 w-full space-y-4">
-                                    {an && an.stats.played > 0 ? (
-                                        <Card className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all h-full">
-                                            <CardHeader className="p-4 bg-black/20 border-b border-white/10">
-                                                <div className="flex flex-col items-center gap-2 text-center">
-                                                    <div className="flex items-center justify-center gap-3">
-                                                        <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-4">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
-                                                        <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
-                                                    </div>
-                                                    <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="p-5 space-y-6">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2 text-center">
-                                                        <p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
-                                                        <div className="grid gap-2">
-                                                            <IntelCard icon={Percent} label="OVR Musim" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
-                                                            <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${an.entry?.rank || '?'}`} />
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2 text-center">
-                                                        <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
-                                                        <div className="grid gap-2">
-                                                            <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
-                                                            <IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {isMounted && <ChartContainer config={chartConfig} className="h-24 w-full opacity-80">
-                                                    <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                        <XAxis dataKey="match" hide />
-                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} />
-                                                        <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 3 }} activeDot={{ r: 6 }} />
-                                                    </LineChart>
-                                                </ChartContainer>}
-                                                <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
-                                            </CardContent>
-                                        </Card>
-                                    ) : <div className="h-full flex items-center justify-center opacity-10 p-10 border-2 border-dashed border-white/10 rounded-[1.5rem]"><Loader2 className="w-8 h-8 animate-spin" /></div>}
+                <ScrollArea className="max-h-[90vh]">
+                    <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
+                        <DialogHeader className="border-b border-white/10 pb-6 relative z-10">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                <div className="flex items-center gap-4 text-primary">
+                                    <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
+                                    <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none pr-4">HUD Analisis Pertandingan</DialogTitle>
+                                    <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                                 </div>
-                            ))}
+                                <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+                                    {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
+                                    <div className="w-px h-6 bg-white/10" />
+                                    {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
+                                </div>
+                            </div>
+                        </DialogHeader>
+
+                        <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10">
+                            <div className="flex flex-col items-center text-center gap-4 group w-full">
+                                {analysis1 ? (
+                                    <>
+                                        <div className="relative">
+                                            <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
+                                            {analysis1.entry?.group && (
+                                                <div className="absolute -top-1 -left-1 z-20">
+                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis1.entry.group}</Badge>
+                                                </div>
+                                            )}
+                                            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
+                                                <AvatarImage src={analysis1.team?.logoUrl} /><AvatarFallback><User className="w-12 h-12 text-white/10"/></AvatarFallback>
+                                            </Avatar>
+                                            {analysis1.isDefendingChampion && (
+                                                <div className="absolute -top-1 -right-1 z-20">
+                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg shadow-lg"><Award className="w-3 h-3"/></Badge>
+                                                </div>
+                                            )}
+                                            <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
+                                            <div className="flex flex-col items-center gap-1.5">
+                                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Badge className={cn("text-[8px] font-black uppercase px-3 py-1 border cursor-help shadow-lg", analysis1.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : analysis1.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-primary/20 text-primary border-primary/30")}>{analysis1.playStyleText}</Badge>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis1.playStyleDescription}</p></PopoverContent>
+                                                </Popover>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-center py-8 sm:py-0 h-full relative">
+                                <div className="bg-primary border-4 border-background rounded-xl w-14 h-14 flex items-center justify-center shadow-2xl z-10 rotate-45">
+                                    <span className="text-black font-black text-xl italic -rotate-45 pr-0.5">VS</span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-center text-center gap-4 group w-full">
+                                {analysis2 ? (
+                                    <>
+                                        <div className="relative">
+                                            <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-white")} />
+                                            {analysis2.entry?.group && (
+                                                <div className="absolute -top-1 -left-1 z-20">
+                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis2.entry.group}</Badge>
+                                                </div>
+                                            )}
+                                            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
+                                                <AvatarImage src={analysis2.team?.logoUrl} /><AvatarFallback><User className="w-12 h-12 text-white/10"/></AvatarFallback>
+                                            </Avatar>
+                                            {analysis2.isDefendingChampion && (
+                                                <div className="absolute -top-1 -right-1 z-20">
+                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg shadow-lg"><Award className="w-3 h-3"/></Badge>
+                                                </div>
+                                            )}
+                                            <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
+                                            <div className="flex flex-col items-center gap-1.5">
+                                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Badge className={cn("text-[8px] font-black uppercase px-3 py-1 border cursor-help shadow-lg", analysis2.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : analysis2.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-primary/20 text-primary border-primary/30")}>{analysis2.playStyleText}</Badge>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis2.playStyleDescription}</p></PopoverContent>
+                                                </Popover>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
+                                )}
+                            </div>
                         </div>
-                        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center mt-6"><p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p><p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p></div>
+
+                        <div className="space-y-6 relative z-10">
+                            <div className="flex items-center justify-center gap-4 text-primary">
+                                <div className="h-0.5 flex-1 bg-gradient-to-l from-primary/40 to-transparent rounded-full mr-4" />
+                                <div className="flex items-center gap-2">
+                                    <Binary className="w-5 h-5" />
+                                    <h4 className="text-lg font-black tracking-widest uppercase italic pr-4">Indeks Momentum</h4>
+                                </div>
+                                <div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" />
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                {[analysis1, analysis2].map((an, i) => (
+                                    <div key={i} className="flex-1 w-full space-y-4">
+                                        {an && an.stats.played > 0 ? (
+                                            <Card className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all h-full">
+                                                <CardHeader className="p-4 bg-black/20 border-b border-white/10">
+                                                    <div className="flex flex-col items-center gap-2 text-center">
+                                                        <div className="flex items-center justify-center gap-3">
+                                                            <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-4">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                            <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
+                                                        </div>
+                                                        <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent className="p-5 space-y-6">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-2 text-center">
+                                                            <p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
+                                                            <div className="grid gap-2">
+                                                                <IntelCard icon={Percent} label="OVR Musim" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
+                                                                <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${an.entry?.rank || '?'}`} />
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-2 text-center">
+                                                            <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
+                                                            <div className="grid gap-2">
+                                                                <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                                                <IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {isMounted && <ChartContainer config={chartConfig} className="h-24 w-full opacity-80">
+                                                        <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                            <XAxis dataKey="match" hide />
+                                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} />
+                                                            <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 3 }} activeDot={{ r: 6 }} />
+                                                        </LineChart>
+                                                    </ChartContainer>}
+                                                    <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
+                                                </CardContent>
+                                            </Card>
+                                        ) : <div className="h-full flex items-center justify-center opacity-10 p-10 border-2 border-dashed border-white/10 rounded-[1.5rem]"><Loader2 className="w-8 h-8 animate-spin" /></div>}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center mt-6"><p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p><p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p></div>
+                        </div>
                     </div>
-                </div>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     </div>
