@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -134,7 +133,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                  {hasValidScore ? (
                     <div className="relative group/score">
                         <div className="absolute -inset-4 bg-primary/5 rounded-full blur-xl opacity-0 group-hover/score:opacity-100 transition-opacity" />
-                        <div className="bg-black/40 border-2 border-primary/30 px-3 sm:px-5 py-1.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-2 sm:gap-3">
+                        <div className="bg-[#0A192F]/40 border-2 border-primary/30 px-3 sm:px-5 py-1.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-2 sm:gap-3">
                             <span className={cn("text-xl sm:text-3xl font-black italic tabular-nums", isW1 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-white/40")}>{score1}</span>
                             <span className="text-white/10 font-black text-xs sm:text-sm">-</span>
                             <span className={cn("text-xl sm:text-3xl font-black italic tabular-nums", isW2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-white/40")}>{score2}</span>
@@ -298,7 +297,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                 <Input 
                     type="text" 
                     placeholder="Search Battle / Team..." 
-                    className="pl-14 h-14 bg-black/40 border-2 border-white/5 focus:border-primary/50 rounded-2xl text-lg font-black italic tracking-tight uppercase placeholder:text-white/20 transition-all shadow-2xl relative z-10" 
+                    className="pl-14 h-14 bg-background/40 border-2 border-white/5 focus:border-primary/50 rounded-2xl text-lg font-black italic tracking-tight uppercase placeholder:text-white/20 transition-all shadow-2xl relative z-10" 
                     value={searchTerm} 
                     onChange={(e) => setSearchTerm(e.target.value)} 
                 />
@@ -434,7 +433,7 @@ export default function FixturesPage() {
     if (!firestore || !activeSeasonId) return;
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
     
-    runTransaction(firestore, async (transaction) => {
+    await runTransaction(firestore, async (transaction) => {
         const mDoc = await transaction.get(matchRef);
         if (!mDoc.exists()) throw new Error("Match not found!");
         const orig = mDoc.data() as Match;
@@ -500,9 +499,8 @@ export default function FixturesPage() {
         }
 
         // 2. Apply new stats to Player collection
-        const isBestOfThree = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
         const newS1 = isMatchBo3 ? (values.player1Wins ?? values.player1Score ?? 0) : (values.player1Score ?? 0);
-        const newS2 = isBestOfThree ? (values.player2Wins ?? values.player2Score ?? 0) : (values.player2Score ?? 0);
+        const newS2 = isMatchBo3 ? (values.player2Wins ?? values.player2Score ?? 0) : (values.player2Score ?? 0);
         const newOutcome = getOutcome(newS1, newS2);
         const isCoopNow = sData.type === 'Co-Op';
 
@@ -585,10 +583,11 @@ export default function FixturesPage() {
             }
         }
         const [h, m] = values.time.split(':').map(Number); const ts = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
-        transaction.update(matchRef, { ...values, matchDate: ts, isCompleted: true, ...(isMatchBo3 ? { player1Score: values.player1Score || 0, player2Score: values.player2Score || 0 } : { player1Wins: null, player2Wins: null }) });
+        transaction.update(matchRef, { ...values, matchDate: ts, isCompleted: true, ...(isMatchBo3 ? { player1Wins: values.player1Wins ?? 0, player2Wins: values.player2Wins ?? 0 } : { player1Wins: null, player2Wins: null }) });
     })
     .then(() => {
         toast({ title: t('score_updated_title') });
+        setEditingMatch(null);
     })
     .catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
@@ -598,7 +597,6 @@ export default function FixturesPage() {
         });
         errorEmitter.emit('permission-error', permissionError);
     });
-    setEditingMatch(null);
   };
 
   const handleRevertMatch = useCallback(async () => {
@@ -674,7 +672,7 @@ export default function FixturesPage() {
                 p1S = { docs: d1.exists() ? [d1] : [] }; p2S = { docs: d2.exists() ? [d2] : [] };
             } else {
                 const qCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tbl}`);
-                const [sn1, sn2] = await Promise.all([getDocs(query(qCol, where('playerId', '==', mToRev.player1Id))), getDocs(query(qCol, where('playerId', '==', mToRev.player2Id)))]); p1S = sn1; p2S = sn2;
+                const [sn1, snap2] = await Promise.all([getDocs(query(qCol, where('playerId', '==', mToRev.player1Id))), getDocs(query(qCol, where('playerId', '==', mToRev.player2Id)))]); p1S = sn1; p2S = snap2;
             }
             if (p1S.docs.length && p2S.docs.length) {
                 const e1 = p1S.docs[0].data() as LeagueEntry; const e2 = p2S.docs[0].data() as LeagueEntry;
@@ -694,6 +692,7 @@ export default function FixturesPage() {
     })
     .then(() => {
         toast({ title: t('match_reverted_title') });
+        setRevertingMatch(null);
     })
     .catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
@@ -702,7 +701,6 @@ export default function FixturesPage() {
         });
         errorEmitter.emit('permission-error', permissionError);
     });
-    setRevertingMatch(null);
   }, [firestore, activeSeasonId, revertingMatch, t, toast]);
 
   const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;

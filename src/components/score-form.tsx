@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Match, Season, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity } from "lucide-react";
+import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -28,13 +28,15 @@ import { Badge } from "./ui/badge";
 const coopFormSchema = z.object({
   player1Wins: z.coerce.number().min(0).max(2),
   player2Wins: z.coerce.number().min(0).max(2),
+  player1Score: z.coerce.number().min(0).default(0),
+  player2Score: z.coerce.number().min(0).default(0),
   time: z.string().min(1, { message: "Waktu wajib diisi" }),
   date: z.date({ required_error: "Tanggal wajib diisi" }),
 }).refine(data => {
     return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
            (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
 }, {
-    message: "Skor Best of 3 tidak valid. Salah satu tim harus menang 2 game.",
+    message: "Salah satu tim harus memiliki 2 kemenangan (Best of 3).",
     path: ["player1Wins"],
 });
 
@@ -56,8 +58,7 @@ interface ScoreFormProps {
   player2Info: { name: string; team?: WithId<Team> | null };
 }
 
-// Sub-components moved outside
-const ScoreControl = ({ fieldName, value, onIncrement, onDecrement }: { fieldName: 'player1Score' | 'player2Score', value: number, onIncrement: () => void, onDecrement: () => void }) => (
+const ScoreControl = ({ fieldName, value, onIncrement, onDecrement, label = "Score Unit" }: { fieldName: string, value: number, onIncrement: () => void, onDecrement: () => void, label?: string }) => (
   <div className="flex flex-col items-center gap-2">
     <div className="flex items-center gap-2">
       <Button 
@@ -89,7 +90,7 @@ const ScoreControl = ({ fieldName, value, onIncrement, onDecrement }: { fieldNam
         <Plus className="h-5 w-5 text-primary" />
       </Button>
     </div>
-    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Score Unit</p>
+    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">{label}</p>
   </div>
 );
 
@@ -123,6 +124,8 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
         return {
             player1Wins: match.player1Wins ?? 0,
             player2Wins: match.player2Wins ?? 0,
+            player1Score: match.player1Score ?? 0,
+            player2Score: match.player2Score ?? 0,
             time: timeToUse,
             date: dateToUse,
         }
@@ -152,10 +155,10 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     setIsSaving(true);
     try {
       await onSave(data);
+    } catch (err) {
+      console.error("Save error:", err);
     } finally {
-      if (form.formState.isSubmitting) {
-        setIsSaving(false);
-      }
+      setIsSaving(false);
     }
   };
 
@@ -174,20 +177,24 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     form.setValue('player2Wins', p2Total, { shouldValidate: true });
   }
 
-  const p1Value = isBestOfThree ? (form.watch('player1Wins') as number) : (form.watch('player1Score') as number);
-  const p2Value = isBestOfThree ? (form.watch('player2Wins') as number) : (form.watch('player2Score') as number);
+  const p1Wins = isBestOfThree ? (form.watch('player1Wins' as any) || 0) : 0;
+  const p2Wins = isBestOfThree ? (form.watch('player2Wins' as any) || 0) : 0;
+  const p1Score = form.watch('player1Score' as any) || 0;
+  const p2Score = form.watch('player2Score' as any) || 0;
 
-  const incrementScore = (field: 'player1Score' | 'player2Score') => {
-    const current = form.getValues(field) as number;
+  const incrementValue = (field: any) => {
+    const current = form.getValues(field) || 0;
     form.setValue(field, current + 1, { shouldValidate: true });
   }
 
-  const decrementScore = (field: 'player1Score' | 'player2Score') => {
-    const current = form.getValues(field) as number;
+  const decrementValue = (field: any) => {
+    const current = form.getValues(field) || 0;
     if (current > 0) {
       form.setValue(field, current - 1, { shouldValidate: true });
     }
   }
+
+  const hasErrors = Object.keys(form.formState.errors).length > 0;
 
   return (
     <Form {...form}>
@@ -223,17 +230,22 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                   </Badge>
                 </div>
                 
-                <div className="w-full relative z-10">
-                    {isBestOfThree ? (
+                <div className="w-full relative z-10 space-y-4">
+                    {isBestOfThree && (
                         <div className="flex flex-col items-center gap-1">
-                            <div className="bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner">
-                                <span className="text-5xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] tabular-nums">{p1Value}</span>
+                            <div className="bg-black/40 border-2 border-primary/20 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner">
+                                <span className="text-3xl font-black text-primary italic drop-shadow-[0_0:10px_rgba(204,253,1,0.6)] tabular-nums">{p1Wins}</span>
                             </div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic mt-1">Wins</p>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
                         </div>
-                    ) : (
-                        <ScoreControl fieldName="player1Score" value={p1Value} onIncrement={() => incrementScore('player1Score')} onDecrement={() => decrementScore('player1Score')} />
                     )}
+                    <ScoreControl 
+                        fieldName="player1Score" 
+                        value={p1Score} 
+                        onIncrement={() => incrementValue('player1Score')} 
+                        onDecrement={() => decrementValue('player1Score')} 
+                        label="Total goals"
+                    />
                 </div>
               </div>
 
@@ -256,17 +268,22 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                   </Badge>
                 </div>
 
-                <div className="w-full relative z-10">
-                    {isBestOfThree ? (
+                <div className="w-full relative z-10 space-y-4">
+                    {isBestOfThree && (
                         <div className="flex flex-col items-center gap-1">
-                            <div className="bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner">
-                                <span className="text-5xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] tabular-nums">{p2Value}</span>
+                            <div className="bg-black/40 border-2 border-primary/20 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner">
+                                <span className="text-3xl font-black text-primary italic drop-shadow-[0_0:10px_rgba(204,253,1,0.6)] tabular-nums">{p2Wins}</span>
                             </div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic mt-1">Wins</p>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
                         </div>
-                    ) : (
-                        <ScoreControl fieldName="player2Score" value={p2Value} onIncrement={() => incrementScore('player2Score')} onDecrement={() => decrementScore('player2Score')} />
                     )}
+                    <ScoreControl 
+                        fieldName="player2Score" 
+                        value={p2Score} 
+                        onIncrement={() => incrementValue('player2Score')} 
+                        onDecrement={() => decrementValue('player2Score')} 
+                        label="Total goals"
+                    />
                 </div>
               </div>
             </div>
@@ -289,6 +306,23 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                 onWinnerChange={handleWinnerChange}
              />
            </div>
+        )}
+
+        {/* Validation Error Message Display */}
+        {hasErrors && (
+            <div className="bg-red-500/10 border-2 border-red-500/30 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">Protocol Violation Detected</p>
+                    <ul className="list-disc pl-4">
+                        {Object.values(form.formState.errors).map((error: any, i) => (
+                            <li key={i} className="text-[11px] font-bold text-white/80 leading-tight">
+                                {error.message || "Data input tidak valid."}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
         )}
 
         <div className="bg-white/[0.02] p-5 rounded-2xl border-2 border-white/5 space-y-4 backdrop-blur-sm">
