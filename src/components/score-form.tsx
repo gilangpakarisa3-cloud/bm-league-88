@@ -51,7 +51,7 @@ type ScoreFormValues = z.infer<typeof coopFormSchema> | z.infer<typeof singleFor
 
 interface ScoreFormProps {
   match: WithId<Match>;
-  onSave: (data: ScoreFormValues) => void;
+  onSave: (data: ScoreFormValues) => Promise<void>;
   seasonType?: Season['type'];
   hybridGroupMeetings?: number;
   player1Info: { name: string; team?: WithId<Team> | null };
@@ -117,8 +117,8 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
 
   const getInitialValues = (match: WithId<Match>) => {
     const isNewScore = !match.isCompleted;
-    const dateToUse = isNewScore ? undefined : match.matchDate.toDate(); 
-    const timeToUse = dateToUse ? format(dateToUse, 'HH:mm') : '00:00';
+    const dateToUse = isNewScore ? new Date() : match.matchDate.toDate(); 
+    const timeToUse = format(dateToUse, 'HH:mm');
 
     if (isBestOfThree) {
         return {
@@ -143,21 +143,12 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     defaultValues: getInitialValues(match),
   });
 
-  useEffect(() => {
-    if (!match.isCompleted && !form.getValues('date')) {
-      const now = new Date();
-      form.setValue('date', now);
-      form.setValue('time', format(now, 'HH:mm'));
-    }
-  }, [match, form]);
-
   const handleSave = async (data: ScoreFormValues) => {
     setIsSaving(true);
     try {
       await onSave(data);
     } catch (err) {
-      console.error("Save error:", err);
-    } finally {
+      console.error("Form save error:", err);
       setIsSaving(false);
     }
   };
