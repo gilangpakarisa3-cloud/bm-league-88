@@ -24,6 +24,13 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
 import { CoopScoreChecklist } from "./coop-score-checklist";
 import { Badge } from "./ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const coopFormSchema = z.object({
   player1Wins: z.coerce.number().min(0).max(2),
@@ -403,23 +410,40 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                  <FormField
                   control={form.control}
                   name="time"
-                  render={({ field }) => (
-                    <FormItem className="space-y-1.5">
-                      <FormLabel className="text-[9px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-1.5">
-                        <Clock className="w-2.5 h-2.5" /> Kick-Off Time
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="time" 
-                          lang="en-GB"
-                          step="60"
-                          {...field} 
-                          className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const [h, m] = (field.value || "00:00").split(':');
+                    return (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-[9px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-1.5">
+                          <Clock className="w-2.5 h-2.5" /> Kick-Off Time (24H)
+                        </FormLabel>
+                        <div className="flex items-center gap-2">
+                            <Select value={h} onValueChange={(val) => field.onChange(`${val}:${m}`)}>
+                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-20">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#0A192F] border-primary/30">
+                                    {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
+                                        <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <span className="text-primary font-black">:</span>
+                            <Select value={m} onValueChange={(val) => field.onChange(`${h}:${val}`)}>
+                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-20">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#0A192F] border-primary/30">
+                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
+                                        <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
             </div>
         </div>

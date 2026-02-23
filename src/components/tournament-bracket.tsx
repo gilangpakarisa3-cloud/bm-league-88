@@ -26,6 +26,13 @@ import { Label } from './ui/label';
 import { Calendar } from './ui/calendar';
 import { updateDocumentNonBlocking, useFirestore } from '@/firebase';
 import { doc, Timestamp } from 'firebase/firestore';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -102,7 +109,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   // States for manual schedule adjustment
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
-  const [editTime, setEditTime] = useState<string>('');
+  const [editTime, setEditTime] = useState<string>('00:00');
   const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
 
   const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
@@ -267,6 +274,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const aP = [...(analysis1?.chartData.map(d=>d.points) || []), ...(analysis2?.chartData.map(d=>d.points) || [])];
     if (aP.length === 0) return dD; const mV = Math.max(...aP.map(Math.abs), 5); return [-mV, mV];
   }, [analysis1, analysis2]);
+
+  const [editHour, editMin] = (editTime || "00:00").split(':');
 
   return (
     <div className="w-full relative">
@@ -597,16 +606,31 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
-                                                    <Clock className="w-3 h-3" /> Waktu Kick-Off
+                                                    <Clock className="w-3 h-3" /> Waktu Kick-Off (24H)
                                                 </Label>
-                                                <Input 
-                                                    type="time" 
-                                                    lang="en-GB"
-                                                    step="60"
-                                                    value={editTime} 
-                                                    onChange={(e) => setEditTime(e.target.value)} 
-                                                    className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums" 
-                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)}>
+                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-20">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-[#0A192F] border-primary/30">
+                                                            {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
+                                                                <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <span className="text-primary font-black">:</span>
+                                                    <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)}>
+                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-20">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-[#0A192F] border-primary/30">
+                                                            {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
+                                                                <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
                                             </div>
                                         </div>
                                         <Button 
