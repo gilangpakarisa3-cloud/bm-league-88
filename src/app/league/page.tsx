@@ -807,27 +807,21 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
   const isLoadingTableFinal = isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
 
   return (
-    <div className={cn(
-        "mx-auto px-2 sm:px-4 py-6 sm:py-8 transition-all duration-1000 ease-in-out",
-        (activeSeason?.type === 'Hybrid' && activeLeagueTab === 'playoff') ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-5xl"
-    )}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
+    <div className="w-full">
+      {/* Header section: Fixed narrow width */}
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col md:flex-row justify-between items-stretch gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
           <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
-            {/* HUD Accent Line with Glow */}
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
-            
             <div className="relative z-10 space-y-1">
                 <div className="flex items-center gap-3">
                     <div className="h-px w-8 sm:w-12 bg-primary/40" />
                     <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary/60 italic">Signal Transmission • Active</span>
                 </div>
-                
                 <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
                     {t('league_standings_page_title').split(' ')[0]} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">{t('league_standings_page_title').split(' ').slice(1).join(' ')}</span>
                 </h1>
             </div>
-
             {activeSeason && (
               <div className="space-y-2 relative z-10 pt-2">
                 <div className="flex items-center gap-3">
@@ -840,7 +834,6 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                 </div>
               </div>
             )}
-
             {matches && matches.length > 0 && (
               <div className="max-w-md pt-4 space-y-2 relative z-10">
                 <div className="flex justify-between items-end mb-1">
@@ -850,14 +843,9 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                     <span className="text-xs font-black text-primary italic" suppressHydrationWarning>{seasonProgress.toFixed(0)}%</span>
                 </div>
                 <div className="relative h-2 sm:h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                    <div 
-                        className="absolute left-0 top-0 h-full bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)] transition-all duration-1000 ease-out" 
-                        style={{ width: `${seasonProgress}%` }}
-                    />
+                    <div className="absolute left-0 top-0 h-full bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)] transition-all duration-1000 ease-out" style={{ width: `${seasonProgress}%` }} />
                 </div>
-                <p className="text-[9px] sm:text-[10px] font-black tracking-[0.2em] uppercase text-white/20 italic">
-                    {completedMatchesCount} / {matches.length} Engagements Finalized
-                </p>
+                <p className="text-[9px] sm:text-[10px] font-black tracking-[0.2em] uppercase text-white/20 italic">{completedMatchesCount} / {matches.length} Engagements Finalized</p>
               </div>
             )}
           </div>
@@ -867,7 +855,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
         </div>
 
         <div className={cn(
-            "bg-black/40 border-2 border-white/5 rounded-2xl p-2 sm:p-4 mb-6 sm:mb-10 flex flex-wrap items-center gap-4 shadow-2xl backdrop-blur-xl transition-all duration-500",
+            "bg-black/40 border-2 border-white/5 rounded-2xl p-2 sm:p-4 flex flex-wrap items-center gap-4 shadow-2xl backdrop-blur-xl transition-all duration-500",
             isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -890,9 +878,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
               </div>
             )}
           </div>
-
           {isAdmin && <Separator orientation="vertical" className="h-10 mx-2 hidden lg:block opacity-10" />}
-
           {isAdmin && activeSeason && (
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 {activeSeason.status === 'Not Started' && (
@@ -914,17 +900,8 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                 )}
             </div>
           )}
-
           <div className={cn("flex items-center gap-2", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
-            <Button 
-                onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} 
-                variant="outline" 
-                size="sm" 
-                className={cn(
-                    "h-12 px-6 font-black text-[10px] uppercase tracking-widest italic rounded-xl transition-all duration-500", 
-                    isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-white/10 hover:border-primary/50"
-                )}
-            >
+            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline" size="sm" className={cn("h-12 px-6 font-black text-[10px] uppercase tracking-widest italic rounded-xl transition-all duration-500", isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-white/10 hover:border-primary/50")}>
                 {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                 {isAdmin ? t('lock_admin') : t('unlock_admin')}
             </Button>
@@ -932,7 +909,13 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
             <Button asChild variant="ghost" size="icon" className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-yellow-500/10 hover:text-yellow-400 transition-all" title={t('view_champion')}><Link href={`/league/winner?seasonId=${activeSeasonId}`}><Trophy className="h-5 w-5" /></Link></Button>
           </div>
         </div>
+      </div>
 
+      {/* Standings and data section: Adaptive width */}
+      <div className={cn(
+          "mx-auto px-2 sm:px-4 pb-8 transition-all duration-1000 ease-in-out mt-6",
+          (activeSeason?.type === 'Hybrid' && activeLeagueTab === 'playoff') ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-5xl"
+      )}>
         <div className="space-y-8 sm:space-y-12">
             <div className="w-full">
                 <LeagueTable 
@@ -968,11 +951,8 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                         {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
                             <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-primary/20 hover:border-primary/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_30px_rgba(204,253,1,0.15)] rounded-2xl">
                                 <span className="absolute bottom-0 left-0 text-4xl sm:text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none pl-4 pb-2">FUNDS</span>
-                                
-                                {/* HUD HUD Decorations */}
                                 <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl pointer-events-none group-hover:border-primary transition-colors duration-500" />
                                 <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl pointer-events-none group-hover:border-primary transition-colors duration-500" />
-
                                 <CardHeader className="relative z-10 pb-2 sm:pb-4">
                                     <CardTitle className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-black uppercase tracking-widest italic pr-4">
                                         <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 shadow-lg relative">
@@ -1005,7 +985,6 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                                             <Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1 w-20 sm:w-24 bg-white/5" />
                                         </div>
                                     </div>
-
                                     <div className="space-y-3">
                                         <h4 className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.3em] text-primary/60 flex items-center gap-2 uppercase italic">
                                             <Receipt className="w-3 h-3" /> Status Verifikasi Pembayaran
@@ -1019,12 +998,10 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                                                             ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(204,253,1,0.05)]" 
                                                             : "bg-black/20 border-white/5 hover:border-white/10"
                                                     )}>
-                                                        {/* HUD Line Indicator */}
                                                         <div className={cn(
                                                             "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
                                                             player.hasPaid ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" : "bg-white/5"
                                                         )} />
-                                                        
                                                         <div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'>
                                                             <div className="relative">
                                                                 <Avatar className={cn(
@@ -1050,7 +1027,6 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        
                                                         <div className="flex items-center gap-3 relative z-10 shrink-0">
                                                             <div className={cn(
                                                                 "px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter transition-all border",
@@ -1086,6 +1062,8 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
             </div>
         </div>
       </div>
+
+      {/* Dialogs and Alerts (unchanged) */}
       <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><DialogHeader><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription></DialogHeader><div className="grid gap-4 py-4"><div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="password-input" className="text-right text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('password')}</Label><Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="col-span-3 h-10 sm:h-12 bg-white/5 border-white/10" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} /></div></div><DialogFooter><Button onClick={handlePasswordCheck} className="w-full h-10 sm:h-12 font-black tracking-tighter text-xs sm:text-sm uppercase italic">{t('unlock')}</Button></DialogFooter></DialogContent></Dialog>
       <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col"><DialogHeader className="shrink-0"><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle></DialogHeader><ScrollArea className="flex-1 py-4 pr-2"><div className="space-y-4 sm:space-y-6"><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid</Label></div></RadioGroup></div>{newSeasonType === 'Hybrid' && (<div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label></div></RadioGroup></div>)}<div className="space-y-2 sm:space-y-3"><Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-xs sm:text-sm"/></div><div className="grid grid-cols-2 gap-3 sm:gap-4"><div className="space-y-2 sm:space-y-3"><Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div><div className="space-y-2 sm:space-y-3"><Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div></div><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></ScrollArea></DialogContent></Dialog>
       <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeason} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
