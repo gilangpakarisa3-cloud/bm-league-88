@@ -6,12 +6,9 @@ service cloud.firestore {
      * CORE PHILOSOPHY:
      * This ruleset implements a hybrid security model designed for a sports tournament application.
      * 1. User-Ownership: Personal profile data is strictly isolated to the authenticated owner.
-     * 2. Administrative Control: Game-related data (Teams, Leagues, Cups, Matches) is publicly 
-     *    viewable but can only be modified by users whose UIDs exist in the /admins/ collection.
-     * 3. Authorization Independence: By using document IDs that match Auth UIDs for profiles and 
-     *    admins, the rules remain performant and avoid deep, recursive lookups.
-     * 4. Structural Segregation: System-wide data is stored in top-level collections for easy 
-     *    listing and filtering without complex security-driven query constraints.
+     * 2. Administrative Control: In this prototype, game-related data is managed via a shared password
+     *    system. Rules allow any signed-in user to write to these collections, assuming the UI
+     *    protects these actions.
      */
 
     // --- Helper Functions ---
@@ -29,11 +26,6 @@ service cloud.firestore {
     /** @description Verifies ownership and ensures the document exists for updates/deletes. */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
-    }
-
-    /** @description Checks if the user is registered as an administrator. */
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
     /** @description Enforces that a field's value does not change during an update. */
@@ -55,12 +47,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Publicly readable football team data. Managed by admins.
+     * @description Publicly readable football team data. Managed by authenticated users.
      */
     match /teams/{teamId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow write: if isSignedIn();
     }
 
     /**
@@ -68,45 +59,42 @@ service cloud.firestore {
      */
     match /players/{playerId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Publicly readable league tournament data. Managed by admins.
+     * @description Publicly readable league tournament data. Managed by authenticated users.
      */
     match /leagues/{leagueId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow write: if isSignedIn();
       
       // Seasons and subcollections (matches, leagueTable, coopLeagueTable)
       match /seasons/{seasonId} {
         allow read: if true;
-        allow write: if isAdmin();
+        allow write: if isSignedIn();
         
         match /{document=**} {
           allow read: if true;
-          allow write: if isAdmin();
+          allow write: if isSignedIn();
         }
       }
     }
 
     /**
-     * @description Publicly readable cup tournament data. Managed by admins.
+     * @description Publicly readable cup tournament data. Managed by authenticated users.
      */
     match /cups/{cupId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Publicly readable match data (Top-level). Managed by admins.
+     * @description Publicly readable match data (Top-level). Managed by authenticated users.
      */
     match /matches/{matchId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin() && resource != null;
+      allow write: if isSignedIn();
     }
 
     /**
@@ -114,7 +102,7 @@ service cloud.firestore {
      */
     match /notices/{noticeId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     /**
@@ -122,7 +110,7 @@ service cloud.firestore {
      */
     match /hallOfFame/{recordId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     /**
@@ -130,11 +118,11 @@ service cloud.firestore {
      */
     match /appConfig/{configId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Database Access Control (DBAC) collection defining admin roles.
+     * @description Database Access Control (DBAC) collection.
      */
     match /admins/{adminId} {
       allow get: if isSignedIn();
