@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,11 @@ import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Calendar } from './ui/calendar';
+import { updateDocumentNonBlocking, useFirestore } from '@/firebase';
+import { doc, Timestamp } from 'firebase/firestore';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -86,6 +91,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
 
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId, onRevertMatch }: TournamentBracketProps) {
   const { t } = useTranslation();
+  const firestore = useFirestore();
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -94,9 +100,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const scrollLeft = useRef(0);
   const mouseMoved = useRef(false);
 
+  // States for manual schedule adjustment
+  const [editDate, setEditDate] = useState<Date | undefined>(undefined);
+  const [editTime, setEditTime] = useState<string>('');
+  const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
+
   const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
 
   useEffect(() => { setIsMounted(true); }, []);
+
+  // Sync edit states when selectedMatch changes
+  useEffect(() => {
+    if (selectedMatch && !selectedMatch.isProjection && selectedMatch.matchDate) {
+        const d = selectedMatch.matchDate.toDate();
+        setEditDate(d);
+        setEditTime(format(d, 'HH:mm'));
+    }
+  }, [selectedMatch]);
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
@@ -115,6 +135,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const onMouseUp = () => { isDragging.current = false; document.body.style.userSelect = ''; };
   const onMouseLeave = () => { isDragging.current = false; document.body.style.userSelect = ''; };
   const handleCardClick = (matchData: any) => { if (!mouseMoved.current) setSelectedMatch(matchData); };
+
+  const handleSaveManualSchedule = () => {
+    if (!firestore || !season || !selectedMatch || !editDate || !editTime) return;
+    setIsUpdatingSchedule(true);
+    
+    const [h, m] = editTime.split(':').map(Number);
+    const newDate = new Date(editDate);
+    newDate.setHours(h, m);
+    
+    const matchRef = doc(firestore, `leagues/main-league/seasons/${season.id}/matches`, selectedMatch.id);
+    updateDocumentNonBlocking(matchRef, {
+        matchDate: Timestamp.fromDate(newDate)
+    });
+    
+    setTimeout(() => {
+        setIsUpdatingSchedule(false);
+    }, 1000);
+  };
 
   const rankedTable = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return [];
@@ -149,7 +187,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
       const pRes = isP1 ? s1 : s2; const oRes = isP1 ? s2 : s1;
       if (pRes > oRes) acc.win++; else if (pRes < oRes) acc.loss++; else acc.draw++;
-      if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += isP1 ? m.player2Score : m.player1Score; }
+      if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += iP1 ? m.player2Score : m.player1Score; }
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
     
@@ -522,7 +560,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                         <div className="space-y-2 text-center">
                                                             <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
                                                             <div className="grid gap-2">
-                                                                <IntelCard icon={Zap} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                                                <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
                                                                 <IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
                                                             </div>
                                                         </div>
@@ -543,19 +581,72 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 ))}
                             </div>
                             
-                            {isAdmin && selectedMatch?.isCompleted && !selectedMatch.isProjection && onRevertMatch && (
-                                <div className="flex justify-center pt-4">
-                                    <Button 
-                                        variant="outline" 
-                                        className="bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[10px] h-12 px-8 rounded-xl transition-all gap-2"
-                                        onClick={() => {
-                                            onRevertMatch(selectedMatch);
-                                            setSelectedMatch(null);
-                                        }}
-                                    >
-                                        <Undo2 className="w-4 h-4" />
-                                        Batal Verifikasi Skor
-                                    </Button>
+                            {/* ADMIN TOURNAMENT MANAGEMENT SECTION */}
+                            {isAdmin && !selectedMatch?.isProjection && (
+                                <div className="mt-8 space-y-6 animate-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex items-center justify-center gap-4 text-primary">
+                                        <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
+                                        <div className="flex items-center gap-2">
+                                            <Settings2 className="w-5 h-5" />
+                                            <h4 className="text-sm font-black tracking-widest uppercase italic pr-4">Tournament Management</h4>
+                                        </div>
+                                        <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-end bg-white/[0.03] border-2 border-white/5 rounded-[1.5rem] p-6 shadow-inner">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
+                                                    <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
+                                                </Label>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="outline" className="w-full h-12 bg-black/40 border-white/10 font-black text-xs uppercase italic justify-start px-4 hover:border-primary/50 transition-all">
+                                                            {editDate ? format(editDate, "eeee, d MMM yyyy") : "Pilih Tanggal"}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0 bg-background border-primary/30">
+                                                        <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-xl" />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
+                                                    <Clock className="w-3 h-3" /> Waktu Kick-Off
+                                                </Label>
+                                                <Input 
+                                                    type="time" 
+                                                    value={editTime} 
+                                                    onChange={(e) => setEditTime(e.target.value)} 
+                                                    className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums" 
+                                                />
+                                            </div>
+                                        </div>
+                                        <Button 
+                                            onClick={handleSaveManualSchedule} 
+                                            disabled={isUpdatingSchedule}
+                                            className="h-12 px-8 font-black uppercase italic tracking-widest gap-2 shadow-xl shadow-primary/20"
+                                        >
+                                            {isUpdatingSchedule ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            Simpan Jadwal
+                                        </Button>
+                                    </div>
+
+                                    {selectedMatch?.isCompleted && onRevertMatch && (
+                                        <div className="flex justify-center">
+                                            <Button 
+                                                variant="outline" 
+                                                className="bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[10px] h-12 px-8 rounded-xl transition-all gap-2"
+                                                onClick={() => {
+                                                    onRevertMatch(selectedMatch);
+                                                    setSelectedMatch(null);
+                                                }}
+                                            >
+                                                <Undo2 className="w-4 h-4" />
+                                                Batal Verifikasi Skor
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
