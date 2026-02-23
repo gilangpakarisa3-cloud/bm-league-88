@@ -252,7 +252,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                 </div>
-                                <div className="flex flex-col gap-28 py-12 opacity-20"><ChevronRight className="w-3 h-3 text-primary"/><ChevronRight className="w-3 h-3 text-primary"/></div>
+                                <div className="flex flex-col gap-28 py-12 opacity-20">
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary"/></div>
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary"/></div>
+                                </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m10" label="UB SEMI 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
@@ -272,12 +275,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                 </div>
-                                <div className="flex flex-col gap-28 py-12 opacity-20"><ChevronRight className="w-3 h-3 text-amber-500"/><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                <div className="flex flex-col gap-28 py-12 opacity-20">
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                 </div>
-                                <div className="flex flex-col gap-28 py-12 opacity-20"><ChevronRight className="w-3 h-3 text-amber-500"/><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                <div className="flex flex-col gap-28 py-12 opacity-20">
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
