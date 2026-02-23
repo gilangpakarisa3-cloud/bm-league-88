@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
@@ -34,7 +33,7 @@ interface TournamentBracketProps {
 
 // Sub-components moved outside to improve stability and avoid recreation on every render
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
-  <div className={cn("flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300", variant === "primary" ? "bg-primary/5 border-primary/20" : variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10")}>
+  <div className={cn("flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300", variant === "primary" ? "bg-primary/10 border-primary/20" : variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20" : "bg-white/5 border-white/10")}>
       <div className="flex items-center justify-center gap-1.5"><Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} /><span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span></div>
       <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
@@ -56,24 +55,24 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
   if (!m) return (
       <div className="flex flex-col gap-1 opacity-30 items-center">
           <span className="text-[8px] font-black tracking-widest text-white/40 uppercase">{label}</span>
-          <div className="w-44 sm:w-48 h-20 bg-black/20 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-1.5"><Loader2 className="w-4 h-4 text-white/10 animate-spin"/><span className="text-[7px] font-black tracking-widest text-white/20 uppercase">KALIBRASI</span></div>
+          <div className="w-44 sm:w-48 h-20 bg-white/5 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-1.5"><Loader2 className="w-4 h-4 text-white/10 animate-spin"/><span className="text-[7px] font-black tracking-widest text-white/20 uppercase">KALIBRASI</span></div>
       </div>
   );
   return (
       <div className="flex flex-col gap-1 relative items-center">
           <span className="text-[8px] font-black tracking-widest text-primary/80 uppercase">{label}</span>
-          <Card className={cn("w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl", m.isCompleted ? "border-primary/30 bg-card/60 backdrop-blur-xl" : "border-white/20 bg-white/5 border-dashed")} onClick={() => handleCardClick(m)}>
+          <Card className={cn("w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl", m.isCompleted ? "border-primary/30 bg-white/5 backdrop-blur-xl" : "border-white/20 bg-white/5 border-dashed")} onClick={() => handleCardClick(m)}>
               <CardContent className="p-0 flex flex-col divide-y divide-white/5">
                   {[1, 2].map(i => {
                       const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
                       return (
-                          <div key={i} className={cn("flex items-center justify-between px-3 h-10 relative", isW ? "bg-primary/10" : "bg-transparent")}>
+                          <div key={i} className={cn("flex items-center justify-between px-3 h-10 relative", isW ? "bg-primary/15" : "bg-transparent")}>
                               {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
                               <div className="flex items-center gap-2 overflow-hidden">
                                   <Avatar className={cn("h-6 w-6 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}><AvatarImage src={t?.logoUrl} /><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar>
                                   <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-3", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
                               </div>
-                              <div className={cn("px-1.5 py-0.5 rounded bg-black/40 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
+                              <div className={cn("px-1.5 py-0.5 rounded bg-white/5 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
                           </div>
                       )
                   })}
@@ -300,7 +299,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-12 border-l-2 border-white/5 bg-black/30 px-6 sm:px-12 rounded-r-[2rem] sm:rounded-r-[3rem] relative group/final overflow-hidden">
+                <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-12 border-l-2 border-white/5 bg-white/[0.03] px-6 sm:px-12 rounded-r-[2rem] sm:rounded-r-[3rem] relative group/final overflow-hidden">
                     <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.04] rounded-full blur-[100px]" /></div>
                     <div className="flex flex-col items-center gap-6 sm:gap-8 relative z-10">
                         <div className="relative group/trophy">
@@ -322,7 +321,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </div>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
-            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
+            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
                 <ScrollArea className="max-h-[90vh]">
                     <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
@@ -333,7 +332,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none pr-4">HUD Analisis Pertandingan</DialogTitle>
                                     <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                                 </div>
-                                <div className="flex gap-4 items-center bg-white/5 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto">
+                                <div className="flex gap-4 items-center bg-white/10 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto">
                                     {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
                                     <div className="w-px h-6 bg-white/10" />
                                     {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
@@ -375,7 +374,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                             {analysis1.playStyleText}
                                                         </Badge>
                                                     </PopoverTrigger>
-                                                    <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis1.playStyleDescription}</p></PopoverContent>
+                                                    <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis1.playStyleDescription}</p></PopoverContent>
                                                 </Popover>
                                             </div>
                                         </div>
@@ -424,7 +423,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                             {analysis2.playStyleText}
                                                         </Badge>
                                                     </PopoverTrigger>
-                                                    <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis2.playStyleDescription}</p></PopoverContent>
+                                                    <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis2.playStyleDescription}</p></PopoverContent>
                                                 </Popover>
                                             </div>
                                         </div>
@@ -449,8 +448,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 {[analysis1, analysis2].map((an, i) => (
                                     <div key={i} className="flex-1 w-full space-y-4">
                                         {an && an.stats.played > 0 ? (
-                                            <Card className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all h-full">
-                                                <CardHeader className="p-4 bg-black/20 border-b border-white/10">
+                                            <Card className="bg-white/[0.03] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all h-full">
+                                                <CardHeader className="p-4 bg-primary/5 border-b border-white/10">
                                                     <div className="flex flex-col items-center gap-2 text-center">
                                                         <div className="flex items-center justify-center gap-3">
                                                             <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-4">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
@@ -491,7 +490,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 ))}
                             </div>
-                            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center mt-6">
+                            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center mt-6">
                               <p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p>
                               <p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p>
                             </div>

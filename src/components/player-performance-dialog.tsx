@@ -37,8 +37,8 @@ interface PlayerPerformanceDialogProps {
 const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
       "flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-300",
-      variant === "primary" ? "bg-primary/5 border-primary/20" : 
-      variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
+      variant === "primary" ? "bg-primary/10 border-primary/20" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20" : "bg-white/5 border-white/10"
   )}>
     <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{label}</span>
     <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
@@ -48,8 +48,8 @@ const StatDisplay = ({ label, value, variant = "default" }: { label: string, val
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
       "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
-      variant === "primary" ? "bg-primary/5 border-primary/20" : 
-      variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
+      variant === "primary" ? "bg-primary/10 border-primary/20" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20" : "bg-white/5 border-white/10"
   )}>
       <div className="flex items-center justify-center gap-1.5">
           <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
@@ -234,7 +234,7 @@ export function PlayerPerformanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
+      <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
         <ScrollArea className="max-h-[90vh]">
             <div className="p-6 relative">
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
@@ -253,7 +253,7 @@ export function PlayerPerformanceDialog({
 
                       <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl relative z-10 group-hover:scale-105 transition-all duration-500">
                         <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.playerName} />
-                        <AvatarFallback className="bg-black/40"><User className="h-12 w-12 text-white/10" /></AvatarFallback>
+                        <AvatarFallback className="bg-white/5"><User className="h-12 w-12 text-white/10" /></AvatarFallback>
                       </Avatar>
                       
                       <div className={cn(
@@ -290,7 +290,7 @@ export function PlayerPerformanceDialog({
                                     {playStyleText}
                                 </Badge>
                             </PopoverTrigger>
-                            <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl rounded-xl">
+                            <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl rounded-xl">
                                 <p className="text-[10px] font-bold leading-relaxed text-white">{playStyleDescription}</p>
                             </PopoverContent>
                         </Popover>
@@ -299,7 +299,7 @@ export function PlayerPerformanceDialog({
                 </DialogHeader>
 
                 <div className="space-y-6 mt-8 relative z-10">
-                    <div className="bg-white/[0.02] border-2 border-white/5 rounded-2xl p-5 space-y-5 shadow-inner">
+                    <div className="bg-white/[0.03] border-2 border-white/5 rounded-2xl p-5 space-y-5 shadow-inner">
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
@@ -338,7 +338,7 @@ export function PlayerPerformanceDialog({
                     </div>
                   
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 bg-black/40 h-12 p-1 border-2 border-white/5 rounded-xl">
+                      <TabsList className="grid w-full grid-cols-3 bg-white/5 h-12 p-1 border-2 border-white/5 rounded-xl">
                           <TabsTrigger value="history" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Riwayat</TabsTrigger>
                           <TabsTrigger value="upcoming" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Sisa Laga</TabsTrigger>
                           <TabsTrigger value="trend" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Tren</TabsTrigger>
@@ -398,7 +398,7 @@ export function PlayerPerformanceDialog({
                       </TabsContent>
                       
                        <TabsContent value="trend" className="pt-4 outline-none">
-                          <Card className="bg-black/40 border-2 border-white/5 overflow-hidden rounded-2xl shadow-inner">
+                          <Card className="bg-white/5 border-2 border-white/5 overflow-hidden rounded-2xl shadow-inner">
                               <CardHeader className="p-4 pb-2">
                                   <div className="flex justify-between items-center">
                                       <CardTitle className="text-[10px] font-black tracking-[0.2em] text-primary uppercase flex items-center gap-2 italic">
