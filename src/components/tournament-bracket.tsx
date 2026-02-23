@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,7 @@ import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
+import { Button } from './ui/button';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -29,6 +30,7 @@ interface TournamentBracketProps {
   season: WithId<Season> | null;
   isAdmin?: boolean;
   defendingChampionId?: string;
+  onRevertMatch?: (match: WithId<Match>) => void;
 }
 
 // Sub-components moved outside to improve stability and avoid recreation on every render
@@ -44,7 +46,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
   if (!m && p) return (
       <div className="flex flex-col gap-1 opacity-70 items-center">
           <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
-          <Card className="w-44 sm:w-48 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
+          <Card className="w-44 sm:w-48 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
               <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-20">
                   <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
                   <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
@@ -82,7 +84,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
   );
 };
 
-export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId }: TournamentBracketProps) {
+export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId, onRevertMatch }: TournamentBracketProps) {
   const { t } = useTranslation();
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -500,6 +502,23 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 ))}
                             </div>
+                            
+                            {isAdmin && selectedMatch?.isCompleted && !selectedMatch.isProjection && onRevertMatch && (
+                                <div className="flex justify-center pt-4">
+                                    <Button 
+                                        variant="outline" 
+                                        className="bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[10px] h-12 px-8 rounded-xl transition-all gap-2"
+                                        onClick={() => {
+                                            onRevertMatch(selectedMatch);
+                                            setSelectedMatch(null);
+                                        }}
+                                    >
+                                        <Undo2 className="w-4 h-4" />
+                                        Batal Verifikasi Skor
+                                    </Button>
+                                </div>
+                            )}
+
                             <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center mt-6">
                               <p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p>
                               <p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p>

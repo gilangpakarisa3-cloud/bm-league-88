@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -44,36 +43,11 @@ import { LiveClock } from '@/components/live-clock';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { PLAYOFF_SUCCESSOR_MAP } from '@/lib/constants';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
-
-/**
- * Playoff Successor Map for Bracket Logic
- */
-const PLAYOFF_SUCCESSOR_MAP: Record<string, { winner: { bid: string, slot: 1 | 2 }, loser?: { bid: string, slot: 1 | 2 } }> = {
-    // Upper Bracket
-    'playoff-m1': { winner: { bid: 'playoff-m9', slot: 1 }, loser: { bid: 'playoff-m5', slot: 2 } },
-    'playoff-m2': { winner: { bid: 'playoff-m9', slot: 2 }, loser: { bid: 'playoff-m6', slot: 2 } },
-    'playoff-m3': { winner: { bid: 'playoff-m10', slot: 1 }, loser: { bid: 'playoff-m7', slot: 2 } },
-    'playoff-m4': { winner: { bid: 'playoff-m10', slot: 2 }, loser: { bid: 'playoff-m8', slot: 2 } },
-    'playoff-m9': { winner: { bid: 'playoff-m15', slot: 1 }, loser: { bid: 'playoff-m13', slot: 2 } },
-    'playoff-m10': { winner: { bid: 'playoff-m15', slot: 2 }, loser: { bid: 'playoff-m14', slot: 2 } },
-    'playoff-m15': { winner: { bid: 'playoff-m18', slot: 1 }, loser: { bid: 'playoff-m17', slot: 1 } },
-
-    // Lower Bracket
-    'playoff-m5': { winner: { bid: 'playoff-m11', slot: 1 } },
-    'playoff-m6': { winner: { bid: 'playoff-m11', slot: 2 } },
-    'playoff-m7': { winner: { bid: 'playoff-m12', slot: 1 } },
-    'playoff-m8': { winner: { bid: 'playoff-m12', slot: 2 } },
-    'playoff-m11': { winner: { bid: 'playoff-m13', slot: 1 } },
-    'playoff-m12': { winner: { bid: 'playoff-m14', slot: 1 } },
-    'playoff-m13': { winner: { bid: 'playoff-m16', slot: 1 } },
-    'playoff-m14': { winner: { bid: 'playoff-m16', slot: 2 } },
-    'playoff-m16': { winner: { bid: 'playoff-m17', slot: 2 } },
-    'playoff-m17': { winner: { bid: 'playoff-m18', slot: 2 } },
-};
 
 const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason, hasPlayoffs }: {
     match: any;
@@ -509,7 +483,7 @@ export default function FixturesPage() {
             matchDate: matchTimestamp,
             isCompleted: true,
             player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-            player2Wins: isBestOfThree ? (values.player2Wins ?? 0) : null,
+            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
         };
 
         // Step 2: Transaction - Reads FIRST, then WRITES
@@ -606,7 +580,7 @@ export default function FixturesPage() {
                 } else {
                     e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                     if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
-                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalDifference;
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 }
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
@@ -632,9 +606,10 @@ export default function FixturesPage() {
     }
   };
 
-  const handleRevertMatch = useCallback(async () => {
-    if (!firestore || !activeSeasonId || !revertingMatch) return;
-    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, revertingMatch.id);
+  const handleRevertMatch = useCallback(async (matchToRevert?: WithId<Match>) => {
+    const matchToUse = matchToRevert || revertingMatch;
+    if (!firestore || !activeSeasonId || !matchToUse) return;
+    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchToUse.id);
     const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`);
     
     try {
@@ -656,8 +631,14 @@ export default function FixturesPage() {
                     getDocs(query(mCol, where('bracketId', '==', succ.winner.bid))),
                     succ.loser ? getDocs(query(mCol, where('bracketId', '==', succ.loser.bid))) : Promise.resolve(null)
                 ]);
-                if (winSnap && !winSnap.empty) winMatchRef = winSnap.docs[0].ref;
-                if (losSnap && !losSnap.empty) losMatchRef = losSnap.docs[0].ref;
+                if (winSnap && !winSnap.empty) {
+                    winMatchRef = winSnap.docs[0].ref;
+                    if (winSnap.docs[0].data().isCompleted) throw new Error("Tidak dapat membatalkan: Pertandingan babak selanjutnya sudah dimainkan.");
+                }
+                if (losSnap && !losSnap.empty) {
+                    losMatchRef = losSnap.docs[0].ref;
+                    if (losSnap.docs[0].data().isCompleted) throw new Error("Tidak dapat membatalkan: Pertandingan babak selanjutnya sudah dimainkan.");
+                }
             }
         }
 
@@ -902,7 +883,7 @@ export default function FixturesPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-4 mt-6">
                     <AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-xl h-12">{t('cancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleRevertMatch} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-xl h-12">{t('revert_match_action')}</AlertDialogAction>
+                    <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-xl h-12">{t('revert_match_action')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -37,6 +36,7 @@ interface LeagueTableProps {
   activeSeason?: WithId<Season> | null;
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  onRevertMatch?: (match: WithId<Match>) => void;
 }
 
 interface SingleTableProps {
@@ -274,7 +274,8 @@ export function LeagueTable({
     teamsById = {},
     activeSeason = null,
     activeTab = "group_a",
-    onTabChange
+    onTabChange,
+    onRevertMatch
 }: LeagueTableProps) {
   const { t } = useTranslation();
   
@@ -439,6 +440,7 @@ export function LeagueTable({
                         leagueTable={tableData}
                         season={activeSeason}
                         isAdmin={isAdmin}
+                        onRevertMatch={onRevertMatch}
                      />
                 </TabsContent>
             </Tabs>
