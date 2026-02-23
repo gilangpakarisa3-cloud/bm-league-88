@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -323,7 +324,13 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
 
                     <TabsContent value="upcoming" className="mt-0 focus-visible:ring-0 outline-none">
                         <div className="space-y-12">
-                            {Object.entries(groupedMatches.upcoming).map(([rd, rms]) => (
+                            {Object.entries(groupedMatches.upcoming)
+                                .sort(([, aMatches], [, bMatches]) => {
+                                    const minA = Math.min(...aMatches.map(m => m.matchDate.toMillis()));
+                                    const minB = Math.min(...bMatches.map(m => m.matchDate.toMillis()));
+                                    return minA - minB;
+                                })
+                                .map(([rd, rms]) => (
                                 <section key={`upcoming-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex items-center gap-6 mb-6">
                                         <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full" />
@@ -353,7 +360,13 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
 
                     <TabsContent value="completed" className="mt-0 focus-visible:ring-0 outline-none">
                         <div className="space-y-12">
-                            {Object.entries(groupedMatches.completed).map(([rd, rms]) => (
+                            {Object.entries(groupedMatches.completed)
+                                .sort(([, aMatches], [, bMatches]) => {
+                                    const maxA = Math.max(...aMatches.map(m => m.matchDate.toMillis()));
+                                    const maxB = Math.max(...bMatches.map(m => m.matchDate.toMillis()));
+                                    return maxB - maxA;
+                                })
+                                .map(([rd, rms]) => (
                                 <section key={`completed-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex items-center gap-6 mb-6">
                                         <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-full" />
@@ -582,7 +595,7 @@ export default function FixturesPage() {
                 } else {
                     e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                     if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
-                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalDifference;
                 }
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
