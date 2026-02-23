@@ -1,5 +1,7 @@
+
 'use client';
 
+import * as React from 'react';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
@@ -61,7 +63,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const LEAGUE_ID = 'main-league';
 
-export default function LeaguePage() {
+export default function LeaguePage({ params, searchParams }: { params: Promise<any>, searchParams: Promise<any> }) {
+  // Unwrap Next.js 15 dynamic APIs
+  React.use(params);
+  React.use(searchParams);
+
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();

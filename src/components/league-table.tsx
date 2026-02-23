@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -11,7 +12,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck, Trophy, Award, LayoutGrid, History, Swords } from "lucide-react";
+import { Trash2, User, ShieldCheck, Trophy, Award, LayoutGrid, History, Swords, Scan, Activity, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -182,7 +183,7 @@ const SingleTable = ({
                         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                            <span className={cn(
                                "font-black tracking-tight transition-colors truncate uppercase italic pr-4", 
-                               isFirst ? "text-xs sm:text-lg text-yellow-400" : "text-[11px] sm:text-base text-white group-hover:text-primary"
+                               isFirst ? "text-xs sm:lg text-yellow-400" : "text-[11px] sm:text-base text-white group-hover:text-primary"
                             )}>
                                 {entry.playerName}
                             </span>
@@ -315,15 +316,95 @@ export function LeagueTable({
     <div className="w-full overflow-hidden rounded-xl sm:rounded-2xl border-2 border-white/5 bg-card/60 backdrop-blur-xl shadow-2xl">
         {isHybrid ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 rounded-none bg-black/40 h-12 sm:h-14 p-1 border-b border-white/5">
-                    <TabsTrigger value="group_a" className="font-black uppercase tracking-widest text-[8px] sm:text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup A ({groupA.length})</TabsTrigger>
-                    <TabsTrigger value="group_b" className="font-black uppercase tracking-widest text-[8px] sm:text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">Grup B ({groupB.length})</TabsTrigger>
-                    <TabsTrigger value="playoff" className="flex items-center justify-center gap-1 sm:gap-2 font-black uppercase tracking-widest text-[8px] sm:text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-500">
-                        <Swords className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Playoff
+                <TabsList className="grid w-full grid-cols-3 bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
+                    {/* HUD Ambient Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+                    
+                    {/* Decorative HUD Markers */}
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-sm" />
+                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60 rounded-tr-sm" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/20 blur-sm" />
+
+                    <TabsTrigger 
+                        value="group_a" 
+                        className={cn(
+                            "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                            "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                        )}
+                    >
+                        <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                            <div className="relative">
+                                <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
+                                <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
+                            </div>
+                            Grup A <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupA.length}]</span>
+                        </span>
+                        
+                        {/* High-Performance Slanted Background */}
+                        <div className={cn(
+                            "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                            "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                            "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                        )} />
+                        
+                        {/* HUD Scanning Line */}
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
+                    </TabsTrigger>
+
+                    <TabsTrigger 
+                        value="group_b" 
+                        className={cn(
+                            "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                            "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                        )}
+                    >
+                        <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                            <div className="relative">
+                                <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
+                                <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
+                            </div>
+                            Grup B <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupB.length}]</span>
+                        </span>
+                        
+                        {/* High-Performance Slanted Background */}
+                        <div className={cn(
+                            "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                            "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                            "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                        )} />
+                        
+                        {/* HUD Scanning Line */}
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
+                    </TabsTrigger>
+
+                    <TabsTrigger 
+                        value="playoff" 
+                        className={cn(
+                            "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                            "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                        )}
+                    >
+                         <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                            <div className="relative">
+                                <Swords className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
+                                <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
+                            </div>
+                            Playoff
+                        </span>
+                        
+                        {/* High-Performance Slanted Background */}
+                        <div className={cn(
+                            "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                            "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                            "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                        )} />
+                        
+                        {/* HUD Scanning Line */}
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="group_a" className="mt-0">
-                     <SingleTable 
+                    <SingleTable 
                         tableData={groupA} 
                         totalPlayers={groupA.length}
                         onSelectPlayer={onSelectPlayer}
@@ -338,7 +419,7 @@ export function LeagueTable({
                 </TabsContent>
                 <TabsContent value="group_b" className="mt-0">
                      <SingleTable 
-                        tableData={groupB} 
+                        tableData={groupB}
                         totalPlayers={groupB.length}
                         onSelectPlayer={onSelectPlayer}
                         seasonType={seasonType}
@@ -347,40 +428,40 @@ export function LeagueTable({
                         seasonStatus={seasonStatus}
                         isAdmin={isAdmin}
                         defendingChampionId={defendingChampionId}
-                        matches={matches}
+                         matches={matches}
                      />
                 </TabsContent>
-                <TabsContent value="playoff" className="mt-0">
-                    <TournamentBracket 
-                        matches={matches} 
-                        playersById={playersById} 
-                        teamsById={teamsById}
+                <TabsContent value="playoff" className="mt-0 ">
+                     <TournamentBracket 
+                        matches={matches}
+                        playersById={playersById}
+                         teamsById={teamsById}
                         leagueTable={tableData}
                         season={activeSeason}
                         isAdmin={isAdmin}
-                    />
+                     />
                 </TabsContent>
             </Tabs>
         ) : (
-            <SingleTable 
+             <SingleTable 
                 tableData={tableData}
                 isCoop={seasonType === 'Co-Op'}
                 totalPlayers={tableData.length}
                 onSelectPlayer={onSelectPlayer}
                 seasonType={seasonType}
                 isLoading={isLoading}
-                onRemovePlayer={onRemovePlayer}
+                 onRemovePlayer={onRemovePlayer}
                 seasonStatus={seasonStatus}
                 isAdmin={isAdmin}
                 defendingChampionId={defendingChampionId}
                 matches={matches}
-             />
+            />
         )}
     </div>
   );
 }
 
-function LeagueTableSkeleton({ isCoop }: { isCoop: boolean}) {
+function LeagueTableSkeleton({ isCoop }: { isCoop: boolean }) {
   const { t } = useTranslation();
   return (
     <div className="w-full overflow-hidden rounded-2xl border-2 border-white/5 bg-card/40 animate-pulse">
@@ -404,13 +485,13 @@ function LeagueTableSkeleton({ isCoop }: { isCoop: boolean}) {
                 <TableCell className="w-2 p-0"></TableCell>
                 <TableCell><Skeleton className="h-8 w-8 mx-auto rounded-md" /></TableCell>
                 <TableCell>
-                    <div className="flex items-center gap-4">
-                        <Skeleton className="h-12 w-12 rounded-full" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-5 w-32" />
-                            <Skeleton className="h-3 w-24" />
-                        </div>
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-3 w-24" />
                     </div>
+                  </div>
                 </TableCell>
                 <TableCell><Skeleton className="h-6 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-8 mx-auto" /></TableCell>

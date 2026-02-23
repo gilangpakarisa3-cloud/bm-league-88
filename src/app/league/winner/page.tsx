@@ -1,8 +1,10 @@
+
 'use client';
 
+import * as React from 'react';
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { WinnerDisplay } from '@/components/winner-display';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 import type { LeagueEntry, Season, WithId, Team, Match, CoOpLeagueEntry } from '@/lib/types';
@@ -15,13 +17,11 @@ import { useTranslation } from '@/hooks/use-translation';
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
 
-function LeagueWinnerPageContents() {
+function LeagueWinnerPageContents({ seasonId }: { seasonId: string | null }) {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const firestore = useFirestore();
     const { t } = useTranslation();
 
-    const seasonId = searchParams.get('seasonId');
     const [winner, setWinner] = useState<WithId<LeagueEntry> | null>(null);
     const [aggregatedStats, setAggregatedStats] = useState<{ win: number, loss: number, points: number } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -245,11 +245,14 @@ const WinnerSkeleton = ({title}: {title: string}) => (
      </div>
 );
 
-export default function LeagueWinnerPage() {
+export default function LeagueWinnerPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { t } = useTranslation();
+    const resolvedSearchParams = React.use(searchParams);
+    const seasonId = typeof resolvedSearchParams.seasonId === 'string' ? resolvedSearchParams.seasonId : null;
+
     return (
         <Suspense fallback={<WinnerSkeleton title={t('league_champion')}/>}>
-            <LeagueWinnerPageContents />
+            <LeagueWinnerPageContents seasonId={seasonId} />
         </Suspense>
     )
 }
