@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -365,7 +366,7 @@ export default function Home() {
   return (
     <div className={cn(
         "mx-auto px-2 sm:px-4 py-8 sm:py-12 transition-all duration-1000 ease-in-out relative",
-        isWideMode ? "max-w-[98vw] sm:max-w-[95vw]" : "container"
+        isWideMode ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-5xl"
     )}>
       {/* Dynamic Background Decoration */}
       <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
