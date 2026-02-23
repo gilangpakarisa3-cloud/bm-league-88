@@ -425,6 +425,92 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </DialogHeader>
 
+                        {/* ADMIN TOURNAMENT MANAGEMENT SECTION - MOVED TO TOP */}
+                        {isAdmin && !selectedMatch?.isProjection && (
+                            <div className="relative z-10 space-y-6 animate-in slide-in-from-top-4 duration-700">
+                                <div className="flex items-center justify-center gap-4 text-primary">
+                                    <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
+                                    <div className="flex items-center gap-2">
+                                        <Settings2 className="w-5 h-5" />
+                                        <h4 className="text-sm font-black tracking-widest uppercase italic pr-4">Tournament Management</h4>
+                                    </div>
+                                    <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-end bg-white/[0.03] border-2 border-white/5 rounded-[1.5rem] p-6 shadow-inner">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
+                                                <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
+                                            </Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className="w-full h-12 bg-black/40 border-white/10 font-black text-xs uppercase italic justify-start px-4 hover:border-primary/50 transition-all">
+                                                        {editDate ? format(editDate, "eeee, d MMM yyyy") : "Pilih Tanggal"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0 bg-background border-primary/30">
+                                                    <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-xl" />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
+                                                <Clock className="w-3 h-3" /> Waktu Kick-Off (24H)
+                                            </Label>
+                                            <div className="flex items-center gap-2">
+                                                <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)}>
+                                                    <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-[#0A192F] border-primary/30">
+                                                        {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
+                                                            <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <span className="text-primary font-black">:</span>
+                                                <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)}>
+                                                    <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-[#0A192F] border-primary/30">
+                                                        {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
+                                                            <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button 
+                                        onClick={handleSaveManualSchedule} 
+                                        disabled={isUpdatingSchedule}
+                                        className="h-12 px-8 font-black uppercase italic tracking-widest gap-2 shadow-xl shadow-primary/20"
+                                    >
+                                        {isUpdatingSchedule ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        Simpan Jadwal
+                                    </Button>
+                                </div>
+
+                                {selectedMatch?.isCompleted && onRevertMatch && (
+                                    <div className="flex justify-center">
+                                        <Button 
+                                            variant="outline" 
+                                            className="bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[10px] h-12 px-8 rounded-xl transition-all gap-2"
+                                            onClick={() => {
+                                                onRevertMatch(selectedMatch);
+                                                setSelectedMatch(null);
+                                            }}
+                                        >
+                                            <Undo2 className="w-4 h-4" />
+                                            Batal Verifikasi Skor
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10">
                             <div className="flex flex-col items-center text-center gap-4 group w-full">
                                 {analysis1 ? (
@@ -585,92 +671,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 ))}
                             </div>
-                            
-                            {/* ADMIN TOURNAMENT MANAGEMENT SECTION */}
-                            {isAdmin && !selectedMatch?.isProjection && (
-                                <div className="mt-8 space-y-6 animate-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex items-center justify-center gap-4 text-primary">
-                                        <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
-                                        <div className="flex items-center gap-2">
-                                            <Settings2 className="w-5 h-5" />
-                                            <h4 className="text-sm font-black tracking-widest uppercase italic pr-4">Tournament Management</h4>
-                                        </div>
-                                        <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-end bg-white/[0.03] border-2 border-white/5 rounded-[1.5rem] p-6 shadow-inner">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
-                                                    <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
-                                                </Label>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant="outline" className="w-full h-12 bg-black/40 border-white/10 font-black text-xs uppercase italic justify-start px-4 hover:border-primary/50 transition-all">
-                                                            {editDate ? format(editDate, "eeee, d MMM yyyy") : "Pilih Tanggal"}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0 bg-background border-primary/30">
-                                                        <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-xl" />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
-                                                    <Clock className="w-3 h-3" /> Waktu Kick-Off (24H)
-                                                </Label>
-                                                <div className="flex items-center gap-2">
-                                                    <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)}>
-                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent className="bg-[#0A192F] border-primary/30">
-                                                            {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                                                <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <span className="text-primary font-black">:</span>
-                                                    <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)}>
-                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent className="bg-[#0A192F] border-primary/30">
-                                                            {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                                                <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <Button 
-                                            onClick={handleSaveManualSchedule} 
-                                            disabled={isUpdatingSchedule}
-                                            className="h-12 px-8 font-black uppercase italic tracking-widest gap-2 shadow-xl shadow-primary/20"
-                                        >
-                                            {isUpdatingSchedule ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                            Simpan Jadwal
-                                        </Button>
-                                    </div>
-
-                                    {selectedMatch?.isCompleted && onRevertMatch && (
-                                        <div className="flex justify-center">
-                                            <Button 
-                                                variant="outline" 
-                                                className="bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[10px] h-12 px-8 rounded-xl transition-all gap-2"
-                                                onClick={() => {
-                                                    onRevertMatch(selectedMatch);
-                                                    setSelectedMatch(null);
-                                                }}
-                                            >
-                                                <Undo2 className="w-4 h-4" />
-                                                Batal Verifikasi Skor
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
 
                             <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center mt-6">
                               <p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p>
