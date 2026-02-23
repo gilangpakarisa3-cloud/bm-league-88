@@ -419,7 +419,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                         </FormLabel>
                         <div className="flex items-center gap-2">
                             <Select value={h} onValueChange={(val) => field.onChange(`${val}:${m}`)}>
-                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-20">
+                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-24 pr-4">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -430,7 +430,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             </Select>
                             <span className="text-primary font-black">:</span>
                             <Select value={m} onValueChange={(val) => field.onChange(`${h}:${val}`)}>
-                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-20">
+                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-24 pr-4">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">

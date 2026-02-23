@@ -610,7 +610,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 </Label>
                                                 <div className="flex items-center gap-2">
                                                     <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)}>
-                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-20">
+                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -621,7 +621,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                     </Select>
                                                     <span className="text-primary font-black">:</span>
                                                     <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)}>
-                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-20">
+                                                        <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent className="bg-[#0A192F] border-primary/30">
