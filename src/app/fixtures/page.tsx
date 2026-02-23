@@ -527,11 +527,11 @@ export default function FixturesPage() {
                 await processApply(d1.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
                 await processApply(d1.player2Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
                 await processApply(d2.player1Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
-                await processApply(d2.player2Id, newOutcome.p2, values.player1Score || 0, values.player2Score || 0);
+                await processApply(d2.player2Id, newOutcome.p2, values.player2Score || 0, values.player1Score || 0);
             }
         } else {
             await processApply(orig.player1Id, newOutcome.p1, values.player1Score || 0, values.player2Score || 0);
-            await processApply(orig.player2Id, newOutcome.p2, values.player1Score || 0, values.player1Score || 0);
+            await processApply(orig.player2Id, newOutcome.p2, values.player1Score || 0, values.player2Score || 0);
         }
 
         // 3. Bracket & Table Logic
@@ -708,7 +708,7 @@ export default function FixturesPage() {
   const isLoading = isLoadingSeasons || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
   
   return (
-    <div className="max-w-5xl mx-auto px-2 sm:px-4 py-8 relative">
+    <div className="max-w-7xl mx-auto px-2 sm:px-4 py-8 relative">
        {/* Background decorative glows */}
        <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
        <div className="absolute bottom-0 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
@@ -809,7 +809,7 @@ export default function FixturesPage() {
             <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
         )}
 
-        {/* Dialogs Style Revise */}
+        {/* Dialogs */}
         <Dialog open={!!editingMatch} onOpenChange={(open) => !open && setEditingMatch(null)}>
             <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)] max-h-[90vh] flex flex-col">
                 <DialogHeader className="p-6 border-b border-white/5 bg-black/20 shrink-0">

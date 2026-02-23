@@ -169,7 +169,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
 
   if (isLoading) {
       return (
-          <section className="space-y-8 max-w-5xl mx-auto">
+          <section className="space-y-8 max-w-7xl mx-auto">
               <div className="flex flex-col items-center gap-2 mb-2">
                   <Skeleton className="h-6 w-32" />
                   <Skeleton className="h-8 w-64" />
@@ -217,7 +217,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                 />
             </div>
         ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 px-2 sm:px-0 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 px-2 sm:px-0 max-w-7xl mx-auto">
                 {leaderboardData ? (
                     isHybrid ? (
                         <>
@@ -369,8 +369,8 @@ export default function Home() {
       <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
       <div className="absolute top-1/2 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
-      {/* Top Part: Always Narrow/Centered */}
-      <div className="max-w-5xl mx-auto space-y-10 sm:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Top Part: Focused/Centered - UPDATED TO max-w-7xl */}
+      <div className="max-w-7xl mx-auto space-y-10 sm:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <section className="text-center space-y-4 sm:space-y-6 relative px-4">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-3 sm:px-4 py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary italic mb-1 sm:2">
             <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-primary"/> Official League Station
@@ -410,10 +410,10 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Leaderboard/Bracket Section: Adaptive width */}
+      {/* Leaderboard/Bracket Section: Adaptive width - UPDATED BASE TO max-w-7xl */}
       <div className={cn(
           "mx-auto transition-all duration-1000 ease-in-out mt-16 px-2 sm:px-4",
-          isWideMode ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-5xl"
+          isWideMode ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-7xl"
       )}>
         <LeaderboardSection onPlayoffStatusChange={setIsWideMode} />
       </div>
