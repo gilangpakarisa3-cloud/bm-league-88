@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2 } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -301,22 +301,62 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-12 border-l-2 border-white/5 bg-white/[0.03] px-6 sm:px-12 rounded-r-[2rem] sm:rounded-r-[3rem] relative group/final overflow-hidden">
-                    <div className="absolute inset-0 overflow-hidden"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.04] rounded-full blur-[100px]" /></div>
-                    <div className="flex flex-col items-center gap-6 sm:gap-8 relative z-10">
-                        <div className="relative group/trophy">
-                            <div className="absolute -inset-12 bg-yellow-400/20 rounded-full blur-2xl opacity-40 animate-pulse" />
-                            <div className="relative p-8 sm:p-12 bg-yellow-400/10 rounded-full border-4 sm:border-6 border-yellow-400/50 shadow-[0_0_60px_rgba(250,204,21,0.2)]">
-                                <Trophy className="text-yellow-400 w-16 h-16 sm:w-20 sm:h-20 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]" />
+                {/* GRAND FINAL SECTION - ULTRA MODERN SUPER SPORT REVISION */}
+                <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
+                    {/* Atmospheric Stadium Lighting */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2" />
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2" />
+                        {/* HUD Grid Overlay */}
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
+                    </div>
+
+                    {/* HUD Corner Accents */}
+                    <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary/40 rounded-tr-2xl pointer-events-none" />
+                    <div className="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-primary/40 rounded-br-2xl pointer-events-none" />
+
+                    <div className="flex flex-col items-center gap-8 sm:gap-12 relative z-10">
+                        {/* Advanced Trophy Presentation Module */}
+                        <div className="relative group/trophy cursor-default">
+                            {/* Energy Core Rotation Effects */}
+                            <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
+                            <div className="absolute -inset-1 w-[240px] h-[240px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
+                            
+                            <div className="relative p-10 sm:p-16 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-xl transition-transform duration-700 group-hover/trophy:scale-110">
+                                <Trophy className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000" />
+                                
+                                {/* HUD Energy Notches */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
                         </div>
-                        <div className="text-center space-y-1 sm:space-y-3">
-                            <h3 className="text-4xl sm:text-5xl font-black tracking-widest text-white uppercase italic pr-4">Grand Final</h3>
-                            <p className="text-[8px] font-black text-primary tracking-[0.4em] uppercase opacity-80">Apex Station • Championship Protocol</p>
+
+                        <div className="text-center space-y-2 sm:space-y-4">
+                            <div className="flex items-center justify-center gap-4">
+                                <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
+                                <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_40px_rgba(255,255,255,0.1)] leading-none">Grand Final</h3>
+                                <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <p className="text-[10px] font-black text-primary tracking-[0.5em] uppercase opacity-90 italic">CHAMPIONSHIP ASCENSION PROTOCOL</p>
+                                <div className="flex gap-1.5 mt-2">
+                                    <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+                                    <div className="w-2 h-2 bg-primary/40 rounded-full" />
+                                    <div className="w-2 h-2 bg-primary/20 rounded-full" />
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="scale-[1.4] sm:scale-[1.8] transform transition-all duration-700 py-16 sm:py-24 relative z-10">
-                      <MatchCard bid="playoff-m18" label="BATTLE FOR GLORY" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+
+                    {/* Final Match Card with Immersive Shadow */}
+                    <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
+                        <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
+                        <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                        
+                        {/* Stakes Visualization Mikro-HUD */}
+                        <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-full flex justify-between px-2 pointer-events-none opacity-40">
+                            <div className="flex flex-col items-start"><span className="text-[6px] font-black text-white/40 uppercase">Match Stakes</span><span className="text-[8px] font-bold text-primary italic uppercase">Absolute Glory</span></div>
+                            <div className="flex flex-col items-end"><span className="text-[6px] font-black text-white/40 uppercase">System Integrity</span><span className="text-[8px] font-bold text-primary italic uppercase">100.0%</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
