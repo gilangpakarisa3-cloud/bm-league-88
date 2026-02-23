@@ -24,8 +24,9 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Calendar } from './ui/calendar';
-import { updateDocumentNonBlocking, useFirestore } from '@/firebase';
-import { doc, Timestamp } from 'firebase/firestore';
+import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { doc, Timestamp, updateDoc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -99,6 +100,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId, onRevertMatch }: TournamentBracketProps) {
   const { t } = useTranslation();
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -143,22 +145,31 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const onMouseLeave = () => { isDragging.current = false; document.body.style.userSelect = ''; };
   const handleCardClick = (matchData: any) => { if (!mouseMoved.current) setSelectedMatch(matchData); };
 
-  const handleSaveManualSchedule = () => {
+  const handleSaveManualSchedule = async () => {
     if (!firestore || !season || !selectedMatch || !editDate || !editTime) return;
     setIsUpdatingSchedule(true);
     
     const [h, m] = editTime.split(':').map(Number);
     const newDate = new Date(editDate);
-    newDate.setHours(h, m);
+    newDate.setHours(h, m, 0, 0);
     
-    const matchRef = doc(firestore, `leagues/main-league/seasons/${season.id}/matches`, selectedMatch.id);
-    updateDocumentNonBlocking(matchRef, {
-        matchDate: Timestamp.fromDate(newDate)
-    });
+    const matchRef = doc(firestore, 'leagues', 'main-league', 'seasons', season.id, 'matches', selectedMatch.id);
     
-    setTimeout(() => {
+    try {
+        await updateDoc(matchRef, {
+            matchDate: Timestamp.fromDate(newDate)
+        });
+        toast({ title: "Jadwal Diperbarui", description: "Waktu pertandingan telah berhasil disinkronisasi." });
+    } catch (error: any) {
+        const permissionError = new FirestorePermissionError({
+            path: matchRef.path,
+            operation: 'update',
+            requestResourceData: { matchDate: Timestamp.fromDate(newDate) }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    } finally {
         setIsUpdatingSchedule(false);
-    }, 1000);
+    }
   };
 
   const rankedTable = useMemo(() => {
