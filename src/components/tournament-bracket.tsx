@@ -173,14 +173,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       cum += (pR > oR ? 1 : (pR < oR ? -1 : 0)); return { match: i + 1, points: cum };
     })];
     
-    let pST = "BALANCED TACTICS"; 
+    let pST = "Balance"; 
     let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; 
     let pSD = t('play_style_balanced_desc');
     
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played; const avgGA = stats.ga / stats.played;
-        if (avgGF > 1.6) { pST = "ATTACKING STRATEGY"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); }
-        else if (avgGA < 1.2 && stats.played >= 3) { pST = "DEFENSIVE PROTOCOL"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); }
+        if (avgGF > 1.6) { pST = "Attacking"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); }
+        else if (avgGA < 1.2 && stats.played >= 3) { pST = "Defense & Counter"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); }
     }
     
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
@@ -359,7 +359,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
-                                                        <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-4 py-1.5 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                                        <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
                                                             analysis1.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
                                                             analysis1.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
                                                             "bg-primary/20 text-primary border-primary/30")}>
@@ -408,7 +408,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
-                                                        <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-4 py-1.5 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                                        <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
                                                             analysis2.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
                                                             analysis2.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
                                                             "bg-primary/20 text-primary border-primary/30")}>

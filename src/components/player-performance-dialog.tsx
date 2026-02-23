@@ -186,7 +186,7 @@ export function PlayerPerformanceDialog({
 
     const masterInfo = masterPlayersRanked.find(p => p.id === playerIdToFilter);
 
-    let pST = "BALANCED TACTICS"; 
+    let pST = "Balance"; 
     let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; 
     let pSD = t('play_style_balanced_desc');
     
@@ -194,11 +194,11 @@ export function PlayerPerformanceDialog({
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
         if (avgGF > 1.6) {
-            pST = "ATTACKING STRATEGY";
+            pST = "Attacking";
             pSType = 'attacking';
             pSD = t('play_style_attacking_desc');
         } else if (avgGA < 1.2 && stats.played >= 3) {
-            pST = "DEFENSIVE PROTOCOL";
+            pST = "Defense & Counter";
             pSType = 'defensive';
             pSD = t('play_style_defensive_desc');
         }
@@ -283,7 +283,7 @@ export function PlayerPerformanceDialog({
                       <div className="pt-2">
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-4 py-1.5 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
                                     playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
                                     playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
                                     "bg-primary/20 text-primary border-primary/30")}>
