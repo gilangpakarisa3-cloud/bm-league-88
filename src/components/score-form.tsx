@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Match, Season, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, User, Clock, Swords, Save, Shield, Plus, Minus, Zap, Activity } from "lucide-react";
+import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -56,11 +56,47 @@ interface ScoreFormProps {
   player2Info: { name: string; team?: WithId<Team> | null };
 }
 
+// Sub-components moved outside
+const ScoreControl = ({ fieldName, value, onIncrement, onDecrement }: { fieldName: 'player1Score' | 'player2Score', value: number, onIncrement: () => void, onDecrement: () => void }) => (
+  <div className="flex flex-col items-center gap-2">
+    <div className="flex items-center gap-2">
+      <Button 
+        type="button" 
+        variant="outline" 
+        size="icon" 
+        className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
+        onClick={onDecrement}
+      >
+        <Minus className="h-5 w-5 text-primary" />
+      </Button>
+      
+      <div className="relative group/score overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner">
+        <span className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 -z-0 translate-y-2">
+          <span className="text-6xl font-black text-white italic">{value}</span>
+        </span>
+        <span className="text-4xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
+          {value}
+        </span>
+      </div>
+
+      <Button 
+        type="button" 
+        variant="outline" 
+        size="icon" 
+        className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
+        onClick={onIncrement}
+      >
+        <Plus className="h-5 w-5 text-primary" />
+      </Button>
+    </div>
+    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Score Unit</p>
+  </div>
+);
+
 export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, player1Info, player2Info }: ScoreFormProps) {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Best of 3 applies to Co-Op mode OR any Playoff round in Hybrid mode
   const isBestOfThree = seasonType === 'Co-Op' || (match.round && match.round !== 'Group');
 
   const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
@@ -153,42 +189,6 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     }
   }
 
-  const ScoreControl = ({ fieldName, value }: { fieldName: 'player1Score' | 'player2Score', value: number }) => (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex items-center gap-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="icon" 
-          className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
-          onClick={() => decrementScore(fieldName)}
-        >
-          <Minus className="h-5 w-5 text-primary" />
-        </Button>
-        
-        <div className="relative group/score overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner">
-          <span className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 -z-0 translate-y-2">
-            <span className="text-6xl font-black text-white italic">{value}</span>
-          </span>
-          <span className="text-4xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
-            {value}
-          </span>
-        </div>
-
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="icon" 
-          className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
-          onClick={() => incrementScore(fieldName)}
-        >
-          <Plus className="h-5 w-5 text-primary" />
-        </Button>
-      </div>
-      <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Score Unit</p>
-    </div>
-  );
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
@@ -212,7 +212,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                     <div className="absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <Avatar className="h-16 w-16 border-2 border-primary shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-transform duration-500">
                         <AvatarImage src={player1Info.team?.logoUrl} className="object-cover" />
-                        <AvatarFallback className="bg-black/40"><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
+                        <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
                     </Avatar>
                 </div>
 
@@ -232,7 +232,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic mt-1">Wins</p>
                         </div>
                     ) : (
-                        <ScoreControl fieldName="player1Score" value={p1Value} />
+                        <ScoreControl fieldName="player1Score" value={p1Value} onIncrement={() => incrementScore('player1Score')} onDecrement={() => decrementScore('player1Score')} />
                     )}
                 </div>
               </div>
@@ -245,7 +245,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                     <div className="absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <Avatar className="h-16 w-16 border-2 border-primary shadow-2xl relative z-10 scale-100 group-hover:scale-105 transition-transform duration-500">
                         <AvatarImage src={player2Info.team?.logoUrl} className="object-cover" />
-                        <AvatarFallback className="bg-black/40"><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
+                        <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
                     </Avatar>
                 </div>
 
@@ -265,7 +265,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic mt-1">Wins</p>
                         </div>
                     ) : (
-                        <ScoreControl fieldName="player2Score" value={p2Value} />
+                        <ScoreControl fieldName="player2Score" value={p2Value} onIncrement={() => incrementScore('player2Score')} onDecrement={() => decrementScore('player2Score')} />
                     )}
                 </div>
               </div>
@@ -291,7 +291,6 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
            </div>
         )}
 
-        {/* Detailed Briefing Card */}
         <div className="bg-white/[0.02] p-5 rounded-2xl border-2 border-white/5 space-y-4 backdrop-blur-sm">
             <div className="flex items-center gap-2 border-b border-white/5 pb-3">
                 <div className="p-1.5 bg-primary/10 rounded-md text-primary">

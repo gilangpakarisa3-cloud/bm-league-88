@@ -2,10 +2,10 @@
 
 import { useMemo, useState, useRef, useEffect } from 'react';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, TrendingUp, Info, History, Calendar, Clock, Activity, ShieldCheck, Target, Zap, ShieldAlert, Loader2, Award, Flame, ChevronRight, Binary, BarChart3, Scan, Percent, Star, LayoutGrid } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -31,6 +31,57 @@ interface TournamentBracketProps {
   isAdmin?: boolean;
   defendingChampionId?: string;
 }
+
+// Sub-components moved outside to improve stability and avoid recreation on every render
+const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
+  <div className={cn("flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300", variant === "primary" ? "bg-primary/5 border-primary/20" : variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10")}>
+      <div className="flex items-center justify-center gap-1.5"><Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} /><span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span></div>
+      <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+  </div>
+);
+
+const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { bid: string, label: string, bracketData: Record<string, any>, projections: Record<string, any> | null, handleCardClick: (matchData: any) => void }) => {
+  const m = bracketData[bid]; const p = projections?.[bid];
+  if (!m && p) return (
+      <div className="flex flex-col gap-1 opacity-70 items-center">
+          <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
+          <Card className="w-44 sm:w-48 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
+              <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-20">
+                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
+                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
+              </CardContent>
+          </Card>
+      </div>
+  );
+  if (!m) return (
+      <div className="flex flex-col gap-1 opacity-30 items-center">
+          <span className="text-[8px] font-black tracking-widest text-white/40 uppercase">{label}</span>
+          <div className="w-44 sm:w-48 h-20 bg-black/20 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-1.5"><Loader2 className="w-4 h-4 text-white/10 animate-spin"/><span className="text-[7px] font-black tracking-widest text-white/20 uppercase">KALIBRASI</span></div>
+      </div>
+  );
+  return (
+      <div className="flex flex-col gap-1 relative items-center">
+          <span className="text-[8px] font-black tracking-widest text-primary/80 uppercase">{label}</span>
+          <Card className={cn("w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl", m.isCompleted ? "border-primary/30 bg-card/60 backdrop-blur-xl" : "border-white/20 bg-white/5 border-dashed")} onClick={() => handleCardClick(m)}>
+              <CardContent className="p-0 flex flex-col divide-y divide-white/5">
+                  {[1, 2].map(i => {
+                      const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
+                      return (
+                          <div key={i} className={cn("flex items-center justify-between px-3 h-10 relative", isW ? "bg-primary/10" : "bg-transparent")}>
+                              {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                  <Avatar className={cn("h-6 w-6 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}><AvatarImage src={t?.logoUrl} /><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar>
+                                  <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-3", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
+                              </div>
+                              <div className={cn("px-1.5 py-0.5 rounded bg-black/40 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
+                          </div>
+                      )
+                  })}
+              </CardContent>
+          </Card>
+      </div>
+  );
+};
 
 export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId }: TournamentBracketProps) {
   const { t } = useTranslation();
@@ -164,56 +215,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return d;
   }, [matches, playersById, teamsById, rankedTable]);
 
-  const MatchCard = ({ bid, label }: { bid: string, label: string }) => {
-    const m = bracketData[bid]; const p = projections?.[bid];
-    if (!m && p) return (
-        <div className="flex flex-col gap-1 opacity-70 items-center">
-            <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
-            <Card className="w-44 sm:w-48 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', t1: p.p1.teamId ? teamsById[p.p1.teamId] : null, t2: p.p2.teamId ? teamsById[p.p2.teamId] : null, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
-                <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-20">
-                    <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
-                    <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
-                </CardContent>
-            </Card>
-        </div>
-    );
-    if (!m) return (
-        <div className="flex flex-col gap-1 opacity-30 items-center">
-            <span className="text-[8px] font-black tracking-widest text-white/40 uppercase">{label}</span>
-            <div className="w-44 sm:w-48 h-20 bg-black/20 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-1.5"><Loader2 className="w-4 h-4 text-white/10 animate-spin"/><span className="text-[7px] font-black tracking-widest text-white/20 uppercase">KALIBRASI</span></div>
-        </div>
-    );
-    return (
-        <div className="flex flex-col gap-1 relative items-center">
-            <span className="text-[8px] font-black tracking-widest text-primary/80 uppercase">{label}</span>
-            <Card className={cn("w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl", m.isCompleted ? "border-primary/30 bg-card/60 backdrop-blur-xl" : "border-white/20 bg-white/5 border-dashed")} onClick={() => handleCardClick(m)}>
-                <CardContent className="p-0 flex flex-col divide-y divide-white/5">
-                    {[1, 2].map(i => {
-                        const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
-                        return (
-                            <div key={i} className={cn("flex items-center justify-between px-3 h-10 relative", isW ? "bg-primary/10" : "bg-transparent")}>
-                                {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
-                                <div className="flex items-center gap-2 overflow-hidden">
-                                    <Avatar className={cn("h-6 w-6 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}><AvatarImage src={t?.logoUrl} /><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar>
-                                    <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-3", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
-                                </div>
-                                <div className={cn("px-1.5 py-0.5 rounded bg-black/40 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
-                            </div>
-                        )
-                    })}
-                </CardContent>
-            </Card>
-        </div>
-    );
-  };
-
-  const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
-    <div className={cn("flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300", variant === "primary" ? "bg-primary/5 border-primary/20" : variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10")}>
-        <div className="flex items-center justify-center gap-1.5"><Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} /><span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span></div>
-        <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
-    </div>
-  );
-
   const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t]);
   const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t]);
   
@@ -240,11 +241,19 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="space-y-6 relative h-full flex flex-col justify-center">
                             <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic pr-4">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
                             <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-4">
-                                <div className="flex flex-col gap-8 relative"><MatchCard bid="playoff-m1" label="UB QF 1" /><MatchCard bid="playoff-m2" label="UB QF 2" /><MatchCard bid="playoff-m3" label="UB QF 3" /><MatchCard bid="playoff-m4" label="UB QF 4" /></div>
+                                <div className="flex flex-col gap-8 relative">
+                                  <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                </div>
                                 <div className="flex flex-col gap-28 py-12 opacity-20"><ChevronRight className="w-3 h-3 text-primary"/><ChevronRight className="w-3 h-3 text-primary"/></div>
-                                <div className="flex flex-col gap-28 py-12"><MatchCard bid="playoff-m9" label="UB SEMI 1" /><MatchCard bid="playoff-m10" label="UB SEMI 2" /></div>
+                                <div className="flex flex-col gap-28 py-12">
+                                  <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m10" label="UB SEMI 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                </div>
                                 <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-primary"/></div>
-                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" /></div>
+                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} /></div>
                             </div>
                         </div>
                     </div>
@@ -252,13 +261,27 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="space-y-6 relative h-full flex flex-col justify-center">
                             <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic pr-4">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
                             <div className="flex items-center gap-4 pl-2 sm:pl-4">
-                                <div className="flex flex-col gap-8"><MatchCard bid="playoff-m5" label="LB R1" /><MatchCard bid="playoff-m6" label="LB R1" /><MatchCard bid="playoff-m7" label="LB R1" /><MatchCard bid="playoff-m8" label="LB R1" /></div>
+                                <div className="flex flex-col gap-8">
+                                  <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                </div>
                                 <div className="flex flex-col gap-28 py-12 opacity-20"><ChevronRight className="w-3 h-3 text-amber-500"/><ChevronRight className="w-3 h-3 text-amber-500"/></div>
-                                <div className="flex flex-col gap-28 py-12"><MatchCard bid="playoff-m11" label="LB R2" /><MatchCard bid="playoff-m12" label="LB R2" /></div>
+                                <div className="flex flex-col gap-28 py-12">
+                                  <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                </div>
                                 <div className="flex flex-col gap-28 py-12 opacity-20"><ChevronRight className="w-3 h-3 text-amber-500"/><ChevronRight className="w-3 h-3 text-amber-500"/></div>
-                                <div className="flex flex-col gap-28 py-12"><MatchCard bid="playoff-m13" label="LB R3" /><MatchCard bid="playoff-m14" label="LB R3" /></div>
+                                <div className="flex flex-col gap-28 py-12">
+                                  <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                </div>
                                 <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
-                                <div className="flex flex-col justify-center gap-8"><MatchCard bid="playoff-m16" label="LB SEMI" /><MatchCard bid="playoff-m17" label="LOWER FINAL" /></div>
+                                <div className="flex flex-col justify-center gap-8">
+                                  <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -277,7 +300,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <p className="text-[8px] sm:text-[10px] font-black text-primary tracking-[0.4em] uppercase opacity-80">Apex Station • Championship Protocol</p>
                         </div>
                     </div>
-                    <div className="scale-[1.4] sm:scale-[1.8] transform transition-all duration-700 py-16 sm:py-24 relative z-10"><MatchCard bid="playoff-m18" label="BATTLE FOR GLORY" /></div>
+                    <div className="scale-[1.4] sm:scale-[1.8] transform transition-all duration-700 py-16 sm:py-24 relative z-10">
+                      <MatchCard bid="playoff-m18" label="BATTLE FOR GLORY" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                    </div>
                 </div>
             </div>
         </div>
@@ -422,7 +447,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                         <div className="space-y-2 text-center">
                                                             <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
                                                             <div className="grid gap-2">
-                                                                <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                                                <IntelCard icon={Zap} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
                                                                 <IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
                                                             </div>
                                                         </div>
@@ -442,7 +467,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 ))}
                             </div>
-                            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center mt-6"><p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p><p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p></div>
+                            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center mt-6">
+                              <p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p>
+                              <p className="text-[10px] font-bold text-primary/80 italic leading-tight">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p>
+                            </div>
                         </div>
                     </div>
                 </ScrollArea>

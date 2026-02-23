@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -6,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, Home, Route, ShieldCheck, CalendarClock, Award, TrendingUp, Target, Zap, Activity, Scan, Binary, Star, Flame } from 'lucide-react';
+import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -33,6 +32,32 @@ interface PlayerPerformanceDialogProps {
   coopLeagueTable: WithId<CoOpLeagueEntry>[];
   singleLeagueTable: WithId<LeagueEntry>[];
 }
+
+// Sub-components moved outside to improve stability
+const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
+  <div className={cn(
+      "flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-300",
+      variant === "primary" ? "bg-primary/5 border-primary/20" : 
+      variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
+  )}>
+    <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{label}</span>
+    <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+  </div>
+);
+
+const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
+  <div className={cn(
+      "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
+      variant === "primary" ? "bg-primary/5 border-primary/20" : 
+      variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
+  )}>
+      <div className="flex items-center justify-center gap-1.5">
+          <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
+          <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span>
+      </div>
+      <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+  </div>
+);
 
 export function PlayerPerformanceDialog({ 
     player, 
@@ -148,7 +173,6 @@ export function PlayerPerformanceDialog({
     const totalMatchesCount = playerMatches.length;
     const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
     
-    // OVR Efficiency calculation: Points earned / Possible points
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
@@ -203,31 +227,6 @@ export function PlayerPerformanceDialog({
 
   const playerTeamDetails = teamsById[player.teamId];
   const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo } = performanceStats;
-  
-  const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
-    <div className={cn(
-        "flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-300",
-        variant === "primary" ? "bg-primary/5 border-primary/20" : 
-        variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
-    )}>
-      <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{label}</span>
-      <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
-    </div>
-  );
-
-  const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
-    <div className={cn(
-        "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
-        variant === "primary" ? "bg-primary/5 border-primary/20" : 
-        variant === "gold" ? "bg-yellow-500/5 border-yellow-500/20" : "bg-white/5 border-white/10"
-    )}>
-        <div className="flex items-center justify-center gap-1.5">
-            <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
-            <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span>
-        </div>
-        <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
-    </div>
-  );
   
   const isTopRank = player.rank === 1;
   const isBottomRank = player.rank >= groupSize - 2 && groupSize > 3;
@@ -386,7 +385,7 @@ export function PlayerPerformanceDialog({
                               {upcomingMatches.map(match => (
                                   <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border-2 border-dashed border-white/5 opacity-60">
                                       <div className="flex items-center gap-3">
-                                          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><CalendarClock className="w-4 h-4 text-white/20"/></div>
+                                          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><Activity className="w-4 h-4 text-white/20"/></div>
                                           <div>
                                               <p className="text-xs font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
                                               <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Terjadwal</p>
