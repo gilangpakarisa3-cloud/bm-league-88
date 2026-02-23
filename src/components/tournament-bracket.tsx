@@ -321,7 +321,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </div>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
-            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
+            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-xl rounded-[2rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
                 <ScrollArea className="max-h-[90vh]">
                     <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
@@ -346,6 +346,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <>
                                         <div className="relative">
                                             <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
+                                            {selectedMatch?.isCompleted && (
+                                                <span className="absolute inset-0 flex items-center justify-center text-[120px] font-black italic text-white/[0.05] pointer-events-none -z-0 select-none">
+                                                    {selectedMatch.s1}
+                                                </span>
+                                            )}
                                             {analysis1.entry?.group && (
                                                 <div className="absolute -top-1 -left-1 z-20">
                                                     <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis1.entry.group}</Badge>
@@ -395,6 +400,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <>
                                         <div className="relative">
                                             <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-white")} />
+                                            {selectedMatch?.isCompleted && (
+                                                <span className="absolute inset-0 flex items-center justify-center text-[120px] font-black italic text-white/[0.05] pointer-events-none -z-0 select-none">
+                                                    {selectedMatch.s2}
+                                                </span>
+                                            )}
                                             {analysis2.entry?.group && (
                                                 <div className="absolute -top-1 -left-1 z-20">
                                                     <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis2.entry.group}</Badge>
