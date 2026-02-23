@@ -286,7 +286,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     if (aP.length === 0) return dD; const mV = Math.max(...aP.map(Math.abs), 5); return [-mV, mV];
   }, [analysis1, analysis2]);
 
-  const [editHour, editMin] = (editTime || "00:00").split(':');
+  const editHour = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[0];
+  const editMin = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[1];
 
   return (
     <div className="w-full relative">
@@ -425,7 +426,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </DialogHeader>
 
-                        {/* MATCH SCHEDULE INFORMATION SECTION - VISIBLE TO ALL */}
+                        {/* RIGID CENTERED SCHEDULE INFORMATION SECTION */}
                         {!selectedMatch?.isProjection && (
                             <div className="relative z-10 space-y-6 animate-in slide-in-from-top-4 duration-700">
                                 <div className="flex items-center justify-center gap-4 text-primary">
@@ -437,30 +438,47 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-end bg-white/[0.03] border-2 border-white/5 rounded-[1.5rem] p-6 shadow-inner">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
+                                <div className="max-w-2xl mx-auto bg-black/60 border-y-4 border-primary/40 p-8 rounded-none relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                                    {/* Corner HUD Markers for rigidity */}
+                                    <div className="absolute top-0 left-0 w-2 h-2 bg-primary" />
+                                    <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
+                                    <div className="absolute bottom-0 left-0 w-2 h-2 bg-primary" />
+                                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-primary" />
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                                        <div className="flex flex-col items-center space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic flex items-center gap-2">
                                                 <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
                                             </Label>
-                                            <Popover>
-                                                <PopoverTrigger asChild disabled={!isAdmin}>
-                                                    <Button variant="outline" className="w-full h-12 bg-black/40 border-white/10 font-black text-xs uppercase italic justify-start px-4 hover:border-primary/50 transition-all">
-                                                        {editDate ? format(editDate, "eeee, d MMM yyyy") : "Pilih Tanggal"}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0 bg-background border-primary/30">
-                                                    <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-xl" />
-                                                </PopoverContent>
-                                            </Popover>
+                                            <div className="w-full max-w-[240px]">
+                                                <Popover>
+                                                    <PopoverTrigger asChild disabled={!isAdmin}>
+                                                        <Button variant="outline" className={cn(
+                                                            "w-full h-14 bg-white/5 border-2 border-white/10 font-black text-sm sm:text-base uppercase italic rounded-none tracking-tighter transition-all",
+                                                            isAdmin ? "hover:border-primary/50 cursor-pointer" : "cursor-default opacity-100 border-primary/20"
+                                                        )}>
+                                                            {editDate ? format(editDate, "eeee, d MMM yyyy") : "TBD"}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    {isAdmin && (
+                                                        <PopoverContent className="w-auto p-0 bg-background border-primary/30">
+                                                            <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-none" />
+                                                        </PopoverContent>
+                                                    )}
+                                                </Popover>
+                                            </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
+
+                                        <div className="flex flex-col items-center space-y-3">
+                                            <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic flex items-center gap-2">
                                                 <Clock className="w-3 h-3" /> Waktu Kick-Off (24H)
                                             </Label>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center justify-center gap-3">
                                                 <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}>
-                                                    <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
+                                                    <SelectTrigger className={cn(
+                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl italic tabular-nums w-24 px-4 rounded-none",
+                                                        !isAdmin && "border-primary/20 opacity-100"
+                                                    )}>
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -469,9 +487,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                <span className="text-primary font-black">:</span>
+                                                <span className="text-primary font-black text-2xl">:</span>
                                                 <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}>
-                                                    <SelectTrigger className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums w-24 pr-4">
+                                                    <SelectTrigger className={cn(
+                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl italic tabular-nums w-24 px-4 rounded-none",
+                                                        !isAdmin && "border-primary/20 opacity-100"
+                                                    )}>
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -483,33 +504,34 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             </div>
                                         </div>
                                     </div>
+
                                     {isAdmin && (
-                                        <Button 
-                                            onClick={handleSaveManualSchedule} 
-                                            disabled={isUpdatingSchedule}
-                                            className="h-12 px-8 font-black uppercase italic tracking-widest gap-2 shadow-xl shadow-primary/20"
-                                        >
-                                            {isUpdatingSchedule ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                            Simpan Jadwal
-                                        </Button>
+                                        <div className="mt-10 flex flex-col items-center gap-4">
+                                            <Button 
+                                                onClick={handleSaveManualSchedule} 
+                                                disabled={isUpdatingSchedule}
+                                                className="h-14 px-12 font-black uppercase italic tracking-[0.2em] gap-3 shadow-[0_0_30px_rgba(204,253,1,0.2)] rounded-none"
+                                            >
+                                                {isUpdatingSchedule ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                                SIMPAN KONFIGURASI JADWAL
+                                            </Button>
+                                            
+                                            {selectedMatch?.isCompleted && onRevertMatch && (
+                                                <Button 
+                                                    variant="outline" 
+                                                    className="bg-amber-500/10 border-2 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[9px] h-10 px-6 rounded-none transition-all gap-2"
+                                                    onClick={() => {
+                                                        onRevertMatch(selectedMatch);
+                                                        setSelectedMatch(null);
+                                                    }}
+                                                >
+                                                    <Undo2 className="w-3.5 h-3.5" />
+                                                    RESET VALIDASI SKOR
+                                                </Button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-
-                                {isAdmin && selectedMatch?.isCompleted && onRevertMatch && (
-                                    <div className="flex justify-center">
-                                        <Button 
-                                            variant="outline" 
-                                            className="bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[10px] h-12 px-8 rounded-xl transition-all gap-2"
-                                            onClick={() => {
-                                                onRevertMatch(selectedMatch);
-                                                setSelectedMatch(null);
-                                            }}
-                                        >
-                                            <Undo2 className="w-4 h-4" />
-                                            Batal Verifikasi Skor
-                                        </Button>
-                                    </div>
-                                )}
                             </div>
                         )}
 
