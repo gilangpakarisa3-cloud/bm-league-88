@@ -251,9 +251,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                 </div>
-                                <div className="flex flex-col gap-28 py-12 opacity-20">
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary"/></div>
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary"/></div>
+                                <div className="flex flex-col gap-28 py-12">
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
@@ -274,17 +274,17 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                 </div>
-                                <div className="flex flex-col gap-28 py-12 opacity-20">
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                <div className="flex flex-col gap-28 py-12">
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                   <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
                                 </div>
-                                <div className="flex flex-col gap-28 py-12 opacity-20">
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500"/></div>
+                                <div className="flex flex-col gap-28 py-12">
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
+                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
@@ -452,7 +452,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <CardHeader className="p-4 bg-primary/5 border-b border-white/10">
                                                     <div className="flex flex-col items-center gap-2 text-center">
                                                         <div className="flex items-center justify-center gap-3">
-                                                            <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-4">Pelacakan: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                            <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-4">Statistik: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
                                                             <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
                                                         </div>
                                                         <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>
