@@ -228,9 +228,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   };
 
   const projections = useMemo(() => {
-    if (!leagueTable || leagueTable.length === 0) return null;
+    if (!rankedTable || rankedTable.length === 0) return null;
     const sR = (data: any[]) => [...data].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
-    const gA = sR(leagueTable.filter(p => p.group === 'A')); const gB = sR(leagueTable.filter(p => p.group === 'B'));
+    const gA = sR(rankedTable.filter(p => p.group === 'A')); const gB = sR(rankedTable.filter(p => p.group === 'B'));
     const proj: Record<string, any> = {};
     if (gA.length >= 4 && gB.length >= 4) {
         proj['playoff-m1'] = { p1: gA[0], p2: gB[3] }; proj['playoff-m2'] = { p1: gB[1], p2: gA[2] };
@@ -243,7 +243,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', playerId: 'TBD-L4' } };
     }
     return proj;
-  }, [leagueTable]);
+  }, [rankedTable]);
 
   const bracketData = useMemo(() => {
     const d: Record<string, any> = {};
@@ -271,7 +271,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   return (
     <div className="w-full relative">
         <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black italic leading-none pr-4">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black italic -mt-4 tracking-[0.8em] pr-4">EIGHTY EIGHT</span></div>
-        {(!matches || matches.filter(m => m.bracketId).length === 0) && leagueTable.length > 0 && (
+        {(!matches || matches.filter(m => m.bracketId).length === 0) && rankedTable.length > 0 && (
             <div className="mb-6 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-xl p-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-4"><div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-500 shadow-lg"><Scan className="w-5 h-5" /></div><div className="flex-1">
                     <div className="flex items-center gap-3 mb-1"><Badge className="bg-amber-500 text-black font-black uppercase italic text-[9px]">Live Simulation v2.4</Badge></div><p className="text-xs font-bold text-amber-200/90 leading-tight">Bagan ini adalah proyeksi dinamis berdasarkan peringkat grup saat ini. Jadwal final akan dikunci saat Admin memulai babak playoff.</p>
@@ -339,35 +339,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                {/* GRAND FINAL SECTION - ULTRA MODERN SUPER SPORT REVISION */}
+                {/* GRAND FINAL SECTION */}
                 <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
-                    {/* Atmospheric Stadium Lighting */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2" />
                         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2" />
-                        {/* HUD Grid Overlay */}
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
                     </div>
-
-                    {/* HUD Corner Accents */}
                     <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary/40 rounded-tr-2xl pointer-events-none" />
                     <div className="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-primary/40 rounded-br-2xl pointer-events-none" />
-
                     <div className="flex flex-col items-center gap-8 sm:gap-12 relative z-10">
-                        {/* Advanced Trophy Presentation Module */}
                         <div className="relative group/trophy cursor-default">
-                            {/* Energy Core Rotation Effects */}
                             <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
                             <div className="absolute -inset-1 w-[240px] h-[240px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
-                            
                             <div className="relative p-10 sm:p-16 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-xl transition-transform duration-700 group-hover/trophy:scale-110">
                                 <Trophy className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000" />
-                                
-                                {/* HUD Energy Notches */}
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
                         </div>
-
                         <div className="text-center space-y-2 sm:space-y-4">
                             <div className="flex items-center justify-center gap-4">
                                 <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
@@ -384,13 +373,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </div>
                     </div>
-
-                    {/* Final Match Card with Immersive Shadow */}
                     <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
                         <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
                         <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                        
-                        {/* Stakes Visualization Mikro-HUD */}
                         <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-full flex justify-between px-2 pointer-events-none opacity-40">
                             <div className="flex flex-col items-start"><span className="text-[6px] font-black text-white/40 uppercase">Match Stakes</span><span className="text-[8px] font-bold text-primary italic uppercase">Absolute Glory</span></div>
                             <div className="flex flex-col items-end"><span className="text-[6px] font-black text-white/40 uppercase">System Integrity</span><span className="text-[8px] font-bold text-primary italic uppercase">100.0%</span></div>
@@ -616,6 +601,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 </Label>
                                                 <Input 
                                                     type="time" 
+                                                    lang="en-GB"
                                                     value={editTime} 
                                                     onChange={(e) => setEditTime(e.target.value)} 
                                                     className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums" 
