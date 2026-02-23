@@ -514,7 +514,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="h-0.5 flex-1 bg-gradient-to-l from-primary/40 to-transparent rounded-full mr-4" />
                                 <div className="flex items-center gap-2">
                                     <Binary className="w-5 h-5" />
-                                    <h4 className="text-lg font-black tracking-widest uppercase italic pr-4">Indeks Momentum</h4>
+                                    <h4 className="text-lg font-black tracking-widest uppercase italic pr-4">Statistik Momentum</h4>
                                 </div>
                                 <div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" />
                             </div>
@@ -602,6 +602,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <Input 
                                                     type="time" 
                                                     lang="en-GB"
+                                                    step="60"
                                                     value={editTime} 
                                                     onChange={(e) => setEditTime(e.target.value)} 
                                                     className="h-12 bg-black/40 border-white/10 focus:border-primary/50 font-black text-lg italic tabular-nums" 

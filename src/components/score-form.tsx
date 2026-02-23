@@ -412,6 +412,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                         <Input 
                           type="time" 
                           lang="en-GB"
+                          step="60"
                           {...field} 
                           className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic"
                         />
