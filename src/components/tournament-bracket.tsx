@@ -172,15 +172,20 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
       cum += (pR > oR ? 1 : (pR < oR ? -1 : 0)); return { match: i + 1, points: cum };
     })];
-    let pST = "Balanced"; let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; let pSD = t('play_style_balanced_desc');
+    
+    let pST = "BALANCED TACTICS"; 
+    let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; 
+    let pSD = t('play_style_balanced_desc');
+    
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played; const avgGA = stats.ga / stats.played;
-        if (avgGF > 1.6) { pST = "Attacking"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); }
-        else if (avgGA < 1.2 && stats.played >= 3) { pST = "Defensive & Counter"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); }
+        if (avgGF > 1.6) { pST = "ATTACKING STRATEGY"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); }
+        else if (avgGA < 1.2 && stats.played >= 3) { pST = "DEFENSIVE PROTOCOL"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); }
     }
+    
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
     if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
-    return { stats, winRate: ovrEfficiency, form, chartData, playStyleText: `Gaya bermain: ${pST}`, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
+    return { stats, winRate: ovrEfficiency, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
   };
 
   const projections = useMemo(() => {
@@ -297,7 +302,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                         <div className="text-center space-y-1 sm:space-y-3">
                             <h3 className="text-4xl sm:text-5xl font-black tracking-widest text-white uppercase italic pr-4">Grand Final</h3>
-                            <p className="text-[8px] sm:text-[10px] font-black text-primary tracking-[0.4em] uppercase opacity-80">Apex Station • Championship Protocol</p>
+                            <p className="text-[8px] font-black text-primary tracking-[0.4em] uppercase opacity-80">Apex Station • Championship Protocol</p>
                         </div>
                     </div>
                     <div className="scale-[1.4] sm:scale-[1.8] transform transition-all duration-700 py-16 sm:py-24 relative z-10">
@@ -354,7 +359,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
-                                                        <Badge className={cn("text-[8px] font-black uppercase px-3 py-1 border cursor-help shadow-lg", analysis1.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : analysis1.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-primary/20 text-primary border-primary/30")}>{analysis1.playStyleText}</Badge>
+                                                        <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-4 py-1.5 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                                            analysis1.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                                                            analysis1.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
+                                                            "bg-primary/20 text-primary border-primary/30")}>
+                                                            {analysis1.playStyleText}
+                                                        </Badge>
                                                     </PopoverTrigger>
                                                     <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis1.playStyleDescription}</p></PopoverContent>
                                                 </Popover>
@@ -398,7 +408,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
-                                                        <Badge className={cn("text-[8px] font-black uppercase px-3 py-1 border cursor-help shadow-lg", analysis2.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : analysis2.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-primary/20 text-primary border-primary/30")}>{analysis2.playStyleText}</Badge>
+                                                        <Badge className={cn("text-[9px] font-black uppercase tracking-tighter px-4 py-1.5 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                                            analysis2.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                                                            analysis2.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
+                                                            "bg-primary/20 text-primary border-primary/30")}>
+                                                            {analysis2.playStyleText}
+                                                        </Badge>
                                                     </PopoverTrigger>
                                                     <PopoverContent className="w-64 text-center bg-black/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white">{analysis2.playStyleDescription}</p></PopoverContent>
                                                 </Popover>

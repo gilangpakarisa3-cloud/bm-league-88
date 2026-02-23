@@ -186,21 +186,21 @@ export function PlayerPerformanceDialog({
 
     const masterInfo = masterPlayersRanked.find(p => p.id === playerIdToFilter);
 
-    let playStyleText = "Gaya bermain: Balanced";
-    let playStyleType: 'attacking' | 'defensive' | 'balanced' = 'balanced';
-    let playStyleDescription = t('play_style_balanced_desc');
+    let pST = "BALANCED TACTICS"; 
+    let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; 
+    let pSD = t('play_style_balanced_desc');
     
     if (stats.played > 0) {
         const avgGF = stats.gf / stats.played;
         const avgGA = stats.ga / stats.played;
         if (avgGF > 1.6) {
-            playStyleText = "Gaya bermain: Attacking";
-            playStyleType = 'attacking';
-            playStyleDescription = t('play_style_attacking_desc');
+            pST = "ATTACKING STRATEGY";
+            pSType = 'attacking';
+            pSD = t('play_style_attacking_desc');
         } else if (avgGA < 1.2 && stats.played >= 3) {
-            playStyleText = "Gaya bermain: Defensive & Counter";
-            playStyleType = 'defensive';
-            playStyleDescription = t('play_style_defensive_desc');
+            pST = "DEFENSIVE PROTOCOL";
+            pSType = 'defensive';
+            pSD = t('play_style_defensive_desc');
         }
     }
 
@@ -218,7 +218,7 @@ export function PlayerPerformanceDialog({
         ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
         : totalPlayersInSeason;
 
-    return { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo }
+    return { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, masterInfo }
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t, masterPlayersRanked]);
 
   const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
