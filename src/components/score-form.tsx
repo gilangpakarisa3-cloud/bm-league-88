@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -148,7 +149,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     try {
       await onSave(data);
     } catch (err) {
-      console.error("Form save error:", err);
+      // Error is handled by the parent handleUpdateScore and emitted via errorEmitter
       setIsSaving(false);
     }
   };

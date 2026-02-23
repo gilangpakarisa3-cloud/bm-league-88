@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -479,7 +480,7 @@ export default function FixturesPage() {
         }
 
         // Step 2: Run transaction with prepared refs
-        await runTransaction(firestore, async (transaction) => {
+        runTransaction(firestore, async (transaction) => {
             const getOutcome = (p1Score: number, p2Score: number) => {
                 if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
                 if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
@@ -589,18 +590,31 @@ export default function FixturesPage() {
                 player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
             };
             transaction.update(matchRef, updateData);
+        })
+        .then(() => {
+            toast({ title: t('score_updated_title') });
+            setEditingMatch(null);
+        })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: matchRef.path,
+                operation: 'update',
+                requestResourceData: values,
+            });
+            errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: t('score_updated_title') });
-        setEditingMatch(null);
-    } catch (serverError: any) {
-        const permissionError = new FirestorePermissionError({
-            path: matchRef.path,
-            operation: 'update',
-            requestResourceData: values,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw serverError; // Propagate to ScoreForm
+    } catch (e: any) {
+        if (e.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: matchRef.path,
+                operation: 'update',
+                requestResourceData: values,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+            toast({ variant: 'destructive', title: "Error", description: e.message });
+        }
     }
   };
 
@@ -636,7 +650,7 @@ export default function FixturesPage() {
             }
         }
 
-        await runTransaction(firestore, async (transaction) => {
+        runTransaction(firestore, async (transaction) => {
             const getOutcome = (p1Score: number, p2Score: number) => {
                 if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
                 if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
@@ -690,16 +704,29 @@ export default function FixturesPage() {
                 }
             }
             transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
+        })
+        .then(() => {
+            toast({ title: t('match_reverted_title') });
+            setRevertingMatch(null);
+        })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: matchRef.path,
+                operation: 'update',
+            });
+            errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: t('match_reverted_title') });
-        setRevertingMatch(null);
-    } catch (serverError: any) {
-        const permissionError = new FirestorePermissionError({
-            path: matchRef.path,
-            operation: 'update',
-        });
-        errorEmitter.emit('permission-error', permissionError);
+    } catch (e: any) {
+        if (e.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: matchRef.path,
+                operation: 'update',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+            toast({ variant: 'destructive', title: "Error", description: e.message });
+        }
     }
   }, [firestore, activeSeasonId, revertingMatch, t, toast]);
 
@@ -809,7 +836,7 @@ export default function FixturesPage() {
 
         {/* Dialogs */}
         <Dialog open={!!editingMatch} onOpenChange={(open) => !open && setEditingMatch(null)}>
-            <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)] max-h-[90vh] flex flex-col">
+            <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)] max-h-[90vh] flex flex-col">
                 <DialogHeader className="p-6 border-b border-white/5 bg-black/20 shrink-0">
                     <div className="flex items-center gap-3 text-primary mb-1">
                         <Zap className="w-6 h-6" />
@@ -827,7 +854,7 @@ export default function FixturesPage() {
         </Dialog>
 
         <AlertDialog open={!!revertingMatch} onOpenChange={(open) => !open && setRevertingMatch(null)}>
-            <AlertDialogContent className="border-amber-500 border-4 bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl">
+            <AlertDialogContent className="border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-3xl">
                 <AlertDialogHeader>
                     <div className="flex items-center gap-4 text-amber-500 mb-2">
                         <Undo2 className="w-8 h-8" />
@@ -843,7 +870,7 @@ export default function FixturesPage() {
         </AlertDialog>
 
         <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
-            <DialogContent className="max-w-md border-primary border-4 bg-[#0A192F]/98 backdrop-blur-2xl rounded-3xl">
+            <DialogContent className="max-w-md border-primary border-4 bg-background/95 backdrop-blur-2xl rounded-3xl">
                 <DialogHeader>
                     <div className="flex items-center gap-4 text-primary mb-2">
                         <KeyRound className="w-8 h-8" />
