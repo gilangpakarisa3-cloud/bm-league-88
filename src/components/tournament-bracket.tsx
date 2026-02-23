@@ -445,7 +445,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div className="absolute bottom-0 left-0 w-2 h-2 bg-primary" />
                                     <div className="absolute bottom-0 right-0 w-2 h-2 bg-primary" />
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center">
                                         <div className="flex flex-col items-center space-y-3">
                                             <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic flex items-center gap-2">
                                                 <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
@@ -461,7 +461,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                         </Button>
                                                     </PopoverTrigger>
                                                     {isAdmin && (
-                                                        <PopoverContent className="w-auto p-0 bg-background border-primary/30">
+                                                        <PopoverContent className="w-auto p-0 bg-background border-primary/30" align="center">
                                                             <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-none" />
                                                         </PopoverContent>
                                                     )}
