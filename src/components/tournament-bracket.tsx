@@ -187,7 +187,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
       const pRes = isP1 ? s1 : s2; const oRes = isP1 ? s2 : s1;
       if (pRes > oRes) acc.win++; else if (pRes < oRes) acc.loss++; else acc.draw++;
-      if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += iP1 ? m.player2Score : m.player1Score; }
+      if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += isP1 ? m.player2Score : m.player1Score; }
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
     
