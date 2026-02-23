@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -436,7 +435,7 @@ export default function FixturesPage() {
     const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`);
     
     try {
-        // Step 1: Gather all necessary refs OUTSIDE transaction (queries cannot be inside)
+        // Step 1: Gather ALL necessary data outside the transaction
         const [mDoc, sDoc] = await Promise.all([getDoc(matchRef), getDoc(seasonRef)]);
         if (!mDoc.exists() || !sDoc.exists()) throw new Error("Match or Season data not found.");
         
@@ -444,7 +443,6 @@ export default function FixturesPage() {
         const sData = sDoc.data() as Season;
         const isMatchBo3 = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
         
-        // Successor matches refs
         let winMatchRef = null;
         let losMatchRef = null;
         if (orig.round && orig.round !== 'Group' && orig.bracketId) {
@@ -460,7 +458,6 @@ export default function FixturesPage() {
             }
         }
 
-        // League entry refs
         let p1EntryRef = null;
         let p2EntryRef = null;
         if (orig.round === 'Group' || !orig.round) {
@@ -479,16 +476,32 @@ export default function FixturesPage() {
             }
         }
 
-        // Step 2: Run transaction with prepared refs
-        runTransaction(firestore, async (transaction) => {
-            const getOutcome = (p1Score: number, p2Score: number) => {
-                if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
-                if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
-                return { p1: 'D', p2: 'D' };
-            };
+        // Prepare clean update data for the match doc update later
+        const [h, m] = values.time.split(':').map(Number); 
+        const matchTimestamp = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
+        const matchUpdateData: any = {
+            player1Score: values.player1Score,
+            player2Score: values.player2Score,
+            matchDate: matchTimestamp,
+            isCompleted: true,
+            player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
+            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
+        };
 
+        // Step 2: Transaction - Reads FIRST, then WRITES
+        runTransaction(firestore, async (transaction) => {
+            // A. TRANSACTION READS
+            let e1Data = null;
+            let e2Data = null;
+            if (p1EntryRef && p2EntryRef) {
+                const [e1Snap, e2Snap] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
+                if (e1Snap.exists()) e1Data = e1Snap.data() as LeagueEntry;
+                if (e2Snap.exists()) e2Data = e2Snap.data() as LeagueEntry;
+            }
+
+            // B. TRANSACTION WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD') return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -500,21 +513,24 @@ export default function FixturesPage() {
                 });
             };
 
-            // 1. Revert old stats
+            const getOutcome = (s1: number, s2: number) => {
+                if (s1 > s2) return { p1: 'W', p2: 'L' };
+                if (s1 < s2) return { p1: 'L', p2: 'W' };
+                return { p1: 'D', p2: 'D' };
+            };
+
+            // 1. Revert stats if previously completed
             if (orig.isCompleted) {
                 const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
                 const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
                 const outcome = getOutcome(oldS1, oldS2);
                 
-                if (sData.type === 'Co-Op' && p1EntryRef && p2EntryRef) {
-                    const [e1, e2] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
-                    if (e1.exists() && e2.exists()) {
-                        const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                        updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
-                        updatePlayerStats(d1.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
-                        updatePlayerStats(d2.player1Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
-                        updatePlayerStats(d2.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
-                    }
+                if (sData.type === 'Co-Op' && e1Data && e2Data) {
+                    const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
+                    updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
+                    updatePlayerStats(d1.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
+                    updatePlayerStats(d2.player1Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
+                    updatePlayerStats(d2.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
                 } else {
                     updatePlayerStats(orig.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: outcome.p1 === 'D' ? -1 : 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
                     updatePlayerStats(orig.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: outcome.p2 === 'D' ? -1 : 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
@@ -526,15 +542,12 @@ export default function FixturesPage() {
             const newS2 = isMatchBo3 ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
             const newOutcome = getOutcome(newS1, newS2);
 
-            if (sData.type === 'Co-Op' && p1EntryRef && p2EntryRef) {
-                const [e1, e2] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
-                if (e1.exists() && e2.exists()) {
-                    const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                    updatePlayerStats(d1.player1Id, { played: 1, win: newOutcome.p1 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
-                    updatePlayerStats(d1.player2Id, { played: 1, win: newOutcome.p1 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
-                    updatePlayerStats(d2.player1Id, { played: 1, win: newOutcome.p2 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
-                    updatePlayerStats(d2.player2Id, { played: 1, win: newOutcome.p2 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
-                }
+            if (sData.type === 'Co-Op' && e1Data && e2Data) {
+                const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
+                updatePlayerStats(d1.player1Id, { played: 1, win: newOutcome.p1 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
+                updatePlayerStats(d1.player2Id, { played: 1, win: newOutcome.p1 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
+                updatePlayerStats(d2.player1Id, { played: 1, win: newOutcome.p2 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
+                updatePlayerStats(d2.player2Id, { played: 1, win: newOutcome.p2 === 'W' ? 1 : 0, draw: 0, loss: newOutcome.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
             } else {
                 updatePlayerStats(orig.player1Id, { played: 1, win: newOutcome.p1 === 'W' ? 1 : 0, draw: newOutcome.p1 === 'D' ? 1 : 0, loss: newOutcome.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
                 updatePlayerStats(orig.player2Id, { played: 1, win: newOutcome.p2 === 'W' ? 1 : 0, draw: newOutcome.p2 === 'D' ? 1 : 0, loss: newOutcome.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
@@ -552,44 +565,30 @@ export default function FixturesPage() {
             }
 
             // 4. Table logic
-            if (p1EntryRef && p2EntryRef) {
-                const [e1Doc, e2Doc] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
-                if (e1Doc.exists() && e2Doc.exists()) {
-                    const e1 = e1Doc.data() as LeagueEntry; const e2 = e2Doc.data() as LeagueEntry;
-                    if (orig.isCompleted) {
-                        e1.played--; e2.played--;
-                        if (sData.type === 'Co-Op') {
-                            if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
-                        } else {
-                            e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
-                            if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
-                        }
-                    }
-                    e1.played++; e2.played++;
+            if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
+                const e1 = { ...e1Data }; const e2 = { ...e2Data };
+                if (orig.isCompleted) {
+                    e1.played--; e2.played--;
                     if (sData.type === 'Co-Op') {
-                        if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
+                        if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
                     } else {
-                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
-                        if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
-                        e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                        e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
+                        if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
                     }
-                    transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
                 }
+                e1.played++; e2.played++;
+                if (sData.type === 'Co-Op') {
+                    if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
+                } else {
+                    e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
+                    if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                }
+                transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
 
             // 5. Update match doc
-            const [h, m] = values.time.split(':').map(Number); 
-            const ts = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
-            // Create clean data object for update
-            const updateData: any = {
-                player1Score: values.player1Score,
-                player2Score: values.player2Score,
-                matchDate: ts,
-                isCompleted: true,
-                player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-                player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
-            };
-            transaction.update(matchRef, updateData);
+            transaction.update(matchRef, matchUpdateData);
         })
         .then(() => {
             toast({ title: t('score_updated_title') });
@@ -599,22 +598,13 @@ export default function FixturesPage() {
             const permissionError = new FirestorePermissionError({
                 path: matchRef.path,
                 operation: 'update',
-                requestResourceData: values,
+                requestResourceData: matchUpdateData,
             });
             errorEmitter.emit('permission-error', permissionError);
         });
 
     } catch (e: any) {
-        if (e.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: matchRef.path,
-                operation: 'update',
-                requestResourceData: values,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            toast({ variant: 'destructive', title: "Error", description: e.message });
-        }
+        toast({ variant: 'destructive', title: "Error", description: e.message });
     }
   };
 
@@ -631,7 +621,6 @@ export default function FixturesPage() {
         const sData = sDoc.data() as Season;
         const isMatchBo3 = sData.type === 'Co-Op' || (mToRev.round && mToRev.round !== 'Group');
 
-        // Find league entry refs
         let p1EntryRef = null;
         let p2EntryRef = null;
         if (mToRev.round === 'Group' || !mToRev.round) {
@@ -651,14 +640,18 @@ export default function FixturesPage() {
         }
 
         runTransaction(firestore, async (transaction) => {
-            const getOutcome = (p1Score: number, p2Score: number) => {
-                if (p1Score > p2Score) return { p1: 'W', p2: 'L' };
-                if (p1Score < p2Score) return { p1: 'L', p2: 'W' };
-                return { p1: 'D', p2: 'D' };
-            };
+            // A. READS
+            let e1Data = null;
+            let e2Data = null;
+            if (p1EntryRef && p2EntryRef) {
+                const [e1Snap, e2Snap] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
+                if (e1Snap.exists()) e1Data = e1Snap.data() as LeagueEntry;
+                if (e2Snap.exists()) e2Data = e2Snap.data() as LeagueEntry;
+            }
 
+            // B. WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD') return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -670,38 +663,38 @@ export default function FixturesPage() {
                 });
             };
 
+            const getOutcome = (s1: number, s2: number) => {
+                if (s1 > s2) return { p1: 'W', p2: 'L' };
+                if (s1 < s2) return { p1: 'L', p2: 'W' };
+                return { p1: 'D', p2: 'D' };
+            };
+
             const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0);
             const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
             const outcome = getOutcome(oldS1, oldS2);
 
-            if (sData.type === 'Co-Op' && p1EntryRef && p2EntryRef) {
-                const [e1, e2] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
-                if (e1.exists() && e2.exists()) {
-                    const d1 = e1.data() as CoOpLeagueEntry; const d2 = e2.data() as CoOpLeagueEntry;
-                    updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
-                    updatePlayerStats(d1.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
-                    updatePlayerStats(d2.player1Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
-                    updatePlayerStats(d2.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
-                }
+            if (sData.type === 'Co-Op' && e1Data && e2Data) {
+                const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
+                updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
+                updatePlayerStats(d1.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
+                updatePlayerStats(d2.player1Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
+                updatePlayerStats(d2.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
             } else {
                 updatePlayerStats(mToRev.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: outcome.p1 === 'D' ? -1 : 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                 updatePlayerStats(mToRev.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: outcome.p2 === 'D' ? -1 : 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
             }
 
-            if (p1EntryRef && p2EntryRef) {
-                const [e1Doc, e2Doc] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]);
-                if (e1Doc.exists() && e2Doc.exists()) {
-                    const e1 = e1Doc.data() as LeagueEntry; const e2 = e2Doc.data() as LeagueEntry;
-                    e1.played--; e2.played--;
-                    if (sData.type === 'Co-Op') {
-                        if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
-                    } else {
-                        e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
-                        if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
-                        e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
-                    }
-                    transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
+            if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
+                const e1 = { ...e1Data }; const e2 = { ...e2Data };
+                e1.played--; e2.played--;
+                if (sData.type === 'Co-Op') {
+                    if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
+                } else {
+                    e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
+                    if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 }
+                transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
             transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
         })
@@ -718,15 +711,7 @@ export default function FixturesPage() {
         });
 
     } catch (e: any) {
-        if (e.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: matchRef.path,
-                operation: 'update',
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            toast({ variant: 'destructive', title: "Error", description: e.message });
-        }
+        toast({ variant: 'destructive', title: "Error", description: e.message });
     }
   }, [firestore, activeSeasonId, revertingMatch, t, toast]);
 

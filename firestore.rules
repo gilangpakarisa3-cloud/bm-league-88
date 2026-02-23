@@ -2,15 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * CORE PHILOSOPHY:
-     * This ruleset implements a hybrid security model designed for a sports tournament application.
-     * 1. User-Ownership: Personal profile data is strictly isolated to the authenticated owner.
-     * 2. Administrative Control: In this prototype, game-related data is managed via a shared password
-     *    system. Rules allow any signed-in user to write to these collections, assuming the UI
-     *    protects these actions.
-     */
-
     // --- Helper Functions ---
 
     /** @description Checks if the user is authenticated. */
@@ -23,34 +14,20 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Verifies ownership and ensures the document exists for updates/deletes. */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /** @description Enforces that a field's value does not change during an update. */
-    function isUnchanged(field) {
-      return request.resource.data[field] == resource.data[field];
-    }
-
     // --- Collection Rules ---
 
     /**
      * @description Rules for user-specific profiles. Restricted to the owner.
      */
     match /userProfiles/{userProfileId} {
-      allow get: if isOwner(userProfileId);
-      allow list: if isOwner(userProfileId);
-      allow create: if isOwner(userProfileId) && request.resource.data.id == userProfileId;
-      allow update: if isExistingOwner(userProfileId) && isUnchanged('id');
-      allow delete: if isExistingOwner(userProfileId);
+      allow read, write: if isOwner(userProfileId);
     }
 
     /**
      * @description Publicly readable football team data. Managed by authenticated users.
      */
     match /teams/{teamId} {
-      allow get, list: if true;
+      allow read: if true;
       allow write: if isSignedIn();
     }
 
@@ -63,44 +40,17 @@ service cloud.firestore {
     }
 
     /**
-     * @description Publicly readable league tournament data. Managed by authenticated users.
+     * @description Publicly readable league tournament data. Includes seasons, matches, and tables.
      */
-    match /leagues/{leagueId} {
-      allow get, list: if true;
-      allow write: if isSignedIn();
-      
-      // Seasons and subcollections (matches, leagueTable, coopLeagueTable)
-      match /seasons/{seasonId} {
-        allow read: if true;
-        allow write: if isSignedIn();
-        
-        match /{document=**} {
-          allow read: if true;
-          allow write: if isSignedIn();
-        }
-      }
-    }
-
-    /**
-     * @description Publicly readable cup tournament data. Managed by authenticated users.
-     */
-    match /cups/{cupId} {
-      allow get, list: if true;
-      allow write: if isSignedIn();
-    }
-
-    /**
-     * @description Publicly readable match data (Top-level). Managed by authenticated users.
-     */
-    match /matches/{matchId} {
-      allow get, list: if true;
+    match /leagues/{leagueId}/{allPaths=**} {
+      allow read: if true;
       allow write: if isSignedIn();
     }
 
     /**
      * @description Publicly readable notice board data.
      */
-    match /notices/{noticeId} {
+    match /notices/{noticeId}/{allPaths=**} {
       allow read: if true;
       allow write: if isSignedIn();
     }
@@ -108,7 +58,7 @@ service cloud.firestore {
     /**
      * @description Publicly readable hall of fame data.
      */
-    match /hallOfFame/{recordId} {
+    match /hallOfFame/{recordId}/{allPaths=**} {
       allow read: if true;
       allow write: if isSignedIn();
     }
@@ -116,7 +66,7 @@ service cloud.firestore {
     /**
      * @description Publicly readable app configuration (shared password).
      */
-    match /appConfig/{configId} {
+    match /appConfig/{configId}/{allPaths=**} {
       allow read: if true;
       allow write: if isSignedIn();
     }
