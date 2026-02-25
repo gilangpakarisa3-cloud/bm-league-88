@@ -483,7 +483,7 @@ export default function FixturesPage() {
             matchDate: matchTimestamp,
             isCompleted: true,
             player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
+            player2Wins: isBestOfThree ? (values.player2Wins ?? 0) : null,
         };
 
         // Step 2: Transaction - Reads FIRST, then WRITES
@@ -743,7 +743,6 @@ export default function FixturesPage() {
             });
             errorEmitter.emit('permission-error', permissionError);
         });
-
     } catch (e: any) {
         toast({ variant: 'destructive', title: "Error", description: e.message });
     }
@@ -889,22 +888,22 @@ export default function FixturesPage() {
         </AlertDialog>
 
         <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
-            <DialogContent className="max-w-md border-primary border-4 bg-background/95 backdrop-blur-2xl rounded-3xl">
+            <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-4 bg-[#0A192F]/95 backdrop-blur-2xl rounded-none shadow-[0_0_50px_rgba(204,253,1,0.2)]">
                 <DialogHeader>
                     <div className="flex items-center gap-4 text-primary mb-2">
                         <KeyRound className="w-8 h-8" />
-                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle>
+                        <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle>
                     </div>
-                    <DialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('admin_auth_desc')}</DialogDescription>
+                    <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-6 py-8">
+                <div className="grid gap-4 py-4 sm:py-6">
                     <div className="space-y-2">
-                        <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">{t('password')}</Label>
-                        <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-14 bg-white/5 border-white/10 rounded-xl focus:border-primary/50 text-lg font-black" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
+                        <Label htmlFor="password-input" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-primary/60">{t('password')}</Label>
+                        <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-12 sm:h-14 bg-white/5 border-white/10 rounded-none focus:border-primary/50 text-lg font-black" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handlePasswordCheck} className="w-full h-14 font-black uppercase tracking-widest italic text-lg shadow-xl shadow-primary/20">{t('unlock')}</Button>
+                    <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20">{t('unlock')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

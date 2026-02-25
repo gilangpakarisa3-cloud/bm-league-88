@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2 } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -858,7 +858,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
             }
         }
 
-        runTransaction(firestore, async (transaction) => {
+        await runTransaction(firestore, async (transaction) => {
             // A. READS
             let e1Data = null;
             let e2Data = null;
@@ -929,18 +929,10 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
             }
 
             transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
-        })
-        .then(() => {
-            toast({ title: t('match_reverted_title') });
-            setRevertingMatch(null);
-        })
-        .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: matchRef.path,
-                operation: 'update',
-            });
-            errorEmitter.emit('permission-error', permissionError);
         });
+
+        toast({ title: t('match_reverted_title') });
+        setRevertingMatch(null);
 
     } catch (e: any) {
         toast({ variant: 'destructive', title: "Error", description: e.message });
@@ -952,7 +944,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
   return (
     <div className="w-full">
       {/* Header section: Fixed narrow width - UPDATED BASE TO max-w-[92rem] */}
-      <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row justify-between items-stretch gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
           <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
@@ -1208,21 +1200,183 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
       </div>
 
       {/* Dialogs and Alerts */}
-      <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><DialogHeader><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription></DialogHeader><div className="grid gap-4 py-4"><div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="password-input" className="text-right text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('password')}</Label><Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="col-span-3 h-10 sm:h-12 bg-white/5 border-white/10" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} /></div></div><DialogFooter><Button onClick={handlePasswordCheck} className="w-full h-10 sm:h-12 font-black tracking-tighter text-xs sm:text-sm uppercase italic">{t('unlock')}</Button></DialogFooter></DialogContent></Dialog>
-      <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col"><DialogHeader className="shrink-0"><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle></DialogHeader><ScrollArea className="flex-1 py-4 pr-2"><div className="space-y-4 sm:space-y-6"><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid</Label></div></RadioGroup></div>{newSeasonType === 'Hybrid' && (<div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label></div></RadioGroup></div>)}<div className="space-y-2 sm:space-y-3"><Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-xs sm:text-sm"/></div><div className="grid grid-cols-2 gap-3 sm:gap-4"><div className="space-y-2 sm:space-y-3"><Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div><div className="space-y-2 sm:space-y-3"><Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div></div><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></ScrollArea></DialogContent></Dialog>
-      <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeason} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={!!deletingEntry} onOpenChange={(isOpen) => !isOpen && setDeletingEntry(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('remove_player_from_season_title')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('remove_player_from_season_desc', { playerName: deletingEntry?.playerName })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteEntry} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('remove')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={showFinishSeasonConfirm} onOpenChange={(open) => setShowFinishSeasonConfirm(open)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan selesaikan musim <strong>{activeSeason?.name}</strong> secara permanen.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={() => { handleUpdateSeasonStatus('Completed'); setShowFinishSeasonConfirm(false); }} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Selesaikan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Selesaikan Fase Grup?</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan format Playoff akan dibuat.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleGenerateDoubleElimination} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Konfirmasi Penjadwalan</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru secara acak' : 'membuat jadwal pertandingan baru secara acak'}.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Batal</AlertDialogCancel><AlertDialogAction onClick={handleGenerateFixtures} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><DialogHeader><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('register_players')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription></DialogHeader><RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={registeredPlayers || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} /></DialogContent></Dialog>
+      <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}>
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-4 bg-[#0A192F]/95 backdrop-blur-2xl rounded-none shadow-[0_0_50px_rgba(204,253,1,0.2)]">
+            <DialogHeader>
+                <div className="flex items-center gap-4 text-primary mb-2">
+                    <KeyRound className="w-8 h-8" />
+                    <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle>
+                </div>
+                <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4 sm:py-6">
+                <div className="space-y-2">
+                    <Label htmlFor="password-input" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-primary/60">{t('password')}</Label>
+                    <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-12 sm:h-14 bg-white/5 border-white/10 rounded-none focus:border-primary/50 text-lg font-black" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20">{t('unlock')}</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}>
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="shrink-0">
+                <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle>
+                <DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="flex-1 py-4 pr-2">
+                <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-2 sm:space-y-3">
+                        <Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label>
+                        <RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="flex gap-2 sm:gap-4">
+                            <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                <RadioGroupItem value="Single" id="single"/>
+                                <Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single</Label>
+                            </div>
+                            <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                <RadioGroupItem value="Co-Op" id="co-op"/>
+                                <Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op</Label>
+                            </div>
+                            <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                <RadioGroupItem value="Hybrid" id="hybrid"/>
+                                <Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    {newSeasonType === 'Hybrid' && (
+                        <div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2">
+                            <Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label>
+                            <RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4">
+                                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                    <RadioGroupItem value="1" id="meetings-1"/>
+                                    <Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label>
+                                </div>
+                                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                    <RadioGroupItem value="2" id="meetings-2"/>
+                                    <Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    )}
+                    <div className="space-y-2 sm:space-y-3">
+                        <Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label>
+                        <Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-xs sm:text-sm"/>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div className="space-y-2 sm:space-y-3">
+                            <Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label>
+                            <Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/>
+                        </div>
+                        <div className="space-y-2 sm:space-y-3">
+                            <Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label>
+                            <Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/>
+                        </div>
+                    </div>
+                    <div className="space-y-2 sm:space-y-3">
+                        <Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}>
+                                    <CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                    {dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    <Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button>
+                </div>
+            </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}>
+        <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl">
+            <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('are_you_sure')}</AlertDialogTitle>
+                <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:gap-3">
+                <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteSeason} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('delete')}</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deletingEntry} onOpenChange={(isOpen) => !isOpen && setDeletingEntry(null)}>
+        <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl">
+            <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('remove_player_from_season_title')}</AlertDialogTitle>
+                <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('remove_player_from_season_desc', { playerName: deletingEntry?.playerName })}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:gap-3">
+                <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteEntry} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('remove')}</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showFinishSeasonConfirm} onOpenChange={(open) => setShowFinishSeasonConfirm(open)}>
+        <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl">
+            <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('are_you_sure')}</AlertDialogTitle>
+                <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan selesaikan musim <strong>{activeSeason?.name}</strong> secara permanen.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:gap-3">
+                <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => { handleUpdateSeasonStatus('Completed'); setShowFinishSeasonConfirm(false); }} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Selesaikan</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}>
+        <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl">
+            <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Selesaikan Fase Grup?</AlertDialogTitle>
+                <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan format Playoff akan dibuat.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:gap-3">
+                <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleGenerateDoubleElimination} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Lanjutkan</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}>
+        <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl">
+            <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Konfirmasi Penjadwalan</AlertDialogTitle>
+                <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru secara acak' : 'membuat jadwal pertandingan baru secara acak'}.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:gap-3">
+                <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={handleGenerateFixtures} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Lanjutkan</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}>
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl">
+            <DialogHeader>
+                <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('register_players')}</DialogTitle>
+                <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription>
+            </DialogHeader>
+            <RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={registeredPlayers || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} />
+        </DialogContent>
+      </Dialog>
+
       <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} allPlayers={allPlayers || []} allTeams={allTeams || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
       <GroupDrawDialog open={showGroupDrawDialog} onOpenChange={setShowGroupDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} onSaveGroups={handleSaveGroups} />
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
       <PlayerPerformanceDialog player={selectedPlayerForStats} matches={matches || []} allPlayers={allPlayers || []} allTeams={allTeams || []} coopLeagueTable={coopLeagueTable || []} singleLeagueTable={singleLeagueTable || []} activeSeason={activeSeason} totalPlayersInSeason={(activeSeason?.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) || 0} open={!!selectedPlayerForStats} onOpenChange={() => setSelectedPlayerForStats(null)} isAdmin={isAdmin} defendingChampionId={defendingChampionId} />
       
       <AlertDialog open={!!revertingMatch} onOpenChange={(open) => !open && setRevertingMatch(null)}>
-            <AlertDialogContent className="border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-3xl">
+            <AlertDialogContent className="border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-none">
                 <AlertDialogHeader>
                     <div className="flex items-center gap-4 text-amber-500 mb-2">
                         <Undo2 className="w-8 h-8" />
@@ -1231,8 +1385,8 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                     {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: playersById[revertingMatch.player1Id]?.name, player2: playersById[revertingMatch.player2Id]?.name })}</AlertDialogDescription>)}
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-4 mt-6">
-                    <AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-xl h-12">{t('cancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-xl h-12">{t('revert_match_action')}</AlertDialogAction>
+                    <AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

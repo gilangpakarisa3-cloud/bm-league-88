@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { doc } from 'firebase/firestore';
 import type { Notice } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Pencil, Save, Info, X, Plus, Trash2, ShieldCheck, Zap, BellRing, Settings2, ScrollText, Calendar } from 'lucide-react';
+import { Pencil, Save, Info, X, Plus, Trash2, ShieldCheck, Zap, BellRing, Settings2, ScrollText, Calendar, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -236,7 +235,7 @@ export function EditableNotice() {
                             <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
                         <div className="flex-1 text-center sm:text-left">
-                            <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-60 mb-0.5 sm:mb-1">Time & Venue Briefing</p>
+                            <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.2em] opacity-60 mb-0.5 sm:mb-1">Time & Venue Briefing</p>
                             <div className="text-[11px] sm:text-sm font-black uppercase italic leading-tight pr-1 sm:pr-2">
                                 {displaySchedule ? displaySchedule : t('no_schedule_set')}
                             </div>
@@ -250,9 +249,12 @@ export function EditableNotice() {
       </div>
 
       <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
-        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 sm:border-4 bg-[#0A192F]/95 backdrop-blur-2xl rounded-2xl">
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-4 bg-[#0A192F]/95 backdrop-blur-2xl rounded-none shadow-[0_0_50px_rgba(204,253,1,0.2)]">
             <DialogHeader>
-                <DialogTitle className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter text-primary">{t('admin_auth')}</DialogTitle>
+                <div className="flex items-center gap-4 text-primary mb-2">
+                    <KeyRound className="w-8 h-8" />
+                    <DialogTitle className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter text-primary">{t('admin_auth')}</DialogTitle>
+                </div>
                 <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[8px] sm:text-[10px]">{t('enter_admin_password_notice')}</DialogDescription>
             </DialogHeader>
              <div className="grid gap-4 sm:gap-6 py-4 sm:py-6">
@@ -265,13 +267,13 @@ export function EditableNotice() {
                   type="password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className="h-10 sm:h-12 bg-white/5 border-white/10 focus:border-primary/50 font-black text-sm"
+                  className="h-12 sm:h-14 bg-white/5 border-white/10 rounded-none focus:border-primary/50 font-black text-sm"
                   onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handlePasswordCheck} className="w-full h-10 sm:h-12 font-black uppercase tracking-widest italic shadow-xl shadow-primary/20 text-xs sm:text-sm">{t('submit')}</Button>
+              <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black uppercase tracking-widest italic shadow-xl shadow-primary/20 text-xs sm:text-sm rounded-none">{t('submit')}</Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -6,7 +6,7 @@ import type { SeasonRecord, WithId } from "@/lib/types";
 import { useTranslation } from "@/hooks/use-translation";
 import { SeasonRecordCard } from "@/components/season-record-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lock, Trophy, Unlock, Award, LayoutGrid } from "lucide-react";
+import { Lock, Trophy, Unlock, Award, LayoutGrid, KeyRound } from "lucide-react";
 import { useState } from "react";
 import { useSharedPassword } from "@/context/password-context";
 import { useToast } from "@/hooks/use-toast";
@@ -47,7 +47,7 @@ export default function HallOfFamePage() {
         } else {
             toast({ variant: 'destructive', title: t('incorrect_password') });
         }
-        setPasswordInput('');
+        passwordInput('');
     };
 
     const handleDelete = () => {
@@ -143,28 +143,22 @@ export default function HallOfFamePage() {
             
             {/* Password Dialog */}
             <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
-                <DialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl">
+                <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-4 bg-[#0A192F]/95 backdrop-blur-2xl rounded-none shadow-[0_0_50px_rgba(204,253,1,0.2)]">
                     <DialogHeader>
-                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{t('admin_auth')}</DialogTitle>
-                        <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">{t('admin_auth_desc')}</DialogDescription>
+                        <div className="flex items-center gap-4 text-primary mb-2">
+                            <KeyRound className="w-8 h-8" />
+                            <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle>
+                        </div>
+                        <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="password-input" className="text-right text-[10px] font-black uppercase tracking-widest">
-                            {t('password')}
-                            </Label>
-                            <Input
-                            id="password-input"
-                            type="password"
-                            value={passwordInput}
-                            onChange={(e) => setPasswordInput(e.target.value)}
-                            className="col-span-3 h-12 bg-white/5 border-white/10"
-                            onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
-                            />
+                    <div className="grid gap-4 py-4 sm:py-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="password-input" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-primary/60">{t('password')}</Label>
+                            <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-12 sm:h-14 bg-white/5 border-white/10 rounded-none focus:border-primary/50 text-lg font-black" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button onClick={handlePasswordCheck} className="w-full h-12 font-black tracking-tighter">{t('unlock')}</Button>
+                        <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20">{t('unlock')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
