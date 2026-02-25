@@ -17,12 +17,10 @@ import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
-import { Library } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Calendar } from './ui/calendar';
 import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
@@ -100,7 +98,6 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
                     ? "animate-battle-glow border-primary/40 bg-primary/[0.03]"
                     : "border-white/20 bg-white/5 border-dashed"
           )} onClick={() => handleCardClick(m)}>
-              {/* Scanline Animation Overlay for Battle Ready matches */}
               {isBattleReady && (
                   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                       <div className="w-full h-1 bg-primary/20 blur-[2px] animate-scanning" />
@@ -139,7 +136,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const scrollLeft = useRef(0);
   const mouseMoved = useRef(false);
 
-  // States for manual schedule adjustment
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editTime, setEditTime] = useState<string>('00:00');
   const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
@@ -148,7 +144,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   useEffect(() => { setIsMounted(true); }, []);
 
-  // Sync edit states when selectedMatch changes
   useEffect(() => {
     if (selectedMatch && !selectedMatch.isProjection && selectedMatch.matchDate) {
         const d = selectedMatch.matchDate.toDate();
@@ -330,7 +325,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             </div></div>
         )}
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-10 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20">
-            <div className="min-w-[1400px] flex items-stretch gap-0 p-4 sm:p-6">
+            <div className="min-w-[1400px] flex items-stretch gap-0 p-4 sm:p-6 animate-in fade-in duration-1000">
                 <div className="basis-[65%] shrink-0 flex flex-col gap-4 sm:gap-8 relative pr-4 sm:pr-8">
                     <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
                         <div className="space-y-6 relative h-full flex flex-col justify-center">
@@ -393,8 +388,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 {/* GRAND FINAL SECTION */}
                 <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2" />
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2 animate-pulse-soft" />
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2 animate-pulse-soft" />
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
                     </div>
                     <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary/40 rounded-tr-2xl pointer-events-none" />
@@ -404,7 +399,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
                             <div className="absolute -inset-1 w-[240px] h-[240px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
                             <div className="relative p-10 sm:p-16 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-xl transition-transform duration-700 group-hover/trophy:scale-110">
-                                <Trophy className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000" />
+                                <Trophy className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float" />
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
                         </div>
@@ -456,7 +451,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </DialogHeader>
 
-                        {/* RIGID CENTERED SCHEDULE INFORMATION SECTION */}
                         {!selectedMatch?.isProjection && (
                             <div className="relative z-10 space-y-6 animate-in slide-in-from-top-4 duration-700">
                                 <div className="flex items-center justify-center gap-4 text-primary">
@@ -469,7 +463,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </div>
 
                                 <div className="max-w-2xl mx-auto bg-black/60 border-y-4 border-primary/40 p-8 rounded-none relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                                    {/* Corner HUD Markers for rigidity */}
                                     <div className="absolute top-0 left-0 w-2 h-2 bg-primary" />
                                     <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
                                     <div className="absolute bottom-0 left-0 w-2 h-2 bg-primary" />
