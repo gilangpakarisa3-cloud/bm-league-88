@@ -93,7 +93,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
           <Card className={cn(
               "w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl relative", 
               m.isCompleted 
-                ? "border-primary/30 bg-white/5 backdrop-blur-xl" 
+                ? "border-primary/30 bg-white/5" 
                 : isBattleReady
                     ? "animate-battle-glow border-primary/40 bg-primary/[0.03]"
                     : "border-white/20 bg-white/5 border-dashed"
@@ -318,7 +318,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     <div className="w-full relative">
         <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black italic leading-none pr-4">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black italic -mt-4 tracking-[0.8em] pr-4">EIGHTY EIGHT</span></div>
         {(!matches || matches.filter(m => m.bracketId).length === 0) && rankedTable.length > 0 && (
-            <div className="mb-6 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-xl p-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="mb-6 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-xl p-4 backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-4"><div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-500 shadow-lg"><Scan className="w-5 h-5" /></div><div className="flex-1">
                     <div className="flex items-center gap-3 mb-1"><Badge className="bg-amber-500 text-black font-black uppercase italic text-[9px]">Live Simulation v2.4</Badge></div><p className="text-xs font-bold text-amber-200/90 leading-tight">Bagan ini adalah proyeksi dinamis berdasarkan peringkat grup saat ini. Jadwal final akan dikunci saat Admin memulai babak playoff.</p>
                 </div></div>
@@ -398,7 +398,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="relative group/trophy cursor-default">
                             <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
                             <div className="absolute -inset-1 w-[240px] h-[240px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
-                            <div className="relative p-10 sm:p-16 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-xl transition-transform duration-700 group-hover/trophy:scale-110">
+                            <div className="relative p-10 sm:p-16 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
                                 <Trophy className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float" />
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
@@ -410,7 +410,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
                             </div>
                             <div className="flex flex-col items-center gap-1">
-                                <p className="text-[10px] font-black text-primary tracking-[0.5em] uppercase opacity-90 italic">CHAMPIONSHIP ASCENSION PROTOCOL</p>
+                                <p className="text-[10px] font-black text-primary tracking-[0.1em] uppercase opacity-90 italic">Sang Penyandang Gelar KING, Raja dari segala Raja</p>
                                 <div className="flex gap-1.5 mt-2">
                                     <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
                                     <div className="w-2 h-2 bg-primary/40 rounded-full" />
