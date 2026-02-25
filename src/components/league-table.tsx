@@ -123,7 +123,7 @@ const SingleTable = memo(({
               const currentType = seasonType || 'Single';
               const playerForm = playerFormsMap[entry.playerId || entry.id] || [];
               
-              const isFirst = entry.rank === 1 && currentType === 'Single';
+              const isFirst = entry.rank === 1;
               const isQualificationZone =
                   (currentType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
                   (currentType === 'Single' && entry.rank > 1 && entry.rank <= 4);
@@ -145,22 +145,22 @@ const SingleTable = memo(({
                   key={entry.id}
                   className={cn(
                     "transition-all h-16 sm:h-20 border-b-white/5 relative group/row",
-                    isFirst ? "bg-yellow-500/[0.07] hover:bg-yellow-500/[0.12]" :
+                    isFirst ? "bg-primary/[0.08] hover:bg-primary/[0.15]" :
                     isQualificationZone ? "bg-green-500/[0.05] hover:bg-green-500/[0.1]" :
                     isLowerBracketZone ? "bg-amber-500/[0.05] hover:bg-amber-500/[0.1]" :
                     isRelegationZone ? "bg-red-500/[0.05] hover:bg-red-500/[0.1]" : "hover:bg-white/[0.03]"
                   )}
                 >
-                  <TableCell className={cn("p-0 w-1.5", 
-                    isFirst ? 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' :
+                  <TableCell className={cn("p-0 w-1.5 transition-all duration-500", 
+                    isFirst ? 'bg-primary shadow-[0_0_20px_rgba(204,253,1,0.8)]' :
                     isQualificationZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
-                    isLowerBracketZone ? 'bg-amber-500' :
+                    isLowerBracketZone ? 'bg-amber-50' :
                     isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent'
                   )}>
                   </TableCell>
                   <TableCell className={cn(
-                    "text-center font-black text-base sm:text-xl px-1 italic",
-                    isFirst ? "text-yellow-400 scale-110 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" : 
+                    "text-center font-black text-base sm:text-xl px-1 italic transition-all duration-500",
+                    isFirst ? "text-primary scale-125 drop-shadow-[0_0_15px_rgba(204,253,1,0.7)]" : 
                     isQualificationZone ? "text-green-400" :
                     isLowerBracketZone ? "text-amber-500" :
                     isRelegationZone ? "text-red-500" : "text-white/40"
@@ -175,13 +175,13 @@ const SingleTable = memo(({
                        <div className="relative shrink-0">
                           <Avatar className={cn(
                               "h-8 w-8 sm:h-12 sm:w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
-                              isFirst ? "border-yellow-400" : "border-white/10 group-hover:border-primary"
+                              isFirst ? "border-primary scale-110 shadow-[0_0_20px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover:border-primary"
                           )}>
                             <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} className="object-cover" />
                             <AvatarFallback><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/20"/></AvatarFallback>
                           </Avatar>
                           {isFirst && (
-                             <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-yellow-400 rounded-full p-0.5 sm:p-1 shadow-lg border-2 border-background z-20 animate-bounce">
+                             <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-primary rounded-full p-0.5 sm:p-1 shadow-lg border-2 border-background z-20 animate-bounce">
                                 <Trophy className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-black" />
                              </div>
                           )}
@@ -190,7 +190,7 @@ const SingleTable = memo(({
                         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                            <span className={cn(
                                "font-black tracking-tight transition-colors truncate uppercase italic pr-4", 
-                               isFirst ? "text-xs sm:lg text-yellow-400" : "text-[11px] sm:text-base text-white group-hover:text-primary"
+                               isFirst ? "text-xs sm:text-lg text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-[11px] sm:text-base text-white group-hover:text-primary"
                             )}>
                                 {entry.playerName}
                             </span>
@@ -239,8 +239,8 @@ const SingleTable = memo(({
                       </div>
                   </TableCell>
                   <TableCell className={cn(
-                      "text-center font-black text-lg sm:text-2xl px-1 sm:px-2 italic", 
-                      isFirst ? "text-yellow-300 drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] scale-110" : "text-primary"
+                      "text-center font-black text-lg sm:text-2xl px-1 sm:px-2 italic transition-all duration-500", 
+                      isFirst ? "text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.6)] scale-110" : "text-primary"
                     )}>
                     {entry.points}
                   </TableCell>
