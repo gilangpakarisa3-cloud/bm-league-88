@@ -154,7 +154,7 @@ const SingleTable = memo(({
                   <TableCell className={cn("p-0 w-1.5 transition-all duration-500", 
                     isFirst ? 'bg-primary shadow-[0_0_20px_rgba(204,253,1,0.8)]' :
                     isQualificationZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
-                    isLowerBracketZone ? 'bg-amber-50' :
+                    isLowerBracketZone ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]' :
                     isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent'
                   )}>
                   </TableCell>
