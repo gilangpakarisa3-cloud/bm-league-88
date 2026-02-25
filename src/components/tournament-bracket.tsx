@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
+import { Library } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
@@ -46,7 +47,6 @@ interface TournamentBracketProps {
   onRevertMatch?: (match: WithId<Match>) => void;
 }
 
-// Sub-components moved outside to improve stability and avoid recreation on every render
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn("flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300", variant === "primary" ? "bg-primary/10 border-primary/20" : variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20" : "bg-white/5 border-white/10")}>
       <div className="flex items-center justify-center gap-1.5"><Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} /><span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span></div>
@@ -56,6 +56,7 @@ const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: an
 
 const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { bid: string, label: string, bracketData: Record<string, any>, projections: Record<string, any> | null, handleCardClick: (matchData: any) => void }) => {
   const m = bracketData[bid]; const p = projections?.[bid];
+  
   if (!m && p) return (
       <div className="flex flex-col gap-1 opacity-70 items-center">
           <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
@@ -67,17 +68,46 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
           </Card>
       </div>
   );
+
   if (!m) return (
       <div className="flex flex-col gap-1 opacity-30 items-center">
           <span className="text-[8px] font-black tracking-widest text-white/40 uppercase">{label}</span>
           <div className="w-44 sm:w-48 h-20 bg-white/5 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-1.5"><Loader2 className="w-4 h-4 text-white/10 animate-spin"/><span className="text-[7px] font-black tracking-widest text-white/20 uppercase">KALIBRASI</span></div>
       </div>
   );
+
+  const isBattleReady = !m.isCompleted && m.player1Id !== 'TBD' && m.player2Id !== 'TBD';
+
   return (
       <div className="flex flex-col gap-1 relative items-center">
-          <span className="text-[8px] font-black tracking-widest text-primary/80 uppercase">{label}</span>
-          <Card className={cn("w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl", m.isCompleted ? "border-primary/30 bg-white/5 backdrop-blur-xl" : "border-white/20 bg-white/5 border-dashed")} onClick={() => handleCardClick(m)}>
-              <CardContent className="p-0 flex flex-col divide-y divide-white/5">
+          <div className="flex items-center gap-2">
+            <span className={cn("text-[8px] font-black tracking-widest uppercase", isBattleReady ? "text-primary" : "text-primary/80")}>{label}</span>
+            {isBattleReady && (
+                <div className="flex items-center gap-1">
+                    <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
+                    </span>
+                    <span className="text-[6px] font-black text-primary uppercase tracking-tighter">Live</span>
+                </div>
+            )}
+          </div>
+          <Card className={cn(
+              "w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl relative", 
+              m.isCompleted 
+                ? "border-primary/30 bg-white/5 backdrop-blur-xl" 
+                : isBattleReady
+                    ? "animate-battle-glow border-primary/40 bg-primary/[0.03]"
+                    : "border-white/20 bg-white/5 border-dashed"
+          )} onClick={() => handleCardClick(m)}>
+              {/* Scanline Animation Overlay for Battle Ready matches */}
+              {isBattleReady && (
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                      <div className="w-full h-1 bg-primary/20 blur-[2px] animate-scanning" />
+                  </div>
+              )}
+              
+              <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10">
                   {[1, 2].map(i => {
                       const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
                       return (

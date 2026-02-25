@@ -96,4 +96,28 @@
       transform: translateX(-50%);
     }
   }
+
+  @keyframes battle-glow {
+    0%, 100% { 
+      box-shadow: 0 0 5px rgba(204, 253, 1, 0.2), inset 0 0 10px rgba(204, 253, 1, 0.05);
+      border-color: rgba(204, 253, 1, 0.2);
+    }
+    50% { 
+      box-shadow: 0 0 20px rgba(204, 253, 1, 0.4), inset 0 0 20px rgba(204, 253, 1, 0.1);
+      border-color: rgba(204, 253, 1, 0.6);
+    }
+  }
+
+  @keyframes scanning {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(400%); }
+  }
+
+  .animate-battle-glow {
+    animation: battle-glow 2s ease-in-out infinite;
+  }
+
+  .animate-scanning {
+    animation: scanning 3s linear infinite;
+  }
 }
