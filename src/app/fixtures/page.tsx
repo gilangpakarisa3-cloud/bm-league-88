@@ -49,6 +49,20 @@ import { PLAYOFF_SUCCESSOR_MAP } from '@/lib/constants';
 // For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
 
+// Standard Round Priority for Sorting (Early to Late)
+const ROUND_ORDER: Record<string, number> = {
+    'Group': 1,
+    'UB-Quarter': 2,
+    'LB-Round 1': 3,
+    'UB-Semi': 4,
+    'LB-Round 2': 5,
+    'LB-Round 3': 6,
+    'UB-Final': 7,
+    'LB-Semifinal': 8,
+    'LB-Final': 9,
+    'Grand-Final': 10
+};
+
 const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason, hasPlayoffs }: {
     match: any;
     onEditMatch: (match: any) => void;
@@ -223,8 +237,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
             return true;
         });
         
-        const sorted = [...filtered].sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis());
-        const grouped = sorted.reduce((acc, m) => {
+        const grouped = filtered.reduce((acc, m) => {
             const rd = m.round || 'Group';
             const st = m.isCompleted ? 'completed' : 'upcoming';
             if (!acc[st][rd]) acc[st][rd] = [];
@@ -232,21 +245,25 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
             return acc;
         }, { upcoming: {} as Record<string, any[]>, completed: {} as Record<string, any[]> });
         
-        // Dynamic round sorting: Rounds with more recent matches come first in Completed tab
-        const sortedCompletedRounds = Object.entries(grouped.completed).sort(([, aMatches], [, bMatches]) => {
-            const maxA = Math.max(...aMatches.map(m => m.matchDate.toMillis()));
-            const maxB = Math.max(...bMatches.map(m => m.matchDate.toMillis()));
-            return maxB - maxA;
+        // Sort Rounds by standard order (Fase Awal ke Fase Akhir)
+        const sortRounds = (entries: [string, any[]][]) => {
+            return entries.sort(([rdA], [rdB]) => {
+                return (ROUND_ORDER[rdA] || 99) - (ROUND_ORDER[rdB] || 99);
+            });
+        };
+
+        const upcomingSorted: Record<string, any[]> = {};
+        sortRounds(Object.entries(grouped.upcoming)).forEach(([rd, ms]) => {
+            upcomingSorted[rd] = ms.sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
         });
 
-        // Convert sorted entries back to object for return, or we can just return the sorted entries
         const completedSorted: Record<string, any[]> = {};
-        sortedCompletedRounds.forEach(([rd, ms]) => {
-            completedSorted[rd] = ms.sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+        sortRounds(Object.entries(grouped.completed)).forEach(([rd, ms]) => {
+            completedSorted[rd] = ms.sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
         });
 
         return { 
-            groupedMatches: { ...grouped, completed: completedSorted }, 
+            groupedMatches: { upcoming: upcomingSorted, completed: completedSorted }, 
             upcomingCount: Object.values(grouped.upcoming).flat().length, 
             completedCount: Object.values(grouped.completed).flat().length 
         };
@@ -315,11 +332,6 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                     <TabsContent value="upcoming" className="mt-0 focus-visible:ring-0 outline-none">
                         <div className="space-y-12">
                             {Object.entries(groupedMatches.upcoming)
-                                .sort(([, aMatches], [, bMatches]) => {
-                                    const minA = Math.min(...aMatches.map(m => m.matchDate.toMillis()));
-                                    const minB = Math.min(...bMatches.map(m => m.matchDate.toMillis()));
-                                    return minA - minB;
-                                })
                                 .map(([rd, rms]) => (
                                 <section key={`upcoming-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex items-center gap-6 mb-6">
@@ -483,7 +495,7 @@ export default function FixturesPage() {
             matchDate: matchTimestamp,
             isCompleted: true,
             player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-            player2Wins: isBestOfThree ? (values.player2Wins ?? 0) : null,
+            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
         };
 
         // Step 2: Transaction - Reads FIRST, then WRITES
