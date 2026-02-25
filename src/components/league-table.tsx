@@ -11,14 +11,13 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, ShieldCheck, Trophy, Award, LayoutGrid, History, Swords, Scan, Activity, Zap } from "lucide-react";
+import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
 import { Badge } from "./ui/badge";
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { TournamentBracket } from "./tournament-bracket";
 
 interface LeagueTableProps {
@@ -53,7 +52,7 @@ interface SingleTableProps {
   matches: WithId<Match>[];
 }
 
-const SingleTable = ({ 
+const SingleTable = memo(({ 
     tableData, 
     isLoading, 
     onRemovePlayer, 
@@ -69,23 +68,31 @@ const SingleTable = ({
     const { t } = useTranslation();
     const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
 
-    const getPlayerForm = (playerId: string) => {
-        return matches
-            .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
-            .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
-            .slice(0, 5)
-            .reverse()
-            .map(m => {
-                const isP1 = m.player1Id === playerId;
-                const s1 = isCoop || (m.round && m.round !== 'Group') ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
-                const s2 = isCoop || (m.round && m.round !== 'Group') ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
-                const pRes = isP1 ? s1 : s2;
-                const oRes = isP1 ? s2 : s1;
-                if (pRes > oRes) return 'W';
-                if (pRes < oRes) return 'L';
-                return 'D';
-            });
-    };
+    // Optimized: Pre-calculate forms for all players in this table
+    const playerFormsMap = useMemo(() => {
+        if (!matches || matches.length === 0) return {};
+        const forms: Record<string, string[]> = {};
+        
+        tableData.forEach(entry => {
+            const playerId = entry.playerId || entry.id;
+            forms[playerId] = matches
+                .filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId))
+                .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
+                .slice(0, 5)
+                .reverse()
+                .map(m => {
+                    const isP1 = m.player1Id === playerId;
+                    const s1 = isCoop || (m.round && m.round !== 'Group') ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+                    const s2 = isCoop || (m.round && m.round !== 'Group') ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
+                    const pRes = isP1 ? s1 : s2;
+                    const oRes = isP1 ? s2 : s1;
+                    if (pRes > oRes) return 'W';
+                    if (pRes < oRes) return 'L';
+                    return 'D';
+                });
+        });
+        return forms;
+    }, [matches, tableData, isCoop]);
 
     return (
          <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20">
@@ -114,7 +121,7 @@ const SingleTable = ({
           <TableBody>
             {tableData.map((entry) => {
               const currentType = seasonType || 'Single';
-              const playerForm = getPlayerForm(entry.playerId || entry.id);
+              const playerForm = playerFormsMap[entry.playerId || entry.id] || [];
               
               const isFirst = entry.rank === 1 && currentType === 'Single';
               const isQualificationZone =
@@ -189,12 +196,12 @@ const SingleTable = ({
                             </span>
                             <div className="flex items-center gap-1 mt-0.5 sm:mt-0">
                                 {isUnbeaten && (
-                                    <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
+                                    <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
                                         UB
                                     </Badge>
                                 )}
                                 {isDefendingChampion && (
-                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
+                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1.5 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
                                         CH
                                     </Badge>
                                 )}
@@ -258,7 +265,9 @@ const SingleTable = ({
         </Table>
       </div>
     )
-}
+});
+
+SingleTable.displayName = 'SingleTable';
 
 export function LeagueTable({ 
     tableData, 
@@ -318,10 +327,7 @@ export function LeagueTable({
         {isHybrid ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
-                    {/* HUD Ambient Glow */}
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
-                    
-                    {/* Decorative HUD Markers */}
                     <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-sm" />
                     <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60 rounded-tr-sm" />
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/20 blur-sm" />
@@ -340,15 +346,11 @@ export function LeagueTable({
                             </div>
                             Grup A <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupA.length}]</span>
                         </span>
-                        
-                        {/* High-Performance Slanted Background */}
                         <div className={cn(
                             "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
                             "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
                             "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
                         )} />
-                        
-                        {/* HUD Scanning Line */}
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
                     </TabsTrigger>
 
@@ -366,15 +368,11 @@ export function LeagueTable({
                             </div>
                             Grup B <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupB.length}]</span>
                         </span>
-                        
-                        {/* High-Performance Slanted Background */}
                         <div className={cn(
                             "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
                             "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
                             "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
                         )} />
-                        
-                        {/* HUD Scanning Line */}
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
                     </TabsTrigger>
 
@@ -392,15 +390,11 @@ export function LeagueTable({
                             </div>
                             Playoff
                         </span>
-                        
-                        {/* High-Performance Slanted Background */}
                         <div className={cn(
                             "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
                             "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
                             "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
                         )} />
-                        
-                        {/* HUD Scanning Line */}
                         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
                     </TabsTrigger>
                 </TabsList>

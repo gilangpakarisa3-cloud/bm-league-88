@@ -1,10 +1,8 @@
-
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-// Augment the window object to include VANTA
 declare global {
   interface Window {
     VANTA: {
@@ -36,7 +34,6 @@ export function VantaBackground() {
   const vantaRef = useRef(null)
 
   useEffect(() => {
-    // Only initialize if VANTA is available and we haven't already initialized
     if (window.VANTA && !vantaEffect) {
       setVantaEffect(window.VANTA.NET({
         el: vantaRef.current!,
@@ -48,14 +45,13 @@ export function VantaBackground() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0xCCFD01, // Vibrant Yellow (Primary Color)
-        backgroundColor: 0x0A192F, // Primary Deep Blue
-        points: 6.00,
-        maxDistance: 22.00,
-        spacing: 16.00
+        color: 0xCCFD01,
+        backgroundColor: 0x0A192F,
+        points: 4.00, // Reduced from 6.00 for better performance
+        maxDistance: 20.00, // Reduced from 22.00
+        spacing: 18.00 // Increased from 16.00
       }))
     }
-    // Cleanup function to destroy the effect when the component unmounts
     return () => {
       if (vantaEffect) vantaEffect.destroy()
     }
