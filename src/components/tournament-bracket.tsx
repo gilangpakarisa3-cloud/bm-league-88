@@ -477,7 +477,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <Popover>
                                                     <PopoverTrigger asChild disabled={!isAdmin}>
                                                         <Button variant="outline" className={cn(
-                                                            "w-full h-14 bg-white/5 border-2 border-white/10 font-black text-sm sm:text-base uppercase italic rounded-none tracking-tighter transition-all px-4 pr-10",
+                                                            "w-full h-14 bg-white/5 border-2 border-white/10 font-black text-sm sm:text-base uppercase italic rounded-none tracking-tighter transition-all px-4 pr-12",
                                                             isAdmin ? "hover:border-primary/50 cursor-pointer" : "cursor-default opacity-100 border-primary/20"
                                                         )}>
                                                             {editDate ? format(editDate, "eeee, d MMM yyyy") : "TBD"}
@@ -499,7 +499,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <div className="flex items-center justify-center gap-3">
                                                 <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}>
                                                     <SelectTrigger className={cn(
-                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl italic tabular-nums w-32 px-4 pr-10 rounded-none",
+                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl italic tabular-nums w-40 px-4 pr-14 rounded-none overflow-visible",
                                                         !isAdmin && "border-primary/20 opacity-100"
                                                     )}>
                                                         <SelectValue />
@@ -513,7 +513,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <span className="text-primary font-black text-2xl">:</span>
                                                 <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}>
                                                     <SelectTrigger className={cn(
-                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl italic tabular-nums w-32 px-4 pr-10 rounded-none",
+                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl italic tabular-nums w-40 px-4 pr-14 rounded-none overflow-visible",
                                                         !isAdmin && "border-primary/20 opacity-100"
                                                     )}>
                                                         <SelectValue />

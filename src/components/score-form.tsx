@@ -196,6 +196,9 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
   const hasErrors = Object.keys(errors).length > 0;
   const isBo3Incomplete = isBestOfThree && p1Wins < 2 && p2Wins < 2;
 
+  const editHour = (form.watch('time') || "00:00").split(':')[0];
+  const editMin = (form.watch('time') || "00:00").split(':')[1];
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
@@ -381,12 +384,12 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             <Button
                               variant={"outline"}
                               className={cn(
-                                "w-full pl-3 text-left font-black h-11 border-white/10 bg-black/40 rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-[10px] uppercase italic",
+                                "w-full pl-3 text-left font-black h-14 border-white/10 bg-black/40 rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-[10px] uppercase italic pr-12",
                                 !field.value && "text-white/20"
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "eeee, d MMM yyyy")
+                                format(field.value as Date, "eeee, d MMM yyyy")
                               ) : (
                                 <span>Input Date</span>
                               )}
@@ -411,15 +414,14 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                   control={form.control}
                   name="time"
                   render={({ field }) => {
-                    const [h, m] = (field.value || "00:00").split(':');
                     return (
                       <FormItem className="space-y-1.5">
                         <FormLabel className="text-[9px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-1.5">
                           <Clock className="w-2.5 h-2.5" /> Kick-Off Time (24H)
                         </FormLabel>
                         <div className="flex items-center gap-2">
-                            <Select value={h} onValueChange={(val) => field.onChange(`${val}:${m}`)}>
-                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-24 pr-4">
+                            <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)}>
+                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums italic w-40 pr-14 overflow-visible">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -428,9 +430,9 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <span className="text-primary font-black">:</span>
-                            <Select value={m} onValueChange={(val) => field.onChange(`${h}:${val}`)}>
-                                <SelectTrigger className="h-11 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums italic w-24 pr-4">
+                            <span className="text-primary font-black text-2xl">:</span>
+                            <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)}>
+                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums italic w-40 pr-14 overflow-visible">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
