@@ -421,7 +421,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                         </FormLabel>
                         <div className="flex items-center gap-2">
                             <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)}>
-                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums italic w-40 pr-14 overflow-visible">
+                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums italic w-40 px-4 pr-14 rounded-none overflow-visible">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -432,7 +432,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             </Select>
                             <span className="text-primary font-black text-2xl">:</span>
                             <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)}>
-                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums italic w-40 pr-14 overflow-visible">
+                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums italic w-40 px-4 pr-14 rounded-none overflow-visible">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
