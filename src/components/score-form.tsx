@@ -384,7 +384,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             <Button
                               variant={"outline"}
                               className={cn(
-                                "w-full pl-3 text-left font-black h-14 border-white/10 bg-black/40 rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-[10px] uppercase italic pr-12",
+                                "w-full pl-3 text-left font-black h-14 border-white/10 bg-black/40 rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-[10px] uppercase pr-12 text-center",
                                 !field.value && "text-white/20"
                               )}
                             >
@@ -419,9 +419,9 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                         <FormLabel className="text-[9px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-1.5">
                           <Clock className="w-2.5 h-2.5" /> Kick-Off Time (24H)
                         </FormLabel>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center gap-2">
                             <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)}>
-                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums w-40 px-4 pr-14 overflow-visible">
+                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums w-40 px-4 rounded-none overflow-visible text-center">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -432,7 +432,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                             </Select>
                             <span className="text-primary font-black text-2xl">:</span>
                             <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)}>
-                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums w-40 px-4 pr-14 overflow-visible">
+                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums w-40 px-4 rounded-none overflow-visible text-center">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
