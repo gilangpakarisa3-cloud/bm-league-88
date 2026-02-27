@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
@@ -389,7 +390,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                               )}
                             >
                               {field.value ? (
-                                format(field.value as Date, "eeee, d MMM yyyy")
+                                format(field.value as Date, "eeee, d MMM yyyy", { locale: localeId })
                               ) : (
                                 <span>Input Date</span>
                               )}

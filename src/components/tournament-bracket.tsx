@@ -480,7 +480,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                             "w-full h-14 bg-white/5 border-2 border-white/10 font-black text-sm sm:text-base uppercase rounded-none tracking-tighter transition-all px-4 text-center",
                                                             isAdmin ? "hover:border-primary/50 cursor-pointer" : "cursor-default opacity-100 border-primary/20"
                                                         )}>
-                                                            {editDate ? format(editDate, "eeee, d MMM yyyy") : "TBD"}
+                                                            {editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}
                                                         </Button>
                                                     </PopoverTrigger>
                                                     {isAdmin && (
