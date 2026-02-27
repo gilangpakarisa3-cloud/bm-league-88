@@ -499,7 +499,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <div className="flex items-center justify-center gap-3">
                                                 <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}>
                                                     <SelectTrigger className={cn(
-                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-40 px-4 rounded-none overflow-visible text-center",
+                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-40 px-4 rounded-none overflow-visible text-center [&>span]:text-center [&>span]:flex-1 not-italic",
                                                         !isAdmin && "border-primary/20 opacity-100"
                                                     )}>
                                                         <SelectValue />
@@ -513,7 +513,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <span className="text-primary font-black text-2xl">:</span>
                                                 <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}>
                                                     <SelectTrigger className={cn(
-                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-40 px-4 rounded-none overflow-visible text-center",
+                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-40 px-4 rounded-none overflow-visible text-center [&>span]:text-center [&>span]:flex-1 not-italic",
                                                         !isAdmin && "border-primary/20 opacity-100"
                                                     )}>
                                                         <SelectValue />
