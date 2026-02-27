@@ -58,13 +58,15 @@ export function Header() {
                   href={link.href}
                   className={cn(
                     "relative px-3 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-xs font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] italic transition-all duration-300 whitespace-nowrap group/nav",
-                    isActive ? "text-primary" : "text-white/60 hover:text-white"
+                    isActive ? "text-primary" : "text-white/60 hover:text-primary"
                   )}
                 >
                   {/* Slanted indicator for active/hover */}
                   <span className={cn(
-                    "absolute inset-0 -skew-x-12 transition-all duration-300 -z-10 rounded-md",
-                    isActive ? "bg-primary/10 border-r-2 sm:border-r-4 border-primary" : "bg-transparent group-hover/nav:bg-white/5"
+                    "absolute inset-0 -skew-x-12 transition-all duration-300 -z-10 rounded-md border-r-2 sm:border-r-4",
+                    isActive 
+                      ? "bg-primary/10 border-primary shadow-[0_0_15px_rgba(204,253,1,0.2)]" 
+                      : "bg-transparent border-transparent group-hover/nav:bg-primary/10 group-hover/nav:border-primary/40"
                   )} />
                   {link.label}
                 </Link>
