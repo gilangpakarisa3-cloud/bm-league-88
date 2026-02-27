@@ -506,7 +506,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                     </SelectTrigger>
                                                     <SelectContent className="bg-[#0A192F] border-primary/30">
                                                         {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                                            <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                                            <SelectItem key={v} value={v} className="font-black">{v}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -520,7 +520,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                     </SelectTrigger>
                                                     <SelectContent className="bg-[#0A192F] border-primary/30">
                                                         {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                                            <SelectItem key={v} value={v} className="font-black italic">{v}</SelectItem>
+                                                            <SelectItem key={v} value={v} className="font-black">{v}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
