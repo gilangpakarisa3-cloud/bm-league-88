@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -234,9 +235,9 @@ export function EditableNotice() {
                         <div className="bg-black/10 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-black/5 shrink-0">
                             <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
-                        <div className="flex-1 text-center sm:text-left">
+                        <div className="flex-1 text-center">
                             <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.2em] opacity-60 mb-0.5 sm:mb-1">Time & Venue Briefing</p>
-                            <div className="text-[11px] sm:text-sm font-black uppercase italic leading-tight pr-1 sm:pr-2">
+                            <div className="text-[11px] sm:text-sm font-black uppercase italic leading-tight text-center">
                                 {displaySchedule ? displaySchedule : t('no_schedule_set')}
                             </div>
                         </div>
