@@ -79,7 +79,8 @@ export function PlayerMarquee() {
   // Duplicate the array to create a seamless loop
   const marqueeItems = [...participants, ...participants];
 
-  const animationDuration = `${participants.length * 5}s`;
+  // Increase rolling speed by 30% (Original factor 5 / 1.3 ≈ 3.8)
+  const animationDuration = `${participants.length * 3.8}s`;
 
   return (
     <div className="relative w-full overflow-hidden bg-black/40 border-y-2 border-white/5 py-4 sm:py-6 group backdrop-blur-xl">
