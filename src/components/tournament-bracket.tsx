@@ -404,16 +404,28 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   fill="none" 
                                   stroke="currentColor" 
                                   strokeWidth="1.2" 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
                                   className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
                                 >
-                                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-                                  <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
-                                  <circle cx="12" cy="12" r="4" fill="currentColor" fillOpacity="0.2" />
-                                  <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
-                                  <path d="m4.93 4.93 1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41 1.41" />
-                                  <path d="M12 8v8M8 12h8" strokeWidth="2" />
+                                  {/* Outer Shield Shell */}
+                                  <circle cx="12" cy="12" r="11" strokeWidth="0.5" strokeOpacity="0.2" />
+                                  <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
+                                  
+                                  {/* Inner PlayStation Runes Formation */}
+                                  {/* ▲ Top - Triangle */}
+                                  <path d="M12 5l2 3.5h-4z" strokeWidth="1.2" />
+                                  
+                                  {/* ● Right - Circle */}
+                                  <circle cx="17" cy="12" r="1.8" strokeWidth="1.2" />
+                                  
+                                  {/* X Bottom - Cross */}
+                                  <path d="M10.5 15.5l3 3M13.5 15.5l-3 3" strokeWidth="1.2" />
+                                  
+                                  {/* ■ Left - Square */}
+                                  <rect x="5.5" y="10.5" width="3" height="3" strokeWidth="1.2" />
+                                  
+                                  {/* Central Core */}
+                                  <circle cx="12" cy="12" r="3.5" strokeWidth="0.8" strokeDasharray="1 1" />
+                                  <circle cx="12" cy="12" r="2" fill="currentColor" fillOpacity="0.5" />
                                 </svg>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
