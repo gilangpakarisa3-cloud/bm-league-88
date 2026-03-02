@@ -431,9 +431,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   {/* Inner Ornate Rings */}
                                   <circle cx="12" cy="12" r="6" strokeWidth="0.4" strokeDasharray="1 1" strokeOpacity="0.4" />
                                   
-                                  {/* Core Gem */}
-                                  <path d="M12 8.5l3 3.5-3 3.5-3-3.5z" fill="currentColor" fillOpacity="0.6" />
-                                  <circle cx="12" cy="12" r="1.5" fill="white" fillOpacity="0.2" />
+                                  {/* Core Gem - Removed central ornaments per user request */}
                                 </svg>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
