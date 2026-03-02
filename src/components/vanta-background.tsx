@@ -1,66 +1,66 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import * as THREE from 'three'
-
-declare global {
-  interface Window {
-    VANTA: {
-      NET: (options: {
-        el: HTMLElement | string;
-        THREE: typeof THREE;
-        mouseControls: boolean;
-        touchControls: boolean;
-        gyroControls: boolean;
-        minHeight: number;
-        minWidth: number;
-        scale: number;
-        scaleMobile: number;
-        color?: number;
-        backgroundColor?: number;
-        points?: number;
-        maxDistance?: number;
-        spacing?: number;
-
-      }) => {
-        destroy: () => void;
-      };
-    };
-  }
-}
+import { useState, useEffect, useMemo } from 'react'
+import { Square, Triangle, Circle, X } from 'lucide-react'
 
 export function VantaBackground() {
-  const [vantaEffect, setVantaEffect] = useState<any>(null)
-  const vantaRef = useRef(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (window.VANTA && !vantaEffect) {
-      setVantaEffect(window.VANTA.NET({
-        el: vantaRef.current!,
-        THREE: THREE,
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
-        minHeight: 200.00,
-        minWidth: 200.00,
-        scale: 1.00,
-        scaleMobile: 1.00,
-        color: 0xCCFD01,
-        backgroundColor: 0x0A192F,
-        points: 4.00, // Reduced from 6.00 for better performance
-        maxDistance: 20.00, // Reduced from 22.00
-        spacing: 18.00 // Increased from 16.00
-      }))
-    }
-    return () => {
-      if (vantaEffect) vantaEffect.destroy()
-    }
-  }, [vantaEffect])
+    setMounted(true)
+  }, [])
+
+  // Generate a stable set of symbols with randomized properties
+  const symbols = useMemo(() => {
+    const icons = [Square, Triangle, Circle, X]
+    return Array.from({ length: 24 }).map((_, i) => ({
+      id: i,
+      Icon: icons[i % icons.length],
+      size: Math.random() * 30 + 15,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      duration: Math.random() * 20 + 30, // 30-50s for slow movement
+      delay: Math.random() * -60,
+      opacity: Math.random() * 0.06 + 0.02, // Very subtle
+      rotation: Math.random() * 360,
+      color: i % 2 === 0 ? 'text-primary' : 'text-accent'
+    }))
+  }, [])
+
+  if (!mounted) return null
 
   return (
-      <div 
-        ref={vantaRef} 
-        className="fixed top-0 left-0 w-full h-full z-0 opacity-20"
-      />
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#0A192F]">
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.01)_1px,transparent_1px)] bg-[size:100px_100px]" />
+      
+      {/* PlayStation Symbols Floating Layer */}
+      {symbols.map(({ id, Icon, size, left, top, duration, delay, opacity, rotation, color }) => (
+        <div
+          key={id}
+          className="absolute animate-float"
+          style={{
+            left,
+            top,
+            opacity,
+            animationDuration: `${duration}s`,
+            animationDelay: `${delay}s`,
+            transform: `rotate(${rotation}deg)`,
+          }}
+        >
+          <Icon 
+            size={size} 
+            strokeWidth={2.5} 
+            className={color}
+          />
+        </div>
+      ))}
+
+      {/* Radial Vignette for depth and focus */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(10,25,47,0.7)_100%)]" />
+      
+      {/* Bottom Glow */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[40vh] bg-gradient-to-t from-primary/5 to-transparent opacity-30" />
+    </div>
   )
 }
