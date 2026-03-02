@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Square, Triangle, Circle, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export function VantaBackground() {
   const [mounted, setMounted] = useState(false)
@@ -13,10 +14,26 @@ export function VantaBackground() {
   // Generate a stable set of symbols with randomized properties and specific colors
   const symbols = useMemo(() => {
     const symbolConfigs = [
-      { Icon: Square, color: 'text-amber-500' },   // Square = Vibrant Gold
-      { Icon: Triangle, color: 'text-blue-500' }, // Triangle = Vibrant Blue
-      { Icon: Circle, color: 'text-primary' },    // Circle = Vibrant Yellow (Primary)
-      { Icon: X, color: 'text-pink-500' }         // X = Vibrant Pink
+      { 
+        Icon: Square, 
+        color: 'text-amber-500',
+        glow: 'drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]' 
+      },
+      { 
+        Icon: Circle, 
+        color: 'text-primary',
+        glow: 'drop-shadow-[0_0_25px_rgba(204,253,1,0.6)]' 
+      },
+      { 
+        Icon: Triangle, 
+        color: 'text-blue-500',
+        glow: 'drop-shadow-[0_0_25px_rgba(59,130,246,0.6)]' 
+      },
+      { 
+        Icon: X, 
+        color: 'text-pink-500',
+        glow: 'drop-shadow-[0_0_25px_rgba(236,72,153,0.6)]' 
+      }
     ]
 
     return Array.from({ length: 32 }).map((_, i) => {
@@ -25,12 +42,13 @@ export function VantaBackground() {
         id: i,
         Icon: config.Icon,
         color: config.color,
+        glow: config.glow,
         size: Math.random() * 120 + 60, // Large size (range 60-180)
         left: `${Math.random() * 100}%`,
         top: `${Math.random() * 100}%`,
         duration: Math.random() * 20 + 30, // 30-50 seconds for slow movement
         delay: Math.random() * -60,
-        opacity: Math.random() * 0.06 + 0.02, // Subtle opacity
+        opacity: Math.random() * 0.08 + 0.03, // Slightly increased for visible glow
         rotation: Math.random() * 360,
       }
     })
@@ -44,7 +62,7 @@ export function VantaBackground() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.01)_1px,transparent_1px)] bg-[size:100px_100px]" />
       
       {/* PlayStation Symbols Floating Layer */}
-      {symbols.map(({ id, Icon, size, left, top, duration, delay, opacity, rotation, color }) => (
+      {symbols.map(({ id, Icon, size, left, top, duration, delay, opacity, rotation, color, glow }) => (
         <div
           key={id}
           className="absolute animate-float"
@@ -60,7 +78,7 @@ export function VantaBackground() {
           <Icon 
             size={size} 
             strokeWidth={2.5} 
-            className={color}
+            className={cn(color, glow)}
           />
         </div>
       ))}
