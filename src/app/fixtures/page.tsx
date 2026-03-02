@@ -511,7 +511,7 @@ export default function FixturesPage() {
 
             // B. TRANSACTION WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -684,7 +684,7 @@ export default function FixturesPage() {
 
             // B. WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -826,7 +826,7 @@ export default function FixturesPage() {
                     <LayoutGrid className="w-4 h-4" />
                 </div>
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                    <SelectTrigger className="flex-1 sm:w-[240px] h-12 bg-black/40 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-xl focus:border-primary/50 transition-all">
+                    <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] max-w-full h-12 bg-black/40 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-xl focus:border-primary/50 transition-all px-6">
                         <SelectValue placeholder={t('select_a_season')} />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0A192F] border-primary/30 rounded-xl overflow-hidden">
