@@ -43,7 +43,7 @@ export function VantaBackground() {
         Icon: config.Icon,
         color: config.color,
         glow: config.glow,
-        size: Math.random() * 120 + 60, // Large size (range 60-180)
+        size: Math.random() * 96 + 48, // Reduced by 20% (range 48-144)
         left: `${Math.random() * 100}%`,
         top: `${Math.random() * 100}%`,
         duration: Math.random() * 20 + 30, // 30-50 seconds for slow movement
