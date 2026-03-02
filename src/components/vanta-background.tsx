@@ -10,21 +10,30 @@ export function VantaBackground() {
     setMounted(true)
   }, [])
 
-  // Generate a stable set of symbols with randomized properties
+  // Generate a stable set of symbols with randomized properties and specific colors
   const symbols = useMemo(() => {
-    const icons = [Square, Triangle, Circle, X]
-    return Array.from({ length: 24 }).map((_, i) => ({
-      id: i,
-      Icon: icons[i % icons.length],
-      size: Math.random() * 120 + 60, // Increased by another 100% (range 60-180)
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      duration: Math.random() * 20 + 30, // 30-50 seconds for slow movement
-      delay: Math.random() * -60,
-      opacity: Math.random() * 0.06 + 0.02, // Subtle opacity
-      rotation: Math.random() * 360,
-      color: i % 2 === 0 ? 'text-primary' : 'text-accent'
-    }))
+    const symbolConfigs = [
+      { Icon: Square, color: 'text-amber-500' },   // Square = Vibrant Gold
+      { Icon: Triangle, color: 'text-blue-500' }, // Triangle = Vibrant Blue
+      { Icon: Circle, color: 'text-primary' },    // Circle = Vibrant Yellow (Primary)
+      { Icon: X, color: 'text-pink-500' }         // X = Vibrant Pink
+    ]
+
+    return Array.from({ length: 32 }).map((_, i) => {
+      const config = symbolConfigs[i % symbolConfigs.length];
+      return {
+        id: i,
+        Icon: config.Icon,
+        color: config.color,
+        size: Math.random() * 120 + 60, // Large size (range 60-180)
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        duration: Math.random() * 20 + 30, // 30-50 seconds for slow movement
+        delay: Math.random() * -60,
+        opacity: Math.random() * 0.06 + 0.02, // Subtle opacity
+        rotation: Math.random() * 360,
+      }
+    })
   }, [])
 
   if (!mounted) return null
