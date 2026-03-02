@@ -16,12 +16,12 @@ export function VantaBackground() {
     return Array.from({ length: 24 }).map((_, i) => ({
       id: i,
       Icon: icons[i % icons.length],
-      size: Math.random() * 30 + 15,
+      size: Math.random() * 60 + 30, // Diperbesar 100% (dari range 15-45 menjadi 30-90)
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      duration: Math.random() * 20 + 30, // 30-50s for slow movement
+      duration: Math.random() * 20 + 30, // 30-50 detik untuk pergerakan lambat
       delay: Math.random() * -60,
-      opacity: Math.random() * 0.06 + 0.02, // Very subtle
+      opacity: Math.random() * 0.06 + 0.02, // Tetap halus agar tidak mengganggu konten
       rotation: Math.random() * 360,
       color: i % 2 === 0 ? 'text-primary' : 'text-accent'
     }))
