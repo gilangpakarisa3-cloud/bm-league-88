@@ -403,29 +403,37 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   viewBox="0 0 24 24" 
                                   fill="none" 
                                   stroke="currentColor" 
-                                  strokeWidth="1.2" 
+                                  strokeWidth="1" 
                                   className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
                                 >
-                                  {/* Outer Shield Shell */}
-                                  <circle cx="12" cy="12" r="11" strokeWidth="0.5" strokeOpacity="0.2" />
-                                  <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
+                                  {/* Aegis Circular Base Structure */}
+                                  <circle cx="12" cy="12" r="11.5" strokeWidth="0.3" strokeOpacity="0.1" />
+                                  <circle cx="12" cy="12" r="10.5" strokeWidth="1.2" />
+                                  <circle cx="12" cy="12" r="9" strokeWidth="0.5" strokeOpacity="0.3" />
                                   
-                                  {/* Inner PlayStation Runes Formation */}
-                                  {/* ▲ Top - Triangle */}
-                                  <path d="M12 5l2 3.5h-4z" strokeWidth="1.2" />
+                                  {/* Radial Segments (Aegis division) */}
+                                  <path d="M12 2v20M2 12h20" strokeWidth="0.2" strokeOpacity="0.2" />
+                                  <path d="M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93" strokeWidth="0.2" strokeOpacity="0.1" />
+
+                                  {/* PlayStation Runes - Positioned like cardinal directions on the shield */}
+                                  {/* ▲ Top: Triangle */}
+                                  <path d="M12 4.5l2.5 4h-5z" fill="currentColor" fillOpacity="0.3" />
                                   
-                                  {/* ● Right - Circle */}
-                                  <circle cx="17" cy="12" r="1.8" strokeWidth="1.2" />
+                                  {/* ● Right: Circle */}
+                                  <circle cx="19.5" cy="12" r="1.8" strokeWidth="1.5" />
                                   
-                                  {/* X Bottom - Cross */}
-                                  <path d="M10.5 15.5l3 3M13.5 15.5l-3 3" strokeWidth="1.2" />
+                                  {/* X Bottom: Cross */}
+                                  <path d="M10.2 18.2l3.6 3.6M13.8 18.2l-3.6 3.6" strokeWidth="1.5" />
                                   
-                                  {/* ■ Left - Square */}
-                                  <rect x="5.5" y="10.5" width="3" height="3" strokeWidth="1.2" />
+                                  {/* ■ Left: Square */}
+                                  <rect x="2.5" y="10.2" width="3.6" height="3.6" strokeWidth="1.5" />
                                   
-                                  {/* Central Core */}
-                                  <circle cx="12" cy="12" r="3.5" strokeWidth="0.8" strokeDasharray="1 1" />
-                                  <circle cx="12" cy="12" r="2" fill="currentColor" fillOpacity="0.5" />
+                                  {/* Inner Ornate Rings */}
+                                  <circle cx="12" cy="12" r="6" strokeWidth="0.4" strokeDasharray="1 1" strokeOpacity="0.4" />
+                                  
+                                  {/* Core Gem */}
+                                  <path d="M12 8.5l3 3.5-3 3.5-3-3.5z" fill="currentColor" fillOpacity="0.6" />
+                                  <circle cx="12" cy="12" r="1.5" fill="white" fillOpacity="0.2" />
                                 </svg>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
