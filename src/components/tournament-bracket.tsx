@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -407,31 +408,29 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
                                 >
                                   {/* Aegis Circular Base Structure */}
-                                  <circle cx="12" cy="12" r="11.5" strokeWidth="0.3" strokeOpacity="0.1" />
-                                  <circle cx="12" cy="12" r="10.5" strokeWidth="1.2" />
-                                  <circle cx="12" cy="12" r="9" strokeWidth="0.5" strokeOpacity="0.3" />
+                                  <circle cx="12" cy="12" r="11.5" strokeWidth="0.2" strokeOpacity="0.1" />
+                                  <circle cx="12" cy="12" r="10.2" strokeWidth="1.2" />
+                                  <circle cx="12" cy="12" r="8.5" strokeWidth="0.4" strokeOpacity="0.3" />
                                   
                                   {/* Radial Segments (Aegis division) */}
-                                  <path d="M12 2v20M2 12h20" strokeWidth="0.2" strokeOpacity="0.2" />
-                                  <path d="M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93" strokeWidth="0.2" strokeOpacity="0.1" />
+                                  <path d="M12 2v20M2 12h20" strokeWidth="0.1" strokeOpacity="0.2" />
+                                  <path d="M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93" strokeWidth="0.1" strokeOpacity="0.1" />
 
-                                  {/* PlayStation Runes - Positioned like cardinal directions on the shield */}
+                                  {/* PlayStation Runes - Enlarged and better positioned for balance */}
                                   {/* ▲ Top: Triangle */}
-                                  <path d="M12 4.5l2.5 4h-5z" fill="currentColor" fillOpacity="0.3" />
+                                  <path d="M12 2.5l3.5 6h-7z" fill="currentColor" fillOpacity="0.3" strokeWidth="1.2" />
                                   
                                   {/* ● Right: Circle */}
-                                  <circle cx="19.5" cy="12" r="1.8" strokeWidth="1.5" />
+                                  <circle cx="18.5" cy="12" r="2.5" strokeWidth="1.8" />
                                   
                                   {/* X Bottom: Cross */}
-                                  <path d="M10.2 18.2l3.6 3.6M13.8 18.2l-3.6 3.6" strokeWidth="1.5" />
+                                  <path d="M9.5 16.5l5 5M14.5 16.5l-5 5" strokeWidth="1.8" />
                                   
                                   {/* ■ Left: Square */}
-                                  <rect x="2.5" y="10.2" width="3.6" height="3.6" strokeWidth="1.5" />
+                                  <rect x="3" y="9.5" width="5" height="5" strokeWidth="1.8" />
                                   
                                   {/* Inner Ornate Rings */}
-                                  <circle cx="12" cy="12" r="6" strokeWidth="0.4" strokeDasharray="1 1" strokeOpacity="0.4" />
-                                  
-                                  {/* Core Gem - Removed central ornaments per user request */}
+                                  <circle cx="12" cy="12" r="5" strokeWidth="0.3" strokeDasharray="1 1" strokeOpacity="0.4" />
                                 </svg>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
