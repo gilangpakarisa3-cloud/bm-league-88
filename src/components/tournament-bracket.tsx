@@ -397,14 +397,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <div className="flex flex-col items-center gap-8 sm:gap-12 relative z-10">
                         <div className="relative group/trophy cursor-default">
                             <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
-                            <div className="absolute -inset-1 w-[240px] h-[240px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
-                            <div className="relative p-10 sm:p-16 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
+                            <div className="absolute -inset-1 w-[300px] h-[300px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
+                            <div className="relative p-12 sm:p-20 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
                                 <svg 
                                   viewBox="0 0 24 24" 
                                   fill="none" 
                                   stroke="currentColor" 
                                   strokeWidth="1" 
-                                  className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
+                                  className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
                                 >
                                   {/* Aegis Circular Base Structure */}
                                   <circle cx="12" cy="12" r="11.5" strokeWidth="0.3" strokeOpacity="0.1" />
@@ -435,7 +435,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   <path d="M12 8.5l3 3.5-3 3.5-3-3.5z" fill="currentColor" fillOpacity="0.6" />
                                   <circle cx="12" cy="12" r="1.5" fill="white" fillOpacity="0.2" />
                                 </svg>
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
                         </div>
                         <div className="text-center space-y-2 sm:space-y-4">
