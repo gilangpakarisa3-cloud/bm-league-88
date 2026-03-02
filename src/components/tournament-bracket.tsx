@@ -399,7 +399,22 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
                             <div className="absolute -inset-1 w-[240px] h-[240px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
                             <div className="relative p-10 sm:p-16 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
-                                <Trophy className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float" />
+                                <svg 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  strokeWidth="1.2" 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                  className="text-yellow-400 w-20 h-20 sm:w-28 sm:h-28 drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
+                                >
+                                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                                  <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
+                                  <circle cx="12" cy="12" r="4" fill="currentColor" fillOpacity="0.2" />
+                                  <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
+                                  <path d="m4.93 4.93 1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41 1.41" />
+                                  <path d="M12 8v8M8 12h8" strokeWidth="2" />
+                                </svg>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
                             </div>
                         </div>
