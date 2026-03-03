@@ -344,7 +344,7 @@ export function LeagueTable({
                                 <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
                                 <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
                             </div>
-                            Grup A <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupA.length}]</span>
+                            Grup A <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupA.length}]</span>
                         </span>
                         <div className={cn(
                             "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
@@ -366,7 +366,7 @@ export function LeagueTable({
                                 <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
                                 <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
                             </div>
-                            Grup B <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupB.length}]</span>
+                            Grup B <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupB.length}]</span>
                         </span>
                         <div className={cn(
                             "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",

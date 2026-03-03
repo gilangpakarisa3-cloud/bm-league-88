@@ -411,7 +411,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                             >
                                 <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
                                     <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                    Sisa Laga <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{upcomingCount}]</span>
+                                    Sisa Laga <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{upcomingCount}]</span>
                                 </span>
                                 <div className={cn(
                                     "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
@@ -429,7 +429,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                             >
                                 <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
                                     <CheckCircle2 className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                    Selesai <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{completedCount}]</span>
+                                    Selesai <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{completedCount}]</span>
                                 </span>
                                 <div className={cn(
                                     "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
@@ -622,7 +622,7 @@ export default function FixturesPage() {
 
             // B. TRANSACTION WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -795,7 +795,7 @@ export default function FixturesPage() {
 
             // B. WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
