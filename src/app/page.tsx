@@ -118,6 +118,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
   }, [matches]);
 
   useEffect(() => {
+    // Only call the callback if it actually changes to prevent loop
     onPlayoffStatusChange(hasPlayoffs);
   }, [hasPlayoffs, onPlayoffStatusChange]);
 
@@ -362,6 +363,11 @@ export default function Home() {
   const { t } = useTranslation();
   const [isWideMode, setIsWideMode] = useState(false);
   
+  // Memoized callback to prevent unnecessary re-renders in LeaderboardSection
+  const handlePlayoffStatusChange = React.useCallback((active: boolean) => {
+    setIsWideMode(active);
+  }, []);
+
   return (
     <div className="mx-auto px-2 sm:px-4 py-8 sm:py-12 relative w-full">
       {/* Dynamic Background Decoration */}
@@ -414,7 +420,7 @@ export default function Home() {
           "mx-auto transition-all duration-1000 ease-in-out mt-16 px-2 sm:px-4",
           isWideMode ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-[92rem]"
       )}>
-        <LeaderboardSection onPlayoffStatusChange={setIsWideMode} />
+        <LeaderboardSection onPlayoffStatusChange={handlePlayoffStatusChange} />
       </div>
     </div>
   );

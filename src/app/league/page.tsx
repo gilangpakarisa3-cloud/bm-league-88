@@ -1050,7 +1050,7 @@ export default function LeaguePage() {
                     "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
                     isAdmin 
                         ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
-                        : "bg-primary/60 text-black border-primary/20 hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.2)]"
+                        : "bg-primary text-black border-primary/20 hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.2)]"
                 )}
             >
                 {/* Dynamic Scanning Animation Layer */}
