@@ -44,6 +44,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PLAYOFF_SUCCESSOR_MAP } from '@/lib/constants';
+import { resolveLogo } from '@/lib/logo-utils';
 
 
 // For simplicity, we'll work with a single, hardcoded league.
@@ -82,10 +83,8 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         (hasPlayoffs && (match.round === 'Group' || !match.round) && !isAdmin);
 
     const PlayerInfo = ({ name, team, teamId, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, teamId: string, alignment?: 'left' | 'right', isWinner: boolean }) => {
-        // Robust logo resolution with fallbacks
-        const logoUrl = team?.logoUrl || 
-                        (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
-                        `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(name.charAt(0))}`);
+        // Use central utility for consistent logo resolution
+        const logoUrl = resolveLogo(team?.logoUrl, teamId, name);
         
         return (
             <div className={cn(
@@ -102,9 +101,15 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                         "h-10 w-10 sm:h-16 sm:w-16 border-2 transition-all duration-700 shadow-2xl relative z-10",
                         isWinner ? "border-primary scale-110 rotate-0" : "border-white/10 group-hover/player:border-primary/40 -rotate-3 group-hover/player:rotate-0"
                     )}>
-                        <AvatarImage src={logoUrl} alt={team?.name || name} className="object-cover" referrerPolicy="no-referrer" />
+                        <AvatarImage 
+                            key={logoUrl} 
+                            src={logoUrl} 
+                            alt={team?.name || name} 
+                            className="object-cover" 
+                            referrerPolicy="no-referrer" 
+                        />
                         <AvatarFallback className="bg-black/40 font-black text-xs">
-                            <Shield className="w-5 h-5 text-white/30" />
+                            <Shield className="w-5 h-5 text-white/40" />
                         </AvatarFallback>
                     </Avatar>
                     
@@ -155,7 +160,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 
                 {/* Home Player */}
                 <div className="justify-self-end w-full">
-                    <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.player1Id} alignment="right" isWinner={isW1} />
+                    <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.teamId1 || match.player1Id} alignment="right" isWinner={isW1} />
                 </div>
                 
                 {/* Score/VS Module */}
@@ -181,7 +186,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 
                 {/* Away Player */}
                 <div className="justify-self-start w-full">
-                    <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.player2Id} alignment="left" isWinner={isW2} />
+                    <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.teamId2 || match.player2Id} alignment="left" isWinner={isW2} />
                 </div>
                 
                 {/* Desktop Actions */}
@@ -285,24 +290,28 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {} }, upcomingCount: 0, completedCount: 0 };
         const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
         const enrichedMatches = matches.map(match => {
-            let p1, p2, t1, t2;
+            let p1, p2, t1, t2, tid1, tid2;
             if (isCoop) {
                 const e1 = coopTableById[match.player1Id];
                 const e2 = coopTableById[match.player2Id];
                 p1 = e1 ? { name: e1.teamName, id: e1.id } : (match.player1Id === 'TBD' ? { name: 'TBD', id: 'TBD' } : null);
                 p2 = e2 ? { name: e2.teamName, id: e2.id } : (match.player2Id === 'TBD' ? { name: 'TBD', id: 'TBD' } : null);
-                t1 = e1 ? teamsById[e1.player1TeamId] : null;
-                t2 = e2 ? teamsById[e2.player1TeamId] : null;
+                tid1 = e1?.player1TeamId;
+                tid2 = e2?.player1TeamId;
+                t1 = tid1 ? teamsById[tid1] : null;
+                t2 = tid2 ? teamsById[tid2] : null;
             } else {
                 const e1 = leagueTableByPlayerId[match.player1Id];
                 const e2 = leagueTableByPlayerId[match.player2Id];
                 p1 = e1 ? { name: e1.playerName, id: e1.playerId } : (match.player1Id === 'TBD' ? { name: 'TBD', id: 'TBD' } : (playersById[match.player1Id] || null));
                 p2 = e2 ? { name: e2.playerName, id: e2.playerId } : (match.player2Id === 'TBD' ? { name: 'TBD', id: 'TBD' } : (playersById[match.player2Id] || null));
-                t1 = teamsById[e1 ? e1.teamId : playersById[match.player1Id]?.teamId] || null;
-                t2 = teamsById[e2 ? e2.teamId : playersById[match.player2Id]?.teamId] || null;
+                tid1 = e1 ? e1.teamId : playersById[match.player1Id]?.teamId;
+                tid2 = e2 ? e2.teamId : playersById[match.player2Id]?.teamId;
+                t1 = tid1 ? teamsById[tid1] : null;
+                t2 = tid2 ? teamsById[tid2] : null;
             }
             if (!p1 || !p2) return null;
-            return { ...match, player1: p1, player2: p2, team1: t1, team2: t2 };
+            return { ...match, player1: p1, player2: p2, team1: t1, team2: t2, teamId1: tid1, teamId2: tid2 };
         }).filter(Boolean) as any[];
 
         const filtered = enrichedMatches.filter(m => {
@@ -637,7 +646,7 @@ export default function FixturesPage() {
 
             if (orig.isCompleted) {
                 const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
-                const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
+                const oldS2 = isBestOfThree ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
                 const outcome = getOutcome(oldS1, oldS2);
                 
                 if (sData.type === 'Co-Op' && e1Data && e2Data) {
@@ -801,7 +810,7 @@ export default function FixturesPage() {
             };
 
             const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0);
-            const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
+            const oldS2 = isBestOfThree ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
             const outcome = getOutcome(oldS1, oldS2);
 
             if (sData.type === 'Co-Op' && e1Data && e2Data) {
