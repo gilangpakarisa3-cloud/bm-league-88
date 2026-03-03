@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { useDoc, useFirestore, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
@@ -30,11 +30,11 @@ export const PasswordProvider = ({ children }: { children: ReactNode }) => {
     return true;
   }, [passwordDocRef]);
 
-  const value = { 
+  const value = useMemo(() => ({ 
       password: passwordData?.password, 
       updatePassword, 
       isLoaded: !isPasswordLoading 
-  };
+  }), [passwordData?.password, updatePassword, isPasswordLoading]);
 
   return (
     <PasswordContext.Provider value={value}>

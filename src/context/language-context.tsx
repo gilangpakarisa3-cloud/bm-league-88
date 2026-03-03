@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import id from '@/locales/id.json';
 import en from '@/locales/en.json';
 
@@ -40,7 +39,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isMounted]);
 
-  const t = (key: string, options?: Record<string, string | number>): string => {
+  const t = useCallback((key: string, options?: Record<string, string | number>): string => {
     const keys = key.split('.');
     let result = translations[language];
     for (const k of keys) {
@@ -64,11 +63,11 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
     
     return result || key;
-  };
+  }, [language]);
   
   // A version of 't' that is stable and won't cause re-renders on language change
   // for things that are not user-facing, like validation messages.
-   const t_dynamic = (key: string, options?: Record<string, string | number>): string => {
+   const t_dynamic = useCallback((key: string, options?: Record<string, string | number>): string => {
     const lang = typeof window !== 'undefined' ? (localStorage.getItem('language') as Language || 'id') : 'id';
     const keys = key.split('.');
     let result = translations[lang];
@@ -90,7 +89,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       }, result);
     }
     return result || key;
-  };
+  }, []);
 
 
   useEffect(() => {
@@ -99,12 +98,20 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [language, isMounted]);
 
+  const contextValue = useMemo((): LanguageContextType => ({
+    language,
+    setLanguage,
+    translations: translations[language],
+    t,
+    t_dynamic
+  }), [language, t, t_dynamic]);
+
   if (!isMounted) {
     return null;
   }
   
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, translations: translations[language], t, t_dynamic }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

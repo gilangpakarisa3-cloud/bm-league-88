@@ -87,7 +87,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             alignment === 'right' ? "flex-row-reverse text-right justify-start" : "flex-row text-left justify-start"
         )}>
             <div className="relative shrink-0">
-                {/* Visual Rank/Status Ring */}
                 <div className={cn(
                     "absolute -inset-1.5 rounded-full blur-md opacity-0 transition-opacity duration-700",
                     isWinner ? "bg-primary/40 opacity-100" : "bg-white/5 group-hover/player:opacity-20"
