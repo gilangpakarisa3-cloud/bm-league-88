@@ -1162,6 +1162,7 @@ export default function LeaguePage() {
                                                     const teamId = activeSeason.type === 'Co-Op' ? player.player1TeamId : player.teamId;
                                                     const name = activeSeason.type === 'Co-Op' ? player.teamName : player.playerName;
                                                     const teamName = activeSeason.type === 'Co-Op' ? player.player1TeamName : player.teamName;
+                                                    const teamLogo = teamsById[teamId]?.logoUrl || `https://picsum.photos/seed/team-${teamId}/128/128`;
                                                     
                                                     return (
                                                         <div key={entryId} className={cn(
@@ -1180,7 +1181,7 @@ export default function LeaguePage() {
                                                                         "h-9 w-9 sm:h-11 sm:w-11 border-2 transition-all duration-500 shadow-xl",
                                                                         player.hasPaid ? "border-primary" : "border-white/10"
                                                                     )}>
-                                                                        <AvatarImage src={teamsById[teamId]?.logoUrl} alt={name} className="object-cover" />
+                                                                        <AvatarImage src={teamLogo} alt={name} className="object-cover" />
                                                                         <AvatarFallback><User className="w-5 h-5 text-white/20" /></AvatarFallback>
                                                                     </Avatar>
                                                                 </div>
@@ -1246,7 +1247,7 @@ export default function LeaguePage() {
                 </div>
                 <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4 sm:py-6">
+            <div className="grid gap-4 py-4 grief-6">
                 <div className="space-y-2">
                     <Label htmlFor="password-input" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-primary/60">{t('password')}</Label>
                     <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-12 sm:h-14 bg-white/5 border-white/10 rounded-none focus:border-primary/50 text-lg font-black" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />

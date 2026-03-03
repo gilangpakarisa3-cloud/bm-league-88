@@ -96,58 +96,61 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
   return (
     <>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {sortedTeams.map((team: WithId<Team>) => (
-                <div key={team.id} className="group relative">
-                    {/* Background Glow Effect */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
-                    
-                    <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 overflow-hidden rounded-2xl">
-                        {/* Ghost Text Background - Adjusted padding */}
-                        <span className="absolute top-4 left-4 text-4xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors pr-4">
-                            {team.name}
-                        </span>
-
-                        <CardContent className="flex flex-col flex-grow items-center justify-center p-8 relative z-10">
-                            <div className="relative mb-6">
-                                {/* Logo Background Glow */}
-                                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                
-                                <Avatar className="h-24 w-24 border-4 border-white/5 shadow-2xl group-hover:border-primary transition-all duration-500 group-hover:scale-110">
-                                    <AvatarImage src={team.logoUrl} alt={`${team.name} logo`} />
-                                    <AvatarFallback className="bg-white/5"><Shield className="h-12 w-12 text-white/10" /></AvatarFallback>
-                                </Avatar>
-                            </div>
-                            
-                            <p className="font-black text-lg text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-300 pr-2">
+            {sortedTeams.map((team: WithId<Team>) => {
+                const logoUrl = team.logoUrl || `https://picsum.photos/seed/team-${team.id}/128/128`;
+                return (
+                    <div key={team.id} className="group relative">
+                        {/* Background Glow Effect */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
+                        
+                        <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 overflow-hidden rounded-2xl">
+                            {/* Ghost Text Background - Adjusted padding */}
+                            <span className="absolute top-4 left-4 text-4xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors pr-4">
                                 {team.name}
-                            </p>
-                        </CardContent>
+                            </span>
 
-                        {isAdmin && (
-                            <CardFooter className="flex justify-center gap-2 p-3 border-t border-white/5 bg-black/20 backdrop-blur-md mt-auto">
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => onEdit(team)}
-                                    className="h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary transition-colors border border-white/5"
-                                >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                    <span className="sr-only">{t('edit_team_title')}</span>
-                                </Button>
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => confirmDelete(team)}
-                                    className="h-9 w-9 p-0 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5"
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    <span className="sr-only">{t('delete_team')}</span>
-                                </Button>
-                            </CardFooter>
-                        )}
-                    </Card>
-                </div>
-            ))}
+                            <CardContent className="flex flex-col flex-grow items-center justify-center p-8 relative z-10">
+                                <div className="relative mb-6">
+                                    {/* Logo Background Glow */}
+                                    <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    
+                                    <Avatar className="h-24 w-24 border-4 border-white/5 shadow-2xl group-hover:border-primary transition-all duration-500 group-hover:scale-110">
+                                        <AvatarImage src={logoUrl} alt={`${team.name} logo`} className="object-cover" />
+                                        <AvatarFallback className="bg-white/5"><Shield className="h-12 w-12 text-white/10" /></AvatarFallback>
+                                    </Avatar>
+                                </div>
+                                
+                                <p className="font-black text-lg text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-300 pr-2">
+                                    {team.name}
+                                </p>
+                            </CardContent>
+
+                            {isAdmin && (
+                                <CardFooter className="flex justify-center gap-2 p-3 border-t border-white/5 bg-black/20 backdrop-blur-md mt-auto">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={() => onEdit(team)}
+                                        className="h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary transition-colors border border-white/5"
+                                    >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                        <span className="sr-only">{t('edit_team_title')}</span>
+                                    </Button>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={() => confirmDelete(team)}
+                                        className="h-9 w-9 p-0 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <span className="sr-only">{t('delete_team')}</span>
+                                    </Button>
+                                </CardFooter>
+                            )}
+                        </Card>
+                    </div>
+                );
+            })}
         </div>
 
         <AlertDialog open={!!deletingTeam} onOpenChange={(isOpen) => !isOpen && setDeletingTeam(null)}>

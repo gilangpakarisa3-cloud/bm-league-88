@@ -254,7 +254,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                         "h-28 w-28 border-4 border-white/5 transition-all duration-500 shadow-2xl scale-100 group-hover:scale-105",
                                         tier.cardBorder.replace('group-hover:', '')
                                     )}>
-                                        <AvatarImage src={team?.logoUrl} alt={player.name} />
+                                        <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
                                         <AvatarFallback className="bg-white/5"><User className="h-14 w-14 text-white/20" /></AvatarFallback>
                                     </Avatar>
                                     

@@ -419,7 +419,7 @@ export function LeagueTable({
                         onSelectPlayer={onSelectPlayer}
                         seasonType={seasonType}
                         isLoading={isLoading}
-                        onRemovePlayer={onRemovePlayer}
+                         onRemovePlayer={onRemovePlayer}
                         seasonStatus={seasonStatus}
                         isAdmin={isAdmin}
                         defendingChampionId={defendingChampionId}

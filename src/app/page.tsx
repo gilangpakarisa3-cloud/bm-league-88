@@ -313,7 +313,7 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
                   <div className="flex items-center gap-2 sm:gap-4">
                       <div className="relative shrink-0">
                         <Avatar className={cn("h-8 w-8 sm:h-10 sm:w-10 border-2 transition-all duration-500", isFirst ? "border-yellow-400 scale-105 shadow-xl" : "border-white/10 group-hover/row:border-primary")}>
-                            <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} />
+                            <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} className="object-cover" />
                             <AvatarFallback className="bg-white/5"><User className="w-4 h-4 sm:w-5 sm:h-5 text-white/20" /></AvatarFallback>
                         </Avatar>
                         {isDefendingChampion && (
