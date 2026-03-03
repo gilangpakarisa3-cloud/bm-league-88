@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { User, Pencil, Trash2, Shield, Swords, Trophy, Target, Zap, Activity, Users } from 'lucide-react';
+import { User, Pencil, Trash2, Shield, Swords, Trophy, Target, Zap, Activity, Users, Scan } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
@@ -301,12 +301,53 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1.5">
-                                        <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-tighter">
-                                            <span className="text-white/40 italic">Aggressive Momentum</span>
-                                            <span className="text-primary">{player.overallGoalsFor || 0} Goals Scored</span>
+                                    {/* Intelligence Module: Aggressive Momentum Meter */}
+                                    <div className="bg-primary/5 border border-primary/10 rounded-xl p-3.5 space-y-3 relative overflow-hidden group/meter shadow-inner">
+                                        {/* Animated HUD scanning line for the meter */}
+                                        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(204,253,1,0.05)_50%,transparent_100%)] bg-[length:200%_100%] animate-marquee pointer-events-none opacity-0 group-hover/meter:opacity-100 transition-opacity" />
+                                        
+                                        <div className="flex justify-between items-end relative z-10">
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-1.5 mb-0.5">
+                                                    <Target className="w-2.5 h-2.5 text-primary/60" />
+                                                    <span className="text-[7px] font-black text-primary/60 uppercase tracking-[0.2em]">Offensive Core</span>
+                                                </div>
+                                                <span className="text-[11px] font-black text-white uppercase italic tracking-tight pr-4">Aggressive Momentum</span>
+                                            </div>
+                                            <div className="flex flex-col items-end">
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-base font-black text-primary italic leading-none tabular-nums" suppressHydrationWarning>{player.overallGoalsFor || 0}</span>
+                                                    <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">Gls</span>
+                                                </div>
+                                                <span className="text-[6px] font-black text-white/20 uppercase tracking-tighter">Recorded Stats</span>
+                                            </div>
                                         </div>
-                                        <Progress value={((player.overallGoalsFor || 0) / ((player.overallGoalsFor || 0) + (player.overallGoalsAgainst || 0) || 1)) * 100} className="h-1 bg-white/5" />
+                                        
+                                        <div className="relative pt-1">
+                                            <div className="absolute -inset-1 bg-primary/5 blur-md opacity-0 group-hover/meter:opacity-100 transition-opacity" />
+                                            <Progress 
+                                                value={((player.overallGoalsFor || 0) / ((player.overallGoalsFor || 0) + (player.overallGoalsAgainst || 0) || 1)) * 100} 
+                                                className="h-2 bg-white/5 rounded-none border-x border-white/10" 
+                                                color="bg-primary shadow-[0_0_15px_rgba(204,253,1,0.4)] transition-all duration-1000 ease-out"
+                                            />
+                                            {/* Meter segments for sport look */}
+                                            <div className="absolute inset-0 flex justify-between pointer-events-none px-[1px]">
+                                                {[...Array(10)].map((_, i) => (
+                                                    <div key={i} className="w-0.5 h-full bg-background/60" />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-center text-[6px] font-black text-white/20 uppercase tracking-[0.2em] relative z-10">
+                                            <div className="flex items-center gap-1">
+                                                <div className="w-1 h-1 bg-white/10 rounded-full" />
+                                                <span>Defensive Floor</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <span>Apex Potential</span>
+                                                <div className="w-1 h-1 bg-primary/40 rounded-full animate-pulse" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
