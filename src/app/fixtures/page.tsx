@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan, CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -397,12 +397,45 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
             ) : (
                 <Tabs defaultValue="upcoming" className="w-full">
                     <div className="flex justify-center mb-10">
-                        <TabsList className="grid grid-cols-2 w-full max-w-md h-14 bg-black/40 p-1.5 border-2 border-white/5 rounded-2xl shadow-2xl">
-                            <TabsTrigger value="upcoming" className="font-black tracking-tighter h-full rounded-xl data-[state=active]:bg-primary data-[state=active]:text-black uppercase italic text-xs transition-all duration-500">
-                                Sisa Laga ({upcomingCount})
+                        <TabsList className="grid grid-cols-2 w-full max-w-lg h-16 sm:h-20 bg-black/60 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
+                            {/* HUD Decoration */}
+                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-sm" />
+                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60 rounded-tr-sm" />
+                            
+                            <TabsTrigger 
+                                value="upcoming" 
+                                className={cn(
+                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                )}
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                                    <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
+                                    Sisa Laga <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{upcomingCount}]</span>
+                                </span>
+                                <div className={cn(
+                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                )} />
                             </TabsTrigger>
-                            <TabsTrigger value="completed" className="font-black tracking-tighter h-full rounded-xl data-[state=active]:bg-primary data-[state=active]:text-black uppercase italic text-xs transition-all duration-500">
-                                Selesai ({completedCount})
+
+                            <TabsTrigger 
+                                value="completed" 
+                                className={cn(
+                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                )}
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                                    <CheckCircle2 className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
+                                    Selesai <span className="text-[8px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{completedCount}]</span>
+                                </span>
+                                <div className={cn(
+                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                )} />
                             </TabsTrigger>
                         </TabsList>
                     </div>
