@@ -135,7 +135,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             {/* Immersive Ghost Text */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden pr-4 sm:pr-8">
                 <span className="text-[100px] sm:text-[180px] font-black italic text-white/[0.02] uppercase tracking-tighter transition-all duration-1000 group-hover:text-primary/[0.03] group-hover:scale-110 leading-none">
-                    {hasValidScore ? 'FINISHED' : 'BATTLE'}
+                    {hasValidScore ? 'FINISHED' : 'MATCHDAY'}
                 </span>
             </div>
 
@@ -590,7 +590,7 @@ export default function FixturesPage() {
 
             // B. TRANSACTION WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD') || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -763,7 +763,7 @@ export default function FixturesPage() {
 
             // B. WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
