@@ -613,7 +613,7 @@ export default function FixturesPage() {
             matchDate: matchTimestamp,
             isCompleted: true,
             player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
+            player2Wins: isBestOfThree ? (values.player2Wins ?? 0) : null,
         };
 
         runTransaction(firestore, async (transaction) => {
@@ -904,7 +904,7 @@ export default function FixturesPage() {
                             <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
                                 <Activity className="w-3 h-3 animate-pulse" /> Season Progress
                             </span>
-                            <span className="text-xs font-black text-primary italic" suppressHydrationWarning>{progressPercentage.toFixed(0)}%</span>
+                            <span className="text-xs font-black text-primary italic" suppressHydrationWarning>[{progressPercentage.toFixed(0)}%]</span>
                         </div>
                         <div className="relative h-2 sm:h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                             <div 

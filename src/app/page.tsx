@@ -19,6 +19,7 @@ import { PlayerMarquee } from '@/components/player-marquee';
 import { LiveClock } from '@/components/live-clock';
 import { Badge } from '@/components/ui/badge';
 import { TournamentBracket } from '@/components/tournament-bracket';
+import { resolveLogo } from '@/lib/logo-utils';
 
 
 const LEAGUE_ID = 'main-league';
@@ -130,11 +131,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
             const coopEntry = entry as any;
             const teamId = coopEntry.player1TeamId;
             const team = teamsById[teamId];
-            
-            // Robust logo resolution logic
-            const logoUrl = team?.logoUrl || 
-                            (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
-                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(coopEntry.teamName.charAt(0))}`);
+            const logoUrl = resolveLogo(team?.logoUrl, teamId, coopEntry.teamName);
             
             return {
                 ...coopEntry,
@@ -150,12 +147,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
             const player = playersById[pId];
             const teamId = entry.teamId || player?.teamId || '';
             const team = teamsById[teamId];
-            
-            // Robust logo resolution logic
-            const logoUrl = team?.logoUrl || 
-                            entry.logoUrl || 
-                            (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
-                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(entry.playerName.charAt(0))}`);
+            const logoUrl = resolveLogo(team?.logoUrl, teamId, entry.playerName);
 
             return {
                 ...entry,
@@ -335,7 +327,7 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
                   <div className="flex items-center gap-2 sm:gap-4">
                       <div className="relative shrink-0">
                         <Avatar className={cn("h-8 w-8 sm:h-10 sm:w-10 border-2 transition-all duration-500", isFirst ? "border-yellow-400 scale-105 shadow-xl" : "border-white/10 group-hover/row:border-primary")}>
-                            <AvatarImage src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
+                            <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
                             <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-4 h-4 sm:w-5 sm:h-5 text-white/20" /></AvatarFallback>
                         </Avatar>
                         {isDefendingChampion && (

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Shield, Zap, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
+import { resolveLogo } from '@/lib/logo-utils';
 
 const LEAGUE_ID = 'main-league';
 
@@ -77,12 +78,7 @@ export function PlayerMarquee() {
         const player = playersById[p.playerId];
         const teamId = p.teamId || player?.teamId || '';
         const team = teamsById[teamId];
-        
-        // Robust logo resolution protocol
-        const logoUrl = team?.logoUrl || 
-                        p.logoUrl || 
-                        (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
-                        `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(p.playerName.charAt(0))}`);
+        const logoUrl = resolveLogo(team?.logoUrl, teamId, p.playerName);
 
         return {
             ...p,
@@ -130,7 +126,7 @@ export function PlayerMarquee() {
                     <div className="relative">
                         <div className="absolute -inset-1.5 bg-primary/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity duration-500" />
                         <Avatar className="h-9 w-9 sm:h-12 sm:w-12 border-2 border-white/10 group-hover/item:border-primary transition-all duration-500 shadow-xl relative z-10">
-                            <AvatarImage src={participant.logoUrl} alt={participant.playerName} className="object-cover" referrerPolicy="no-referrer" />
+                            <AvatarImage key={participant.logoUrl} src={participant.logoUrl} alt={participant.playerName} className="object-cover" referrerPolicy="no-referrer" />
                             <AvatarFallback className="bg-black/40 font-black text-xs"><Shield className="w-5 h-5 text-white/30"/></AvatarFallback>
                         </Avatar>
                     </div>

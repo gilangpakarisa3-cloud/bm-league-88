@@ -19,6 +19,7 @@ import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useMemo, memo } from "react";
 import { TournamentBracket } from "./tournament-bracket";
+import { resolveLogo } from "@/lib/logo-utils";
 
 interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>, logoUrl?: string })[];
@@ -176,7 +177,7 @@ const SingleTable = memo(({
                               "h-8 w-8 sm:h-12 sm:w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
                               isFirst ? "border-primary scale-110 shadow-[0_0_20px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover:border-primary"
                           )}>
-                            <AvatarImage src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
+                            <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
                             <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/30"/></AvatarFallback>
                           </Avatar>
                           {isFirst && (
@@ -293,12 +294,7 @@ export function LeagueTable({
         const player = playersById[pId];
         const teamId = entry.teamId || player?.teamId || '';
         const team = teamsById[teamId];
-        
-        // Comprehensive logo resolution protocol
-        const logoUrl = team?.logoUrl || 
-                        entry.logoUrl || 
-                        (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
-                        `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(entry.playerName.charAt(0))}`);
+        const logoUrl = resolveLogo(team?.logoUrl, teamId, entry.playerName);
 
         return {
             ...entry,
@@ -480,7 +476,7 @@ export function LeagueTable({
 function LeagueTableSkeleton({ isCoop }: { isCoop: boolean }) {
   const { t } = useTranslation();
   return (
-    <div className="w-full overflow-hidden rounded-2xl border-2 border-white/5 bg-card/40 animate-pulse">
+    <div className="w-full overflow-hidden rounded-2xl border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-2xl animate-pulse">
       <div className="w-full overflow-x-auto">
         <Table className="min-w-full">
           <TableHeader>

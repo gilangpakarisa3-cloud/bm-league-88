@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { resolveLogo } from '@/lib/logo-utils';
 
 interface TournamentBracketProps {
   matches: WithId<Match>[];
@@ -107,12 +108,13 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
               <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10">
                   {[1, 2].map(i => {
                       const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
+                      const logoUrl = resolveLogo(t?.logoUrl, m[`player${i}Id`], p.name);
                       return (
                           <div key={i} className={cn("flex items-center justify-between px-3 h-10 relative", isW ? "bg-primary/15" : "bg-transparent")}>
                               {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
                               <div className="flex items-center gap-2 overflow-hidden">
                                   <Avatar className={cn("h-6 w-6 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}>
-                                      <AvatarImage src={t?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                      <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                       <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-2.5 h-2.5"/></AvatarFallback>
                                   </Avatar>
                                   <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-4", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
@@ -270,7 +272,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
     if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
-    return { stats, winRate, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
+    
+    const logoUrl = resolveLogo(team?.logoUrl, playerId, entry?.playerName || playersById[playerId]?.name);
+
+    return { stats, winRate, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId, logoUrl };
   };
 
   const projections = useMemo(() => {
@@ -601,7 +606,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 </div>
                                             )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
-                                                <AvatarImage src={analysis1.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                                <AvatarImage key={analysis1.logoUrl} src={analysis1.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                                 <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                             </Avatar>
                                             {analysis1.isDefendingChampion && (
@@ -656,7 +661,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 </div>
                                             )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
-                                                <AvatarImage src={analysis2.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                                <AvatarImage key={analysis2.logoUrl} src={analysis2.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                                 <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                             </Avatar>
                                             {analysis2.isDefendingChampion && (
