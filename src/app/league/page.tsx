@@ -943,7 +943,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
 
   return (
     <div className="w-full">
-      {/* Header section: Fixed narrow width - UPDATED BASE TO max-w-[92rem] */}
+      {/* Header section */}
       <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row justify-between items-stretch gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
           <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
@@ -989,64 +989,82 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
           </div>
         </div>
 
+        {/* MODERN HUD CONTROL BAR */}
         <div className={cn(
-            "bg-black/40 border-2 border-white/5 rounded-2xl p-2 sm:p-4 flex flex-wrap items-center gap-4 shadow-2xl backdrop-blur-xl transition-all duration-500",
-            isAdmin ? "w-full" : "w-fit mx-auto"
+            "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",
+            isAdmin ? "w-full" : "w-fit mx-auto rounded-none sm:rounded-none"
         )}>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="p-2.5 bg-primary/10 rounded-xl text-primary hidden xs:block shadow-[0_0_15px_rgba(204,253,1,0.2)]">
-                <LayoutGrid className="w-4 h-4" />
+          {/* Decorative Corner Accents */}
+          <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary/40 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-primary/40 pointer-events-none" />
+
+          <div className="flex items-center gap-2 w-full sm:w-auto relative group/select">
+            <div className="p-3 bg-primary/10 text-primary hidden xs:block shadow-lg -skew-x-[12deg] border-r-2 border-primary/30">
+                <Scan className="w-4 h-4 skew-x-[12deg]" />
             </div>
             <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] max-w-full h-12 bg-black/40 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-xl focus:border-primary/50 transition-all px-6">
-                    <SelectValue placeholder={t('select_a_season')} />
+                <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] h-12 bg-white/5 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-none -skew-x-[12deg] focus:border-primary/50 transition-all px-8">
+                    <div className="skew-x-[12deg] flex items-center justify-center w-full">
+                        <SelectValue placeholder={t('select_a_season')} />
+                    </div>
                 </SelectTrigger>
-                <SelectContent className="bg-[#0A192F] border-primary/30 rounded-xl overflow-hidden">
+                <SelectContent className="bg-[#0A192F] border-primary/30 rounded-none overflow-hidden">
                     {seasons?.map(season => <SelectItem key={season.id} value={season.id} className="font-black uppercase italic text-xs focus:bg-primary focus:text-black py-3">{season.name}</SelectItem>)}
                 </SelectContent>
             </Select>
             {isAdmin && (
-              <div className="flex gap-1.5 ml-1">
-                <Button onClick={() => withAdminCheck(handleOpenCreateDialog)} size="sm" className="h-12 w-12 rounded-xl bg-primary/10 text-primary border-primary/30 border-2 hover:bg-primary hover:text-black transition-all shadow-lg"><PlusCircle className="h-5 w-5" /></Button>
-                <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="sm" className="h-12 w-12 rounded-xl border-white/10 hover:border-primary/50 transition-all" disabled={!activeSeason || activeSeason.status !== 'Not Started'}><Pencil className="h-5 w-5" /></Button>
-                <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="sm" className="h-12 w-12 rounded-xl transition-all" disabled={!activeSeason}><Trash2 className="h-5 w-5" /></Button>
+              <div className="flex gap-1 ml-1">
+                <Button onClick={() => withAdminCheck(handleOpenCreateDialog)} size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] bg-primary/10 text-primary border-primary/30 border-r-2 hover:bg-primary hover:text-black transition-all shadow-lg"><PlusCircle className="h-5 w-5 skew-x-[12deg]" /></Button>
+                <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] border-white/10 border-r-2 hover:border-primary/50 transition-all" disabled={!activeSeason || activeSeason.status !== 'Not Started'}><Pencil className="h-5 w-5 skew-x-[12deg]" /></Button>
+                <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] transition-all" disabled={!activeSeason}><Trash2 className="h-5 w-5 skew-x-[12deg]" /></Button>
               </div>
             )}
           </div>
-          {isAdmin && <Separator orientation="vertical" className="h-10 mx-2 hidden lg:block opacity-10" />}
+
           {isAdmin && activeSeason && (
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-wrap items-center gap-1 w-full sm:w-auto">
                 {activeSeason.status === 'Not Started' && (
-                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" size="sm" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 hover:border-primary/50 rounded-xl transition-all"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</Button>
-                        {activeSeason?.type === 'Co-Op' && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 hover:border-primary/50 rounded-xl transition-all"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</Button>}
-                        {activeSeason?.type === 'Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" size="sm" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 hover:border-primary/50 rounded-xl transition-all"><Group className="mr-2 h-4 w-4" />UNDI GRUP</Button>}
-                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2} variant="outline" size="sm" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 hover:border-primary/50 rounded-xl transition-all"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</Button>
-                        <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant="default" size="sm" className="flex-1 sm:flex-none h-12 px-8 font-black text-[10px] uppercase tracking-widest rounded-xl shadow-xl shadow-primary/20 transition-all" disabled={!hasFixtures || (sortedTable || []).length < 2}><Play className="mr-2 h-4 w-4" />{t('start_season')}</Button>
-                    </div>
+                    <>
+                        <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</span></Button>
+                        {activeSeason?.type === 'Co-Op' && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</span></Button>}
+                        {activeSeason?.type === 'Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Group className="mr-2 h-4 w-4" />UNDI GRUP</span></Button>}
+                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</span></Button>
+                        <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant="default" className="flex-1 sm:flex-none h-12 px-8 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-black/20 shadow-xl shadow-primary/20 transition-all" disabled={!hasFixtures || (sortedTable || []).length < 2}><span className="skew-x-[12deg] flex items-center"><Play className="mr-2 h-4 w-4" />{t('start_season')}</span></Button>
+                    </>
                 )}
                 {activeSeason.status === 'In Progress' && (
-                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <>
                         {activeSeason?.type === 'Hybrid' && groupStageMatches.length > 0 && !hasPlayoffs && (
-                            <Button onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateDoubleElimination) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} variant={areGroupStageMatchesComplete ? "default" : "outline"} size="sm" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"><Swords className="mr-2 h-4 w-4" />START PLAYOFF</Button>
+                            <Button onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateDoubleElimination) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} variant={areGroupStageMatchesComplete ? "default" : "outline"} className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-white/10 transition-all"><span className="skew-x-[12deg] flex items-center"><Swords className="mr-2 h-4 w-4" />START PLAYOFF</span></Button>
                         )}
-                        <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" size="sm" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"><Flag className="mr-2 h-4 w-4" />{t('finish_season')}</Button>
-                    </div>
+                        <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] transition-all"><span className="skew-x-[12deg] flex items-center"><Flag className="mr-2 h-4 w-4" />{t('finish_season')}</span></Button>
+                    </>
                 )}
             </div>
           )}
-          <div className={cn("flex items-center gap-2", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
-            <Button onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} variant="outline" size="sm" className={cn("h-12 px-6 font-black text-[10px] uppercase tracking-widest italic rounded-xl transition-all duration-500", isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-white/10 hover:border-primary/50")}>
-                {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
-                {isAdmin ? t('lock_admin') : t('unlock_admin')}
+
+          <div className={cn("flex items-center gap-1", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
+            <Button 
+                onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} 
+                className={cn(
+                    "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500", 
+                    isAdmin 
+                        ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
+                        : "bg-white/5 border-white/10 text-white/30 hover:border-primary/40"
+                )}
+            >
+                <div className="skew-x-[12deg] flex items-center">
+                    {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+                    {isAdmin ? t('lock_admin') : t('unlock_admin')}
+                </div>
             </Button>
-            <Button onClick={handleShareParticipants} variant="ghost" size="icon" className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-primary/10 hover:text-primary transition-all" disabled={!sortedTable || sortedTable.length === 0} title={t('share_participants')}><Share2 className="h-5 w-5" /></Button>
-            <Button asChild variant="ghost" size="icon" className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-yellow-500/10 hover:text-yellow-400 transition-all" title={t('view_champion')}><Link href={`/league/winner?seasonId=${activeSeasonId}`}><Trophy className="h-5 w-5" /></Link></Button>
+            <Button onClick={handleShareParticipants} variant="ghost" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] bg-white/5 border-r-2 border-white/10 hover:bg-primary/10 hover:text-primary transition-all" disabled={!sortedTable || sortedTable.length === 0} title={t('share_participants')}><Share2 className="h-5 w-5 skew-x-[12deg]" /></Button>
+            <Button asChild variant="ghost" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] bg-white/5 border-r-2 border-white/10 hover:bg-yellow-500/10 hover:text-yellow-400 transition-all" title={t('view_champion')}><Link href={`/league/winner?seasonId=${activeSeasonId}`}><Trophy className="h-5 w-5 skew-x-[12deg]" /></Link></Button>
           </div>
         </div>
       </div>
 
-      {/* Standings and data section: Adaptive width - UPDATED BASE TO max-w-[92rem] */}
+      {/* Standings and data section */}
       <div className={cn(
           "mx-auto px-2 sm:px-4 pb-8 transition-all duration-1000 ease-in-out mt-6",
           (activeSeason?.type === 'Hybrid' && activeLeagueTab === 'playoff') ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-[92rem]"

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -896,37 +896,46 @@ export default function FixturesPage() {
             <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0"><LiveClock /></div>
         </div>
 
+        {/* MODERN HUD CONTROL BAR */}
         <div className={cn(
-            "bg-black/40 border-2 border-white/5 rounded-2xl p-2 sm:p-4 mb-6 sm:mb-10 flex flex-wrap items-center gap-4 shadow-2xl backdrop-blur-xl transition-all duration-500", 
+            "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",
             isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="p-2.5 bg-primary/10 rounded-xl text-primary hidden xs:block shadow-[0_0_15px_rgba(204,253,1,0.2)]">
-                    <LayoutGrid className="w-4 h-4" />
+            {/* Decorative Corner Accents */}
+            <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary/40 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-primary/40 pointer-events-none" />
+
+            <div className="flex items-center gap-2 w-full sm:w-auto relative group/select">
+                <div className="p-3 bg-primary/10 text-primary hidden xs:block shadow-lg -skew-x-[12deg] border-r-2 border-primary/30">
+                    <Scan className="w-4 h-4 skew-x-[12deg]" />
                 </div>
                 <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                    <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] max-w-full h-12 bg-black/40 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-xl focus:border-primary/50 transition-all px-6">
-                        <SelectValue placeholder={t('select_a_season')} />
+                    <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] h-12 bg-white/5 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-none -skew-x-[12deg] focus:border-primary/50 transition-all px-8">
+                        <div className="skew-x-[12deg] flex items-center justify-center w-full">
+                            <SelectValue placeholder={t('select_a_season')} />
+                        </div>
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0A192F] border-primary/30 rounded-xl overflow-hidden">
+                    <SelectContent className="bg-[#0A192F] border-primary/30 rounded-none overflow-hidden">
                         {seasons?.map(s => (<SelectItem key={s.id} value={s.id} className="font-black uppercase italic text-xs focus:bg-primary focus:text-black py-3">{s.name}</SelectItem>))}
                     </SelectContent>
                 </Select>
             </div>
 
-            <div className={cn("flex items-center gap-2", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
+            <div className={cn("flex items-center gap-1", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
                 <Button 
                     onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} 
-                    variant="outline" 
-                    size="sm" 
                     className={cn(
-                        "h-12 px-6 font-black uppercase tracking-widest text-[10px] italic transition-all duration-500 rounded-xl", 
-                        isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-white/10 hover:border-primary/50"
-                    )} 
+                        "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500", 
+                        isAdmin 
+                            ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
+                            : "bg-white/5 border-white/10 text-white/30 hover:border-primary/40"
+                    )}
                     disabled={!isPasswordLoaded}
                 >
-                    {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
-                    {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+                    <div className="skew-x-[12deg] flex items-center">
+                        {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+                        {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+                    </div>
                 </Button>
             </div>
         </div>
