@@ -289,12 +289,22 @@ export function LeagueTable({
   
   const enrichedTableData = useMemo(() => {
     return tableData.map(entry => {
-        const teamId = entry.teamId || (entry.playerId ? playersById[entry.playerId]?.teamId : '');
+        const pId = entry.playerId || entry.id;
+        const player = playersById[pId];
+        const teamId = entry.teamId || player?.teamId || '';
         const team = teamsById[teamId];
+        
+        // Robust logo resolution with multi-stage fallback
+        const logoUrl = team?.logoUrl || 
+                        entry.logoUrl || 
+                        (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                        (entry.teamName ? `https://picsum.photos/seed/team-${entry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                        `https://picsum.photos/seed/player-${pId}/128/128`));
+
         return {
             ...entry,
             team: team,
-            logoUrl: team?.logoUrl || (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : undefined)
+            logoUrl
         };
     });
   }, [tableData, teamsById, playersById]);

@@ -189,6 +189,9 @@ export default function LeaguePage() {
         enrichedTable = coopLeagueTable.map(entry => {
             const teamId = entry.player1TeamId;
             const team = teamsById[teamId];
+            const logoUrl = team?.logoUrl || 
+                            (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                            `https://picsum.photos/seed/team-${entry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128`);
             return {
                 ...entry,
                 playerName: entry.teamName,
@@ -196,19 +199,24 @@ export default function LeaguePage() {
                 teamName: team ? team.name : entry.player1TeamName,
                 playerId: entry.id,
                 team: team,
-                logoUrl: team?.logoUrl || (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : undefined)
+                logoUrl
             };
         });
     } else if (singleLeagueTable) {
         enrichedTable = singleLeagueTable.map(entry => {
             const player = playersById[entry.playerId];
-            const teamId = entry.teamId || player?.teamId;
+            const teamId = entry.teamId || player?.teamId || '';
             const team = teamsById[teamId];
+            const logoUrl = team?.logoUrl || 
+                            entry.logoUrl || 
+                            (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                            (entry.teamName ? `https://picsum.photos/seed/team-${entry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                            `https://picsum.photos/seed/player-${entry.playerId}/128/128`));
             return {
                 ...entry,
                 player: player,
                 team: team,
-                logoUrl: team?.logoUrl || (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : undefined)
+                logoUrl
             };
         });
     } else {
@@ -722,7 +730,7 @@ export default function LeaguePage() {
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className={cn("w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500", isAdmin ? "animate-scanning opacity-20" : "opacity-0")} />
                 </div>
-                <div className="skew-x-[12deg] flex items-center relative z-10">
+                <div className="skew-x-[12deg] flex items-center relative z-10 text-black">
                     {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                     {isAdmin ? t('lock_admin') : t('unlock_admin')}
                 </div>
@@ -773,10 +781,15 @@ export default function LeaguePage() {
                                     <div className="bg-black/40 border-2 border-primary/10 p-4 sm:p-5 rounded-xl sm:rounded-2xl text-center space-y-1 relative overflow-hidden"><div className="absolute inset-0 bg-primary/[0.02] pointer-events-none" /><p className="text-[8px] sm:text-[9px] font-black text-muted-foreground tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1">Total Hadiah Terkumpul</p><p className="text-2xl sm:text-3xl font-black text-primary italic drop-shadow-[0_0_15px_rgba(204,253,1,0.4)] tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}</p>{sponsorshipPool > 0 && <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-2 pt-2 border-t border-white/5"><Badge variant="outline" className="text-[7px] sm:text-[8px] font-black border-primary/30 text-primary/80 uppercase">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge><Badge variant="outline" className="text-[7px] sm:text-[8px] font-black border-yellow-500/30 text-yellow-500/80 uppercase">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge></div>}<div className="mt-3 sm:mt-4 flex flex-col items-center gap-1"><div className="flex items-center gap-2 mb-1"><Activity className="w-3 h-3 text-primary animate-pulse" /><p className="text-[8px] sm:text-[10px] font-black text-white/60 uppercase tracking-widest"><span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> / {registeredPlayers?.length} Atlet Lunas</p></div><Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1 w-20 sm:w-24 bg-white/5" /></div></div>
                                     <div className="space-y-3"><h4 className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.3em] text-primary/60 flex items-center gap-2 uppercase italic"><Receipt className="w-3 h-3" /> Status Verifikasi Pembayaran</h4><ScrollArea className="h-[500px] sm:h-[800px] pr-2"><div className="space-y-2.5">
                                         {(registeredPlayers || []).map(player => {
-                                            const teamId = activeSeason.type === 'Co-Op' ? player.player1TeamId : player.teamId;
-                                            const name = activeSeason.type === 'Co-Op' ? player.teamName : player.playerName;
-                                            const teamName = activeSeason.type === 'Co-Op' ? player.player1TeamName : player.teamName;
-                                            const teamLogo = teamsById[teamId]?.logoUrl || (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : undefined);
+                                            const type = activeSeason?.type || 'Single';
+                                            const teamId = type === 'Co-Op' ? player.player1TeamId : player.teamId;
+                                            const name = type === 'Co-Op' ? player.teamName : player.playerName;
+                                            const teamName = type === 'Co-Op' ? player.player1TeamName : player.teamName;
+                                            const team = teamsById[teamId];
+                                            const teamLogo = team?.logoUrl || 
+                                                             (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                                                             `https://picsum.photos/seed/team-${teamName.toLowerCase().replace(/\s+/g, '-')}/128/128`);
+                                            
                                             return (
                                                 <div key={player.id} className={cn("flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-500 group/item relative overflow-hidden", player.hasPaid ? "bg-primary/10 border-primary/20" : "bg-black/20 border-white/5")}><div className={cn("absolute left-0 top-0 bottom-0 w-1 transition-all duration-500", player.hasPaid ? "bg-primary" : "bg-white/5")} /><div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'><div className="relative"><Avatar className={cn("h-9 w-9 sm:h-11 sm:w-11 border-2", player.hasPaid ? "border-primary" : "border-white/10")}><AvatarImage src={teamLogo} alt={name} className="object-cover" /><AvatarFallback><User className="w-5 h-5 text-white/20" /></AvatarFallback></Avatar></div><div className="flex flex-col overflow-hidden"><Label htmlFor={`paid-${player.id}`} className={cn("text-[12px] sm:text-[15px] font-black uppercase italic pr-4 truncate cursor-pointer", player.hasPaid ? "text-primary" : "text-white/80")}>{name}</Label><span className={cn("text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] truncate", player.hasPaid ? "text-primary/40" : "text-white/20")}>{teamName || 'Athlete Protocol'}</span></div></div><div className="flex items-center gap-3 relative z-10 shrink-0"><div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter border", player.hasPaid ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-black/20 text-white/20")}>{player.hasPaid ? "Verified" : "Pending"}</div><Checkbox id={`paid-${player.id}`} checked={!!player.hasPaid} onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} disabled={!isAdmin} className={cn("h-5 w-5 sm:h-6 sm:w-6 rounded-md border-2", player.hasPaid ? "border-primary bg-primary" : "border-white/20 bg-black/40")} /></div></div>
                                             );

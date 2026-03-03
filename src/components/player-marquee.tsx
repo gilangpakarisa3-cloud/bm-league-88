@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Season, LeagueEntry, WithId, Team } from '@/lib/types';
+import type { Season, LeagueEntry, WithId, Team, Player } from '@/lib/types';
 import { useState, useMemo, useEffect } from 'react';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -49,6 +49,12 @@ export function PlayerMarquee() {
   );
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
 
+  const playersCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'players') : null),
+    [firestore]
+  );
+  const { data: allPlayers } = useCollection<Player>(playersCollection);
+
   const teamsById = useMemo(() => {
     if (!allTeams) return {};
     return allTeams.reduce((acc, t) => {
@@ -57,13 +63,34 @@ export function PlayerMarquee() {
     }, {} as Record<string, WithId<Team>>);
   }, [allTeams]);
 
+  const playersById = useMemo(() => {
+    if (!allPlayers) return {};
+    return allPlayers.reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+    }, {} as Record<string, WithId<Player>>);
+  }, [allPlayers]);
+
   const participants = useMemo(() => {
     if (!leaguePlayers) return [];
-    return leaguePlayers.map(p => ({
-        ...p,
-        team: teamsById[p.teamId]
-    })).sort((a,b) => a.playerName.localeCompare(b.playerName));
-  }, [leaguePlayers, teamsById]);
+    return leaguePlayers.map(p => {
+        const player = playersById[p.playerId];
+        const teamId = p.teamId || player?.teamId || '';
+        const team = teamsById[teamId];
+        
+        const logoUrl = team?.logoUrl || 
+                        p.logoUrl || 
+                        (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                        (p.teamName ? `https://picsum.photos/seed/team-${p.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                        `https://picsum.photos/seed/player-${p.playerId}/128/128`));
+
+        return {
+            ...p,
+            team,
+            logoUrl
+        };
+    }).sort((a,b) => a.playerName.localeCompare(b.playerName));
+  }, [leaguePlayers, teamsById, playersById]);
 
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams;
 
@@ -103,7 +130,7 @@ export function PlayerMarquee() {
                     <div className="relative">
                         <div className="absolute -inset-1.5 bg-primary/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity duration-500" />
                         <Avatar className="h-9 w-9 sm:h-12 sm:w-12 border-2 border-white/10 group-hover/item:border-primary transition-all duration-500 shadow-xl relative z-10">
-                            <AvatarImage src={participant.team?.logoUrl} alt={participant.teamName} className="object-cover" />
+                            <AvatarImage src={participant.logoUrl} alt={participant.teamName} className="object-cover" />
                             <AvatarFallback className="bg-black/40"><Shield className="w-5 h-5 text-white/10"/></AvatarFallback>
                         </Avatar>
                     </div>

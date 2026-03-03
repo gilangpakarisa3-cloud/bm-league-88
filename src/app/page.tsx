@@ -130,21 +130,33 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
             const coopEntry = entry as any;
             const teamId = coopEntry.player1TeamId;
             const team = teamsById[teamId];
+            const logoUrl = team?.logoUrl || 
+                            (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                            `https://picsum.photos/seed/team-${coopEntry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128`);
             return {
                 ...coopEntry,
                 playerName: coopEntry.teamName,
                 teamName: team?.name || coopEntry.player1TeamName,
                 team: team,
-                logoUrl: team?.logoUrl || `https://picsum.photos/seed/team-${teamId}/128/128`
+                logoUrl
             }
         });
     } else {
         enrichedTable = allLeaguePlayers.map(entry => {
-            const team = teamsById[entry.teamId] || (entry.playerId ? teamsById[playersById[entry.playerId]?.teamId] : null);
+            const pId = entry.playerId;
+            const player = playersById[pId];
+            const teamId = entry.teamId || player?.teamId || '';
+            const team = teamsById[teamId];
+            
+            const logoUrl = team?.logoUrl || 
+                            (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                            (entry.teamName ? `https://picsum.photos/seed/team-${entry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                            `https://picsum.photos/seed/player-${pId}/128/128`));
+
             return {
                 ...entry,
                 team: team,
-                logoUrl: team?.logoUrl || (entry.teamId ? `https://picsum.photos/seed/team-${entry.teamId}/128/128` : undefined)
+                logoUrl
             }
         });
     }
