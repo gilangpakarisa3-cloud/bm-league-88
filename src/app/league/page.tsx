@@ -125,14 +125,30 @@ export default function LeaguePage() {
 
   const isLoadingTable = isLoadingSingleTable || isLoadingCoopTable;
 
-  const playerRegistrationCollection = useMemoFirebase(
-      () =>
-        firestore && activeSeasonId
-          ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)
-          : null,
-      [firestore, activeSeasonId]
+  const teamsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'teams') : null),
+    [firestore]
   );
-  const { data: registeredPlayers } = useCollection<LeagueEntry>(playerRegistrationCollection);
+  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
+
+  const teamsById = useMemo(() => {
+    if (!allTeams) return {};
+    return allTeams.reduce((acc, t) => {
+        acc[t.id] = t;
+        return acc;
+    }, {} as Record<string, WithId<Team>>);
+  }, [allTeams]);
+
+  // Unified registration fetch for financial card
+  const playerRegistrationCollection = useMemoFirebase(
+      () => {
+        if (!firestore || !activeSeasonId || !activeSeason) return null;
+        const collName = activeSeason.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+        return collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${collName}`);
+      },
+      [firestore, activeSeasonId, activeSeason]
+  );
+  const { data: registeredPlayers } = useCollection<any>(playerRegistrationCollection);
 
   const playersCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'players') : null),
@@ -140,12 +156,6 @@ export default function LeaguePage() {
   );
   const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
   
-  const teamsCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'teams') : null),
-    [firestore]
-  );
-  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
-
   const matchesCollection = useMemoFirebase(
     () =>
       firestore && activeSeasonId
@@ -169,14 +179,6 @@ export default function LeaguePage() {
         return acc;
     }, {} as Record<string, WithId<Player>>);
   }, [allPlayers]);
-
-  const teamsById = useMemo(() => {
-    if (!allTeams) return {};
-    return allTeams.reduce((acc, t) => {
-        acc[t.id] = t;
-        return acc;
-    }, {} as Record<string, WithId<Team>>);
-  }, [allTeams]);
 
   const sortedTable = useMemo(() => {
     const tableData = (activeSeason?.type || 'Single') !== 'Co-Op' ? singleLeagueTable : coopLeagueTable;
@@ -665,6 +667,7 @@ export default function LeaguePage() {
             player2TeamId: pair.teamId,
             player2TeamName: pair.teamName,
             played: 0, win: 0, loss: 0, points: 0,
+            hasPaid: false,
         };
         batch.set(tRef, tData);
     });
@@ -789,10 +792,11 @@ export default function LeaguePage() {
   };
   
   const handlePaymentToggle = useCallback((leagueEntryId: string, currentStatus: boolean) => {
-    if (!firestore || !activeSeasonId || !isAdmin) return;
-    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, leagueEntryId);
+    if (!firestore || !activeSeasonId || !isAdmin || !activeSeason) return;
+    const collName = activeSeason.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+    const entryRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${collName}`, leagueEntryId);
     updateDocumentNonBlocking(entryRef, { hasPaid: !currentStatus });
-  }, [firestore, activeSeasonId, isAdmin]);
+  }, [firestore, activeSeasonId, isAdmin, activeSeason]);
 
   const formattedDateRange = useMemo(() => {
     if (!activeSeason || !activeSeason.startDate || !activeSeason.endDate) return null;
@@ -1153,66 +1157,73 @@ export default function LeaguePage() {
                                         </h4>
                                         <ScrollArea className="h-[500px] sm:h-[800px] pr-2">
                                             <div className="space-y-2.5">
-                                                {(registeredPlayers || []).map(player => (
-                                                    <div key={player.id} className={cn(
-                                                        "flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-500 group/item relative overflow-hidden",
-                                                        player.hasPaid 
-                                                            ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(204,253,1,0.05)]" 
-                                                            : "bg-black/20 border-white/5 hover:border-white/10"
-                                                    )}>
-                                                        <div className={cn(
-                                                            "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
-                                                            player.hasPaid ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" : "bg-white/5"
-                                                        )} />
-                                                        <div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'>
-                                                            <div className="relative">
-                                                                <Avatar className={cn(
-                                                                    "h-9 w-9 sm:h-11 sm:w-11 border-2 transition-all duration-500 shadow-xl",
-                                                                    player.hasPaid ? "border-primary" : "border-white/10"
-                                                                )}>
-                                                                    <AvatarImage src={teamsById[player.teamId]?.logoUrl} alt={player.playerName} />
-                                                                    <AvatarFallback><User className="w-5 h-5 text-white/20" /></AvatarFallback>
-                                                                </Avatar>
-                                                            </div>
-                                                            <div className="flex flex-col overflow-hidden">
-                                                                <Label htmlFor={`paid-${player.id}`} className={cn(
-                                                                    "text-[12px] sm:text-[15px] font-black uppercase italic pr-4 truncate cursor-pointer transition-colors",
-                                                                    player.hasPaid ? "text-primary" : "text-white/80 group-hover/item:text-white"
-                                                                )}>
-                                                                    {player.playerName}
-                                                                </Label>
-                                                                <span className={cn(
-                                                                    "text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] truncate transition-colors",
-                                                                    player.hasPaid ? "text-primary/40" : "text-white/20"
-                                                                )}>
-                                                                    {player.teamName || 'Athlete Protocol'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-3 relative z-10 shrink-0">
+                                                {(registeredPlayers || []).map(player => {
+                                                    const entryId = player.id;
+                                                    const teamId = activeSeason.type === 'Co-Op' ? player.player1TeamId : player.teamId;
+                                                    const name = activeSeason.type === 'Co-Op' ? player.teamName : player.playerName;
+                                                    const teamName = activeSeason.type === 'Co-Op' ? player.player1TeamName : player.teamName;
+                                                    
+                                                    return (
+                                                        <div key={entryId} className={cn(
+                                                            "flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-500 group/item relative overflow-hidden",
+                                                            player.hasPaid 
+                                                                ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(204,253,1,0.05)]" 
+                                                                : "bg-black/20 border-white/5 hover:border-white/10"
+                                                        )}>
                                                             <div className={cn(
-                                                                "px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter transition-all border",
-                                                                player.hasPaid 
-                                                                    ? "border-primary/30 bg-primary/10 text-primary" 
-                                                                    : "border-white/10 bg-black/20 text-white/20"
-                                                            )}>
-                                                                {player.hasPaid ? "Verified" : "Pending"}
+                                                                "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
+                                                                player.hasPaid ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" : "bg-white/5"
+                                                            )} />
+                                                            <div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'>
+                                                                <div className="relative">
+                                                                    <Avatar className={cn(
+                                                                        "h-9 w-9 sm:h-11 sm:w-11 border-2 transition-all duration-500 shadow-xl",
+                                                                        player.hasPaid ? "border-primary" : "border-white/10"
+                                                                    )}>
+                                                                        <AvatarImage src={teamsById[teamId]?.logoUrl} alt={name} className="object-cover" />
+                                                                        <AvatarFallback><User className="w-5 h-5 text-white/20" /></AvatarFallback>
+                                                                    </Avatar>
+                                                                </div>
+                                                                <div className="flex flex-col overflow-hidden">
+                                                                    <Label htmlFor={`paid-${entryId}`} className={cn(
+                                                                        "text-[12px] sm:text-[15px] font-black uppercase italic pr-4 truncate cursor-pointer transition-colors",
+                                                                        player.hasPaid ? "text-primary" : "text-white/80 group-hover/item:text-white"
+                                                                    )}>
+                                                                        {name}
+                                                                    </Label>
+                                                                    <span className={cn(
+                                                                        "text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] truncate transition-colors",
+                                                                        player.hasPaid ? "text-primary/40" : "text-white/20"
+                                                                    )}>
+                                                                        {teamName || 'Athlete Protocol'}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <Checkbox 
-                                                                id={`paid-${player.id}`} 
-                                                                checked={!!player.hasPaid} 
-                                                                onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
-                                                                disabled={!isAdmin} 
-                                                                className={cn(
-                                                                    "h-5 w-5 sm:h-6 sm:w-6 rounded-md transition-all shadow-lg border-2",
+                                                            <div className="flex items-center gap-3 relative z-10 shrink-0">
+                                                                <div className={cn(
+                                                                    "px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter transition-all border",
                                                                     player.hasPaid 
-                                                                        ? "border-primary bg-primary data-[state=checked]:text-black" 
-                                                                        : "border-white/20 bg-black/40"
-                                                                )} 
-                                                            />
+                                                                        ? "border-primary/30 bg-primary/10 text-primary" 
+                                                                        : "border-white/10 bg-black/20 text-white/20"
+                                                                )}>
+                                                                    {player.hasPaid ? "Verified" : "Pending"}
+                                                                </div>
+                                                                <Checkbox 
+                                                                    id={`paid-${entryId}`} 
+                                                                    checked={!!player.hasPaid} 
+                                                                    onCheckedChange={() => handlePaymentToggle(entryId, !!player.hasPaid)} 
+                                                                    disabled={!isAdmin} 
+                                                                    className={cn(
+                                                                        "h-5 w-5 sm:h-6 sm:w-6 rounded-md transition-all shadow-lg border-2",
+                                                                        player.hasPaid 
+                                                                            ? "border-primary bg-primary data-[state=checked]:text-black" 
+                                                                            : "border-white/20 bg-black/40"
+                                                                    )} 
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </ScrollArea>
                                     </div>

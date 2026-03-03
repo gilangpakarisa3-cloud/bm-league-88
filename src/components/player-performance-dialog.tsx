@@ -252,7 +252,7 @@ export function PlayerPerformanceDialog({
                       )}
 
                       <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl relative z-10 group-hover:scale-105 transition-all duration-500">
-                        <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.playerName} />
+                        <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.playerName} className="object-cover" />
                         <AvatarFallback className="bg-white/5"><User className="h-12 w-12 text-white/10" /></AvatarFallback>
                       </Avatar>
                       
@@ -276,7 +276,7 @@ export function PlayerPerformanceDialog({
                       <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-4 text-white" suppressHydrationWarning>{player.playerName}</DialogTitle>
                       <DialogDescription asChild>
                         <div className="flex items-center justify-center gap-2 font-black text-white/40 uppercase tracking-widest text-[10px]">
-                            <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={playerTeamDetails?.logoUrl} /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                            <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={playerTeamDetails?.logoUrl} className="object-cover" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
                             <span suppressHydrationWarning>{player.teamName || 'Independent'}</span>
                         </div>
                       </DialogDescription>
