@@ -111,12 +111,12 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 
             <div className="flex flex-col gap-0.5 overflow-hidden">
                 <span className={cn(
-                    "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500",
+                    "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500 pr-4", 
                     isWinner ? "text-primary" : "text-white/80 group-hover/player:text-white"
                 )}>
                     {name}
                 </span>
-                <span className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] truncate group-hover/player:text-primary/40 transition-colors">
+                <span className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] truncate group-hover/player:text-primary/40 transition-colors pr-2">
                     {team?.name || 'Athlete Protocol'}
                 </span>
             </div>

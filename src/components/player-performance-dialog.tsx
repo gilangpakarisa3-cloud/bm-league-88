@@ -273,7 +273,7 @@ export function PlayerPerformanceDialog({
                     </div>
 
                     <div className="space-y-1 pt-4">
-                      <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-2 text-white" suppressHydrationWarning>{player.playerName}</DialogTitle>
+                      <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-4 text-white" suppressHydrationWarning>{player.playerName}</DialogTitle>
                       <DialogDescription asChild>
                         <div className="flex items-center justify-center gap-2 font-black text-white/40 uppercase tracking-widest text-[10px]">
                             <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={playerTeamDetails?.logoUrl} /><AvatarFallback><Shield/></AvatarFallback></Avatar>

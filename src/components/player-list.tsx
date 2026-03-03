@@ -261,7 +261,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                             <CardContent className="flex-grow space-y-6 px-6 relative z-10">
                                 <div className="text-center space-y-1">
                                     <h3 className={cn(
-                                        "font-black text-2xl tracking-tighter uppercase italic transition-colors pr-2",
+                                        "font-black text-2xl tracking-tighter uppercase italic transition-colors pr-4",
                                         tier.color.includes('white') ? "text-white group-hover:text-primary" : `text-white group-hover:${tier.color}`
                                     )}>
                                         {player.name}

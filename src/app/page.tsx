@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -323,7 +322,7 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
                         )}
                       </div>
                       <div className="overflow-hidden">
-                        <div className={cn("font-black truncate uppercase italic pr-1 sm:pr-2 transition-colors", isFirst ? "text-yellow-400 text-sm sm:text-lg" : "text-xs sm:text-base text-white group-hover:text-primary")}>{entry.playerName}</div>
+                        <div className={cn("font-black truncate uppercase italic pr-4 transition-colors", isFirst ? "text-yellow-400 text-sm sm:text-lg" : "text-xs sm:text-base text-white group-hover:text-primary")}>{entry.playerName}</div>
                         <div className="text-[7px] sm:text-[9px] text-white/40 truncate font-black uppercase tracking-widest">{entry.team?.name || entry.teamName}</div>
                       </div>
                   </div>

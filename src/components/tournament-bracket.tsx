@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -61,8 +60,8 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
           <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
           <Card className="w-44 sm:w-48 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
               <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-20">
-                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
-                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-3 text-white/40" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
+                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-4 text-white/40" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
+                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-4 text-white/40" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
               </CardContent>
           </Card>
       </div>
@@ -113,7 +112,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
                               {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
                               <div className="flex items-center gap-2 overflow-hidden">
                                   <Avatar className={cn("h-6 w-6 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}><AvatarImage src={t?.logoUrl} /><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar>
-                                  <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-3", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
+                                  <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-4", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
                               </div>
                               <div className={cn("px-1.5 py-0.5 rounded bg-white/5 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
                           </div>
@@ -237,7 +236,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
-    const ovrEfficiency = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
+    const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
 
     const form = playerMatches.slice(-5).map(m => {
       const isP1 = m.player1Id === playerId;
@@ -268,7 +267,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
     if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
-    return { stats, winRate: ovrEfficiency, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
+    return { stats, winRate, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId };
   };
 
   const projections = useMemo(() => {
@@ -407,29 +406,21 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                   strokeWidth="1" 
                                   className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
                                 >
-                                  {/* Aegis Circular Base Structure */}
                                   <circle cx="12" cy="12" r="11.5" strokeWidth="0.2" strokeOpacity="0.1" />
                                   <circle cx="12" cy="12" r="10.2" strokeWidth="1.2" />
                                   <circle cx="12" cy="12" r="8.5" strokeWidth="0.4" strokeOpacity="0.3" />
                                   
-                                  {/* Radial Segments (Aegis division) */}
                                   <path d="M12 2v20M2 12h20" strokeWidth="0.1" strokeOpacity="0.2" />
                                   <path d="M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93" strokeWidth="0.1" strokeOpacity="0.1" />
 
-                                  {/* PlayStation Runes - Enlarged and better positioned for balance */}
-                                  {/* ▲ Top: Triangle */}
                                   <path d="M12 2.5l3.5 6h-7z" fill="currentColor" fillOpacity="0.3" strokeWidth="1.2" />
                                   
-                                  {/* ● Right: Circle */}
                                   <circle cx="18.5" cy="12" r="2.5" strokeWidth="1.8" />
                                   
-                                  {/* X Bottom: Cross */}
                                   <path d="M9.5 16.5l5 5M14.5 16.5l-5 5" strokeWidth="1.8" />
                                   
-                                  {/* ■ Left: Square */}
                                   <rect x="3" y="9.5" width="5" height="5" strokeWidth="1.8" />
                                   
-                                  {/* Inner Ornate Rings */}
                                   <circle cx="12" cy="12" r="5" strokeWidth="0.3" strokeDasharray="1 1" strokeOpacity="0.4" />
                                 </svg>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
