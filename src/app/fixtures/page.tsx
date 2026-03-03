@@ -82,7 +82,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         (hasPlayoffs && (match.round === 'Group' || !match.round) && !isAdmin);
 
     const PlayerInfo = ({ name, team, teamId, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, teamId: string, alignment?: 'left' | 'right', isWinner: boolean }) => {
-        const logoUrl = team?.logoUrl || (teamId && teamId !== 'TBD' ? `https://picsum.photos/seed/team-${teamId}/128/128` : undefined);
+        // Robust logo resolution with fallbacks
+        const logoUrl = team?.logoUrl || 
+                        (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                        `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(name.charAt(0))}`);
         
         return (
             <div className={cn(
@@ -99,7 +102,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                         "h-10 w-10 sm:h-16 sm:w-16 border-2 transition-all duration-700 shadow-2xl relative z-10",
                         isWinner ? "border-primary scale-110 rotate-0" : "border-white/10 group-hover/player:border-primary/40 -rotate-3 group-hover/player:rotate-0"
                     )}>
-                        <AvatarImage src={logoUrl} alt={team?.name} className="object-cover" />
+                        <AvatarImage src={logoUrl} alt={team?.name || name} className="object-cover" referrerPolicy="no-referrer" />
                         <AvatarFallback className="bg-black/40 font-black text-xs">
                             <Shield className="w-5 h-5 text-white/10" />
                         </AvatarFallback>

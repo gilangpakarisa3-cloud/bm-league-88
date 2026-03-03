@@ -130,12 +130,12 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
             const coopEntry = entry as any;
             const teamId = coopEntry.player1TeamId;
             const team = teamsById[teamId];
-            const slug = (team?.name || coopEntry.player1TeamName || 'unknown').toLowerCase().replace(/\s+/g, '-');
             
+            // Robust logo resolution logic
             const logoUrl = team?.logoUrl || 
-                            (teamId && teamId !== 'TBD' ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
-                            (slug !== 'unknown' ? `https://picsum.photos/seed/team-${slug}/128/128` : 
-                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(coopEntry.teamName.charAt(0))}`));
+                            (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(coopEntry.teamName.charAt(0))}`);
+            
             return {
                 ...coopEntry,
                 playerName: coopEntry.teamName,
@@ -150,13 +150,12 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
             const player = playersById[pId];
             const teamId = entry.teamId || player?.teamId || '';
             const team = teamsById[teamId];
-            const slug = (team?.name || entry.teamName || 'unknown').toLowerCase().replace(/\s+/g, '-');
             
+            // Robust logo resolution logic
             const logoUrl = team?.logoUrl || 
                             entry.logoUrl || 
-                            (teamId && teamId !== 'TBD' ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
-                            (slug !== 'unknown' ? `https://picsum.photos/seed/team-${slug}/128/128` : 
-                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(entry.playerName.charAt(0))}`));
+                            (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(entry.playerName.charAt(0))}`);
 
             return {
                 ...entry,
@@ -336,8 +335,8 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
                   <div className="flex items-center gap-2 sm:gap-4">
                       <div className="relative shrink-0">
                         <Avatar className={cn("h-8 w-8 sm:h-10 sm:w-10 border-2 transition-all duration-500", isFirst ? "border-yellow-400 scale-105 shadow-xl" : "border-white/10 group-hover/row:border-primary")}>
-                            <AvatarImage src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" />
-                            <AvatarFallback className="bg-white/5"><User className="w-4 h-4 sm:w-5 sm:h-5 text-white/20" /></AvatarFallback>
+                            <AvatarImage src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
+                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-4 h-4 sm:w-5 sm:h-5 text-white/20" /></AvatarFallback>
                         </Avatar>
                         {isDefendingChampion && (
                             <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-amber-500 rounded-lg p-0.5 sm:p-1 border-2 border-background shadow-lg rotate-12">

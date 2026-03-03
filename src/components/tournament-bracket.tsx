@@ -112,8 +112,8 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { 
                               {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
                               <div className="flex items-center gap-2 overflow-hidden">
                                   <Avatar className={cn("h-6 w-6 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}>
-                                      <AvatarImage src={t?.logoUrl} className="object-cover" />
-                                      <AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback>
+                                      <AvatarImage src={t?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                      <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-2.5 h-2.5"/></AvatarFallback>
                                   </Avatar>
                                   <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-4", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
                               </div>
@@ -601,8 +601,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 </div>
                                             )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
-                                                <AvatarImage src={analysis1.team?.logoUrl} className="object-cover" />
-                                                <AvatarFallback><User className="w-12 h-12 text-white/10"/></AvatarFallback>
+                                                <AvatarImage src={analysis1.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                                <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                             </Avatar>
                                             {analysis1.isDefendingChampion && (
                                                 <div className="absolute -top-1 -right-1 z-20">
@@ -656,8 +656,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 </div>
                                             )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
-                                                <AvatarImage src={analysis2.team?.logoUrl} className="object-cover" />
-                                                <AvatarFallback><User className="w-12 h-12 text-white/10"/></AvatarFallback>
+                                                <AvatarImage src={analysis2.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                                <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                             </Avatar>
                                             {analysis2.isDefendingChampion && (
                                                 <div className="absolute -top-1 -right-1 z-20">

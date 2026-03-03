@@ -189,9 +189,12 @@ export default function LeaguePage() {
         enrichedTable = coopLeagueTable.map(entry => {
             const teamId = entry.player1TeamId;
             const team = teamsById[teamId];
+            
+            // Robust logo resolution logic
             const logoUrl = team?.logoUrl || 
-                            (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
-                            `https://picsum.photos/seed/team-${entry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128`);
+                            (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(entry.teamName.charAt(0))}`);
+            
             return {
                 ...entry,
                 playerName: entry.teamName,
@@ -207,11 +210,13 @@ export default function LeaguePage() {
             const player = playersById[entry.playerId];
             const teamId = entry.teamId || player?.teamId || '';
             const team = teamsById[teamId];
+            
+            // Robust logo resolution logic
             const logoUrl = team?.logoUrl || 
                             entry.logoUrl || 
-                            (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
-                            (entry.teamName ? `https://picsum.photos/seed/team-${entry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
-                            `https://picsum.photos/seed/player-${entry.playerId}/128/128`));
+                            (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                            `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(entry.playerName.charAt(0))}`);
+
             return {
                 ...entry,
                 player: player,
@@ -786,12 +791,14 @@ export default function LeaguePage() {
                                             const name = type === 'Co-Op' ? player.teamName : player.playerName;
                                             const teamName = type === 'Co-Op' ? player.player1TeamName : player.teamName;
                                             const team = teamsById[teamId];
+                                            
+                                            // Robust logo resolution logic
                                             const teamLogo = team?.logoUrl || 
-                                                             (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
-                                                             `https://picsum.photos/seed/team-${teamName.toLowerCase().replace(/\s+/g, '-')}/128/128`);
+                                                             (teamId && teamId !== 'TBD' ? `https://fastly.picsum.photos/seed/team-${teamId.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
+                                                             `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(name.charAt(0))}`);
                                             
                                             return (
-                                                <div key={player.id} className={cn("flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-500 group/item relative overflow-hidden", player.hasPaid ? "bg-primary/10 border-primary/20" : "bg-black/20 border-white/5")}><div className={cn("absolute left-0 top-0 bottom-0 w-1 transition-all duration-500", player.hasPaid ? "bg-primary" : "bg-white/5")} /><div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'><div className="relative"><Avatar className={cn("h-9 w-9 sm:h-11 sm:w-11 border-2", player.hasPaid ? "border-primary" : "border-white/10")}><AvatarImage src={teamLogo} alt={name} className="object-cover" /><AvatarFallback><User className="w-5 h-5 text-white/20" /></AvatarFallback></Avatar></div><div className="flex flex-col overflow-hidden"><Label htmlFor={`paid-${player.id}`} className={cn("text-[12px] sm:text-[15px] font-black uppercase italic pr-4 truncate cursor-pointer", player.hasPaid ? "text-primary" : "text-white/80")}>{name}</Label><span className={cn("text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] truncate", player.hasPaid ? "text-primary/40" : "text-white/20")}>{teamName || 'Athlete Protocol'}</span></div></div><div className="flex items-center gap-3 relative z-10 shrink-0"><div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter border", player.hasPaid ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-black/20 text-white/20")}>{player.hasPaid ? "Verified" : "Pending"}</div><Checkbox id={`paid-${player.id}`} checked={!!player.hasPaid} onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} disabled={!isAdmin} className={cn("h-5 w-5 sm:h-6 sm:w-6 rounded-md border-2", player.hasPaid ? "border-primary bg-primary" : "border-white/20 bg-black/40")} /></div></div>
+                                                <div key={player.id} className={cn("flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-500 group/item relative overflow-hidden", player.hasPaid ? "bg-primary/10 border-primary/20" : "bg-black/20 border-white/5")}><div className={cn("absolute left-0 top-0 bottom-0 w-1 transition-all duration-500", player.hasPaid ? "bg-primary" : "bg-white/5")} /><div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'><div className="relative"><Avatar className={cn("h-9 w-9 sm:h-11 sm:w-11 border-2", player.hasPaid ? "border-primary" : "border-white/10")}><AvatarImage src={teamLogo} alt={name} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-5 h-5 text-white/20" /></AvatarFallback></Avatar></div><div className="flex flex-col overflow-hidden"><Label htmlFor={`paid-${player.id}`} className={cn("text-[12px] sm:text-[15px] font-black uppercase italic pr-4 truncate cursor-pointer", player.hasPaid ? "text-primary" : "text-white/80")}>{name}</Label><span className={cn("text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] truncate", player.hasPaid ? "text-primary/40" : "text-white/20")}>{teamName || 'Athlete Protocol'}</span></div></div><div className="flex items-center gap-3 relative z-10 shrink-0"><div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter border", player.hasPaid ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-black/20 text-white/20")}>{player.hasPaid ? "Verified" : "Pending"}</div><Checkbox id={`paid-${player.id}`} checked={!!player.hasPaid} onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} disabled={!isAdmin} className={cn("h-5 w-5 sm:h-6 sm:w-6 rounded-md border-2", player.hasPaid ? "border-primary bg-primary" : "border-white/20 bg-black/40")} /></div></div>
                                             );
                                         })}
                                     </div></ScrollArea></div>
