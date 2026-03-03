@@ -81,47 +81,51 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         (match.player1Id === 'TBD' || match.player2Id === 'TBD') ||
         (hasPlayoffs && (match.round === 'Group' || !match.round) && !isAdmin);
 
-    const PlayerInfo = ({ name, team, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right', isWinner: boolean }) => (
-        <div className={cn(
-            "flex items-center gap-3 sm:gap-6 group/player transition-all duration-500 w-full", 
-            alignment === 'right' ? "flex-row-reverse text-right justify-start" : "flex-row text-left justify-start"
-        )}>
-            <div className="relative shrink-0">
-                <div className={cn(
-                    "absolute -inset-1.5 rounded-full blur-md opacity-0 transition-opacity duration-700",
-                    isWinner ? "bg-primary/40 opacity-100" : "bg-white/5 group-hover/player:opacity-20"
-                )} />
-                
-                <Avatar className={cn(
-                    "h-10 w-10 sm:h-16 sm:w-16 border-2 transition-all duration-700 shadow-2xl relative z-10",
-                    isWinner ? "border-primary scale-110 rotate-0" : "border-white/10 group-hover/player:border-primary/40 -rotate-3 group-hover/player:rotate-0"
-                )}>
-                    <AvatarImage src={team?.logoUrl} alt={team?.name} className="object-cover" />
-                    <AvatarFallback className="bg-black/40 font-black text-xs">
-                        <Shield className="w-5 h-5 text-white/10" />
-                    </AvatarFallback>
-                </Avatar>
-                
-                {isWinner && (
-                    <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg border-2 border-background animate-bounce">
-                        <Zap className="w-3 h-3 text-black fill-black" />
-                    </div>
-                )}
-            </div>
+    const PlayerInfo = ({ name, team, teamId, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, teamId: string, alignment?: 'left' | 'right', isWinner: boolean }) => {
+        const logoUrl = team?.logoUrl || (teamId && teamId !== 'TBD' ? `https://picsum.photos/seed/team-${teamId}/128/128` : undefined);
+        
+        return (
+            <div className={cn(
+                "flex items-center gap-3 sm:gap-6 group/player transition-all duration-500 w-full", 
+                alignment === 'right' ? "flex-row-reverse text-right justify-start" : "flex-row text-left justify-start"
+            )}>
+                <div className="relative shrink-0">
+                    <div className={cn(
+                        "absolute -inset-1.5 rounded-full blur-md opacity-0 transition-opacity duration-700",
+                        isWinner ? "bg-primary/40 opacity-100" : "bg-white/5 group-hover/player:opacity-20"
+                    )} />
+                    
+                    <Avatar className={cn(
+                        "h-10 w-10 sm:h-16 sm:w-16 border-2 transition-all duration-700 shadow-2xl relative z-10",
+                        isWinner ? "border-primary scale-110 rotate-0" : "border-white/10 group-hover/player:border-primary/40 -rotate-3 group-hover/player:rotate-0"
+                    )}>
+                        <AvatarImage src={logoUrl} alt={team?.name} className="object-cover" />
+                        <AvatarFallback className="bg-black/40 font-black text-xs">
+                            <Shield className="w-5 h-5 text-white/10" />
+                        </AvatarFallback>
+                    </Avatar>
+                    
+                    {isWinner && (
+                        <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg border-2 border-background animate-bounce">
+                            <Zap className="w-3 h-3 text-black fill-black" />
+                        </div>
+                    )}
+                </div>
 
-            <div className="flex flex-col gap-0.5 overflow-hidden">
-                <span className={cn(
-                    "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500 pr-4", 
-                    isWinner ? "text-primary" : "text-white/80 group-hover/player:text-white"
-                )}>
-                    {name}
-                </span>
-                <span className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] truncate group-hover/player:text-primary/40 transition-colors pr-2">
-                    {team?.name || 'Athlete Protocol'}
-                </span>
+                <div className="flex flex-col gap-0.5 overflow-hidden">
+                    <span className={cn(
+                        "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500 pr-4", 
+                        isWinner ? "text-primary" : "text-white/80 group-hover/player:text-white"
+                    )}>
+                        {name}
+                    </span>
+                    <span className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] truncate group-hover/player:text-primary/40 transition-colors pr-2">
+                        {team?.name || 'Athlete Protocol'}
+                    </span>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
     
     const score1 = isBestOfThree ? match.player1Wins : match.player1Score;
     const score2 = isBestOfThree ? match.player2Wins : match.player2Score;
@@ -148,7 +152,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 
                 {/* Home Player */}
                 <div className="justify-self-end w-full">
-                    <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} alignment="right" isWinner={isW1} />
+                    <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.player1Id} alignment="right" isWinner={isW1} />
                 </div>
                 
                 {/* Score/VS Module */}
@@ -174,10 +178,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 
                 {/* Away Player */}
                 <div className="justify-self-start w-full">
-                    <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} alignment="left" isWinner={isW2} />
+                    <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.player2Id} alignment="left" isWinner={isW2} />
                 </div>
                 
-                {/* Desktop Actions - Positioned to side to keep center grid balanced */}
+                {/* Desktop Actions */}
                 <div className="hidden md:flex items-center gap-3 justify-end absolute right-10 top-1/2 -translate-y-1/2">
                     <div className="flex flex-col items-end mr-2">
                         <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Signal</span>
@@ -299,19 +303,15 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         }).filter(Boolean) as any[];
 
         const filtered = enrichedMatches.filter(m => {
-            // Search filter
             if (searchTerm.trim()) {
                 const terms = searchTerm.toLowerCase().split(' ').filter(Boolean);
                 const pn1 = m.player1?.name.toLowerCase() || '';
                 const pn2 = m.player2?.name.toLowerCase() || '';
                 if (!terms.every(t => pn1.includes(t) || pn2.includes(t))) return false;
             }
-
-            // User requirement: Hide unplayed group matches if playoffs have already started
             if (hasPlayoffs && !m.isCompleted && (m.round === 'Group' || !m.round)) {
                 return false;
             }
-
             return true;
         });
         
@@ -323,7 +323,6 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
             return acc;
         }, { upcoming: {} as Record<string, any[]>, completed: {} as Record<string, any[]> });
         
-        // Sort Rounds by standard order (Fase Awal ke Fase Akhir)
         const sortRounds = (entries: [string, any[]][]) => {
             return entries.sort(([rdA], [rdB]) => {
                 return (ROUND_ORDER[rdA] || 99) - (ROUND_ORDER[rdB] || 99);
@@ -398,7 +397,6 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                 <Tabs defaultValue="upcoming" className="w-full">
                     <div className="flex justify-center mb-10">
                         <TabsList className="grid grid-cols-2 w-full max-w-lg h-16 sm:h-20 bg-black/60 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
-                            {/* HUD Decoration */}
                             <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-sm" />
                             <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60 rounded-tr-sm" />
                             
@@ -531,7 +529,6 @@ export default function FixturesPage() {
   const matchesCol = useMemoFirebase(() => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null, [firestore, activeSeasonId]);
   const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCol);
   
-  const playersById = useMemo(() => (allPlayers || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
   const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
   
   const hasPlayoffs = useMemo(() => matches?.some(m => m.round && m.round !== 'Group') || false, [matches]);
@@ -556,7 +553,6 @@ export default function FixturesPage() {
     const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`);
     
     try {
-        // Step 1: Gather ALL necessary data outside the transaction
         const [mDoc, sDoc] = await Promise.all([getDoc(matchRef), getDoc(seasonRef)]);
         if (!mDoc.exists() || !sDoc.exists()) throw new Error("Match or Season data not found.");
         
@@ -597,7 +593,6 @@ export default function FixturesPage() {
             }
         }
 
-        // Prepare clean update data for the match doc update later
         const [h, m] = values.time.split(':').map(Number); 
         const matchTimestamp = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
         const matchUpdateData: any = {
@@ -609,9 +604,7 @@ export default function FixturesPage() {
             player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
         };
 
-        // Step 2: Transaction - Reads FIRST, then WRITES
         runTransaction(firestore, async (transaction) => {
-            // A. TRANSACTION READS
             let e1Data = null;
             let e2Data = null;
             if (p1EntryRef && p2EntryRef) {
@@ -620,9 +613,8 @@ export default function FixturesPage() {
                 if (e2Snap.exists()) e2Data = e2Snap.data() as LeagueEntry;
             }
 
-            // B. TRANSACTION WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -640,7 +632,6 @@ export default function FixturesPage() {
                 return { p1: 'D', p2: 'D' };
             };
 
-            // 1. Revert stats if previously completed
             if (orig.isCompleted) {
                 const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
                 const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
@@ -658,7 +649,6 @@ export default function FixturesPage() {
                 }
             }
 
-            // 2. Apply new stats
             const newS1 = isMatchBo3 ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
             const newS2 = isMatchBo3 ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
             const newOutcome = getOutcome(newS1, newS2);
@@ -674,7 +664,6 @@ export default function FixturesPage() {
                 updatePlayerStats(orig.player2Id, { played: 1, win: newOutcome.p2 === 'W' ? 1 : 0, draw: newOutcome.p2 === 'D' ? 1 : 0, loss: newOutcome.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
             }
 
-            // 3. Bracket logic
             if (winMatchRef) {
                 const winnerId = newS1 > newS2 ? orig.player1Id : orig.player2Id;
                 const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId!];
@@ -685,7 +674,6 @@ export default function FixturesPage() {
                 }
             }
 
-            // 4. Table logic
             if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
                 const e1 = { ...e1Data }; const e2 = { ...e2Data };
                 if (orig.isCompleted) {
@@ -708,7 +696,6 @@ export default function FixturesPage() {
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
 
-            // 5. Update match doc
             transaction.update(matchRef, matchUpdateData);
         })
         .then(() => {
@@ -743,7 +730,6 @@ export default function FixturesPage() {
         const sData = sDoc.data() as Season;
         const isMatchBo3 = sData.type === 'Co-Op' || (mToRev.round && mToRev.round !== 'Group');
 
-        // Identify successor matches to reset TBD
         let winMatchRef = null;
         let losMatchRef = null;
         if (mToRev.round && mToRev.round !== 'Group' && mToRev.bracketId) {
@@ -784,7 +770,6 @@ export default function FixturesPage() {
         }
 
         runTransaction(firestore, async (transaction) => {
-            // A. READS
             let e1Data = null;
             let e2Data = null;
             if (p1EntryRef && p2EntryRef) {
@@ -793,9 +778,8 @@ export default function FixturesPage() {
                 if (e2Snap.exists()) e2Data = e2Snap.data() as LeagueEntry;
             }
 
-            // B. WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
@@ -841,7 +825,6 @@ export default function FixturesPage() {
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
 
-            // Reset successor matches if they exist
             if (winMatchRef) {
                 const succ = PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!];
                 transaction.update(winMatchRef, { [`player${succ.winner.slot}Id`]: 'TBD' });
@@ -875,14 +858,12 @@ export default function FixturesPage() {
   
   return (
     <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-8 relative">
-       {/* Background decorative glows */}
        <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
        <div className="absolute bottom-0 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
              <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
-                {/* HUD Accent Line with Glow */}
                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
                 
                 <div className="relative z-10 space-y-1">
@@ -928,12 +909,10 @@ export default function FixturesPage() {
             <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0"><LiveClock /></div>
         </div>
 
-        {/* MODERN HUD CONTROL BAR */}
         <div className={cn(
             "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",
             isAdmin ? "w-full" : "w-fit mx-auto"
         )}>
-            {/* Decorative Corner Accents */}
             <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary/40 pointer-events-none" />
             <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-primary/40 pointer-events-none" />
 
@@ -964,7 +943,6 @@ export default function FixturesPage() {
                     )}
                     disabled={!isPasswordLoaded}
                 >
-                    {/* Dynamic Scanning Animation Layer */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <div className={cn(
                             "w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500",
@@ -992,7 +970,6 @@ export default function FixturesPage() {
             <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
         )}
 
-        {/* Dialogs */}
         <Dialog open={!!editingMatch} onOpenChange={(open) => !open && setEditingMatch(null)}>
             <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-2xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.15)] max-h-[90vh] flex flex-col">
                 <DialogHeader className="p-6 border-b border-white/5 bg-black/20 shrink-0">
@@ -1018,7 +995,7 @@ export default function FixturesPage() {
                         <Undo2 className="w-8 h-8" />
                         <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('revert_match_confirm_title')}</AlertDialogTitle>
                     </div>
-                    {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: playersById[revertingMatch.player1Id]?.name, player2: playersById[revertingMatch.player2Id]?.name })}</AlertDialogDescription>)}
+                    {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-4 mt-6">
                     <AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-xl h-12">{t('cancel')}</AlertDialogCancel>

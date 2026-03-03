@@ -118,7 +118,6 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
   }, [matches]);
 
   useEffect(() => {
-    // Only call the callback if it actually changes to prevent loop
     onPlayoffStatusChange(hasPlayoffs);
   }, [hasPlayoffs, onPlayoffStatusChange]);
 
@@ -129,18 +128,25 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
     if (isCoop) {
         enrichedTable = allLeaguePlayers.map(entry => {
             const coopEntry = entry as any;
+            const teamId = coopEntry.player1TeamId;
+            const team = teamsById[teamId];
             return {
                 ...coopEntry,
                 playerName: coopEntry.teamName,
-                teamName: teamsById[coopEntry.player1TeamId]?.name,
-                team: teamsById[coopEntry.player1TeamId]
+                teamName: team?.name || coopEntry.player1TeamName,
+                team: team,
+                logoUrl: team?.logoUrl || `https://picsum.photos/seed/team-${teamId}/128/128`
             }
         });
     } else {
-        enrichedTable = allLeaguePlayers.map(entry => ({
-            ...entry,
-            team: teamsById[entry.teamId],
-        }));
+        enrichedTable = allLeaguePlayers.map(entry => {
+            const team = teamsById[entry.teamId] || (entry.playerId ? teamsById[playersById[entry.playerId]?.teamId] : null);
+            return {
+                ...entry,
+                team: team,
+                logoUrl: team?.logoUrl || (entry.teamId ? `https://picsum.photos/seed/team-${entry.teamId}/128/128` : undefined)
+            }
+        });
     }
     
     if (isHybrid) {
@@ -163,7 +169,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
         top: sorted.slice(0, 10),
         isHybrid: false
     };
-  }, [allLeaguePlayers, teamsById, isCoop, isHybrid, activeSeason]);
+  }, [allLeaguePlayers, teamsById, playersById, isCoop, isHybrid, activeSeason]);
 
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams || isLoadingMatches;
 
@@ -313,7 +319,7 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
                   <div className="flex items-center gap-2 sm:gap-4">
                       <div className="relative shrink-0">
                         <Avatar className={cn("h-8 w-8 sm:h-10 sm:w-10 border-2 transition-all duration-500", isFirst ? "border-yellow-400 scale-105 shadow-xl" : "border-white/10 group-hover/row:border-primary")}>
-                            <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} className="object-cover" />
+                            <AvatarImage src={entry.logoUrl} alt={entry.playerName} className="object-cover" />
                             <AvatarFallback className="bg-white/5"><User className="w-4 h-4 sm:w-5 sm:h-5 text-white/20" /></AvatarFallback>
                         </Avatar>
                         {isDefendingChampion && (
@@ -363,18 +369,15 @@ export default function Home() {
   const { t } = useTranslation();
   const [isWideMode, setIsWideMode] = useState(false);
   
-  // Memoized callback to prevent unnecessary re-renders in LeaderboardSection
   const handlePlayoffStatusChange = React.useCallback((active: boolean) => {
     setIsWideMode(active);
   }, []);
 
   return (
     <div className="mx-auto px-2 sm:px-4 py-8 sm:py-12 relative w-full">
-      {/* Dynamic Background Decoration */}
       <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
       <div className="absolute top-1/2 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
-      {/* Top Part: Focused/Centered - UPDATED TO max-w-[92rem] */}
       <div className="max-w-[92rem] mx-auto space-y-10 sm:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <section className="text-center space-y-4 sm:space-y-6 relative px-4">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-3 sm:px-4 py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary italic mb-1 sm:2">
@@ -415,7 +418,6 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Leaderboard/Bracket Section: Adaptive width - UPDATED BASE TO max-w-[92rem] */}
       <div className={cn(
           "mx-auto transition-all duration-1000 ease-in-out mt-16 px-2 sm:px-4",
           isWideMode ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-[92rem]"

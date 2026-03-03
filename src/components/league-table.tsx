@@ -21,7 +21,7 @@ import { useMemo, memo } from "react";
 import { TournamentBracket } from "./tournament-bracket";
 
 interface LeagueTableProps {
-  tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team> })[];
+  tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>, logoUrl?: string })[];
   isLoading?: boolean;
   onRemovePlayer?: (entry: WithId<LeagueEntry>) => void;
   onSelectPlayer: (entry: WithId<LeagueEntry>) => void;
@@ -39,7 +39,7 @@ interface LeagueTableProps {
 }
 
 interface SingleTableProps {
-  tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>, rank: number })[];
+  tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>, rank: number, logoUrl?: string })[];
   isLoading?: boolean;
   onRemovePlayer?: (entry: WithId<LeagueEntry>) => void;
   onSelectPlayer: (entry: WithId<LeagueEntry>) => void;
@@ -68,7 +68,6 @@ const SingleTable = memo(({
     const { t } = useTranslation();
     const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
 
-    // Optimized: Pre-calculate forms for all players in this table
     const playerFormsMap = useMemo(() => {
         if (!matches || matches.length === 0) return {};
         const forms: Record<string, string[]> = {};
@@ -177,7 +176,7 @@ const SingleTable = memo(({
                               "h-8 w-8 sm:h-12 sm:w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
                               isFirst ? "border-primary scale-110 shadow-[0_0_20px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover:border-primary"
                           )}>
-                            <AvatarImage src={entry.team?.logoUrl} alt={entry.playerName} className="object-cover" />
+                            <AvatarImage src={entry.logoUrl} alt={entry.playerName} className="object-cover" />
                             <AvatarFallback><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/20"/></AvatarFallback>
                           </Avatar>
                           {isFirst && (
@@ -208,7 +207,7 @@ const SingleTable = memo(({
                             </div>
                         </div>
                         <div className="text-[7px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest truncate max-w-[80px] sm:max-w-none">
-                            {entry.team?.name}
+                            {entry.team?.name || entry.teamName}
                         </div>
                       </div>
                     </div>
@@ -288,10 +287,22 @@ export function LeagueTable({
 }: LeagueTableProps) {
   const { t } = useTranslation();
   
+  const enrichedTableData = useMemo(() => {
+    return tableData.map(entry => {
+        const teamId = entry.teamId || (entry.playerId ? playersById[entry.playerId]?.teamId : '');
+        const team = teamsById[teamId];
+        return {
+            ...entry,
+            team: team,
+            logoUrl: team?.logoUrl || (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : undefined)
+        };
+    });
+  }, [tableData, teamsById, playersById]);
+
   const { groupA, groupB } = useMemo(() => {
     if (seasonType !== 'Hybrid') return { groupA: [], groupB: [] };
     
-    const sortAndRank = (data: typeof tableData) => 
+    const sortAndRank = (data: typeof enrichedTableData) => 
         data.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points;
             if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
@@ -299,11 +310,11 @@ export function LeagueTable({
             return a.playerName.localeCompare(b.playerName);
         }).map((entry, index) => ({...entry, rank: index + 1}));
 
-    const a = sortAndRank(tableData.filter(p => p.group === 'A'));
-    const b = sortAndRank(tableData.filter(p => p.group === 'B'));
+    const a = sortAndRank(enrichedTableData.filter(p => p.group === 'A'));
+    const b = sortAndRank(enrichedTableData.filter(p => p.group === 'B'));
     
     return { groupA: a, groupB: b };
-  }, [tableData, seasonType]);
+  }, [enrichedTableData, seasonType]);
 
 
   if (isLoading) {
@@ -440,9 +451,9 @@ export function LeagueTable({
             </Tabs>
         ) : (
              <SingleTable 
-                tableData={tableData}
+                tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))}
                 isCoop={seasonType === 'Co-Op'}
-                totalPlayers={tableData.length}
+                totalPlayers={enrichedTableData.length}
                 onSelectPlayer={onSelectPlayer}
                 seasonType={seasonType}
                 isLoading={isLoading}
