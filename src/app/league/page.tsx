@@ -63,11 +63,7 @@ import { PLAYOFF_SUCCESSOR_MAP } from '@/lib/constants';
 
 const LEAGUE_ID = 'main-league';
 
-export default function LeaguePage({ params, searchParams }: { params: Promise<any>, searchParams: Promise<any> }) {
-  // Unwrap Next.js 15 dynamic APIs
-  const resolvedParams = React.use(params);
-  const resolvedSearchParams = React.use(searchParams);
-
+export default function LeaguePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -274,11 +270,15 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
   const hasPlayoffs = useMemo(() => allSeasonMatches.some(m => m.round && m.round !== 'Group'), [allSeasonMatches]);
 
   useEffect(() => {
-    if (seasons && !activeSeasonId && seasons.length > 0) {
+    if (!seasons || seasons.length === 0) return;
+
+    if (!activeSeasonId) {
       setActiveSeasonId(seasons[0].id);
-    }
-    if (seasons && activeSeasonId && !seasons.find(s => s.id === activeSeasonId)) {
-        setActiveSeasonId(seasons.length > 0 ? seasons[0].id : null);
+    } else {
+      const exists = seasons.some(s => s.id === activeSeasonId);
+      if (!exists) {
+        setActiveSeasonId(seasons[0].id);
+      }
     }
   }, [seasons, activeSeasonId]);
 
@@ -1411,7 +1411,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                     {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: playersById[revertingMatch.player1Id]?.name, player2: playersById[revertingMatch.player2Id]?.name })}</AlertDialogDescription>)}
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-4 mt-6">
-                    <AlertDialogCancel onClick={setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel>
                     <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

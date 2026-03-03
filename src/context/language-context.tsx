@@ -30,14 +30,11 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (isMounted) {
       const storedLang = localStorage.getItem('language') as Language;
-      if (storedLang && ['id', 'en'].includes(storedLang)) {
+      if (storedLang && ['id', 'en'].includes(storedLang) && storedLang !== language) {
         setLanguage(storedLang);
-      } else {
-        // Default to Indonesian if no stored language preference
-        setLanguage('id');
       }
     }
-  }, [isMounted]);
+  }, [isMounted, language]);
 
   const t = useCallback((key: string, options?: Record<string, string | number>): string => {
     const keys = key.split('.');
@@ -45,7 +42,6 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     for (const k of keys) {
       result = result?.[k];
       if (result === undefined) {
-        // Fallback to English if translation is missing
         let fallbackResult = translations['en'];
         for (const fk of keys) {
             fallbackResult = fallbackResult?.[fk];
@@ -65,8 +61,6 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     return result || key;
   }, [language]);
   
-  // A version of 't' that is stable and won't cause re-renders on language change
-  // for things that are not user-facing, like validation messages.
    const t_dynamic = useCallback((key: string, options?: Record<string, string | number>): string => {
     const lang = typeof window !== 'undefined' ? (localStorage.getItem('language') as Language || 'id') : 'id';
     const keys = key.split('.');
