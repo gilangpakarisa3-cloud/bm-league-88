@@ -176,7 +176,7 @@ const SingleTable = memo(({
                               "h-8 w-8 sm:h-12 sm:w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
                               isFirst ? "border-primary scale-110 shadow-[0_0_20px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover:border-primary"
                           )}>
-                            <AvatarImage src={entry.logoUrl} alt={entry.playerName} className="object-cover" />
+                            <AvatarImage src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" />
                             <AvatarFallback><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/20"/></AvatarFallback>
                           </Avatar>
                           {isFirst && (
@@ -293,13 +293,14 @@ export function LeagueTable({
         const player = playersById[pId];
         const teamId = entry.teamId || player?.teamId || '';
         const team = teamsById[teamId];
+        const slug = (team?.name || entry.teamName || 'unknown').toLowerCase().replace(/\s+/g, '-');
         
-        // Robust logo resolution with multi-stage fallback
+        // Comprehensive logo resolution protocol
         const logoUrl = team?.logoUrl || 
                         entry.logoUrl || 
-                        (teamId ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
-                        (entry.teamName ? `https://picsum.photos/seed/team-${entry.teamName.toLowerCase().replace(/\s+/g, '-')}/128/128` : 
-                        `https://picsum.photos/seed/player-${pId}/128/128`));
+                        (teamId && teamId !== 'TBD' ? `https://picsum.photos/seed/team-${teamId}/128/128` : 
+                        (slug !== 'unknown' ? `https://picsum.photos/seed/team-${slug}/128/128` : 
+                        `https://placehold.co/128x128/0A192F/CCFD01?text=${encodeURIComponent(entry.playerName.charAt(0))}`));
 
         return {
             ...entry,
