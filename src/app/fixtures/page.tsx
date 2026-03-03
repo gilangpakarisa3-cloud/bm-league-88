@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -75,8 +75,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm', { locale: localeId });
     const isBestOfThree = activeSeason?.type === 'Co-Op' || (match.round && match.round !== 'Group');
     
-    // Group matches should be locked if playoffs have already started
-    // Matches with TBD should also be disabled for updates
     const isEditDisabled = 
         activeSeason?.status !== 'In Progress' || 
         (match.isCompleted && !isAdmin) || 
@@ -85,24 +83,44 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 
     const PlayerInfo = ({ name, team, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right', isWinner: boolean }) => (
         <div className={cn(
-            "flex items-center gap-2 sm:gap-4 text-[10px] sm:text-base font-black tracking-tighter uppercase italic overflow-hidden transition-all duration-500", 
-            { 'justify-end': alignment === 'right', 'justify-start': alignment === 'left', 'text-primary': isWinner, 'text-white/60': !isWinner && match.isCompleted, 'text-white': !match.isCompleted }
+            "flex items-center gap-3 sm:gap-6 group/player transition-all duration-500", 
+            { 'flex-row-reverse text-right': alignment === 'right', 'flex-row text-left': alignment === 'left' }
         )}>
-             {alignment === 'right' && <span className="truncate flex-1 text-right pr-2">{name}</span>}
             <div className="relative shrink-0">
+                {/* Visual Rank/Status Ring */}
                 <div className={cn(
-                    "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity duration-500",
-                    isWinner ? "bg-primary/30 opacity-100" : "bg-white/5"
+                    "absolute -inset-1.5 rounded-full blur-md opacity-0 transition-opacity duration-700",
+                    isWinner ? "bg-primary/40 opacity-100" : "bg-white/5 group-hover/player:opacity-20"
                 )} />
+                
                 <Avatar className={cn(
-                    "h-8 w-8 sm:h-12 sm:w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
-                    isWinner ? "border-primary scale-110" : "border-white/10"
+                    "h-10 w-10 sm:h-16 sm:w-16 border-2 transition-all duration-700 shadow-2xl relative z-10",
+                    isWinner ? "border-primary scale-110 rotate-0" : "border-white/10 group-hover/player:border-primary/40 -rotate-3 group-hover/player:rotate-0"
                 )}>
                     <AvatarImage src={team?.logoUrl} alt={team?.name} className="object-cover" />
-                    <AvatarFallback className="bg-white/5 font-black text-xs">{team?.name?.charAt(0) || (name === 'TBD' ? '?' : name.charAt(0))}</AvatarFallback>
+                    <AvatarFallback className="bg-black/40 font-black text-xs">
+                        <Shield className="w-5 h-5 text-white/10" />
+                    </AvatarFallback>
                 </Avatar>
+                
+                {isWinner && (
+                    <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg border-2 border-background animate-bounce">
+                        <Zap className="w-3 h-3 text-black fill-black" />
+                    </div>
+                )}
             </div>
-            {alignment === 'left' && <span className="truncate flex-1 text-left pl-2">{name}</span>}
+
+            <div className="flex flex-col gap-0.5 overflow-hidden">
+                <span className={cn(
+                    "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500 pr-2",
+                    isWinner ? "text-primary" : "text-white/80 group-hover/player:text-white"
+                )}>
+                    {name}
+                </span>
+                <span className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] truncate group-hover/player:text-primary/40 transition-colors">
+                    {team?.name || 'Athlete Protocol'}
+                </span>
+            </div>
         </div>
     );
     
@@ -113,69 +131,126 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const isW2 = hasValidScore && score2 > score1;
 
     return (
-        <div className="group relative grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2 sm:gap-8 p-4 sm:p-6 transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.04]">
-            <div className="absolute inset-y-0 left-0 w-1 sm:w-1.5 bg-primary opacity-0 group-hover:opacity-100 transition-all duration-500 shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
-            
-            <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} alignment="right" isWinner={isW1} />
-            
-            <div className="flex flex-col items-center justify-center min-w-[70px] sm:min-w-[100px] relative">
-                 {hasValidScore ? (
-                    <div className="relative group/score">
-                        <div className="absolute -inset-4 bg-primary/5 rounded-full blur-xl opacity-0 group-hover/score:opacity-100 transition-opacity" />
-                        <div className="bg-[#0A192F]/40 border-2 border-primary/30 px-3 sm:px-5 py-1.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-2 sm:gap-3">
-                            <span className={cn("text-xl sm:text-3xl font-black italic tabular-nums", isW1 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-white/40")}>{score1}</span>
-                            <span className="text-white/10 font-black text-xs sm:text-sm">-</span>
-                            <span className={cn("text-xl sm:text-3xl font-black italic tabular-nums", isW2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-white/40")}>{score2}</span>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="bg-primary/10 border-2 border-primary/20 px-3 py-1 rounded-lg backdrop-blur-sm">
-                        <span className="text-[10px] sm:text-xs font-black tracking-[0.3em] text-primary uppercase italic pr-1">vs</span>
-                    </div>
-                )}
+        <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-primary/[0.02]">
+            {/* Immersive Ghost Text */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden pr-4 sm:pr-8">
+                <span className="text-[100px] sm:text-[180px] font-black italic text-white/[0.02] uppercase tracking-tighter transition-all duration-1000 group-hover:text-primary/[0.03] group-hover:scale-110 leading-none">
+                    {hasValidScore ? 'FINISHED' : 'BATTLE'}
+                </span>
             </div>
-            
-            <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} alignment="left" isWinner={isW2} />
-            
-            <div className="flex items-center gap-2 justify-end shrink-0">
-                 <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={cn(
-                        "h-8 sm:h-10 px-3 sm:px-4 text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 border", 
-                        hasValidScore 
-                            ? "text-white/40 hover:text-primary border-white/5 hover:border-primary/30" 
-                            : "text-primary hover:bg-primary/10 border-primary/20 shadow-lg shadow-primary/5"
-                    )} 
-                    onClick={() => onEditMatch(match)} 
-                    disabled={isEditDisabled}
-                >
+
+            {/* HUD Status Line */}
+            <div className={cn(
+                "absolute inset-y-0 left-0 w-1 sm:w-1.5 transition-all duration-700",
+                hasValidScore ? "bg-white/5 group-hover:bg-primary/40" : "bg-primary/20 group-hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.4)]"
+            )} />
+
+            <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] md:grid-cols-[1fr_120px_1fr_auto] items-center gap-2 sm:gap-10 p-5 sm:p-10">
+                
+                {/* Home Player */}
+                <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} alignment="right" isWinner={isW1} />
+                
+                {/* Score/VS Module */}
+                <div className="flex flex-col items-center justify-center min-w-[80px] sm:min-w-[140px] relative">
                     {hasValidScore ? (
-                        <div className="flex items-center gap-2 italic">
-                            <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                            {displayDate}
+                        <div className="relative group/score">
+                            <div className="absolute -inset-6 bg-primary/10 rounded-full blur-2xl opacity-0 group-hover/score:opacity-100 transition-opacity duration-1000" />
+                            <div className="bg-[#0A192F]/60 border-2 border-primary/30 px-4 sm:px-6 py-2 rounded-2xl shadow-2xl relative z-10 flex items-center gap-3 sm:gap-4 ring-4 ring-black/20">
+                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW1 ? "text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]" : "text-white/20")}>{score1}</span>
+                                <div className="w-px h-6 bg-white/10" />
+                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW2 ? "text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]" : "text-white/20")}>{score2}</span>
+                            </div>
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2 italic">
-                            <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                            {isEditDisabled ? (
-                                (match.player1Id === 'TBD' || match.player2Id === 'TBD') ? 'TBD' : 
-                                (hasPlayoffs && (match.round === 'Group' || !match.round) ? 'LOCKED' : t('unplayed_abbv', {defaultValue: 'TBD'}))
-                            ) : t('unplayed_abbv', {defaultValue: 'TBD'})}
+                        <div className="relative flex flex-col items-center">
+                            <div className="bg-primary/10 border border-primary/30 px-4 py-1.5 rounded-full backdrop-blur-md shadow-lg group-hover:border-primary transition-colors">
+                                <span className="text-[10px] sm:text-xs font-black tracking-[0.4em] text-primary uppercase italic pr-1">VS</span>
+                            </div>
+                            {isBestOfThree && <Badge variant="outline" className="mt-2 text-[6px] sm:text-[8px] border-primary/20 text-primary/60 font-black uppercase tracking-widest bg-black/40">BO3 SERIES</Badge>}
                         </div>
                     )}
-                </Button>
-                {isAdmin && hasValidScore && (
+                </div>
+                
+                {/* Away Player */}
+                <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} alignment="left" isWinner={isW2} />
+                
+                {/* Desktop Actions */}
+                <div className="hidden md:flex items-center gap-3 justify-end pl-4">
+                    <div className="flex flex-col items-end mr-4">
+                        <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Engage</span>
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={cn(
+                                "h-11 px-6 text-[10px] font-black uppercase tracking-widest transition-all duration-500 border rounded-xl", 
+                                hasValidScore 
+                                    ? "text-white/40 hover:text-primary border-white/5 hover:border-primary/30 bg-white/[0.02]" 
+                                    : "text-primary hover:bg-primary hover:text-black border-primary/30 shadow-lg shadow-primary/5"
+                            )} 
+                            onClick={() => onEditMatch(match)} 
+                            disabled={isEditDisabled}
+                        >
+                            {hasValidScore ? (
+                                <div className="flex items-center gap-2 italic">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    {displayDate}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 italic">
+                                    <Zap className="h-3.5 w-3.5 fill-current" />
+                                    {isEditDisabled ? (
+                                        (match.player1Id === 'TBD' || match.player2Id === 'TBD') ? 'Awaiting Signal' : 
+                                        (hasPlayoffs && (match.round === 'Group' || !match.round) ? 'LOCKED' : 'READY')
+                                    ) : 'LOG SCORE'}
+                                </div>
+                            )}
+                        </Button>
+                    </div>
+                    
+                    {isAdmin && hasValidScore && (
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-11 w-11 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 border-2 border-amber-500/20 rounded-xl transition-all" 
+                            onClick={() => onRevertMatch(match)} 
+                            title={t('revert_match')}
+                        >
+                            <Undo2 className="h-5 w-5" />
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            {/* Mobile Actions Bar */}
+            <div className="md:hidden flex items-center justify-between p-4 bg-black/40 border-t border-white/5 relative z-10">
+                <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-white/20" />
+                    <span className="text-[10px] font-black text-white/40 uppercase italic tracking-wider">{displayDate}</span>
+                </div>
+                <div className="flex items-center gap-2">
                     <Button 
                         variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 sm:h-10 sm:w-10 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 border border-amber-500/20" 
-                        onClick={() => onRevertMatch(match)} 
-                        title={t('revert_match', { defaultValue: "Revert Match"})}
+                        size="sm" 
+                        className={cn(
+                            "h-9 px-4 text-[9px] font-black uppercase tracking-widest border rounded-lg",
+                            hasValidScore ? "text-white/40 border-white/10" : "text-primary border-primary/30"
+                        )}
+                        onClick={() => onEditMatch(match)}
+                        disabled={isEditDisabled}
                     >
-                        <Undo2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                        {hasValidScore ? 'View Stats' : 'Update'}
                     </Button>
-                )}
+                    {isAdmin && hasValidScore && (
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-9 w-9 text-amber-500 border border-amber-500/20 rounded-lg" 
+                            onClick={() => onRevertMatch(match)}
+                        >
+                            <Undo2 className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -342,7 +417,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                         </div>
                                         <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-primary/30 to-transparent rounded-full" />
                                     </div>
-                                    <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-3xl">
+                                    <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
                                         <CardContent className="p-0">
                                             {rms.map(m => (
                                                 <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
@@ -373,7 +448,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                         </div>
                                         <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-white/10 to-transparent rounded-full" />
                                     </div>
-                                    <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-3xl">
+                                    <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
                                         <CardContent className="p-0">
                                             {rms.map(m => (
                                                 <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
@@ -511,7 +586,7 @@ export default function FixturesPage() {
 
             // B. TRANSACTION WRITES
             const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD')) return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD') || pId.includes('TBD') || pId.includes('TBD')) return;
                 const pRef = doc(firestore, 'players', pId);
                 transaction.update(pRef, {
                     overallPlayed: increment(change.played || 0),
