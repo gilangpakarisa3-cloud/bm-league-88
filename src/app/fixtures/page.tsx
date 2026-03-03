@@ -925,14 +925,22 @@ export default function FixturesPage() {
                 <Button 
                     onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} 
                     className={cn(
-                        "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500", 
+                        "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
                         isAdmin 
                             ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
                             : "bg-white/5 border-white/10 text-white/30 hover:border-primary/40"
                     )}
                     disabled={!isPasswordLoaded}
                 >
-                    <div className="skew-x-[12deg] flex items-center">
+                    {/* Dynamic Scanning Animation Layer */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className={cn(
+                            "w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500",
+                            isAdmin ? "animate-scanning opacity-20" : "opacity-0"
+                        )} />
+                    </div>
+
+                    <div className="skew-x-[12deg] flex items-center relative z-10">
                         {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                         {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                     </div>

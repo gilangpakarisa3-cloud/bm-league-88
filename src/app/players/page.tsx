@@ -109,12 +109,22 @@ export default function PlayersPage() {
                     variant="outline" 
                     disabled={!isPasswordLoaded}
                     className={cn(
-                        "h-12 px-6 font-black tracking-widest text-xs uppercase transition-all duration-500",
+                        "h-12 px-6 font-black tracking-widest text-xs uppercase transition-all duration-500 relative overflow-hidden group/admin",
                         isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "border-white/20"
                     )}
                 >
-                    {isAdmin ? <Unlock className="mr-2 w-4 h-4" /> : <Lock className="mr-2 w-4 h-4" />}
-                    {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+                    {/* Dynamic Scanning Animation Layer */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className={cn(
+                            "w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500",
+                            isAdmin ? "animate-scanning opacity-20" : "opacity-0"
+                        )} />
+                    </div>
+
+                    <div className="relative z-10 flex items-center">
+                        {isAdmin ? <Unlock className="mr-2 w-4 h-4" /> : <Lock className="mr-2 w-4 h-4" />}
+                        {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
+                    </div>
                 </Button>
             </div>
         </div>

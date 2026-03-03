@@ -897,7 +897,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                 updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                 updatePlayerStats(d1.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                 updatePlayerStats(d2.player1Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
-                updatePlayerStats(d2.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
+                updatePlayerStats(d2.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
             } else {
                 updatePlayerStats(mToRev.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: outcome.p1 === 'D' ? -1 : 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                 updatePlayerStats(mToRev.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: outcome.p2 === 'D' ? -1 : 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
@@ -1047,13 +1047,21 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
             <Button 
                 onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} 
                 className={cn(
-                    "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500", 
+                    "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
                     isAdmin 
                         ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
                         : "bg-white/5 border-white/10 text-white/30 hover:border-primary/40"
                 )}
             >
-                <div className="skew-x-[12deg] flex items-center">
+                {/* Dynamic Scanning Animation Layer */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className={cn(
+                        "w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500",
+                        isAdmin ? "animate-scanning opacity-20" : "opacity-0"
+                    )} />
+                </div>
+
+                <div className="skew-x-[12deg] flex items-center relative z-10">
                     {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                     {isAdmin ? t('lock_admin') : t('unlock_admin')}
                 </div>
