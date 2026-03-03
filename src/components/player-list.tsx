@@ -286,19 +286,40 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                         <span>{player.overallPlayed || 0} Matches</span>
                                     </div>
                                     
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 group-hover:border-primary/10 transition-colors">
-                                            <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">Win</p>
-                                            <p className="text-lg font-black text-white">{player.overallWin || 0}</p>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 group-hover:border-primary/10 transition-colors">
-                                            <p className="text-[8px] font-black text-yellow-400 uppercase tracking-widest mb-1">Draw</p>
-                                            <p className="text-lg font-black text-white">{player.overallDraw || 0}</p>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5 group-hover:border-primary/10 transition-colors">
-                                            <p className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Loss</p>
-                                            <p className="text-lg font-black text-white">{player.overallLoss || 0}</p>
-                                        </div>
+                                    <div className="grid grid-cols-3 gap-3 relative">
+                                        {/* Background Glow Connector */}
+                                        <div className="absolute inset-0 bg-primary/5 blur-2xl -z-10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        
+                                        {[
+                                            { label: 'WIN', value: player.overallWin, color: 'text-primary', borderColor: 'border-primary/30', bgColor: 'bg-primary/5' },
+                                            { label: 'DRAW', value: player.overallDraw, color: 'text-yellow-400', borderColor: 'border-yellow-400/30', bgColor: 'bg-yellow-400/5' },
+                                            { label: 'LOSS', value: player.overallLoss, color: 'text-red-500', borderColor: 'border-red-500/30', bgColor: 'bg-red-500/5' }
+                                        ].map((stat, i) => (
+                                            <div key={i} className={cn(
+                                                "relative group/stat overflow-hidden border-2 rounded-xl p-3 transition-all duration-500",
+                                                stat.borderColor,
+                                                stat.bgColor,
+                                                "hover:scale-105"
+                                            )}>
+                                                {/* HUD Corner Accent */}
+                                                <div className={cn("absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 opacity-40", stat.borderColor.replace('/30', ''))} />
+                                                
+                                                <div className="relative z-10 flex flex-col items-center">
+                                                    <span className={cn("text-[7px] font-black tracking-[0.2em] mb-1.5 opacity-60", stat.color)}>
+                                                        {stat.label}
+                                                    </span>
+                                                    <span className="text-2xl font-black italic tabular-nums leading-none text-white drop-shadow-md">
+                                                        {stat.value || 0}
+                                                    </span>
+                                                </div>
+                                                
+                                                {/* Animated Bottom Bar */}
+                                                <div className={cn(
+                                                    "absolute bottom-0 left-0 h-0.5 w-full transform translate-y-full transition-transform duration-500 group-hover/stat:translate-y-0",
+                                                    stat.color.replace('text-', 'bg-')
+                                                )} />
+                                            </div>
+                                        ))}
                                     </div>
 
                                     {/* Intelligence Module: Aggressive Momentum Meter */}
