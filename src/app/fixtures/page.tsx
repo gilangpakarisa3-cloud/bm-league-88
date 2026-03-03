@@ -104,7 +104,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     )}>
                         <AvatarImage src={logoUrl} alt={team?.name || name} className="object-cover" referrerPolicy="no-referrer" />
                         <AvatarFallback className="bg-black/40 font-black text-xs">
-                            <Shield className="w-5 h-5 text-white/10" />
+                            <Shield className="w-5 h-5 text-white/30" />
                         </AvatarFallback>
                     </Avatar>
                     

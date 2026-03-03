@@ -11,7 +11,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap } from "lucide-react";
+import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -177,7 +177,7 @@ const SingleTable = memo(({
                               isFirst ? "border-primary scale-110 shadow-[0_0_20px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover:border-primary"
                           )}>
                             <AvatarImage src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
-                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/20"/></AvatarFallback>
+                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/30"/></AvatarFallback>
                           </Avatar>
                           {isFirst && (
                              <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-primary rounded-full p-0.5 sm:p-1 shadow-lg border-2 border-background z-20 animate-bounce">
