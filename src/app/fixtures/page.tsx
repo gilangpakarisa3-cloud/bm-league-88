@@ -83,8 +83,8 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 
     const PlayerInfo = ({ name, team, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, alignment?: 'left' | 'right', isWinner: boolean }) => (
         <div className={cn(
-            "flex items-center gap-3 sm:gap-6 group/player transition-all duration-500", 
-            { 'flex-row-reverse text-right': alignment === 'right', 'flex-row text-left': alignment === 'left' }
+            "flex items-center gap-3 sm:gap-6 group/player transition-all duration-500 w-full", 
+            alignment === 'right' ? "flex-row-reverse text-right justify-start" : "flex-row text-left justify-start"
         )}>
             <div className="relative shrink-0">
                 {/* Visual Rank/Status Ring */}
@@ -112,7 +112,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
 
             <div className="flex flex-col gap-0.5 overflow-hidden">
                 <span className={cn(
-                    "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500 pr-2",
+                    "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500",
                     isWinner ? "text-primary" : "text-white/80 group-hover/player:text-white"
                 )}>
                     {name}
@@ -145,10 +145,12 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 hasValidScore ? "bg-white/5 group-hover:bg-primary/40" : "bg-primary/20 group-hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.4)]"
             )} />
 
-            <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] md:grid-cols-[1fr_120px_1fr_auto] items-center gap-2 sm:gap-10 p-5 sm:p-10">
+            <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] md:grid-cols-[1fr_200px_1fr] items-center gap-2 sm:gap-4 p-5 sm:p-10">
                 
                 {/* Home Player */}
-                <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} alignment="right" isWinner={isW1} />
+                <div className="justify-self-end w-full">
+                    <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} alignment="right" isWinner={isW1} />
+                </div>
                 
                 {/* Score/VS Module */}
                 <div className="flex flex-col items-center justify-center min-w-[80px] sm:min-w-[140px] relative">
@@ -172,12 +174,14 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 </div>
                 
                 {/* Away Player */}
-                <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} alignment="left" isWinner={isW2} />
+                <div className="justify-self-start w-full">
+                    <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} alignment="left" isWinner={isW2} />
+                </div>
                 
-                {/* Desktop Actions */}
-                <div className="hidden md:flex items-center gap-3 justify-end pl-4">
-                    <div className="flex flex-col items-end mr-4">
-                        <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Engage</span>
+                {/* Desktop Actions - Positioned to side to keep center grid balanced */}
+                <div className="hidden md:flex items-center gap-3 justify-end absolute right-10 top-1/2 -translate-y-1/2">
+                    <div className="flex flex-col items-end mr-2">
+                        <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Signal</span>
                         <Button 
                             variant="ghost" 
                             size="sm" 
@@ -666,7 +670,7 @@ export default function FixturesPage() {
                     if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
                 } else {
                     e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
-                    if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
+                    if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss--; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
                     e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 }
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
