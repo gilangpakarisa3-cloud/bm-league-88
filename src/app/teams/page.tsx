@@ -110,7 +110,7 @@ export default function TeamsPage() {
                     disabled={!isPasswordLoaded}
                     className={cn(
                         "h-12 px-6 font-black tracking-widest text-xs uppercase transition-all duration-500 relative overflow-hidden group/admin",
-                        isAdmin ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "border-white/20"
+                        isAdmin ? "bg-primary text-black border-black shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "bg-primary/60 text-black border-primary/20 hover:bg-primary"
                     )}
                 >
                     {/* Dynamic Scanning Animation Layer */}
@@ -122,7 +122,7 @@ export default function TeamsPage() {
                     </div>
 
                     <div className="relative z-10 flex items-center">
-                        {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+                        {isAdmin ? <Unlock className="mr-2 w-4 h-4" /> : <Lock className="mr-2 w-4 h-4" />}
                         {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                     </div>
                 </Button>

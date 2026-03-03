@@ -1050,7 +1050,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                     "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
                     isAdmin 
                         ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
-                        : "bg-white/5 border-white/10 text-white/30 hover:border-primary/40"
+                        : "bg-primary/60 text-black border-primary/20 hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.2)]"
                 )}
             >
                 {/* Dynamic Scanning Animation Layer */}
@@ -1411,7 +1411,7 @@ export default function LeaguePage({ params, searchParams }: { params: Promise<a
                     {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: playersById[revertingMatch.player1Id]?.name, player2: playersById[revertingMatch.player2Id]?.name })}</AlertDialogDescription>)}
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-4 mt-6">
-                    <AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogCancel onClick={setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel>
                     <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
