@@ -377,20 +377,32 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                             )}
                                         </div>
 
-                                        {/* Total Goals Section - Integration into Legacy Module */}
-                                        <div className="relative z-10 flex items-center justify-between bg-black/20 rounded-lg p-2 border border-white/5 group-hover/legacy:border-primary/20 transition-colors">
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-1">
-                                                    <Zap className="w-2.5 h-2.5 text-primary animate-pulse" />
-                                                    <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40">Aggressive Momentum</span>
+                                        {/* Total Goals Section - Redesigned */}
+                                        <div className="relative z-10 flex flex-col bg-black/40 rounded-xl p-4 border border-white/5 group-hover/legacy:border-primary/30 transition-all duration-500 shadow-inner">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
+                                                <div className="flex items-center gap-1.5">
+                                                    <Activity className="w-2.5 h-2.5 text-primary/60" />
+                                                    <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] italic">Offensive Statistics</span>
                                                 </div>
-                                                <span className="text-[10px] font-black text-white uppercase italic tracking-tight">Total Goals Scored</span>
+                                                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
                                             </div>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-xl font-black text-primary italic tabular-nums drop-shadow-[0_0_8px_rgba(204,253,1,0.3)]">
-                                                    {player.overallGoalsFor || 0}
-                                                </span>
-                                                <span className="text-[7px] font-black text-white/20 uppercase">Units</span>
+                                            
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-[12px] font-black text-white uppercase italic tracking-tight pr-4">Total Goals Scored</span>
+                                                    <span className="text-[7px] font-bold text-white/20 uppercase tracking-widest">Career Aggregate Units</span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex flex-col items-end leading-none">
+                                                        <span className="text-3xl font-black text-primary italic tabular-nums drop-shadow-[0_0_15px_rgba(204,253,1,0.5)]">
+                                                            {player.overallGoalsFor || 0}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-primary/10 p-1.5 rounded-lg border border-primary/20 group-hover/legacy:scale-110 transition-transform duration-500">
+                                                        <Zap className="w-3.5 h-3.5 text-primary fill-primary animate-pulse" />
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         
