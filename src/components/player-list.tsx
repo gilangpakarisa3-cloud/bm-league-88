@@ -376,6 +376,23 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                                 </div>
                                             )}
                                         </div>
+
+                                        {/* Total Goals Section - Integration into Legacy Module */}
+                                        <div className="relative z-10 flex items-center justify-between bg-black/20 rounded-lg p-2 border border-white/5 group-hover/legacy:border-primary/20 transition-colors">
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-1">
+                                                    <Zap className="w-2.5 h-2.5 text-primary animate-pulse" />
+                                                    <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40">Aggressive Momentum</span>
+                                                </div>
+                                                <span className="text-[10px] font-black text-white uppercase italic tracking-tight">Total Goals Scored</span>
+                                            </div>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-xl font-black text-primary italic tabular-nums drop-shadow-[0_0_8px_rgba(204,253,1,0.3)]">
+                                                    {player.overallGoalsFor || 0}
+                                                </span>
+                                                <span className="text-[7px] font-black text-white/20 uppercase">Units</span>
+                                            </div>
+                                        </div>
                                         
                                         <div className="flex justify-between items-center text-[6px] font-black text-white/20 uppercase tracking-[0.2em] relative z-10 border-t border-white/5 pt-2">
                                             <div className="flex items-center gap-1">
