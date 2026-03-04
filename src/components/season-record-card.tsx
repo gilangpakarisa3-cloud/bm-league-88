@@ -3,13 +3,14 @@
 import type { SeasonRecord, WithId } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Award, Trash2, Trophy, User, TrendingUp, ShieldAlert, Zap, Star, Activity, ShieldCheck, Target, ChevronRight, Binary } from "lucide-react";
+import { Award, Trash2, Trophy, User, TrendingUp, ShieldAlert, Zap, Star, Activity, ShieldCheck, Target, ChevronRight, Binary, Shield, Medal } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useTranslation } from "@/hooks/use-translation";
 import { useLanguage } from "@/context/language-context";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
+import { Progress } from "./ui/progress";
 
 const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip, variant = "default" }: { 
     icon: React.ElementType, 
