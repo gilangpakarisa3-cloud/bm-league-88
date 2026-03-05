@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -66,7 +67,7 @@ interface ScoreFormProps {
   player2Info: { name: string; team?: WithId<Team> | null };
 }
 
-const ScoreControl = ({ fieldName, value, onIncrement, onDecrement, label = "Score Unit" }: { fieldName: string, value: number, onIncrement: () => void, onDecrement: () => void, label?: string }) => (
+const ScoreControl = ({ value, onIncrement, onDecrement, label = "Score Unit" }: { value: number, onIncrement: () => void, onDecrement: () => void, label?: string }) => (
   <div className="flex flex-col items-center gap-2">
     <div className="flex items-center gap-2">
       <Button 
@@ -102,7 +103,7 @@ const ScoreControl = ({ fieldName, value, onIncrement, onDecrement, label = "Sco
   </div>
 );
 
-export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, player1Info, player2Info }: ScoreFormProps) {
+export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info }: ScoreFormProps) {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
@@ -156,7 +157,6 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     try {
       await onSave(data);
     } catch (err) {
-      // Error is handled by the parent handleUpdateScore and emitted via errorEmitter
       setIsSaving(false);
     }
   };
@@ -172,8 +172,11 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
     setGameWinners(nextWinners);
     const p1Total = nextWinners.filter(w => w === 'player1').length;
     const p2Total = nextWinners.filter(w => w === 'player2').length;
-    form.setValue('player1Wins', p1Total, { shouldValidate: true });
-    form.setValue('player2Wins', p2Total, { shouldValidate: true });
+    
+    // Update values and trigger full re-validation to ensure refine() sees new values
+    form.setValue('player1Wins' as any, p1Total, { shouldDirty: true });
+    form.setValue('player2Wins' as any, p2Total, { shouldDirty: true, shouldValidate: true });
+    form.trigger(['player1Wins', 'player2Wins'] as any);
   }
 
   const p1Wins = isBestOfThree ? (form.watch('player1Wins' as any) || 0) : 0;
@@ -321,24 +324,22 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
             </div>
         </div>
 
-        {isBestOfThree && (
-           <div className="bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-2xl relative overflow-hidden group/bo3">
-             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-2xl group-hover/bo3:bg-primary/10 transition-all" />
-             <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-primary fill-primary" />
-                    <span className="font-black text-[10px] uppercase tracking-[0.2em] text-white/60">Tactical Game Log</span>
-                </div>
-                <Badge className="bg-primary text-black font-black px-3 h-5 text-[9px] tracking-tighter uppercase italic">Best of 3</Badge>
+        <div className="bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-2xl relative overflow-hidden group/bo3">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-2xl group-hover/bo3:bg-primary/10 transition-all" />
+          <div className="mb-4 flex items-center justify-between">
+             <div className="flex items-center gap-2">
+                 <Zap className="w-4 h-4 text-primary fill-primary" />
+                 <span className="font-black text-[10px] uppercase tracking-[0.2em] text-white/60">Tactical Game Log</span>
              </div>
-             <CoopScoreChecklist
-                player1Name={player1Info.name}
-                player2Name={player2Info.name}
-                winners={gameWinners}
-                onWinnerChange={handleWinnerChange}
-             />
-           </div>
-        )}
+             <Badge className="bg-primary text-black font-black px-3 h-5 text-[9px] tracking-tighter uppercase italic">Best of 3</Badge>
+          </div>
+          <CoopScoreChecklist
+             player1Name={player1Info.name}
+             player2Name={player2Info.name}
+             winners={gameWinners}
+             onWinnerChange={handleWinnerChange}
+          />
+        </div>
 
         {/* Validation Error Message Display */}
         {(hasErrors || isBo3Incomplete) && (
@@ -349,7 +350,7 @@ export function ScoreForm({ match, onSave, seasonType, hybridGroupMeetings, play
                     <ul className="list-disc pl-4">
                         {isBo3Incomplete && (
                             <li className="text-[11px] font-bold text-white/80 leading-tight">
-                                Format Best of 3 memerlukan salah satu tim mencapai 2 kemenangan.
+                                Salah satu tim harus mencapai minimal 2 kemenangan dalam format BO3.
                             </li>
                         )}
                         {Object.values(errors).map((error: any, i) => (

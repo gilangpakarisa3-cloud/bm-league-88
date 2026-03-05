@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -613,7 +614,7 @@ export default function FixturesPage() {
             matchDate: matchTimestamp,
             isCompleted: true,
             player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-            player2Wins: isBestOfThree ? (values.player2Wins ?? 0) : null,
+            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
         };
 
         runTransaction(firestore, async (transaction) => {
@@ -646,7 +647,7 @@ export default function FixturesPage() {
 
             if (orig.isCompleted) {
                 const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
-                const oldS2 = isBestOfThree ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
+                const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
                 const outcome = getOutcome(oldS1, oldS2);
                 
                 if (sData.type === 'Co-Op' && e1Data && e2Data) {
@@ -810,7 +811,7 @@ export default function FixturesPage() {
             };
 
             const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0);
-            const oldS2 = isBestOfThree ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
+            const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
             const outcome = getOutcome(oldS1, oldS2);
 
             if (sData.type === 'Co-Op' && e1Data && e2Data) {
@@ -992,7 +993,7 @@ export default function FixturesPage() {
                     {editingMatch && (<DialogDescription className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
                 </DialogHeader>
                 <ScrollArea className="flex-1 p-6 overflow-y-auto">
-                    {editingMatch && activeSeason && (<ScoreForm match={editingMatch} onSave={(v) => handleUpdateScore(editingMatch.id, v)} seasonType={activeSeason.type} hybridGroupMeetings={activeSeason.hybridGroupMeetings} player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }} player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }} />)}
+                    {editingMatch && activeSeason && (<ScoreForm match={editingMatch} onSave={(v) => handleUpdateScore(editingMatch.id, v)} seasonType={activeSeason.type} player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }} player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }} />)}
                 </ScrollArea>
                 <DialogFooter className="p-4 bg-black/20 border-t border-white/5 shrink-0">
                     <Button variant="ghost" onClick={() => setEditingMatch(null)} className="font-black uppercase tracking-widest italic text-[10px] text-white/70 hover:bg-white/10 hover:text-white border border-white/10">{t('cancel')}</Button>
