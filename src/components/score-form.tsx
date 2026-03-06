@@ -16,11 +16,11 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Match, Season, Team, WithId } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { useState, useEffect } from "react";
+import { useState, useCallback, memo } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
@@ -62,12 +62,11 @@ interface ScoreFormProps {
   match: WithId<Match>;
   onSave: (data: ScoreFormValues) => Promise<void>;
   seasonType?: Season['type'];
-  hybridGroupMeetings?: number;
   player1Info: { name: string; team?: WithId<Team> | null };
   player2Info: { name: string; team?: WithId<Team> | null };
 }
 
-const ScoreControl = ({ value, onIncrement, onDecrement, label = "Score Unit" }: { value: number, onIncrement: () => void, onDecrement: () => void, label?: string }) => (
+const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Unit", disabled }: { value: number, onIncrement: () => void, onDecrement: () => void, label?: string, disabled?: boolean }) => (
   <div className="flex flex-col items-center gap-2">
     <div className="flex items-center gap-2">
       <Button 
@@ -76,14 +75,15 @@ const ScoreControl = ({ value, onIncrement, onDecrement, label = "Score Unit" }:
         size="icon" 
         className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
         onClick={onDecrement}
+        disabled={disabled}
       >
         <Minus className="h-5 w-5 text-primary" />
       </Button>
       
-      <div className="relative group/score overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner">
-        <span className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 -z-0 translate-y-2">
-          <span className="text-6xl font-black text-white italic">{value}</span>
-        </span>
+      <div className={cn(
+        "relative overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner transition-opacity",
+        disabled && "opacity-50"
+      )}>
         <span className="text-4xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
           {value}
         </span>
@@ -95,13 +95,15 @@ const ScoreControl = ({ value, onIncrement, onDecrement, label = "Score Unit" }:
         size="icon" 
         className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
         onClick={onIncrement}
+        disabled={disabled}
       >
         <Plus className="h-5 w-5 text-primary" />
       </Button>
     </div>
     <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">{label}</p>
   </div>
-);
+));
+ScoreControl.displayName = "ScoreControl";
 
 export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info }: ScoreFormProps) {
   const { t } = useTranslation();
@@ -152,32 +154,41 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
     defaultValues: getInitialValues(match),
   });
 
-  const handleSave = async (data: ScoreFormValues) => {
+  const handleSubmit = async (data: ScoreFormValues) => {
+    if (isSaving) return;
     setIsSaving(true);
     try {
       await onSave(data);
     } catch (err) {
-      setIsSaving(false);
+      console.error("Submission failed:", err);
+    } finally {
+      // Don't setIsSaving(false) here to prevent form flickers if the dialog is about to close
     }
   };
 
-  const handleWinnerChange = (index: number, winner: string) => {
-    const nextWinners = [...gameWinners];
-    nextWinners[index] = nextWinners[index] === winner ? null : winner;
-    const p1_G12 = nextWinners.slice(0, 2).filter(w => w === 'player1').length;
-    const p2_G12 = nextWinners.slice(0, 2).filter(w => w === 'player2').length;
-    if (p1_G12 === 2 || p2_G12 === 2) {
-        nextWinners[2] = null;
-    }
-    setGameWinners(nextWinners);
-    const p1Total = nextWinners.filter(w => w === 'player1').length;
-    const p2Total = nextWinners.filter(w => w === 'player2').length;
-    
-    // Update values and trigger full re-validation to ensure refine() sees new values
-    form.setValue('player1Wins' as any, p1Total, { shouldDirty: true });
-    form.setValue('player2Wins' as any, p2Total, { shouldDirty: true, shouldValidate: true });
-    form.trigger(['player1Wins', 'player2Wins'] as any);
-  }
+  const handleWinnerChange = useCallback((index: number, winner: string) => {
+    if (isSaving) return;
+    setGameWinners(prev => {
+        const nextWinners = [...prev];
+        nextWinners[index] = nextWinners[index] === winner ? null : winner;
+        
+        const p1_G12 = nextWinners.slice(0, 2).filter(w => w === 'player1').length;
+        const p2_G12 = nextWinners.slice(0, 2).filter(w => w === 'player2').length;
+        
+        if (p1_G12 === 2 || p2_G12 === 2) {
+            nextWinners[2] = null;
+        }
+        
+        const p1Total = nextWinners.filter(w => w === 'player1').length;
+        const p2Total = nextWinners.filter(w => w === 'player2').length;
+        
+        // Use batch update via setValue
+        form.setValue('player1Wins' as any, p1Total, { shouldDirty: true });
+        form.setValue('player2Wins' as any, p2Total, { shouldDirty: true, shouldValidate: true });
+        
+        return nextWinners;
+    });
+  }, [form, isSaving]);
 
   const p1Wins = isBestOfThree ? (form.watch('player1Wins' as any) || 0) : 0;
   const p2Wins = isBestOfThree ? (form.watch('player2Wins' as any) || 0) : 0;
@@ -185,11 +196,13 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const p2Score = form.watch('player2Score' as any) || 0;
 
   const incrementValue = (field: any) => {
+    if (isSaving) return;
     const current = form.getValues(field) || 0;
     form.setValue(field, current + 1, { shouldValidate: true });
   }
 
   const decrementValue = (field: any) => {
+    if (isSaving) return;
     const current = form.getValues(field) || 0;
     if (current > 0) {
       form.setValue(field, current - 1, { shouldValidate: true });
@@ -205,31 +218,26 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className={cn("space-y-6 transition-opacity", isSaving && "opacity-70 pointer-events-none")}>
         
         <div className="relative">
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center pointer-events-none">
                 <div className="relative group/vs">
-                    <div className="absolute -inset-2 bg-primary/20 rounded-full blur-lg opacity-50 animate-pulse" />
-                    <div className="bg-[#0A192F] border-2 border-primary rounded-full w-14 h-14 flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.4)] ring-4 ring-[#0A192F]">
+                    <div className="bg-[#0A192F] border-2 border-primary rounded-full w-14 h-14 flex items-center justify-center shadow-xl ring-4 ring-[#0A192F]">
                         <span className="text-primary font-black text-xl tracking-tighter italic pr-0.5">VS</span>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
-              {/* Player 1 HUD */}
               <div className={cn(
-                  "bg-gradient-to-br from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all group",
-                  isBestOfThree ? (p1Wins >= 2 ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10") : (p1Score > p2Score ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10")
+                  "bg-gradient-to-br from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all",
+                  isBestOfThree ? (p1Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p1Score > p2Score ? "border-primary shadow-lg" : "border-primary/10")
               )}>
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/20 rounded-tl-2xl pointer-events-none" />
-                
                 <div className="relative z-10">
-                    <div className={cn("absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity", (isBestOfThree ? p1Wins >= 2 : p1Score > p2Score) && "opacity-100")} />
                     <Avatar className={cn(
-                        "h-16 w-16 border-2 shadow-2xl relative z-10 transition-transform duration-500",
-                        (isBestOfThree ? p1Wins >= 2 : p1Score > p2Score) ? "border-primary scale-110" : "border-white/10 group-hover:scale-105"
+                        "h-16 w-16 border-2 shadow-xl relative z-10 transition-transform duration-500",
+                        (isBestOfThree ? p1Wins >= 2 : p1Score > p2Score) ? "border-primary scale-110" : "border-white/10"
                     )}>
                         <AvatarImage src={player1Info.team?.logoUrl} className="object-cover" />
                         <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
@@ -255,33 +263,29 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                                 "bg-black/40 border-2 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner transition-colors",
                                 p1Wins >= 2 ? "border-primary" : "border-primary/20"
                             )}>
-                                <span className={cn("text-3xl font-black italic tabular-nums", p1Wins >= 2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.6)]" : "text-white/40")}>{p1Wins}</span>
+                                <span className={cn("text-3xl font-black italic tabular-nums", p1Wins >= 2 ? "text-primary" : "text-white/40")}>{p1Wins}</span>
                             </div>
                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
                         </div>
                     )}
                     <ScoreControl 
-                        fieldName="player1Score" 
                         value={p1Score} 
                         onIncrement={() => incrementValue('player1Score')} 
                         onDecrement={() => decrementValue('player1Score')} 
                         label="Total goals"
+                        disabled={isSaving}
                     />
                 </div>
               </div>
 
-              {/* Player 2 HUD */}
               <div className={cn(
-                  "bg-gradient-to-bl from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all group",
-                  isBestOfThree ? (p2Wins >= 2 ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10") : (p2Score > p1Score ? "border-primary shadow-[0_0_20px_rgba(204,253,1,0.1)]" : "border-primary/10")
+                  "bg-gradient-to-bl from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all",
+                  isBestOfThree ? (p2Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p2Score > p1Score ? "border-primary shadow-lg" : "border-primary/10")
               )}>
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/20 rounded-tr-2xl pointer-events-none" />
-
                 <div className="relative z-10">
-                    <div className={cn("absolute -inset-2 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity", (isBestOfThree ? p2Wins >= 2 : p2Score > p1Score) && "opacity-100")} />
                     <Avatar className={cn(
-                        "h-16 w-16 border-2 shadow-2xl relative z-10 transition-transform duration-500",
-                        (isBestOfThree ? p2Wins >= 2 : p2Score > p1Score) ? "border-primary scale-110" : "border-white/10 group-hover:scale-105"
+                        "h-16 w-16 border-2 shadow-xl relative z-10 transition-transform duration-500",
+                        (isBestOfThree ? p2Wins >= 2 : p2Score > p1Score) ? "border-primary scale-110" : "border-white/10"
                     )}>
                         <AvatarImage src={player2Info.team?.logoUrl} className="object-cover" />
                         <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
@@ -307,25 +311,24 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                                 "bg-black/40 border-2 rounded-xl w-20 h-16 flex items-center justify-center shadow-inner transition-colors",
                                 p2Wins >= 2 ? "border-primary" : "border-primary/20"
                             )}>
-                                <span className={cn("text-3xl font-black italic tabular-nums", p2Wins >= 2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.6)]" : "text-white/40")}>{p2Wins}</span>
+                                <span className={cn("text-3xl font-black italic tabular-nums", p2Wins >= 2 ? "text-primary" : "text-white/40")}>{p2Wins}</span>
                             </div>
                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
                         </div>
                     )}
                     <ScoreControl 
-                        fieldName="player2Score" 
                         value={p2Score} 
                         onIncrement={() => incrementValue('player2Score')} 
                         onDecrement={() => decrementValue('player2Score')} 
                         label="Total goals"
+                        disabled={isSaving}
                     />
                 </div>
               </div>
             </div>
         </div>
 
-        <div className="bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-2xl relative overflow-hidden group/bo3">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-2xl group-hover/bo3:bg-primary/10 transition-all" />
+        <div className="bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-xl relative overflow-hidden">
           <div className="mb-4 flex items-center justify-between">
              <div className="flex items-center gap-2">
                  <Zap className="w-4 h-4 text-primary fill-primary" />
@@ -341,9 +344,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
           />
         </div>
 
-        {/* Validation Error Message Display */}
         {(hasErrors || isBo3Incomplete) && (
-            <div className="bg-red-500/10 border-2 border-red-500/30 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="bg-red-500/10 border-2 border-red-500/30 p-4 rounded-xl flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                     <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">Protocol Violation Detected</p>
@@ -363,14 +365,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             </div>
         )}
 
-        <div className="bg-white/[0.02] p-5 rounded-2xl border-2 border-white/5 space-y-4 backdrop-blur-sm">
-            <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-                <div className="p-1.5 bg-primary/10 rounded-md text-primary">
-                    <Activity className="w-3 h-3" />
-                </div>
-                <h4 className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em] italic">Match Authentication Detail</h4>
-            </div>
-            
+        <div className="bg-white/[0.02] p-5 rounded-2xl border-2 border-white/5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                 <FormField
                   control={form.control}
@@ -381,12 +376,12 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         <CalendarIcon className="w-2.5 h-2.5" /> Scheduled Date
                       </FormLabel>
                       <Popover>
-                        <PopoverTrigger asChild>
+                        <PopoverTrigger asChild disabled={isSaving}>
                           <FormControl>
                             <Button
                               variant={"outline"}
                               className={cn(
-                                "w-full pl-3 text-left font-black h-14 border-white/10 bg-black/40 rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-[10px] uppercase text-center",
+                                "w-full pl-3 text-left font-black h-12 border-white/10 bg-black/40 rounded-lg hover:border-primary/50 transition-all text-[10px] uppercase text-center",
                                 !field.value && "text-white/20"
                               )}
                             >
@@ -422,8 +417,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                           <Clock className="w-2.5 h-2.5" /> Kick-Off Time (24H)
                         </FormLabel>
                         <div className="flex items-center justify-center gap-2">
-                            <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)}>
-                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums w-32 px-4 rounded-none overflow-visible text-center [&>span]:text-center [&>span]:flex-1 not-italic">
+                            <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)} disabled={isSaving}>
+                                <SelectTrigger className="h-12 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums w-full text-center">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -432,9 +427,9 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <span className="text-primary font-black text-2xl">:</span>
-                            <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)}>
-                                <SelectTrigger className="h-14 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-xl tabular-nums w-32 px-4 rounded-none overflow-visible text-center [&>span]:text-center [&>span]:flex-1 not-italic">
+                            <span className="text-primary font-black text-xl">:</span>
+                            <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)} disabled={isSaving}>
+                                <SelectTrigger className="h-12 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums w-full text-center">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0A192F] border-primary/30">
@@ -453,16 +448,18 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
         </div>
 
         <div className="pt-2 relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500 pointer-events-none" />
             <Button 
               type="submit" 
               disabled={isSaving} 
-              className="w-full h-14 text-lg font-black tracking-tighter gap-3 shadow-2xl shadow-primary/20 rounded-xl uppercase italic group/btn overflow-hidden relative z-10"
+              className={cn(
+                "w-full h-14 text-lg font-black tracking-tighter gap-3 shadow-xl rounded-xl uppercase italic group/btn overflow-hidden relative z-10 transition-all",
+                isSaving ? "bg-primary/20 text-white/20" : "bg-primary text-black hover:bg-primary/90"
+              )}
             >
               {isSaving ? (
                 <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 animate-pulse fill-black" />
-                    Syncing...
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Synchronizing...
                 </div>
               ) : (
                 <>
