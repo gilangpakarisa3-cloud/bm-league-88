@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -73,7 +72,10 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
         type="button" 
         variant="outline" 
         size="icon" 
-        className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
+        className={cn(
+          "h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
+          disabled && "opacity-20 pointer-events-none"
+        )}
         onClick={onDecrement}
         disabled={disabled}
       >
@@ -81,10 +83,10 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
       </Button>
       
       <div className={cn(
-        "relative overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner transition-opacity",
-        disabled && "opacity-50"
+        "relative overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner transition-all",
+        disabled && "opacity-50 grayscale"
       )}>
-        <span className="text-4xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
+        <span className="text-4xl font-black text-primary italic drop-shadow-[0_0:10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
           {value}
         </span>
       </div>
@@ -93,7 +95,10 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
         type="button" 
         variant="outline" 
         size="icon" 
-        className="h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg"
+        className={cn(
+          "h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
+          disabled && "opacity-20 pointer-events-none"
+        )}
         onClick={onIncrement}
         disabled={disabled}
       >
@@ -161,8 +166,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
       await onSave(data);
     } catch (err) {
       console.error("Submission failed:", err);
-    } finally {
-      // Don't setIsSaving(false) here to prevent form flickers if the dialog is about to close
+      setIsSaving(false);
     }
   };
 
@@ -182,7 +186,6 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
         const p1Total = nextWinners.filter(w => w === 'player1').length;
         const p2Total = nextWinners.filter(w => w === 'player2').length;
         
-        // Use batch update via setValue
         form.setValue('player1Wins' as any, p1Total, { shouldDirty: true });
         form.setValue('player2Wins' as any, p2Total, { shouldDirty: true, shouldValidate: true });
         
@@ -218,7 +221,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className={cn("space-y-6 transition-opacity", isSaving && "opacity-70 pointer-events-none")}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className={cn("space-y-6 transition-all duration-500", isSaving && "opacity-60 grayscale-[0.5]")}>
         
         <div className="relative">
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center pointer-events-none">
@@ -232,7 +235,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
               <div className={cn(
                   "bg-gradient-to-br from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all",
-                  isBestOfThree ? (p1Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p1Score > p2Score ? "border-primary shadow-lg" : "border-primary/10")
+                  isBestOfThree ? (p1Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p1Score > p2Score ? "border-primary shadow-lg" : "border-primary/10"),
+                  isSaving && "border-white/5"
               )}>
                 <div className="relative z-10">
                     <Avatar className={cn(
@@ -280,7 +284,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
 
               <div className={cn(
                   "bg-gradient-to-bl from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all",
-                  isBestOfThree ? (p2Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p2Score > p1Score ? "border-primary shadow-lg" : "border-primary/10")
+                  isBestOfThree ? (p2Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p2Score > p1Score ? "border-primary shadow-lg" : "border-primary/10"),
+                  isSaving && "border-white/5"
               )}>
                 <div className="relative z-10">
                     <Avatar className={cn(
@@ -328,7 +333,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             </div>
         </div>
 
-        <div className="bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-xl relative overflow-hidden">
+        <div className={cn("bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-xl relative overflow-hidden", isSaving && "opacity-20 pointer-events-none")}>
           <div className="mb-4 flex items-center justify-between">
              <div className="flex items-center gap-2">
                  <Zap className="w-4 h-4 text-primary fill-primary" />
@@ -365,7 +370,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             </div>
         )}
 
-        <div className="bg-white/[0.02] p-5 rounded-2xl border-2 border-white/5 space-y-4">
+        <div className={cn("bg-white/[0.02] p-5 rounded-2xl border-2 border-white/5 space-y-4", isSaving && "opacity-20 pointer-events-none")}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                 <FormField
                   control={form.control}
