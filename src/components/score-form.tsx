@@ -86,7 +86,7 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
         "relative overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner transition-all",
         disabled && "opacity-50 grayscale"
       )}>
-        <span className="text-4xl font-black text-primary italic drop-shadow-[0_0:10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
+        <span className="text-4xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
           {value}
         </span>
       </div>
@@ -186,7 +186,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
         const p1Total = nextWinners.filter(w => w === 'player1').length;
         const p2Total = nextWinners.filter(w => w === 'player2').length;
         
-        form.setValue('player1Wins' as any, p1Total, { shouldDirty: true });
+        // Update both values together and trigger explicit validation
+        form.setValue('player1Wins' as any, p1Total, { shouldDirty: true, shouldValidate: true });
         form.setValue('player2Wins' as any, p2Total, { shouldDirty: true, shouldValidate: true });
         
         return nextWinners;
