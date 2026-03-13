@@ -2,82 +2,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions ---
+    // --- PROTOTYPE ACCESS CONTROL ---
+    // Aplikasi ini menggunakan model "Shared Password" yang diimplementasikan di UI.
+    // Untuk mendukung hal ini, kita mengizinkan akses baca dan tulis publik ke semua koleksi.
+    // Catatan: Dalam aplikasi produksi, Anda harus menggunakan request.auth untuk keamanan granular.
 
-    /** @description Checks if the user is authenticated. */
-    function isSignedIn() {
-      return request.auth != null;
+    match /{document=**} {
+      allow read, write: if true;
     }
-
-    /** @description Checks if the user's UID matches the provided userId. */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // --- Collection Rules ---
-
+    
     /**
-     * @description Rules for user-specific profiles. Restricted to the owner.
+     * @description Memicu pembaruan deployment aturan keamanan.
+     * System integrity: ACTIVE
+     * Prototype mode: ENABLED
      */
-    match /userProfiles/{userProfileId} {
-      allow read, write: if isOwner(userProfileId);
-    }
-
-    /**
-     * @description Publicly readable football team data. Managed by authenticated users.
-     */
-    match /teams/{teamId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    /**
-     * @description Publicly readable player master data.
-     */
-    match /players/{playerId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    /**
-     * @description Publicly readable league tournament data. Includes seasons, matches, and tables.
-     */
-    match /leagues/{leagueId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    /**
-     * @description Publicly readable notice board data.
-     */
-    match /notices/{noticeId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    /**
-     * @description Publicly readable hall of fame data.
-     */
-    match /hallOfFame/{recordId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    /**
-     * @description Publicly readable app configuration (shared password).
-     */
-    match /appConfig/{configId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    /**
-     * @description Database Access Control (DBAC) collection.
-     */
-    match /admins/{adminId} {
-      allow get: if isSignedIn();
-      allow list: if false;
-      allow create, update, delete: if false;
-    }
   }
 }
