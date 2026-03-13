@@ -88,18 +88,18 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         
         return (
             <div className={cn(
-                "flex items-center gap-2 sm:gap-6 group/player transition-all duration-500 w-full overflow-hidden", 
-                alignment === 'right' ? "flex-row-reverse text-right justify-end" : "flex-row text-left justify-start"
+                "flex items-center gap-3 sm:gap-5 transition-all duration-500 w-full overflow-hidden", 
+                alignment === 'right' ? "flex-row-reverse text-right" : "flex-row text-left"
             )}>
                 <div className="relative shrink-0">
                     <div className={cn(
-                        "absolute -inset-1.5 rounded-full blur-md opacity-0 transition-opacity duration-700",
-                        isWinner ? "bg-primary/40 opacity-100" : "bg-white/5 group-hover/player:opacity-20"
+                        "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity duration-700",
+                        isWinner ? "bg-primary/40 opacity-100" : "bg-white/5"
                     )} />
                     
                     <Avatar className={cn(
-                        "h-8 w-8 sm:h-16 sm:w-16 border-2 transition-all duration-700 shadow-2xl relative z-10",
-                        isWinner ? "border-primary scale-110 rotate-0" : "border-white/10 group-hover/player:border-primary/40 -rotate-3 group-hover/player:rotate-0"
+                        "h-10 w-10 sm:h-14 sm:w-14 border-2 transition-all duration-700 shadow-xl relative z-10",
+                        isWinner ? "border-primary scale-110" : "border-white/10"
                     )}>
                         <AvatarImage 
                             key={logoUrl} 
@@ -115,19 +115,19 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                     
                     {isWinner && (
                         <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg border-2 border-background animate-bounce">
-                            <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-black fill-black" />
+                            <Zap className="w-2 h-2 sm:w-3 sm:h-3 text-black fill-black" />
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-col gap-0.5 overflow-hidden min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                     <span className={cn(
-                        "text-[10px] sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500 pr-1 sm:pr-4", 
-                        isWinner ? "text-primary" : "text-white/80 group-hover/player:text-white"
+                        "text-xs sm:text-lg font-black tracking-tight uppercase italic truncate transition-colors duration-500 pr-2", 
+                        isWinner ? "text-primary" : "text-white/90"
                     )}>
                         {name}
                     </span>
-                    <span className="text-[6px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.1em] sm:tracking-[0.2em] truncate group-hover/player:text-primary/40 transition-colors pr-1 sm:pr-2">
+                    <span className="text-[7px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest truncate pr-2">
                         {team?.name || 'Athlete Protocol'}
                     </span>
                 </div>
@@ -142,124 +142,78 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const isW2 = hasValidScore && score2 > score1;
 
     return (
-        <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-primary/[0.02]">
-            {/* Immersive Ghost Text */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden pr-4 sm:pr-8">
-                <span className="text-[80px] sm:text-[180px] font-black italic text-white/[0.02] uppercase tracking-tighter transition-all duration-1000 group-hover:text-primary/[0.03] group-hover:scale-110 leading-none">
-                    {hasValidScore ? 'FINISHED' : 'MATCHDAY'}
+        <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
+            {/* Minimalist Ghost Text */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.02] pr-10">
+                <span className="text-[100px] sm:text-[160px] font-black italic text-white uppercase tracking-tighter transition-all duration-1000 group-hover:scale-105">
+                    {hasValidScore ? 'FINISHED' : 'BATTLE'}
                 </span>
             </div>
 
-            {/* HUD Status Line */}
-            <div className={cn(
-                "absolute inset-y-0 left-0 w-1 sm:w-1.5 transition-all duration-700",
-                hasValidScore ? "bg-white/5 group-hover:bg-primary/40" : "bg-primary/20 group-hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.4)]"
-            )} />
-
-            <div className="relative z-10 grid grid-cols-[1fr_70px_1fr] xs:grid-cols-[1fr_90px_1fr] md:grid-cols-[1fr_200px_1fr] items-center gap-1 sm:gap-4 p-3 sm:p-10">
+            <div className="relative z-10 grid grid-cols-[1fr_80px_1fr] sm:grid-cols-[1fr_140px_1fr] items-center gap-2 sm:gap-6 p-4 sm:p-8">
                 
-                {/* Home Player */}
-                <div className="justify-self-end w-full min-w-0">
+                {/* Home Player (Left) */}
+                <div className="w-full">
                     <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.teamId1 || match.player1Id} alignment="right" isWinner={isW1} />
                 </div>
                 
-                {/* Score/VS Module */}
-                <div className="flex flex-col items-center justify-center min-w-[60px] sm:min-w-[140px] relative">
+                {/* Unified Score Module (Center) */}
+                <div className="flex flex-col items-center justify-center relative">
                     {hasValidScore ? (
                         <div className="relative group/score">
-                            <div className="absolute -inset-4 bg-primary/10 rounded-full blur-2xl opacity-0 group-hover/score:opacity-100 transition-opacity duration-1000" />
-                            <div className="bg-[#0A192F]/60 border-2 border-primary/30 px-2 sm:px-6 py-1 sm:py-2 rounded-xl sm:rounded-2xl shadow-2xl relative z-10 flex items-center gap-2 sm:gap-4 ring-2 sm:ring-4 ring-black/20">
-                                <span className={cn("text-xl sm:text-4xl font-black italic tabular-nums leading-none", isW1 ? "text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]" : "text-white/20")}>{score1}</span>
-                                <div className="w-px h-4 sm:h-6 bg-white/10" />
-                                <span className={cn("text-xl sm:text-4xl font-black italic tabular-nums leading-none", isW2 ? "text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]" : "text-white/20")}>{score2}</span>
+                            <div className="bg-[#0A192F] border-2 border-white/10 px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-3 sm:gap-5 ring-4 ring-black/40">
+                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW1 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : "text-white/30")}>{score1}</span>
+                                <div className="w-px h-5 sm:h-8 bg-white/10" />
+                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : "text-white/30")}>{score2}</span>
                             </div>
                         </div>
                     ) : (
                         <div className="relative flex flex-col items-center">
-                            <div className="bg-primary/10 border border-primary/30 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full backdrop-blur-md shadow-lg group-hover:border-primary transition-colors">
-                                <span className="text-[8px] sm:text-xs font-black tracking-[0.2em] sm:tracking-[0.4em] text-primary uppercase italic pr-0.5 sm:pr-1">VS</span>
+                            <div className="bg-primary/10 border-2 border-primary/20 px-3 sm:px-5 py-1 sm:py-1.5 rounded-full backdrop-blur-md shadow-lg group-hover:border-primary transition-all">
+                                <span className="text-[10px] sm:text-xs font-black tracking-widest text-primary uppercase italic">VS</span>
                             </div>
-                            {isMatchBo3 && <Badge variant="outline" className="mt-1 sm:mt-2 text-[5px] sm:text-[8px] border-primary/20 text-primary/60 font-black uppercase tracking-widest bg-black/40">BO3 SERIES</Badge>}
+                            {isMatchBo3 && <Badge variant="outline" className="mt-2 text-[6px] sm:text-[8px] border-primary/20 text-primary/60 font-black uppercase tracking-widest bg-black/40">BO3 SERIES</Badge>}
                         </div>
                     )}
                 </div>
                 
-                {/* Away Player */}
-                <div className="justify-self-start w-full min-w-0">
+                {/* Away Player (Right) */}
+                <div className="w-full">
                     <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.teamId2 || match.player2Id} alignment="left" isWinner={isW2} />
-                </div>
-                
-                {/* Desktop Actions */}
-                <div className="hidden md:flex items-center gap-3 justify-end absolute right-10 top-1/2 -translate-y-1/2">
-                    <div className="flex flex-col items-end mr-2">
-                        <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Signal</span>
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className={cn(
-                                "h-11 px-6 text-[10px] font-black uppercase tracking-widest transition-all duration-500 border rounded-xl", 
-                                hasValidScore 
-                                    ? "text-white/40 hover:text-primary border-white/5 hover:border-primary/30 bg-white/[0.02]" 
-                                    : "text-primary hover:bg-primary hover:text-black border-primary/30 shadow-lg shadow-primary/5"
-                            )} 
-                            onClick={() => onEditMatch(match)} 
-                            disabled={isEditDisabled}
-                        >
-                            {hasValidScore ? (
-                                <div className="flex items-center gap-2 italic">
-                                    <Clock className="h-3.5 w-3.5" />
-                                    {displayDate}
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-2 italic">
-                                    <Zap className="h-3.5 w-3.5 fill-current" />
-                                    {isEditDisabled ? (
-                                        (match.player1Id === 'TBD' || match.player2Id === 'TBD') ? 'Awaiting Signal' : 
-                                        (hasPlayoffs && (match.round === 'Group' || !match.round) ? 'LOCKED' : 'READY')
-                                    ) : 'LOG SCORE'}
-                                </div>
-                            )}
-                        </Button>
-                    </div>
-                    
-                    {isAdmin && hasValidScore && (
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-11 w-11 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 border-2 border-amber-500/20 rounded-xl transition-all" 
-                            onClick={() => onRevertMatch(match)} 
-                            title={t('revert_match')}
-                        >
-                            <Undo2 className="h-5 w-5" />
-                        </Button>
-                    )}
                 </div>
             </div>
 
-            {/* Mobile Actions Bar */}
-            <div className="md:hidden flex items-center justify-between p-3 bg-black/40 border-t border-white/5 relative z-10">
-                <div className="flex items-center gap-2">
+            {/* Sub-Footer Meta Bar (Mobile Optimized) */}
+            <div className="flex items-center justify-between px-4 sm:px-10 py-2 sm:py-3 bg-black/20 border-t border-white/5 relative z-10">
+                <div className="flex items-center gap-3">
                     <Calendar className="w-3 h-3 text-white/20" />
-                    <span className="text-[8px] font-black text-white/40 uppercase italic tracking-wider">{displayDate}</span>
+                    <span className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase italic tracking-widest">{displayDate}</span>
+                    {match.round && match.round !== 'Group' && (
+                        <Badge className="bg-primary/10 border-primary/20 text-primary text-[7px] h-4 font-black px-1.5">{match.round}</Badge>
+                    )}
                 </div>
+                
                 <div className="flex items-center gap-2">
                     <Button 
                         variant="ghost" 
                         size="sm" 
                         className={cn(
-                            "h-8 px-3 text-[8px] font-black uppercase tracking-widest border rounded-lg",
-                            hasValidScore ? "text-white/40 border-white/10" : "text-primary border-primary/30"
+                            "h-7 sm:h-9 px-3 sm:px-5 text-[8px] sm:text-[10px] font-black uppercase tracking-widest border transition-all",
+                            hasValidScore 
+                                ? "text-white/40 border-white/5 hover:border-primary/30 hover:text-primary" 
+                                : "text-primary border-primary/30 hover:bg-primary hover:text-black"
                         )}
                         onClick={() => onEditMatch(match)}
                         disabled={isEditDisabled}
                     >
-                        {hasValidScore ? 'Stats' : 'Update'}
+                        {hasValidScore ? 'ANALYSIS' : 'LOG SCORE'}
                     </Button>
+                    
                     {isAdmin && hasValidScore && (
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-amber-500 border border-amber-500/20 rounded-lg" 
+                            className="h-7 w-7 sm:h-9 sm:w-9 text-amber-500/60 hover:text-amber-400 border border-amber-500/10 hover:border-amber-500/30 rounded-lg transition-all" 
                             onClick={() => onRevertMatch(match)}
                         >
                             <Undo2 className="h-3.5 w-3.5" />
@@ -694,7 +648,7 @@ export default function FixturesPage() {
                     if (sData.type === 'Co-Op') {
                         if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
                     } else {
-                        e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
+                        e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= mDoc.data().player1Score!;
                         if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
                     }
                 }
