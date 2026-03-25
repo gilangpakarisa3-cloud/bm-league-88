@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import { Shield, Users, CheckCircle2, Binary, Loader2, Zap, Trash2 } from 'lucide-react';
+import { Shield, Users, CheckCircle2, Binary, Loader2, Zap, Trash2, Trophy, Sparkles } from 'lucide-react';
 import type { Team, LeagueEntry, Season, WithId } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -26,8 +26,8 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [assignments, setAssignments] = useState<Record<string, string>>({}); // playerEntryId -> teamId
-  const [priorityPlayers, setPriorityPool] = useState<Set<string>>(new Set()); // entryIds of players who lost a draw
   const [isDrawing, setIsDrawing] = useState(false);
+  const [lastDrawResult, setLastDrawResult] = useState<{ winnerName: string, teamName: string } | null>(null);
 
   const availableTeams = useMemo(() => {
     const assignedTeamIds = new Set(Object.values(assignments));
@@ -56,6 +56,8 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
           delete next[entryId];
           return next;
       });
+      // Clear last result if we remove the winner of that result
+      if (lastDrawResult) setLastDrawResult(null);
   };
 
   const handleRunDraw = useCallback(() => {
@@ -63,45 +65,31 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
 
     const team = allTeams.find(t => t.id === selectedTeamId)!;
     
-    const candidates = selectedPlayerIds;
-    const prioritizedOnes = candidates.filter(id => priorityPlayers.has(id));
-    
     setIsDrawing(true);
+    setLastDrawResult(null);
 
+    // Simulate calibration
     setTimeout(() => {
-        let winnerId: string;
-        const pool = prioritizedOnes.length > 0 ? prioritizedOnes : candidates;
-        winnerId = pool[Math.floor(Math.random() * pool.length)];
+        const pool = selectedPlayerIds;
+        const winnerId = pool[Math.floor(Math.random() * pool.length)];
+        const winnerEntry = registeredPlayers.find(p => p.id === winnerId);
 
         setAssignments(prev => ({ ...prev, [winnerId]: selectedTeamId }));
-        
-        // Those who lost get added to Priority Pool ONLY IF team is Tier 1
-        const losers = candidates.filter(id => id !== winnerId);
-        if (team.tier === 1) {
-            setPriorityPool(prev => {
-                const next = new Set(prev);
-                losers.forEach(id => next.add(id));
-                return next;
-            });
-        }
-        
-        // Remove winner from priority if they were in it
-        setPriorityPool(prev => {
-            const next = new Set(prev);
-            next.delete(winnerId);
-            return next;
+        setLastDrawResult({
+            winnerName: winnerEntry?.playerName || 'Unknown',
+            teamName: team.name
         });
 
         toast({
             title: "Draft Result Verified!",
-            description: `${registeredPlayers.find(p => p.id === winnerId)?.playerName} has secured ${team.name}.`
+            description: `${winnerEntry?.playerName} has secured ${team.name}.`
         });
 
         setSelectedTeamId(null);
         setSelectedPlayerIds([]);
         setIsDrawing(false);
     }, 1500);
-  }, [selectedTeamId, selectedPlayerIds, priorityPlayers, allTeams, registeredPlayers, toast, setPriorityPool]);
+  }, [selectedTeamId, selectedPlayerIds, allTeams, registeredPlayers, toast]);
 
   const handleFinalSubmit = () => {
     const data = Object.entries(assignments).map(([entryId, teamId]) => {
@@ -123,8 +111,8 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     <Binary className="w-6 h-6 sm:w-8 h-8" />
                 </div>
                 <div className="space-y-1">
-                    <DialogTitle className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic pr-4">Tiered Seeded Draft System</DialogTitle>
-                    <DialogDescription className="text-[8px] sm:text-xs font-bold text-white/40 uppercase tracking-[0.3em]">Protocol: Multi-Tier Fairness Engine v2.0</DialogDescription>
+                    <DialogTitle className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic pr-4">Team Draft Protocol</DialogTitle>
+                    <DialogDescription className="text-[8px] sm:text-xs font-bold text-white/40 uppercase tracking-[0.3em]">System Status: Neutral Randomization Active</DialogDescription>
                 </div>
             </div>
           </DialogHeader>
@@ -184,7 +172,6 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                             <div className="space-y-2">
                                 <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/20 ml-1">Available Roster</span>
                                 {unassignedPlayers.length > 0 ? unassignedPlayers.map(player => {
-                                    const isPriority = priorityPlayers.has(player.id);
                                     const isSelected = selectedPlayerIds.includes(player.id);
                                     return (
                                         <button
@@ -199,12 +186,6 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                                 <div className={cn("w-1 h-5 sm:h-6 rounded-full", isSelected ? "bg-primary" : "bg-white/5")} />
                                                 <div className="text-left">
                                                     <p className={cn("text-[11px] sm:text-xs font-black uppercase italic", isSelected ? "text-primary" : "text-white/80")}>{player.playerName}</p>
-                                                    {isPriority && (
-                                                        <div className="flex items-center gap-1">
-                                                            <Zap className="w-2 h-2 text-amber-500 fill-amber-500" />
-                                                            <span className="text-[7px] font-black text-amber-500 uppercase tracking-widest">Priority Seed Level 1</span>
-                                                        </div>
-                                                    )}
                                                 </div>
                                             </div>
                                             {isSelected && <CheckCircle2 className="w-4 h-4 text-primary" />}
@@ -252,6 +233,25 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     </ScrollArea>
                 </div>
 
+                {/* Outcome HUD Display */}
+                {lastDrawResult && !isDrawing && (
+                    <div className="px-4 sm:px-8 py-2 animate-in slide-in-from-bottom-2 duration-500">
+                        <div className="bg-yellow-500/10 border-2 border-yellow-500/30 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-[0_0_30px_rgba(234,179,8,0.1)]">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/5 -mr-8 -mt-8 rounded-full blur-xl" />
+                            <div className="p-2 bg-yellow-500 text-black rounded-lg">
+                                <Trophy className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-[8px] font-black text-yellow-500 uppercase tracking-widest">Last Outcome</p>
+                                <p className="text-sm font-black text-white uppercase italic pr-4 leading-tight">
+                                    <span className="text-yellow-500">{lastDrawResult.winnerName}</span> HAS SECURED <span className="text-primary">{lastDrawResult.teamName}</span>
+                                </p>
+                            </div>
+                            <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+                        </div>
+                    </div>
+                )}
+
                 {/* Sticky Draft Control Section */}
                 <div className="p-4 sm:p-8 shrink-0 bg-black/40 border-t border-white/5">
                     <div className="space-y-4 sm:space-y-6">
@@ -278,7 +278,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                 disabled={!selectedTeamId || selectedPlayerIds.length === 0 || isDrawing}
                                 className="w-full h-12 sm:h-14 font-black uppercase italic text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] gap-3 rounded-xl shadow-xl shadow-primary/10"
                             >
-                                {isDrawing ? "CALIBRATING DRAW..." : "INITIALIZE SEEDED DRAW"}
+                                {isDrawing ? "CALIBRATING DRAW..." : "START SEEDED DRAW"}
                             </Button>
                         </div>
 
