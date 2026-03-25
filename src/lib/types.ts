@@ -5,6 +5,7 @@ export type WithId<T> = T & { id: string };
 export type Team = {
   name: string;
   logoUrl: string;
+  tier?: number;
 };
 
 export type Player = {

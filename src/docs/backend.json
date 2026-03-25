@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -40,6 +39,12 @@
           "type": "string",
           "description": "URL for the team's logo image.",
           "format": "uri"
+        },
+        "tier": {
+          "type": "number",
+          "description": "The power level of the team (1-5).",
+          "enum": [1, 2, 3, 4, 5],
+          "default": 3
         }
       },
       "required": [

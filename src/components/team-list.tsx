@@ -20,8 +20,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { Pencil, Trash2, Shield, LayoutGrid } from 'lucide-react';
+import { Pencil, Trash2, Shield, LayoutGrid, Award } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
 
 
 interface TeamListProps {
@@ -45,7 +47,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
   
   const sortedTeams = useMemo(() => {
     if (!teams) return [];
-    return [...teams].sort((a, b) => a.name.localeCompare(b.name));
+    return [...teams].sort((a, b) => (a.tier || 3) - (b.tier || 3) || a.name.localeCompare(b.name));
   }, [teams]);
   
   const handleDelete = () => {
@@ -98,20 +100,28 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {sortedTeams.map((team: WithId<Team>) => {
                 const logoUrl = team.logoUrl || `https://picsum.photos/seed/team-${team.id}/128/128`;
+                const tierColor = 
+                    team.tier === 1 ? "bg-yellow-400 text-black shadow-[0_0_10px_rgba(250,204,21,0.4)]" :
+                    team.tier === 2 ? "bg-primary text-black shadow-[0_0_10px_rgba(204,253,1,0.4)]" :
+                    "bg-white/10 text-white/60";
+
                 return (
                     <div key={team.id} className="group relative">
-                        {/* Background Glow Effect */}
                         <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
                         
                         <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 overflow-hidden rounded-2xl">
-                            {/* Ghost Text Background - Adjusted padding */}
+                            <div className="absolute top-3 right-3 z-20">
+                                <Badge className={cn("font-black text-[8px] uppercase tracking-widest h-5 px-2 italic border-none", tierColor)}>
+                                    T{team.tier || 3}
+                                </Badge>
+                            </div>
+
                             <span className="absolute top-4 left-4 text-4xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors pr-4">
                                 {team.name}
                             </span>
 
                             <CardContent className="flex flex-col flex-grow items-center justify-center p-8 relative z-10">
                                 <div className="relative mb-6">
-                                    {/* Logo Background Glow */}
                                     <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                     
                                     <Avatar className="h-24 w-24 border-4 border-white/5 shadow-2xl group-hover:border-primary transition-all duration-500 group-hover:scale-110">

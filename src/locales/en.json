@@ -266,5 +266,8 @@
   "fun_stats_best_gd_desc": "Player with the highest goal difference.",
   "play_style_attacking_desc": "ATTACKING STRATEGY: High goal production (>1.6 AVG). Signature aggressive forward play detected.",
   "play_style_defensive_desc": "DEFENSIVE PROTOCOL: Superior defensive stability (<1.2 GA). Strong low-block and counter-attack signature.",
-  "play_style_balanced_desc": "BALANCED TACTICS: Neutral offensive/defensive metrics detected. High adaptability across all match phases."
+  "play_style_balanced_desc": "BALANCED TACTICS: Neutral offensive/defensive metrics detected. High adaptability across all match phases.",
+  "team_tier": "Team Tier",
+  "team_tier_desc": "Tier 1 is for strongest teams, Tier 5 for weakest.",
+  "priority_seed": "Priority Seed"
 }

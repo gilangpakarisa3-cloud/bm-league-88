@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -14,6 +13,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import type { Team, WithId } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
@@ -25,6 +31,7 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: 'Team name must be at least 2 characters.',
   }),
+  tier: z.coerce.number().min(1).max(5),
 });
 
 type TeamFormValues = z.infer<typeof formSchema>;
@@ -43,12 +50,14 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
     name: z.string().min(2, {
       message: t('team_name_min_char'),
     }),
+    tier: z.coerce.number().min(1).max(5),
   });
 
   const form = useForm<TeamFormValues>({
     resolver: zodResolver(formSchemaTranslated),
     defaultValues: {
       name: team?.name || '',
+      tier: team?.tier || 3,
     },
   });
 
@@ -61,19 +70,17 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
     const teamData: Team = {
         name: data.name,
         logoUrl: team?.logoUrl || logoUrl,
+        tier: data.tier,
     }
 
     if (team) {
-      // Update existing team
       const teamRef = doc(firestore, 'teams', team.id);
       updateDocumentNonBlocking(teamRef, teamData);
       toast({
         title: t('team_updated_title'),
         description: t('team_updated_desc', { teamName: data.name }),
       });
-
     } else {
-      // Add new team with a human-readable ID
       const teamId = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       if (!teamId) {
         toast({
@@ -93,7 +100,7 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
       });
     }
 
-    onSave?.(); // Close the dialog
+    onSave?.();
   };
 
   return (
@@ -106,8 +113,32 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
             <FormItem>
               <FormLabel>{t('team_name')}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., The All-Stars" {...field} />
+                <Input placeholder="e.g., Real Madrid" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tier"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Team Tier (Power Level)</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value.toString()}>
+                <FormControl>
+                  <SelectTrigger className="bg-black/40 border-white/10 font-black italic uppercase">
+                    <SelectValue placeholder="Select Tier" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-[#0A192F] border-primary/30">
+                  <SelectItem value="1" className="font-black">TIER 1 (ELITE)</SelectItem>
+                  <SelectItem value="2" className="font-black">TIER 2 (TOP)</SelectItem>
+                  <SelectItem value="3" className="font-black">TIER 3 (COMPETITIVE)</SelectItem>
+                  <SelectItem value="4" className="font-black">TIER 4 (MID)</SelectItem>
+                  <SelectItem value="5" className="font-black">TIER 5 (AMATEUR)</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
