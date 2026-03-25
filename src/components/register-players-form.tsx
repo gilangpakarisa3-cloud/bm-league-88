@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -50,7 +49,7 @@ export function RegisterPlayersForm({
   , [registeredPlayers]);
 
   const availablePlayers = React.useMemo(() =>
-    allPlayers.filter(p => !registeredPlayerIds.has(p.id) && !!p.teamId)
+    allPlayers.filter(p => !registeredPlayerIds.has(p.id))
   , [allPlayers, registeredPlayerIds]);
   
   const areAllSelected = React.useMemo(() => 

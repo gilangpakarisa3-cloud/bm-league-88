@@ -27,7 +27,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [assignments, setAssignments] = useState<Record<string, string>>({}); // playerEntryId -> teamId
   const [isDrawing, setIsDrawing] = useState(false);
-  const [lastDrawResult, setLastDrawResult] = useState<{ winnerName: string, teamName: string } | null>(null);
+  const [lastDrawResult, setLastDrawResult] = useState<{ winnerName: string, teamName: string, isManual: boolean } | null>(null);
 
   const availableTeams = useMemo(() => {
     const assignedTeamIds = new Set(Object.values(assignments));
@@ -56,7 +56,6 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
           delete next[entryId];
           return next;
       });
-      // Clear last result if we remove the winner of that result
       if (lastDrawResult) setLastDrawResult(null);
   };
 
@@ -64,11 +63,14 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
     if (!selectedTeamId || selectedPlayerIds.length === 0) return;
 
     const team = allTeams.find(t => t.id === selectedTeamId)!;
+    const isManual = selectedPlayerIds.length === 1;
     
     setIsDrawing(true);
     setLastDrawResult(null);
 
-    // Simulate calibration
+    // Simulate calibration only for draws, manual is faster
+    const delay = isManual ? 400 : 1500;
+
     setTimeout(() => {
         const pool = selectedPlayerIds;
         const winnerId = pool[Math.floor(Math.random() * pool.length)];
@@ -77,18 +79,21 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
         setAssignments(prev => ({ ...prev, [winnerId]: selectedTeamId }));
         setLastDrawResult({
             winnerName: winnerEntry?.playerName || 'Unknown',
-            teamName: team.name
+            teamName: team.name,
+            isManual
         });
 
         toast({
-            title: "Draft Result Verified!",
-            description: `${winnerEntry?.playerName} has secured ${team.name}.`
+            title: isManual ? "Assignment Verified!" : "Draft Result Verified!",
+            description: isManual 
+                ? `${winnerEntry?.playerName} has been assigned to ${team.name}.`
+                : `${winnerEntry?.playerName} has secured ${team.name} via random draw.`
         });
 
         setSelectedTeamId(null);
         setSelectedPlayerIds([]);
         setIsDrawing(false);
-    }, 1500);
+    }, delay);
   }, [selectedTeamId, selectedPlayerIds, allTeams, registeredPlayers, toast]);
 
   const handleFinalSubmit = () => {
@@ -98,6 +103,8 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
     });
     onSaveAssignments(data);
   };
+
+  const isManualMode = selectedPlayerIds.length === 1;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,8 +118,8 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     <Binary className="w-6 h-6 sm:w-8 h-8" />
                 </div>
                 <div className="space-y-1">
-                    <DialogTitle className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic pr-4">Team Draft Protocol</DialogTitle>
-                    <DialogDescription className="text-[8px] sm:text-xs font-bold text-white/40 uppercase tracking-[0.3em]">System Status: Neutral Randomization Active</DialogDescription>
+                    <DialogTitle className="text-xl sm:text-3xl font-black tracking-tighter uppercase italic pr-4">Team Draft System</DialogTitle>
+                    <DialogDescription className="text-[8px] sm:text-xs font-bold text-white/40 uppercase tracking-[0.3em]">Protocol: Multi-Tier Fairness Engine v2.0</DialogDescription>
                 </div>
             </div>
           </DialogHeader>
@@ -144,7 +151,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                 )}>T{team.tier || 3}</Badge>
                                 <Avatar className="h-10 w-10 sm:h-14 sm:w-14 border-2 border-white/10 mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
                                     <AvatarImage src={team.logoUrl} className="object-cover" />
-                                    <AvatarFallback><Shield/></AvatarFallback>
+                                    <AvatarFallback className="bg-black/40 text-[8px] font-black uppercase leading-tight text-center px-0.5">logo belum berhasil terender</AvatarFallback>
                                 </Avatar>
                                 <span className={cn(
                                     "text-[9px] sm:text-[10px] font-black uppercase italic tracking-tighter transition-colors text-center px-1",
@@ -210,7 +217,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-8 w-8 border border-green-500/30">
                                                     <AvatarImage src={player.team?.logoUrl} />
-                                                    <AvatarFallback><Shield className="w-4 h-4 text-green-500/20"/></AvatarFallback>
+                                                    <AvatarFallback className="bg-black/40 text-[6px] font-black uppercase leading-tight text-center px-0.5">logo belum berhasil terender</AvatarFallback>
                                                 </Avatar>
                                                 <div className="text-left">
                                                     <p className="text-[11px] sm:text-xs font-black uppercase italic text-white/90">{player.playerName}</p>
@@ -236,18 +243,27 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                 {/* Outcome HUD Display */}
                 {lastDrawResult && !isDrawing && (
                     <div className="px-4 sm:px-8 py-2 animate-in slide-in-from-bottom-2 duration-500">
-                        <div className="bg-yellow-500/10 border-2 border-yellow-500/30 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-[0_0_30px_rgba(234,179,8,0.1)]">
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/5 -mr-8 -mt-8 rounded-full blur-xl" />
-                            <div className="p-2 bg-yellow-500 text-black rounded-lg">
-                                <Trophy className="w-5 h-5" />
+                        <div className={cn(
+                            "border-2 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.3)]",
+                            lastDrawResult.isManual ? "bg-primary/10 border-primary/30" : "bg-yellow-500/10 border-yellow-500/30"
+                        )}>
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 -mr-8 -mt-8 rounded-full blur-xl" />
+                            <div className={cn(
+                                "p-2 rounded-lg",
+                                lastDrawResult.isManual ? "bg-primary text-black" : "bg-yellow-500 text-black"
+                            )}>
+                                {lastDrawResult.isManual ? <CheckCircle2 className="w-5 h-5" /> : <Trophy className="w-5 h-5" />}
                             </div>
                             <div className="flex-1">
-                                <p className="text-[8px] font-black text-yellow-500 uppercase tracking-widest">Last Outcome</p>
+                                <p className={cn(
+                                    "text-[8px] font-black uppercase tracking-widest",
+                                    lastDrawResult.isManual ? "text-primary" : "text-yellow-500"
+                                )}>{lastDrawResult.isManual ? "Manual Assignment" : "Last Outcome"}</p>
                                 <p className="text-sm font-black text-white uppercase italic pr-4 leading-tight">
-                                    <span className="text-yellow-500">{lastDrawResult.winnerName}</span> HAS SECURED <span className="text-primary">{lastDrawResult.teamName}</span>
+                                    <span className={lastDrawResult.isManual ? "text-primary" : "text-yellow-500"}>{lastDrawResult.winnerName}</span> {lastDrawResult.isManual ? "ASSIGNED TO" : "HAS SECURED"} <span className="text-white">{lastDrawResult.teamName}</span>
                                 </p>
                             </div>
-                            <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+                            {lastDrawResult.isManual ? <Zap className="w-4 h-4 text-primary" /> : <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />}
                         </div>
                     </div>
                 )}
@@ -255,7 +271,10 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                 {/* Sticky Draft Control Section */}
                 <div className="p-4 sm:p-8 shrink-0 bg-black/40 border-t border-white/5">
                     <div className="space-y-4 sm:space-y-6">
-                        <div className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-4 sm:p-5 space-y-3 sm:space-y-4 relative overflow-hidden">
+                        <div className={cn(
+                            "border-2 rounded-2xl p-4 sm:p-5 space-y-3 sm:space-y-4 relative overflow-hidden transition-all duration-500",
+                            isManualMode ? "bg-primary/5 border-primary/20" : "bg-primary/5 border-primary/20"
+                        )}>
                             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-2xl" />
                             <div className="flex items-center justify-between">
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/60 italic">Draft Processor</span>
@@ -276,16 +295,29 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                             <Button 
                                 onClick={handleRunDraw} 
                                 disabled={!selectedTeamId || selectedPlayerIds.length === 0 || isDrawing}
-                                className="w-full h-12 sm:h-14 font-black uppercase italic text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] gap-3 rounded-xl shadow-xl shadow-primary/10"
+                                className={cn(
+                                    "w-full h-12 sm:h-14 font-black uppercase italic text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] gap-3 rounded-xl shadow-xl transition-all duration-500",
+                                    isManualMode ? "bg-primary text-black hover:bg-primary/90" : "bg-primary text-black hover:bg-primary/90"
+                                )}
                             >
-                                {isDrawing ? "CALIBRATING DRAW..." : "START SEEDED DRAW"}
+                                {isDrawing ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        {isManualMode ? "CALIBRATING ASSIGNMENT..." : "CALIBRATING DRAW..."}
+                                    </>
+                                ) : (
+                                    <>
+                                        {isManualMode ? <CheckCircle2 className="w-4 h-4" /> : <Shuffle className="w-4 h-4" />}
+                                        {isManualMode ? "ASSIGN MANUALLY" : "START RANDOM DRAW"}
+                                    </>
+                                )}
                             </Button>
                         </div>
 
                         {Object.keys(assignments).length > 0 && (
                             <div className="flex flex-col gap-2">
                                 <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] text-center italic">Verified Log: {Object.keys(assignments).length} Assignments Finalized</p>
-                                <Button onClick={handleFinalSubmit} variant="outline" className="w-full h-10 sm:h-12 font-black uppercase italic tracking-widest border-primary/40 text-primary hover:bg-primary hover:text-black text-[10px] sm:text-xs">
+                                <Button onClick={handleFinalSubmit} variant="outline" className="w-full h-10 sm:h-12 font-black uppercase italic tracking-widest border-primary/40 text-primary hover:bg-primary hover:text-black text-[10px] sm:text-xs rounded-xl transition-all">
                                     KUNCI & SIMPAN HASIL DRAFT
                                 </Button>
                             </div>
@@ -299,3 +331,6 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
     </Dialog>
   );
 }
+
+// Fixed missing Shuffle import in the code above, adding it here for reference
+import { Shuffle } from 'lucide-react';
