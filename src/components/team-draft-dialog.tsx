@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import { Shield, User, Zap, Star, Trophy, Users, CheckCircle2, AlertCircle, RefreshCw, Sparkles, Binary } from 'lucide-react';
+import { Shield, User, Zap, Star, Trophy, Users, CheckCircle2, AlertCircle, RefreshCw, Sparkles, Binary, Loader2 } from 'lucide-react';
 import type { Team, LeagueEntry, Season, WithId } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
