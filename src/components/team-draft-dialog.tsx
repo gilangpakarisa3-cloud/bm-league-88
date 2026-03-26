@@ -127,7 +127,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
           {/* Main Grid Content Area */}
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
             {/* Left: Teams Grid (Scrollable) */}
-            <div className="lg:col-span-7 flex flex-col overflow-hidden border-r border-white/5 bg-black/20">
+            <div className="lg:col-span-6 flex flex-col overflow-hidden border-r border-white/5 bg-black/20">
                 <div className="p-4 sm:p-6 pb-2 sm:pb-4 flex items-center justify-between shrink-0">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/60 italic">Available Strategic Units</h3>
                     <Badge variant="outline" className="h-6 font-black border-white/10 text-white/40">{availableTeams.length} Units Rem.</Badge>
@@ -164,7 +164,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
             </div>
 
             {/* Right: Roster & Draft Control (Scrollable + Sticky Footer) */}
-            <div className="lg:col-span-5 flex flex-col bg-black/40 overflow-hidden">
+            <div className="lg:col-span-6 flex flex-col bg-black/40 overflow-hidden">
                 <div className="p-4 sm:p-6 border-b border-white/10 shrink-0">
                     <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 text-primary" />
@@ -217,10 +217,10 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-8 w-8 border border-green-500/30">
                                                     <AvatarImage src={player.team?.logoUrl} />
-                                                    <AvatarFallback className="bg-black/40 text-[6px] font-black uppercase leading-tight text-center px-0.5">logo belum berhasil terender</AvatarFallback>
+                                                    <AvatarFallback className="bg-black/40 text-[8px] font-black uppercase leading-tight text-center px-0.5">logo belum berhasil terender</AvatarFallback>
                                                 </Avatar>
                                                 <div className="text-left">
-                                                    <p className="text-[11px] sm:text-xs font-black uppercase italic text-white/90">{player.playerName}</p>
+                                                    <p className={cn("text-[11px] sm:text-xs font-black uppercase italic text-white/90")}>{player.playerName}</p>
                                                     <p className="text-[8px] font-black text-green-400 uppercase tracking-widest italic">{player.team?.name}</p>
                                                 </div>
                                             </div>
@@ -240,84 +240,77 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     </ScrollArea>
                 </div>
 
-                {/* Outcome HUD Display */}
+                {/* Outcome HUD Display - Mini Version */}
                 {lastDrawResult && !isDrawing && (
-                    <div className="px-4 sm:px-8 py-2 animate-in slide-in-from-bottom-2 duration-500">
+                    <div className="px-4 sm:px-6 py-1 animate-in slide-in-from-bottom-2 duration-500 shrink-0">
                         <div className={cn(
-                            "border-2 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.3)]",
-                            lastDrawResult.isManual ? "bg-primary/10 border-primary/30" : "bg-yellow-500/10 border-yellow-500/30"
+                            "border border-white/10 rounded-xl p-2 flex items-center gap-3 relative overflow-hidden shadow-lg",
+                            lastDrawResult.isManual ? "bg-primary/10" : "bg-yellow-500/10"
                         )}>
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 -mr-8 -mt-8 rounded-full blur-xl" />
                             <div className={cn(
-                                "p-2 rounded-lg",
+                                "p-1.5 rounded-lg shrink-0",
                                 lastDrawResult.isManual ? "bg-primary text-black" : "bg-yellow-500 text-black"
                             )}>
-                                {lastDrawResult.isManual ? <CheckCircle2 className="w-5 h-5" /> : <Trophy className="w-5 h-5" />}
+                                {lastDrawResult.isManual ? <CheckCircle2 className="w-4 h-4" /> : <Trophy className="w-4 h-4" />}
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                                 <p className={cn(
-                                    "text-[8px] font-black uppercase tracking-widest",
+                                    "text-[7px] font-black uppercase tracking-widest",
                                     lastDrawResult.isManual ? "text-primary" : "text-yellow-500"
                                 )}>{lastDrawResult.isManual ? "Manual Assignment" : "Last Outcome"}</p>
-                                <p className="text-sm font-black text-white uppercase italic pr-4 leading-tight">
+                                <p className="text-[10px] font-black text-white uppercase italic truncate pr-2">
                                     <span className={lastDrawResult.isManual ? "text-primary" : "text-yellow-500"}>{lastDrawResult.winnerName}</span> {lastDrawResult.isManual ? "ASSIGNED TO" : "HAS SECURED"} <span className="text-white">{lastDrawResult.teamName}</span>
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2">
-                                {lastDrawResult.isManual ? <Zap className="w-4 h-4 text-primary" /> : <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />}
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8 text-white/20 hover:text-white hover:bg-white/10"
-                                    onClick={() => setLastDrawResult(null)}
-                                >
-                                    <X className="w-4 h-4" />
-                                </Button>
-                            </div>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-6 w-6 text-white/20 hover:text-white"
+                                onClick={() => setLastDrawResult(null)}
+                            >
+                                <X className="w-3 h-3" />
+                            </Button>
                         </div>
                     </div>
                 )}
 
-                {/* Sticky Draft Control Section */}
-                <div className="p-4 sm:p-8 shrink-0 bg-black/40 border-t border-white/5">
-                    <div className="space-y-4 sm:space-y-6">
+                {/* Sticky Draft Control Section - Miniaturized */}
+                <div className="p-3 sm:p-4 shrink-0 bg-black/40 border-t border-white/5">
+                    <div className="space-y-3">
                         <div className={cn(
-                            "border-2 rounded-2xl p-4 sm:p-5 space-y-3 sm:space-y-4 relative overflow-hidden transition-all duration-500",
-                            isManualMode ? "bg-primary/5 border-primary/20" : "bg-primary/5 border-primary/20"
+                            "border border-primary/20 rounded-xl p-3 space-y-2 relative overflow-hidden transition-all duration-500 bg-primary/5"
                         )}>
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-2xl" />
                             <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/60 italic">Draft Processor</span>
-                                {isDrawing && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
+                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary/60 italic">Processor</span>
+                                {isDrawing && <Loader2 className="w-3 h-3 text-primary animate-spin" />}
                             </div>
-                            <div className="grid grid-cols-1 gap-2">
-                                <div className="flex items-center justify-between px-3 py-2 bg-black/40 rounded-lg border border-white/5">
-                                    <span className="text-[8px] font-black text-white/20 uppercase">Selected Unit</span>
-                                    <span className="text-[9px] sm:text-[10px] font-black text-primary uppercase italic truncate max-w-[140px]" suppressHydrationWarning>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="flex flex-col px-2 py-1 bg-black/40 rounded-lg border border-white/5 overflow-hidden">
+                                    <span className="text-[6px] font-black text-white/20 uppercase">Unit</span>
+                                    <span className="text-[8px] font-black text-primary uppercase italic truncate" suppressHydrationWarning>
                                         {selectedTeamId ? allTeams.find(t => t.id === selectedTeamId)?.name : "---"}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between px-3 py-2 bg-black/40 rounded-lg border border-white/5">
-                                    <span className="text-[8px] font-black text-white/20 uppercase">Conflict Load</span>
-                                    <span className="text-[9px] sm:text-[10px] font-black text-white uppercase italic">{selectedPlayerIds.length} Athletes</span>
+                                <div className="flex flex-col px-2 py-1 bg-black/40 rounded-lg border border-white/5 overflow-hidden">
+                                    <span className="text-[6px] font-black text-white/20 uppercase">Load</span>
+                                    <span className="text-[8px] font-black text-white uppercase italic">{selectedPlayerIds.length} Athletes</span>
                                 </div>
                             </div>
                             <Button 
                                 onClick={handleRunDraw} 
                                 disabled={!selectedTeamId || selectedPlayerIds.length === 0 || isDrawing}
                                 className={cn(
-                                    "w-full h-12 sm:h-14 font-black uppercase italic text-xs sm:text-sm tracking-[0.1em] sm:tracking-[0.2em] gap-3 rounded-xl shadow-xl transition-all duration-500",
-                                    isManualMode ? "bg-primary text-black hover:bg-primary/90" : "bg-primary text-black hover:bg-primary/90"
+                                    "w-full h-10 font-black uppercase italic text-[10px] tracking-widest gap-2 rounded-lg shadow-xl transition-all duration-500 bg-primary text-black hover:bg-primary/90"
                                 )}
                             >
                                 {isDrawing ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        {isManualMode ? "CALIBRATING ASSIGNMENT..." : "CALIBRATING DRAW..."}
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                        {isManualMode ? "VERIFYING..." : "CALIBRATING..."}
                                     </>
                                 ) : (
                                     <>
-                                        {isManualMode ? <CheckCircle2 className="w-4 h-4" /> : <Shuffle className="w-4 h-4" />}
+                                        {isManualMode ? <CheckCircle2 className="w-3 h-3" /> : <Shuffle className="w-3 h-3" />}
                                         {isManualMode ? "ASSIGN MANUALLY" : "START RANDOM DRAW"}
                                     </>
                                 )}
@@ -325,9 +318,9 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                         </div>
 
                         {Object.keys(assignments).length > 0 && (
-                            <div className="flex flex-col gap-2">
-                                <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] text-center italic">Verified Log: {Object.keys(assignments).length} Assignments Finalized</p>
-                                <Button onClick={handleFinalSubmit} variant="outline" className="w-full h-10 sm:h-12 font-black uppercase italic tracking-widest border-primary/40 text-primary hover:bg-primary hover:text-black text-[10px] sm:text-xs rounded-xl transition-all">
+                            <div className="flex flex-col gap-1.5">
+                                <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em] text-center italic">Verified Log: {Object.keys(assignments).length} Finalized</p>
+                                <Button onClick={handleFinalSubmit} variant="outline" className="w-full h-8 font-black uppercase italic tracking-widest border-primary/40 text-primary hover:bg-primary hover:text-black text-[9px] rounded-lg transition-all">
                                     KUNCI & SIMPAN HASIL DRAFT
                                 </Button>
                             </div>
