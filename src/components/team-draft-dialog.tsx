@@ -122,7 +122,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     </div>
                 </div>
                 <div className="space-y-1">
-                    <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic pr-4 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">Team Draft System</DialogTitle>
+                    <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic pr-4 drop-shadow-[0_0_20px_255,255,255,0.1)]">Team Draft System</DialogTitle>
                     <div className="flex items-center gap-3">
                         <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[8px] font-black uppercase tracking-[0.2em] h-5">Protocol: Multi-Tier Fairness Engine v2.0</Badge>
                         <span className="text-[8px] font-bold text-white/20 uppercase tracking-[0.4em] hidden sm:block">Real-time Allocation Matrix</span>
@@ -198,10 +198,10 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                         </TabsList>
                     </div>
                     
-                    <div className="flex-1 flex flex-col overflow-hidden relative">
-                        <TabsContent value="unassigned" className="flex-1 flex flex-col overflow-hidden m-0 outline-none">
-                            <ScrollArea className="flex-1 px-6 py-6">
-                                <div className="space-y-3">
+                    <div className="flex-1 relative overflow-hidden">
+                        <TabsContent value="unassigned" className="h-full m-0 outline-none data-[state=active]:flex flex-col">
+                            <ScrollArea className="flex-1">
+                                <div className="px-6 py-6 space-y-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
                                         <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 italic">Available Roster</span>
@@ -234,9 +234,9 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                             </ScrollArea>
                         </TabsContent>
 
-                        <TabsContent value="assigned" className="flex-1 flex flex-col overflow-hidden m-0 outline-none">
-                            <ScrollArea className="flex-1 px-6 py-6">
-                                <div className="space-y-3">
+                        <TabsContent value="assigned" className="h-full m-0 outline-none data-[state=active]:flex flex-col">
+                            <ScrollArea className="flex-1">
+                                <div className="px-6 py-6 space-y-3">
                                     <div className="flex items-center gap-2 mb-1 px-1">
                                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
                                         <span className="text-[8px] font-black uppercase tracking-[0.2em] text-green-400/60 italic">Verified Allocation</span>
@@ -277,51 +277,48 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                 </div>
                             </ScrollArea>
                         </TabsContent>
-
-                        {/* Outcome Display Overlay */}
-                        {lastDrawResult && !isDrawing && (
-                            <div className="px-6 py-2 animate-in slide-in-from-bottom-4 duration-700 shrink-0 absolute bottom-[10px] left-0 right-0 z-[60]">
-                                <div className={cn(
-                                    "border-2 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-2xl backdrop-blur-md",
-                                    lastDrawResult.isManual ? "bg-primary/20 border-primary/50" : "bg-yellow-500/20 border-yellow-500/50"
-                                )}>
-                                    <div className="absolute top-0 right-0 p-2 opacity-10">
-                                        <Zap className="w-12 h-12" />
-                                    </div>
-                                    <div className={cn(
-                                        "p-3 rounded-xl shrink-0 shadow-lg",
-                                        lastDrawResult.isManual ? "bg-primary text-black" : "bg-yellow-500 text-black"
-                                    )}>
-                                        {lastDrawResult.isManual ? <CheckCircle2 className="w-6 h-6" /> : <Trophy className="w-6 h-6" />}
-                                    </div>
-                                    <div className="flex-1 min-w-0 relative z-10">
-                                        <p className={cn(
-                                            "text-[8px] font-black uppercase tracking-[0.3em] mb-1",
-                                            lastDrawResult.isManual ? "text-primary" : "text-yellow-500"
-                                        )}>{lastDrawResult.isManual ? "MANUAL ALLOCATION VERIFIED" : "RANDOM DRAW OUTCOME"}</p>
-                                        <p className="text-sm sm:text-base font-black text-white uppercase italic truncate pr-4">
-                                            <span className={lastDrawResult.isManual ? "text-primary" : "text-yellow-500"}>{lastDrawResult.winnerName}</span> SECURED <span className="text-white">{lastDrawResult.teamName}</span>
-                                        </p>
-                                    </div>
-                                    
-                                    <Button 
-                                        type="button"
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-10 w-10 text-white/40 hover:text-white hover:bg-white/10 rounded-full shrink-0 relative z-[70] shadow-inner"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setLastDrawResult(null);
-                                        }}
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </Tabs>
+
+                {/* Outcome HUD - Nested inside flow to avoid roster overlap */}
+                {lastDrawResult && !isDrawing && (
+                    <div className="px-6 py-2 animate-in slide-in-from-bottom-2 duration-500 shrink-0 bg-black/40 border-t border-white/10 relative z-20">
+                        <div className={cn(
+                            "border-2 rounded-2xl p-3 flex items-center gap-4 relative overflow-hidden shadow-2xl backdrop-blur-md",
+                            lastDrawResult.isManual ? "bg-primary/20 border-primary/50" : "bg-yellow-500/20 border-yellow-500/50"
+                        )}>
+                            <div className={cn(
+                                "p-2 rounded-lg shrink-0 shadow-lg",
+                                lastDrawResult.isManual ? "bg-primary text-black" : "bg-yellow-500 text-black"
+                            )}>
+                                {lastDrawResult.isManual ? <CheckCircle2 className="w-5 h-5" /> : <Trophy className="w-5 h-5" />}
+                            </div>
+                            <div className="flex-1 min-w-0 relative z-10">
+                                <p className={cn(
+                                    "text-[7px] font-black uppercase tracking-[0.3em] mb-0.5",
+                                    lastDrawResult.isManual ? "text-primary" : "text-yellow-500"
+                                )}>{lastDrawResult.isManual ? "MANUAL ALLOCATION VERIFIED" : "RANDOM DRAW OUTCOME"}</p>
+                                <p className="text-xs sm:text-sm font-black text-white uppercase italic truncate pr-4">
+                                    <span className={lastDrawResult.isManual ? "text-primary" : "text-yellow-500"}>{lastDrawResult.winnerName}</span> SECURED <span className="text-white">{lastDrawResult.teamName}</span>
+                                </p>
+                            </div>
+                            
+                            <Button 
+                                type="button"
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-full shrink-0 relative z-30"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setLastDrawResult(null);
+                                }}
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Draft Control Footer - Compact Style */}
                 <div className="p-4 sm:p-6 shrink-0 bg-black/60 border-t border-white/10 backdrop-blur-xl relative z-10">
