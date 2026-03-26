@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import { Shield, Users, CheckCircle2, Binary, Loader2, Zap, Trash2, Trophy, Sparkles } from 'lucide-react';
+import { Shield, Users, CheckCircle2, Binary, Loader2, Zap, Trash2, Trophy, Sparkles, X, Shuffle } from 'lucide-react';
 import type { Team, LeagueEntry, Season, WithId } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -263,7 +263,17 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                     <span className={lastDrawResult.isManual ? "text-primary" : "text-yellow-500"}>{lastDrawResult.winnerName}</span> {lastDrawResult.isManual ? "ASSIGNED TO" : "HAS SECURED"} <span className="text-white">{lastDrawResult.teamName}</span>
                                 </p>
                             </div>
-                            {lastDrawResult.isManual ? <Zap className="w-4 h-4 text-primary" /> : <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />}
+                            <div className="flex items-center gap-2">
+                                {lastDrawResult.isManual ? <Zap className="w-4 h-4 text-primary" /> : <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />}
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-white/20 hover:text-white hover:bg-white/10"
+                                    onClick={() => setLastDrawResult(null)}
+                                >
+                                    <X className="w-4 h-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -331,6 +341,3 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
     </Dialog>
   );
 }
-
-// Fixed missing Shuffle import in the code above, adding it here for reference
-import { Shuffle } from 'lucide-react';
