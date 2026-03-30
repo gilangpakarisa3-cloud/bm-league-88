@@ -85,7 +85,7 @@ const PlayoffQualificationLegend = () => (
         <div className="w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-background relative z-10" />
       </div>
       <div className="flex flex-col">
-        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Masuk liga PopMie</span>
+        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Nangis di Pojokkan</span>
         <span className="text-[8px] font-bold text-red-400/80 uppercase tracking-widest mt-1">Peringkat 7+ (Merah)</span>
       </div>
     </div>
