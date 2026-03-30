@@ -114,6 +114,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
+  // LOGIC: Bo3 is only for Co-Op OR Hybrid/Playoff rounds (not 'Group')
   const isBestOfThree = seasonType === 'Co-Op' || (match.round && match.round !== 'Group');
 
   const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
@@ -334,21 +335,23 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             </div>
         </div>
 
-        <div className={cn("bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-xl relative overflow-hidden", isSaving && "opacity-20 pointer-events-none")}>
-          <div className="mb-4 flex items-center justify-between">
-             <div className="flex items-center gap-2">
-                 <Zap className="w-4 h-4 text-primary fill-primary" />
-                 <span className="font-black text-[10px] uppercase tracking-[0.2em] text-white/60">Tactical Game Log</span>
-             </div>
-             <Badge className="bg-primary text-black font-black px-3 h-5 text-[9px] tracking-tighter uppercase italic">Best of 3</Badge>
+        {isBestOfThree && (
+          <div className={cn("bg-black/40 p-5 rounded-2xl border-2 border-primary/20 shadow-xl relative overflow-hidden", isSaving && "opacity-20 pointer-events-none")}>
+            <div className="mb-4 flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                   <Zap className="w-4 h-4 text-primary fill-primary" />
+                   <span className="font-black text-[10px] uppercase tracking-[0.2em] text-white/60">Tactical Game Log</span>
+               </div>
+               <Badge className="bg-primary text-black font-black px-3 h-5 text-[9px] tracking-tighter uppercase italic">Best of 3</Badge>
+            </div>
+            <CoopScoreChecklist
+               player1Name={player1Info.name}
+               player2Name={player2Info.name}
+               winners={gameWinners}
+               onWinnerChange={handleWinnerChange}
+            />
           </div>
-          <CoopScoreChecklist
-             player1Name={player1Info.name}
-             player2Name={player2Info.name}
-             winners={gameWinners}
-             onWinnerChange={handleWinnerChange}
-          />
-        </div>
+        )}
 
         {(hasErrors || isBo3Incomplete) && (
             <div className="bg-red-500/10 border-2 border-red-500/30 p-4 rounded-xl flex items-start gap-3">
