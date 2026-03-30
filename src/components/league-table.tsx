@@ -11,7 +11,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield } from "lucide-react";
+import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -52,6 +52,45 @@ interface SingleTableProps {
   totalPlayers: number;
   matches: WithId<Match>[];
 }
+
+const PlayoffQualificationLegend = () => (
+  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-12 p-5 bg-black/40 border-b-2 border-white/5 backdrop-blur-md relative overflow-hidden group/legend shrink-0">
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
+    
+    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
+      <div className="relative">
+        <div className="absolute inset-0 bg-green-500/40 blur-md rounded-full animate-pulse" />
+        <div className="w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-background relative z-10" />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Upper Bracket</span>
+        <span className="text-[8px] font-bold text-green-400/80 uppercase tracking-widest mt-1">Peringkat 1 - 4 (Hijau)</span>
+      </div>
+    </div>
+
+    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-700">
+      <div className="relative">
+        <div className="absolute inset-0 bg-amber-500/40 blur-md rounded-full animate-pulse" />
+        <div className="w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-background relative z-10" />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Lower Bracket</span>
+        <span className="text-[8px] font-bold text-amber-400/80 uppercase tracking-widest mt-1">Peringkat 5 - 6 (Emas)</span>
+      </div>
+    </div>
+
+    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-1000">
+      <div className="relative">
+        <div className="absolute inset-0 bg-red-500/40 blur-md rounded-full animate-pulse" />
+        <div className="w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-background relative z-10" />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Gugur</span>
+        <span className="text-[8px] font-bold text-red-400/80 uppercase tracking-widest mt-1">Peringkat 7+ (Merah)</span>
+      </div>
+    </div>
+  </div>
+);
 
 const SingleTable = memo(({ 
     tableData, 
@@ -340,6 +379,8 @@ export function LeagueTable({
 
   return (
     <div className="w-full overflow-hidden rounded-xl sm:rounded-2xl border-2 border-white/5 bg-card/60 backdrop-blur-xl shadow-2xl">
+        {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend />}
+        
         {isHybrid ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
