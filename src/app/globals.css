@@ -151,22 +151,23 @@
 
   /* Ultra Sport Scrollbar */
   .scrollbar-ultra-sport::-webkit-scrollbar {
-    height: 4px;
-    width: 4px;
+    height: 5px;
+    width: 5px;
   }
   .scrollbar-ultra-sport::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.02);
     border-radius: 10px;
-    margin: 0 24px;
+    margin: 0 40px;
   }
   .scrollbar-ultra-sport::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.3);
+    background: #facc15; /* Vibrant Yellow (Yellow-400) */
     border-radius: 20px;
-    border: 1px solid hsl(var(--primary) / 0.1);
+    border: 1px solid rgba(250, 204, 21, 0.2);
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
     transition: all 0.3s ease;
   }
   .scrollbar-ultra-sport::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary));
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.6);
+    background: #fde047; /* Brighter Yellow */
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
   }
 }
