@@ -134,7 +134,7 @@ const SingleTable = memo(({
     }, [matches, tableData, isCoop]);
 
     return (
-         <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20">
+         <div className="w-full overflow-x-auto scrollbar-ultra-sport">
         <Table className="min-w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14">

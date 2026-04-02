@@ -148,4 +148,25 @@
   .animate-pulse-soft {
     animation: pulse-soft 3s ease-in-out infinite;
   }
+
+  /* Ultra Sport Scrollbar */
+  .scrollbar-ultra-sport::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+  .scrollbar-ultra-sport::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    margin: 0 24px;
+  }
+  .scrollbar-ultra-sport::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: 20px;
+    border: 1px solid hsl(var(--primary) / 0.1);
+    transition: all 0.3s ease;
+  }
+  .scrollbar-ultra-sport::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary));
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.6);
+  }
 }
