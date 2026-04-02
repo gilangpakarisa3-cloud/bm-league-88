@@ -53,16 +53,31 @@ const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: an
   </div>
 );
 
-const MatchCard = ({ bid, label, bracketData, projections, handleCardClick }: { bid: string, label: string, bracketData: Record<string, any>, projections: Record<string, any> | null, handleCardClick: (matchData: any) => void }) => {
+const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, teamsById }: { bid: string, label: string, bracketData: Record<string, any>, projections: Record<string, any> | null, handleCardClick: (matchData: any) => void, teamsById: Record<string, WithId<Team>> }) => {
   const m = bracketData[bid]; const p = projections?.[bid];
   
   if (!m && p) return (
-      <div className="flex flex-col gap-1 opacity-70 items-center">
-          <div className="flex items-center gap-2"><span className="text-[8px] font-black tracking-widest text-primary/60 uppercase">{label}</span><Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/30 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge></div>
-          <Card className="w-44 sm:w-48 border-2 border-white/10 border-dashed bg-white/[0.03] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
+      <div className="flex flex-col gap-1 opacity-90 items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-[8px] font-black tracking-widest text-primary/90 uppercase">{label}</span>
+            <Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/50 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge>
+          </div>
+          <Card className="w-44 sm:w-48 border-2 border-white/20 border-dashed bg-white/[0.05] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
               <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-20">
-                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-4 text-white/40" suppressHydrationWarning>{p.p1.playerName || p.p1.name || 'TBD'}</span></div>
-                  <div className="flex items-center px-3 h-10"><Avatar className="h-6 w-6 border border-white/10 opacity-40 mr-2"><AvatarFallback><User className="w-2.5 h-2.5"/></AvatarFallback></Avatar><span className="text-[10px] font-black truncate uppercase italic pr-4 text-white/40" suppressHydrationWarning>{p.p2.playerName || p.p2.name || 'TBD'}</span></div>
+                  {[p.p1, p.p2].map((player, idx) => {
+                      const teamId = player.teamId || '';
+                      const team = teamId ? teamsById[teamId] : null;
+                      const logoUrl = resolveLogo(team?.logoUrl, teamId || player.playerId, player.playerName || player.name);
+                      return (
+                        <div key={idx} className="flex items-center px-3 h-10">
+                            <Avatar className="h-6 w-6 border border-white/20 opacity-90 mr-2">
+                                <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                <AvatarFallback className="bg-black/40 font-black text-[8px]"><User className="w-2.5 h-2.5"/></AvatarFallback>
+                            </Avatar>
+                            <span className="text-[10px] font-black truncate uppercase italic pr-4 text-white/80" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
+                        </div>
+                      );
+                  })}
               </CardContent>
           </Card>
       </div>
@@ -340,21 +355,21 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic pr-4">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
                             <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-4">
                                 <div className="flex flex-col gap-8 relative">
-                                  <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
                                   <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
-                                  <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m10" label="UB SEMI 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m10" label="UB SEMI 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
                                 <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-primary"/></div>
-                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} /></div>
+                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} /></div>
                             </div>
                         </div>
                     </div>
@@ -363,31 +378,31 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic pr-4">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
                             <div className="flex items-center gap-4 pl-2 sm:pl-4">
                                 <div className="flex flex-col gap-8">
-                                  <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                   <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
-                                  <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
                                   <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                   <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                 </div>
                                 <div className="flex flex-col gap-28 py-12">
-                                  <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
                                 <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
                                 <div className="flex flex-col justify-center gap-8">
-                                  <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
-                                  <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                                  <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
                             </div>
                         </div>
@@ -452,7 +467,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
                     <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
                         <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
-                        <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} />
+                        <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                         <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-full flex justify-between px-2 pointer-events-none opacity-40">
                             <div className="flex flex-col items-start"><span className="text-[6px] font-black text-white/40 uppercase">Match Stakes</span><span className="text-[8px] font-bold text-primary italic uppercase">Absolute Glory</span></div>
                             <div className="flex flex-col items-end"><span className="text-[6px] font-black text-white/40 uppercase">System Integrity</span><span className="text-[8px] font-bold text-primary italic uppercase">100.0%</span></div>
