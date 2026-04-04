@@ -193,7 +193,7 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                             {record.funStats?.mostWins && (
                                 <StatItem 
                                     icon={Award} 
-                                    label="WIN KING" 
+                                    label="RAJA KEMENANGAN" 
                                     value={record.funStats.mostWins.playerName} 
                                     variant="primary"
                                     tooltip={t('fun_stats_most_wins_tooltip', { value: record.funStats.mostWins.value })} 
@@ -202,7 +202,7 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                             {record.funStats?.bestAttacker && (
                                 <StatItem 
                                     icon={Target} 
-                                    label="APEX STRIKER" 
+                                    label="PENYERANG TERBAIK" 
                                     value={record.funStats.bestAttacker.playerName} 
                                     valueClassName="text-green-400" 
                                     tooltip={t('fun_stats_best_attacker_tooltip', { value: record.funStats.bestAttacker.value })} 
@@ -211,7 +211,7 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                             {record.funStats?.worstDefender && (
                                 <StatItem 
                                     icon={ShieldAlert} 
-                                    label="CRITICAL DEF" 
+                                    label="PERTAHANAN TERBURUK" 
                                     value={record.funStats.worstDefender.playerName} 
                                     variant="destructive"
                                     valueClassName="text-red-400" 
