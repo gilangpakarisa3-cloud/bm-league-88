@@ -490,8 +490,10 @@ export default function FixturesPage() {
   const playersCol = useMemoFirebase(() => (firestore ? collection(firestore, 'players') : null), [firestore]);
   const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCol);
   
-  const teamsCol = useMemoFirebase(() => (firestore ? collection(firestore, 'teams') : null), [firestore]);
-  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCol);
+  const teamsCol = useMemoFirebase(() => (firestore ? collection(firestore, 'players') : null), [firestore]); // Reusing master players collection for masters data
+  const { data: allTeamsMaster } = useCollection<Player>(teamsCol);
+  const allTeamsCol = useMemoFirebase(() => (firestore ? collection(firestore, 'teams') : null), [firestore]);
+  const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(allTeamsCol);
   
   const matchesCol = useMemoFirebase(() => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null, [firestore, activeSeasonId]);
   const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCol);
@@ -819,7 +821,10 @@ export default function FixturesPage() {
                   <div className="space-y-2 relative z-10 pt-2">
                     <div className="flex items-center gap-3">
                         <p className="text-lg sm:text-3xl font-black text-white tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
-                        <Badge className="bg-primary text-black border-none font-black tracking-widest text-[9px] sm:text-[10px] h-6 px-3 uppercase italic shadow-[0_0_15px_rgba(204,253,1,0.3)] flex items-center justify-center">{activeSeason.status}</Badge>
+                        <Badge className="relative overflow-hidden bg-primary text-black border-none font-black tracking-widest text-[9px] sm:text-[10px] h-6 px-4 uppercase italic shadow-[0_0_20px_rgba(204,253,1,0.4)] flex items-center justify-center rounded-none -skew-x-[12deg] border-r-4 border-black/20">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+                            <span className="relative z-10 skew-x-[12deg]">{activeSeason.status}</span>
+                        </Badge>
                     </div>
                   </div>
                 )}
@@ -888,7 +893,7 @@ export default function FixturesPage() {
                         )} />
                     </div>
 
-                    <div className="skew-x-[12deg] flex items-center relative z-10">
+                    <div className="skew-x-[12deg] flex items-center relative z-10 text-black">
                         {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                         {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                     </div>
@@ -968,7 +973,7 @@ export default function FixturesPage() {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20">{t('unlock')}</Button>
+                    <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20 text-black">{t('unlock')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
