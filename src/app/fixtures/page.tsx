@@ -290,18 +290,21 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         
         const sortRounds = (entries: [string, any[]][]) => {
             return entries.sort(([rdA], [rdB]) => {
-                return (ROUND_ORDER[rdA] || 99) - (ROUND_ORDER[rdB] || 99);
+                // Descending order for rounds (Latest first)
+                return (ROUND_ORDER[rdB] || 99) - (ROUND_ORDER[rdA] || 99);
             });
         };
 
         const upcomingSorted: Record<string, any[]> = {};
         sortRounds(Object.entries(grouped.upcoming)).forEach(([rd, ms]) => {
-            upcomingSorted[rd] = ms.sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
+            // Sort by matchDate descending (Newest first)
+            upcomingSorted[rd] = ms.sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
         });
 
         const completedSorted: Record<string, any[]> = {};
         sortRounds(Object.entries(grouped.completed)).forEach(([rd, ms]) => {
-            completedSorted[rd] = ms.sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
+            // Sort by matchDate descending (Newest first)
+            completedSorted[rd] = ms.sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
         });
 
         return { 
