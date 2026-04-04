@@ -54,50 +54,50 @@ interface SingleTableProps {
 }
 
 const PlayoffQualificationLegend = () => (
-  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 p-4 sm:p-6 bg-black/60 border-b-4 border-yellow-400/30 backdrop-blur-3xl relative overflow-hidden group/legend shrink-0">
+  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 p-6 sm:p-10 bg-black/60 border-b-4 border-yellow-400/30 backdrop-blur-3xl relative overflow-hidden group/legend shrink-0">
     {/* HUD Background Pattern with Yellow Tint */}
     <div className="absolute inset-0 bg-[linear-gradient(rgba(250,204,21,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(250,204,21,0.02)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
     <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
     
     {/* HUD Decoration Corners */}
-    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-yellow-400/20 rounded-tl-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
-    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-yellow-400/20 rounded-br-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
+    <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-yellow-400/20 rounded-tl-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
+    <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-yellow-400/20 rounded-br-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
 
-    <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
-      <div className="flex items-center gap-3 group/item">
+    <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-20 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
+      <div className="flex items-center gap-4 group/item">
         <div className="relative">
-          <div className="absolute -inset-2 bg-green-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
-          <div className="w-4 h-4 bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.6)] border-r-2 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+          <div className="absolute -inset-3 bg-green-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+          <div className="w-6 h-6 bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
         </div>
         <div className="flex flex-col text-left">
-          <span className="text-[10px] sm:text-[11px] font-black uppercase italic text-green-400 leading-none">Upper Bracket</span>
-          <span className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Rank 1 - 4 (Hijau)</span>
+          <span className="text-sm sm:text-base font-black uppercase italic text-green-400 leading-none">Upper Bracket</span>
+          <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 1 - 4 (Hijau)</span>
         </div>
       </div>
 
-      <div className="w-px h-8 bg-white/5 hidden sm:block" />
+      <div className="w-px h-12 bg-white/5 hidden lg:block" />
 
-      <div className="flex items-center gap-3 group/item">
+      <div className="flex items-center gap-4 group/item">
         <div className="relative">
-          <div className="absolute -inset-3 bg-yellow-400/20 rounded-full blur-lg opacity-40 group-hover/item:opacity-100 transition-opacity animate-pulse" />
-          <div className="w-4 h-4 bg-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.8)] border-r-2 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+          <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-lg opacity-40 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+          <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
         </div>
         <div className="flex flex-col text-left">
-          <span className="text-[10px] sm:text-[11px] font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
-          <span className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Rank 5 - 6 (Emas)</span>
+          <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
+          <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 5 - 6 (Emas)</span>
         </div>
       </div>
 
-      <div className="w-px h-8 bg-white/5 hidden sm:block" />
+      <div className="w-px h-12 bg-white/5 hidden lg:block" />
 
-      <div className="flex items-center gap-3 group/item">
+      <div className="flex items-center gap-4 group/item">
         <div className="relative">
-          <div className="absolute -inset-2 bg-red-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
-          <div className="w-4 h-4 bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)] border-r-2 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+          <div className="absolute -inset-3 bg-red-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+          <div className="w-6 h-6 bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
         </div>
         <div className="flex flex-col text-left">
-          <span className="text-[10px] sm:text-[11px] font-black uppercase italic text-red-500 leading-none">Nangis di Pojok</span>
-          <span className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Rank 7+ (Merah)</span>
+          <span className="text-sm sm:text-base font-black uppercase italic text-red-500 leading-none">Nangis di Pojok</span>
+          <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 7+ (Merah)</span>
         </div>
       </div>
     </div>
