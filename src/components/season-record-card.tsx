@@ -24,7 +24,7 @@ const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip, variant =
         <Tooltip>
             <TooltipTrigger asChild>
                 <div className={cn(
-                    "flex flex-col gap-1.5 p-3.5 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/item",
+                    "flex flex-col items-center text-center gap-1.5 p-3.5 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/item",
                     variant === "primary" ? "bg-primary/5 border-primary/20 hover:border-primary/50" : 
                     variant === "destructive" ? "bg-red-500/5 border-red-500/20 hover:border-red-500/50" :
                     "bg-white/5 border-white/10 hover:border-white/20"
@@ -40,7 +40,7 @@ const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip, variant =
                         variant === "primary" ? "border-primary" : variant === "destructive" ? "border-red-500" : "border-white"
                     )} />
                     
-                    <div className="flex items-center gap-2 relative z-10 pl-1">
+                    <div className="flex flex-col items-center gap-1.5 relative z-10 w-full">
                         <div className={cn(
                             "p-1.5 rounded-lg transition-colors",
                             variant === "primary" ? "bg-primary/10 text-primary" : 
@@ -49,9 +49,9 @@ const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip, variant =
                         )}>
                             <Icon className="w-3.5 h-3.5" />
                         </div>
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
+                        <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
                     </div>
-                    <span className={cn("font-black text-sm tracking-tighter uppercase italic truncate mt-1 relative z-10 pr-2 pl-1", valueClassName)}>{value}</span>
+                    <span className={cn("font-black text-[13px] tracking-tighter uppercase italic truncate mt-1 relative z-10 w-full px-1", valueClassName)}>{value}</span>
                 </div>
             </TooltipTrigger>
             <TooltipContent className="bg-[#0A192F] border-primary/30 backdrop-blur-xl">
@@ -132,7 +132,7 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                         </div>
                     </div>
 
-                    <div className="space-y-2 mb-10">
+                    <div className="space-y-2 mb-10 text-center">
                         <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tighter uppercase italic pr-4 group-hover:text-yellow-400 transition-colors duration-500 drop-shadow-xl">
                             {record.winnerPlayerName}
                         </h3>
@@ -158,19 +158,15 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                         </div>
 
                         <div className="grid grid-cols-2 gap-6 relative">
-                            <div className="text-left space-y-1 pl-2">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-white italic tabular-nums leading-none">{record.winnerStats.win}</span>
-                                    <span className="text-xs font-black text-primary uppercase italic">Victories</span>
-                                </div>
-                                <Progress value={100} className="h-1 bg-white/5" color="bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />
+                            <div className="flex flex-col items-center text-center space-y-1.5">
+                                <span className="text-[7px] font-black text-primary uppercase italic tracking-widest">Victories</span>
+                                <span className="text-4xl font-black text-white italic tabular-nums leading-none">{record.winnerStats.win}</span>
+                                <Progress value={100} className="h-1 w-16 bg-white/5" color="bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />
                             </div>
-                            <div className="text-right space-y-1 pr-2">
-                                <div className="flex items-baseline justify-end gap-2">
-                                    <span className="text-xs font-black text-red-500 uppercase italic">Defeats</span>
-                                    <span className="text-4xl font-black text-white italic tabular-nums leading-none">{record.winnerStats.loss}</span>
-                                </div>
-                                <Progress value={Math.max(5, (record.winnerStats.loss / (record.winnerStats.win || 1)) * 100)} className="h-1 bg-white/5" color="bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]" />
+                            <div className="flex flex-col items-center text-center space-y-1.5">
+                                <span className="text-[7px] font-black text-red-500 uppercase italic tracking-widest">Defeats</span>
+                                <span className="text-4xl font-black text-white italic tabular-nums leading-none">{record.winnerStats.loss}</span>
+                                <Progress value={Math.max(5, (record.winnerStats.loss / (record.winnerStats.win || 1)) * 100)} className="h-1 w-16 bg-white/5" color="bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]" />
                             </div>
                         </div>
                     </div>
@@ -233,8 +229,8 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                                     <ShieldCheck className="w-4 h-4 text-green-400" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase italic tracking-tighter text-white/90">Legacy Integrity Verified</span>
-                                    <span className="text-[7px] font-black text-green-400/60 uppercase tracking-[0.2em]">Authenticity Protocol v2.4</span>
+                                    <span className="text-[10px] font-black uppercase italic tracking-tighter text-white/90 text-left">Legacy Integrity Verified</span>
+                                    <span className="text-[7px] font-black text-green-400/60 uppercase tracking-[0.2em] text-left">Authenticity Protocol v2.4</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
