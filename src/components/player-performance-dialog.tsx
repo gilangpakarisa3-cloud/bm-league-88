@@ -272,15 +272,15 @@ export function PlayerPerformanceDialog({
                       )}
                     </div>
 
-                    <div className="space-y-1 pt-4">
-                      <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-white" suppressHydrationWarning>{player.playerName}</DialogTitle>
+                    <div className="space-y-1 pt-4 w-full flex flex-col items-center">
+                      <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-white text-center" suppressHydrationWarning>{player.playerName}</DialogTitle>
                       <DialogDescription asChild>
-                        <div className="flex items-center justify-center gap-2 font-black text-white/40 uppercase tracking-widest text-[10px]">
+                        <div className="flex items-center justify-center gap-2 font-black text-white/40 uppercase tracking-widest text-[10px] text-center">
                             <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={playerTeamDetails?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
-                            <span suppressHydrationWarning>{player.teamName || 'Independent'}</span>
+                            <span className="text-center" suppressHydrationWarning>{player.teamName || 'Independent'}</span>
                         </div>
                       </DialogDescription>
-                      <div className="pt-2">
+                      <div className="pt-2 flex justify-center">
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
@@ -291,7 +291,7 @@ export function PlayerPerformanceDialog({
                                 </Badge>
                             </PopoverTrigger>
                             <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl rounded-xl">
-                                <p className="text-[10px] font-bold leading-relaxed text-white">{playStyleDescription}</p>
+                                <p className="text-[10px] font-bold leading-relaxed text-white text-center">{playStyleDescription}</p>
                             </PopoverContent>
                         </Popover>
                       </div>
@@ -356,7 +356,7 @@ export function PlayerPerformanceDialog({
                                           "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")}>
                                           {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
                                       </div>
-                                      <div>
+                                      <div className="text-left">
                                           <div className="flex items-center gap-2">
                                               <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
                                               <Badge variant="outline" className={cn("text-[7px] h-4 px-1.5 font-black uppercase italic tracking-tighter", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/40")}>
@@ -386,7 +386,7 @@ export function PlayerPerformanceDialog({
                                   <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border-2 border-dashed border-white/5 opacity-60">
                                       <div className="flex items-center gap-3">
                                           <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><Activity className="w-4 h-4 text-white/20"/></div>
-                                          <div>
+                                          <div className="text-left">
                                               <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
                                               <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Terjadwal</p>
                                           </div>
