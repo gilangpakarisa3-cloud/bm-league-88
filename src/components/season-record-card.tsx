@@ -220,10 +220,10 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                             )}
                             <StatItem 
                                 icon={TrendingUp} 
-                                label="NET DELTA" 
+                                label="SELISIH GOL" 
                                 value={`${record.winnerStats.goalDifference > 0 ? '+' : ''}${record.winnerStats.goalDifference}`} 
                                 valueClassName={record.winnerStats.goalDifference > 0 ? "text-primary" : "text-red-400"}
-                                tooltip={`Net Goal difference: ${record.winnerStats.goalDifference}`}
+                                tooltip={`Total Selisih Gol: ${record.winnerStats.goalDifference}`}
                             />
                         </div>
 
