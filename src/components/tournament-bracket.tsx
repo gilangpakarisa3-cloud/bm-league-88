@@ -486,7 +486,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </div>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
-            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-xl rounded-[2rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
+            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-xl rounded-[2.5rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
                 <ScrollArea className="max-h-[90vh]">
                     <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
@@ -746,7 +746,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 {[analysis1, analysis2].map((an, i) => (
                                     <div key={i} className="flex-1 w-full space-y-4">
                                         {an && an.stats.played > 0 ? (
-                                            <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[1.5rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 h-full relative">
+                                            <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 h-full relative">
                                                 {/* Decorative HUD Details */}
                                                 <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
                                                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
