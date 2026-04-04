@@ -788,28 +788,161 @@ export default function LeaguePage() {
                     <div className="lg:col-span-8"><LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} /></div>
                     <div className="lg:col-span-4">
                         {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
-                            <Card className="group relative overflow-hidden transition-all duration-500 border-2 border-primary/20 hover:border-primary/50 bg-card/60 backdrop-blur-xl hover:shadow-[0_0_30px_rgba(204,253,1,0.15)] rounded-2xl">
-                                <span className="absolute bottom-0 left-0 text-4xl sm:text-6xl font-black text-white/[0.03] uppercase tracking-tighter italic pointer-events-none pl-4 pb-2">FUNDS</span>
-                                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl pointer-events-none group-hover:border-primary transition-colors duration-500" />
-                                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl pointer-events-none group-hover:border-primary transition-colors duration-500" />
-                                <CardHeader className="relative z-10 pb-2 sm:pb-4"><CardTitle className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-black uppercase tracking-widest italic pr-4"><div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary shadow-lg relative"><div className="absolute inset-0 rounded-lg bg-primary/20 animate-ping opacity-20" /><Wallet className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" /></div>Keuangan Musim</CardTitle></CardHeader>
-                                <CardContent className="space-y-4 sm:space-y-6 relative z-10">
-                                    <div className="bg-black/40 border-2 border-primary/10 p-4 sm:p-5 rounded-xl sm:rounded-2xl text-center space-y-1 relative overflow-hidden"><div className="absolute inset-0 bg-primary/[0.02] pointer-events-none" /><p className="text-[8px] sm:text-[9px] font-black text-muted-foreground tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1">Total Hadiah Terkumpul</p><p className="text-2xl sm:text-3xl font-black text-primary italic drop-shadow-[0_0_15px_rgba(204,253,1,0.4)] tabular-nums">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}</p>{sponsorshipPool > 0 && <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-2 pt-2 border-t border-white/5"><Badge variant="outline" className="text-[7px] sm:text-[8px] font-black border-primary/30 text-primary/80 uppercase">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge><Badge variant="outline" className="text-[7px] sm:text-[8px] font-black border-yellow-500/30 text-yellow-500/80 uppercase">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge></div>}<div className="mt-3 sm:mt-4 flex flex-col items-center gap-1"><div className="flex items-center gap-2 mb-1"><Activity className="w-3 h-3 text-primary animate-pulse" /><p className="text-[8px] sm:text-[10px] font-black text-white/60 uppercase tracking-widest"><span className="text-primary">{registeredPlayers?.filter(p => p.hasPaid).length}</span> / {registeredPlayers?.length} Atlet Lunas</p></div><Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1 w-20 sm:w-24 bg-white/5" /></div></div>
-                                    <div className="space-y-3"><h4 className="text-[8px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.3em] text-primary/60 flex items-center gap-2 uppercase italic"><Receipt className="w-3 h-3" /> Status Verifikasi Pembayaran</h4><ScrollArea className="h-[500px] sm:h-[800px] pr-2"><div className="space-y-2.5">
-                                        {(registeredPlayers || []).map(player => {
-                                            const type = activeSeason?.type || 'Single';
-                                            const teamId = type === 'Co-Op' ? player.player1TeamId : player.teamId;
-                                            const name = type === 'Co-Op' ? player.teamName : player.playerName;
-                                            const teamName = type === 'Co-Op' ? player.player1TeamName : player.teamName;
-                                            const team = teamsById[teamId];
-                                            const teamLogo = resolveLogo(team?.logoUrl, teamId, name);
+                            <Card className="group relative overflow-hidden transition-all duration-700 border-0 bg-transparent rounded-[2.5rem] p-[2px] hover:scale-[1.01] hover:shadow-[0_0_60px_rgba(250,204,21,0.2)]">
+                                {/* Inner Border Layout */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-transparent pointer-events-none" />
+                                
+                                <div className="relative h-full bg-card/90 backdrop-blur-3xl rounded-[calc(2.5rem-2px)] overflow-hidden flex flex-col">
+                                    
+                                    {/* SOLID SPORT HEADER (VIBRANT YELLOW) */}
+                                    <div className="relative py-5 px-8 flex items-center justify-between overflow-hidden shrink-0 bg-yellow-400 text-black">
+                                        {/* Slanted Decoration */}
+                                        <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                                        
+                                        <div className="flex items-center gap-3 relative z-10">
+                                            <div className="bg-black/20 p-2 rounded-lg border border-black/10 shadow-lg">
+                                                <Wallet className="h-5 w-5" />
+                                            </div>
+                                            <h3 className="text-sm sm:text-base font-black tracking-[0.1em] uppercase italic leading-none pr-2">Financial Hub</h3>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2 relative z-10 opacity-60">
+                                            <Scan className="w-3.5 h-3.5" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest hidden xs:block">Cash Flow Intel</span>
+                                        </div>
+                                    </div>
+
+                                    {/* GLASSY BODY */}
+                                    <div className="flex-1 p-6 sm:p-8 space-y-6 relative overflow-hidden">
+                                        {/* HUD Decoration Texture */}
+                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                                        
+                                        {/* HUD Corner Decorations */}
+                                        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-yellow-400/20 opacity-40 pointer-events-none rounded-tl-2xl" />
+                                        <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-yellow-400/20 opacity-20 pointer-events-none rounded-br-xl" />
+
+                                        {/* Ghost Text */}
+                                        <span className="absolute bottom-4 left-8 text-8xl font-black text-yellow-400/[0.03] uppercase tracking-tighter italic pointer-events-none leading-none select-none pr-10">FUNDS</span>
+
+                                        {/* Main Prize Pool Display */}
+                                        <div className="bg-black/60 border-2 border-yellow-400/20 p-6 rounded-3xl text-center space-y-2 relative overflow-hidden group/pool shadow-inner">
+                                            <div className="absolute inset-0 bg-yellow-400/[0.02] pointer-events-none" />
+                                            <div className="flex items-center justify-center gap-2 mb-1">
+                                                <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400 animate-pulse" />
+                                                <p className="text-[9px] font-black text-white/40 tracking-[0.2em] uppercase italic">Prize Matrix Accumulated</p>
+                                            </div>
+                                            <p className="text-3xl sm:text-4xl font-black text-yellow-400 italic drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] tabular-nums leading-none mb-4" suppressHydrationWarning>
+                                                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
+                                            </p>
                                             
-                                            return (
-                                                <div key={player.id} className={cn("flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-500 group/item relative overflow-hidden", player.hasPaid ? "bg-primary/10 border-primary/20" : "bg-black/20 border-white/5")}><div className={cn("absolute left-0 top-0 bottom-0 w-1 transition-all duration-500", player.hasPaid ? "bg-primary" : "bg-white/5")} /><div className='flex items-center gap-3 sm:gap-4 overflow-hidden pl-2 relative z-10'><div className="relative"><Avatar className={cn("h-9 w-9 sm:h-11 sm:w-11 border-2", player.hasPaid ? "border-primary" : "border-white/10")}><AvatarImage key={teamLogo} src={teamLogo} alt={name} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-5 h-5 text-white/20" /></AvatarFallback></Avatar></div><div className="flex flex-col overflow-hidden"><Label htmlFor={`paid-${player.id}`} className={cn("text-[12px] sm:text-[15px] font-black uppercase italic pr-4 truncate cursor-pointer", player.hasPaid ? "text-primary" : "text-white/80")}>{name}</Label><span className={cn("text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] truncate", player.hasPaid ? "text-primary/40" : "text-white/20")}>{teamName || 'Athlete Protocol'}</span></div></div><div className="flex items-center gap-3 relative z-10 shrink-0"><div className={cn("px-2 py-0.5 rounded-full text-[7px] sm:text-[8px] font-black uppercase tracking-tighter border", player.hasPaid ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-black/20 text-white/20")}>{player.hasPaid ? "Verified" : "Pending"}</div><Checkbox id={`paid-${player.id}`} checked={!!player.hasPaid} onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} disabled={!isAdmin} className={cn("h-5 w-5 sm:h-6 sm:w-6 rounded-md border-2", player.hasPaid ? "border-primary bg-primary" : "border-white/20 bg-black/40")} /></div></div>
-                                            );
-                                        })}
-                                    </div></ScrollArea></div>
-                                </CardContent>
+                                            <div className="flex flex-wrap items-center justify-center gap-2 pt-2 border-t border-white/5">
+                                                <Badge variant="outline" className="text-[8px] font-black border-yellow-400/30 text-yellow-400 bg-yellow-400/5 uppercase py-1 px-3">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge>
+                                                {sponsorshipPool > 0 && (
+                                                    <Badge variant="outline" className="text-[8px] font-black border-amber-500/30 text-amber-500 bg-amber-500/5 uppercase py-1 px-3">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-6 space-y-2.5">
+                                                <div className="flex justify-between items-end px-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Activity className="w-3 h-3 text-yellow-400 animate-pulse" />
+                                                        <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Payment Quota</p>
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-yellow-400 italic" suppressHydrationWarning>
+                                                        {registeredPlayers?.filter(p => p.hasPaid).length} / {registeredPlayers?.length} UNITS
+                                                    </span>
+                                                </div>
+                                                <Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1.5 bg-white/5" color="bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]" />
+                                            </div>
+                                        </div>
+
+                                        {/* List Verification */}
+                                        <div className="space-y-4 pt-2">
+                                            <div className="flex items-center justify-between px-1">
+                                                <h4 className="text-[10px] font-black tracking-[0.3em] text-yellow-400/60 flex items-center gap-2 uppercase italic">
+                                                    <Receipt className="w-3.5 h-3.5" /> Unit Verification Log
+                                                </h4>
+                                                <div className="h-px flex-1 bg-gradient-to-r from-yellow-400/20 to-transparent ml-4" />
+                                            </div>
+                                            
+                                            <ScrollArea className="h-[500px] sm:h-[650px] pr-4">
+                                                <div className="space-y-2.5 pb-10">
+                                                    {(registeredPlayers || []).map(player => {
+                                                        const type = activeSeason?.type || 'Single';
+                                                        const teamId = type === 'Co-Op' ? player.player1TeamId : player.teamId;
+                                                        const name = type === 'Co-Op' ? player.teamName : player.playerName;
+                                                        const teamName = type === 'Co-Op' ? player.player1TeamName : player.teamName;
+                                                        const team = teamsById[teamId];
+                                                        const teamLogo = resolveLogo(team?.logoUrl, teamId, name);
+                                                        
+                                                        return (
+                                                            <div key={player.id} className={cn(
+                                                                "flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all duration-500 group/item relative overflow-hidden",
+                                                                player.hasPaid 
+                                                                    ? "bg-yellow-400/10 border-yellow-400/30 shadow-[inset_0_0_20px_rgba(250,204,21,0.05)]" 
+                                                                    : "bg-black/20 border-white/5 hover:border-white/20"
+                                                            )}>
+                                                                <div className={cn(
+                                                                    "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
+                                                                    player.hasPaid ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]" : "bg-white/5"
+                                                                )} />
+                                                                
+                                                                <div className='flex items-center gap-4 overflow-hidden pl-2 relative z-10'>
+                                                                    <div className="relative shrink-0">
+                                                                        <div className={cn(
+                                                                            "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity",
+                                                                            player.hasPaid && "bg-yellow-400/20 opacity-100"
+                                                                        )} />
+                                                                        <Avatar className={cn(
+                                                                            "h-11 w-11 border-2 transition-all duration-500",
+                                                                            player.hasPaid ? "border-yellow-400 scale-105" : "border-white/10"
+                                                                        )}>
+                                                                            <AvatarImage key={teamLogo} src={teamLogo} alt={name} className="object-cover" referrerPolicy="no-referrer" />
+                                                                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-5 h-5 text-white/20" /></AvatarFallback>
+                                                                        </Avatar>
+                                                                    </div>
+                                                                    <div className="flex flex-col overflow-hidden text-left">
+                                                                        <Label htmlFor={`paid-${player.id}`} className={cn(
+                                                                            "text-sm sm:text-base font-black uppercase italic truncate cursor-pointer transition-colors pr-2",
+                                                                            player.hasPaid ? "text-yellow-400" : "text-white/80 group-hover/item:text-white"
+                                                                        )} suppressHydrationWarning>{name}</Label>
+                                                                        <span className={cn(
+                                                                            "text-[9px] font-black uppercase tracking-[0.2em] truncate pr-4 transition-colors",
+                                                                            player.hasPaid ? "text-yellow-400/40" : "text-white/20"
+                                                                        )} suppressHydrationWarning>{teamName || 'Athlete Protocol'}</span>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div className="flex items-center gap-4 relative z-10 shrink-0">
+                                                                    <div className={cn(
+                                                                        "px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter border shadow-sm transition-all",
+                                                                        player.hasPaid 
+                                                                            ? "border-yellow-400/40 bg-yellow-400/20 text-yellow-400" 
+                                                                            : "border-white/10 bg-black/40 text-white/20"
+                                                                    )} suppressHydrationWarning>
+                                                                        {player.hasPaid ? "VERIFIED" : "PENDING"}
+                                                                    </div>
+                                                                    <Checkbox 
+                                                                        id={`paid-${player.id}`} 
+                                                                        checked={!!player.hasPaid} 
+                                                                        onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
+                                                                        disabled={!isAdmin} 
+                                                                        className={cn(
+                                                                            "h-6 w-6 rounded-lg border-2 transition-all duration-300",
+                                                                            player.hasPaid 
+                                                                                ? "border-yellow-400 bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.4)]" 
+                                                                                : "border-white/20 bg-black/40 hover:border-yellow-400/40"
+                                                                        )} 
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </ScrollArea>
+                                        </div>
+                                    </div>
+                                </div>
                             </Card>
                         )}
                     </div>
