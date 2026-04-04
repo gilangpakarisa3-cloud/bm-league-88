@@ -817,7 +817,7 @@ export default function FixturesPage() {
                   <div className="space-y-2 relative z-10 pt-2">
                     <div className="flex items-center gap-3">
                         <p className="text-lg sm:text-3xl font-black text-white tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
-                        <Badge className="bg-primary text-black border-none font-black tracking-widest text-[9px] sm:text-[10px] h-6 px-3 uppercase italic shadow-[0_0_15px_rgba(204,253,1,0.3)]">{activeSeason.status}</Badge>
+                        <Badge className="bg-primary text-black border-none font-black tracking-widest text-[9px] sm:text-[10px] h-6 px-3 uppercase italic shadow-[0_0_15px_rgba(204,253,1,0.3)] flex items-center justify-center">{activeSeason.status}</Badge>
                     </div>
                   </div>
                 )}
