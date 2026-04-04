@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame, BarChart3 } from 'lucide-react';
+import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame, BarChart3, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -35,20 +35,20 @@ interface PlayerPerformanceDialogProps {
 
 const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
-      "flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all duration-500 group/stat",
+      "flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all duration-500 group/stat",
       variant === "primary" ? "bg-primary/10 border-primary/20 hover:border-primary/50" : 
       variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/30"
   )}>
     <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em]">{label}</span>
-    <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+    <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1.5", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
 );
 
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
       "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel",
-      variant === "primary" ? "bg-primary/10 border-primary/20 hover:border-primary/50" : 
-      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"
+      variant === "primary" ? "bg-primary/10 border-primary/30 hover:border-primary/50" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/30 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"
   )}>
       <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
       <div className="flex items-center justify-center gap-1.5 relative z-10">
@@ -306,7 +306,6 @@ export function PlayerPerformanceDialog({
                 </DialogHeader>
 
                 <div className="space-y-8 mt-10 relative z-10">
-                    {/* Performance HUD Card - Redesigned for Solid Header & Glassy Body */}
                     <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 relative">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
                         
@@ -365,7 +364,6 @@ export function PlayerPerformanceDialog({
                         </CardContent>
                     </Card>
                   
-                  {/* Slanted HUD Tabs */}
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                       <div className="flex justify-center mb-8">
                         <TabsList className="grid grid-cols-3 w-full h-16 sm:h-20 bg-black/60 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
@@ -485,7 +483,6 @@ export function PlayerPerformanceDialog({
                        </TabsContent>
                   </Tabs>
 
-                  {/* Analysis Disclaimer */}
                   <div className="bg-primary/10 border border-primary/20 rounded-[1.5rem] p-5 text-center mt-10 relative overflow-hidden group/disclaimer">
                     <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover/disclaimer:translate-x-[100%] transition-transform duration-1000" />
                     <p className="text-[9px] text-white/40 font-black tracking-[0.3em] uppercase mb-1.5 relative z-10 italic">Technical Analysis Disclaimer</p>

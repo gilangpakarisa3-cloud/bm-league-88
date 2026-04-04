@@ -15,7 +15,7 @@ import {
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -49,8 +49,8 @@ interface TournamentBracketProps {
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
       "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel",
-      variant === "primary" ? "bg-primary/10 border-primary/30" : 
-      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/30" : "bg-white/5 border-white/10"
+      variant === "primary" ? "bg-primary/10 border-primary/30 hover:border-primary/50" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/30 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"
   )}>
       <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
       <div className="flex items-center justify-center gap-1.5 relative z-10">
@@ -486,41 +486,44 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </div>
 
         <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
-            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-xl rounded-[2.5rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
+            <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
                 <ScrollArea className="max-h-[90vh]">
                     <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
-                        <DialogHeader className="border-b border-white/10 pb-6 relative z-10 w-full flex flex-col items-center">
+                        
+                        <DialogHeader className="p-6 bg-primary text-black relative z-10 border-b-4 border-black/10 rounded-t-[1.5rem] sm:rounded-t-[2.2rem]">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 w-full">
-                                <div className="flex items-center gap-4 text-primary justify-center sm:justify-start flex-1">
-                                    <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
+                                <div className="flex items-center gap-4 justify-center sm:justify-start flex-1">
+                                    <div className="p-3 bg-black/10 rounded-2xl ring-2 ring-black/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
                                     <div className="text-center sm:text-left">
-                                        <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none text-center sm:text-left">HUD Analisis Pertandingan</DialogTitle>
+                                        <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD ANALISIS PERTANDINGAN</DialogTitle>
                                         <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
-                                            <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge>
-                                            <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span>
+                                            <Badge className="bg-black text-primary border-none font-black tracking-widest text-[8px] px-3 h-5 shadow-lg uppercase">{selectedMatch?.round || 'Playoff'}</Badge>
+                                            <span className="text-[8px] font-bold text-black/60 uppercase tracking-widest">Tactical HUD System v4.0.1</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex gap-4 items-center justify-center bg-white/10 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto shrink-0">
-                                    {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
-                                    <div className="w-px h-6 bg-white/10" />
-                                    {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
+                                <div className="flex gap-4 items-center justify-center bg-black/5 px-4 py-2 rounded-xl border border-black/10 self-center sm:self-auto shrink-0">
+                                    {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-black/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black italic tabular-nums" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
+                                    <div className="w-px h-6 bg-black/10" />
+                                    {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-black/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black italic tabular-nums" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
                                 </div>
                             </div>
                         </DialogHeader>
 
                         {!selectedMatch?.isProjection && (
-                            <div className="relative z-10 space-y-6 animate-in slide-in-from-top-4 duration-700">
+                            <div className="relative z-10 space-y-6 animate-in slide-in-from-top-4 duration-700 px-2 sm:px-0">
                                 <div className="flex items-center justify-center gap-4 text-primary">
                                     <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-black tracking-widest uppercase italic text-center">Informasi Jadwal Laga</span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                        <span className="text-[10px] font-black tracking-[0.3em] uppercase italic text-center">INFORMASI JADWAL LAGA</span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                                     </div>
                                     <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
                                 </div>
 
-                                <div className="max-w-2xl mx-auto bg-black/60 border-y-4 border-primary/40 p-8 rounded-none relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                                <div className="max-w-2xl mx-auto bg-black/80 backdrop-blur-2xl border-y-4 border-primary/40 p-8 rounded-none relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
                                     <div className="absolute top-0 left-0 w-2 h-2 bg-primary" />
                                     <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
                                     <div className="absolute bottom-0 left-0 w-2 h-2 bg-primary" />
@@ -616,12 +619,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         )}
 
-                        <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10">
+                        <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10 px-2 sm:px-0">
                             <div className="flex flex-col items-center text-center gap-4 group w-full">
                                 {analysis1 ? (
                                     <>
                                         <div className="relative">
-                                            <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
+                                            <div className={cn("absolute -inset-4 rounded-full blur-3xl opacity-20", analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
                                             {selectedMatch?.isCompleted && (
                                                 <span className="absolute inset-0 flex items-center justify-center text-[120px] font-black italic text-white/[0.05] pointer-events-none -z-0 select-none">
                                                     {selectedMatch.s1}
@@ -629,7 +632,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             )}
                                             {analysis1.entry?.group && (
                                                 <div className="absolute -top-1 -left-1 z-20">
-                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis1.entry.group}</Badge>
+                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-3 h-7 italic shadow-xl uppercase">GRUP {analysis1.entry.group}</Badge>
                                                 </div>
                                             )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
@@ -638,29 +641,29 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             </Avatar>
                                             {analysis1.isDefendingChampion && (
                                                 <div className="absolute -top-1 -right-1 z-20">
-                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg shadow-lg"><Award className="w-3 h-3"/></Badge>
+                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1.5 rounded-lg shadow-lg"><Award className="w-4 h-4"/></Badge>
                                                 </div>
                                             )}
-                                            <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
+                                            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
                                         </div>
                                         <div className="space-y-1 w-full flex flex-col items-center">
-                                            <h3 className="text-xl font-black uppercase italic text-white text-center w-full" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
-                                            <div className="flex flex-col items-center gap-1.5 w-full">
-                                                <div className="flex items-center justify-center gap-2 text-center w-full">
-                                                    <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={analysis1.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
-                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
+                                            <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
+                                            <div className="flex flex-col items-center gap-2.5 w-full">
+                                                <div className="flex items-center justify-center gap-2 text-center w-full bg-white/5 px-4 py-1.5 rounded-xl border border-white/5">
+                                                    <Avatar className="h-4 w-4 opacity-80"><AvatarImage src={analysis1.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                                                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest text-center" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
                                                 </div>
                                                 <div className="flex justify-center">
                                                     <Popover>
                                                         <PopoverTrigger asChild>
-                                                            <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                                            <Badge className={cn("text-[10px] font-black uppercase tracking-tighter px-6 py-2.5 border-2 cursor-help shadow-2xl transition-all hover:scale-105", 
                                                                 analysis1.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
                                                                 analysis1.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
                                                                 "bg-primary/20 text-primary border-primary/30")}>
                                                                 {analysis1.playStyleText}
                                                             </Badge>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white text-center">{analysis1.playStyleDescription}</p></PopoverContent>
+                                                        <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl rounded-[1.5rem] shadow-2xl"><p className="text-[11px] font-bold leading-relaxed text-white text-center">{analysis1.playStyleDescription}</p></PopoverContent>
                                                     </Popover>
                                                 </div>
                                             </div>
@@ -671,9 +674,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-center py-8 sm:py-0 h-full relative">
-                                <div className="bg-primary border-4 border-background rounded-xl w-14 h-14 flex items-center justify-center shadow-2xl z-10 rotate-45">
-                                    <span className="text-black font-black text-xl italic -rotate-45 pr-0.5">VS</span>
+                            <div className="flex items-center justify-center py-10 sm:py-0 h-full relative">
+                                <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl" />
+                                <div className="bg-[#0A192F] border-4 border-primary rounded-2xl w-16 h-16 flex items-center justify-center shadow-[0_0_40px_rgba(204,253,1,0.2)] z-10 rotate-45 group/vs">
+                                    <span className="text-primary font-black text-2xl italic -rotate-45 pr-0.5 group-hover/vs:scale-110 transition-transform">VS</span>
                                 </div>
                             </div>
 
@@ -681,7 +685,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 {analysis2 ? (
                                     <>
                                         <div className="relative">
-                                            <div className={cn("absolute -inset-4 rounded-full blur-2xl opacity-20", analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-white")} />
+                                            <div className={cn("absolute -inset-4 rounded-full blur-3xl opacity-20", analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-white")} />
                                             {selectedMatch?.isCompleted && (
                                                 <span className="absolute inset-0 flex items-center justify-center text-[120px] font-black italic text-white/[0.05] pointer-events-none -z-0 select-none">
                                                     {selectedMatch.s2}
@@ -689,7 +693,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             )}
                                             {analysis2.entry?.group && (
                                                 <div className="absolute -top-1 -left-1 z-20">
-                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-1.5 h-6 italic shadow-lg uppercase">GRUP {analysis2.entry.group}</Badge>
+                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-3 h-7 italic shadow-xl uppercase">GRUP {analysis2.entry.group}</Badge>
                                                 </div>
                                             )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
@@ -698,29 +702,29 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             </Avatar>
                                             {analysis2.isDefendingChampion && (
                                                 <div className="absolute -top-1 -right-1 z-20">
-                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1 rounded-lg shadow-lg"><Award className="w-3 h-3"/></Badge>
+                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1.5 rounded-lg shadow-lg"><Award className="w-4 h-4"/></Badge>
                                                 </div>
                                             )}
-                                            <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
+                                            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
                                         </div>
                                         <div className="space-y-1 w-full flex flex-col items-center">
-                                            <h3 className="text-xl font-black uppercase italic text-white text-center w-full" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
-                                            <div className="flex flex-col items-center gap-1.5 w-full">
-                                                <div className="flex items-center justify-center gap-2 text-center w-full">
-                                                    <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={analysis2.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                                            <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
+                                            <div className="flex flex-col items-center gap-2.5 w-full">
+                                                <div className="flex items-center justify-center gap-2 text-center w-full bg-white/5 px-4 py-1.5 rounded-xl border border-white/5">
+                                                    <Avatar className="h-4 w-4 opacity-80"><AvatarImage src={analysis2.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
                                                     <span className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
                                                 </div>
                                                 <div className="flex justify-center">
                                                     <Popover>
                                                         <PopoverTrigger asChild>
-                                                            <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
+                                                            <Badge className={cn("text-[10px] font-black uppercase tracking-tighter px-6 py-2.5 border-2 cursor-help shadow-2xl transition-all hover:scale-105", 
                                                                 analysis2.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
                                                                 analysis2.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
                                                                 "bg-primary/20 text-primary border-primary/30")}>
                                                                 {analysis2.playStyleText}
                                                             </Badge>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl"><p className="text-[10px] font-bold leading-relaxed text-white text-center">{analysis2.playStyleDescription}</p></PopoverContent>
+                                                        <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl rounded-[1.5rem] shadow-2xl"><p className="text-[11px] font-bold leading-relaxed text-white text-center">{analysis2.playStyleDescription}</p></PopoverContent>
                                                     </Popover>
                                                 </div>
                                             </div>
@@ -732,75 +736,100 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             </div>
                         </div>
 
-                        <div className="space-y-6 relative z-10">
+                        <div className="space-y-8 mt-10 relative z-10 px-2 sm:px-0">
                             <div className="flex items-center justify-center gap-4 text-primary">
-                                <div className="h-0.5 flex-1 bg-gradient-to-l from-primary/40 to-transparent rounded-full mr-4" />
-                                <div className="flex items-center gap-2">
-                                    <Binary className="w-5 h-5" />
-                                    <h4 className="text-lg font-black tracking-widest uppercase italic text-center">Statistik Momentum</h4>
+                                <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
+                                <div className="flex items-center gap-3">
+                                    <Binary className="w-5 h-5 animate-pulse" />
+                                    <h4 className="text-xl font-black tracking-widest uppercase italic text-center">STATISTIK MOMENTUM LAGA</h4>
                                 </div>
-                                <div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
                             </div>
                             
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                                 {[analysis1, analysis2].map((an, i) => (
-                                    <div key={i} className="flex-1 w-full space-y-4">
+                                    <div key={i} className="flex-1 w-full">
                                         {an && an.stats.played > 0 ? (
                                             <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 h-full relative">
                                                 {/* Decorative HUD Details */}
-                                                <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+                                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
                                                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
-                                                <CardHeader className="p-4 bg-primary text-black relative z-10 border-b-2 border-black/10">
-                                                    <div className="flex flex-col items-center gap-1.5 text-center">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <Binary className="w-3.5 h-3.5" />
-                                                            <h3 className="text-[10px] font-black tracking-[0.2em] uppercase italic text-center">UNITS: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                <CardHeader className="p-5 bg-primary text-black relative z-10 border-b-2 border-black/10">
+                                                    <div className="flex flex-col items-center gap-2 text-center">
+                                                        <div className="flex items-center justify-center gap-3">
+                                                            <Binary className="w-4 h-4" />
+                                                            <h3 className="text-[11px] font-black tracking-[0.2em] uppercase italic text-center">UNIT: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge className="bg-black text-primary border-none font-black uppercase italic text-[9px] px-3 h-5 shadow-lg">OVR {an.winRate.toFixed(0)}%</Badge>
+                                                        <div className="flex items-center gap-3 bg-black/10 px-3 py-1 rounded-lg">
+                                                            <Badge className="bg-black text-primary border-none font-black uppercase italic text-[10px] px-3 h-6 shadow-lg">OVR {an.winRate.toFixed(0)}%</Badge>
                                                             <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
-                                                            <span className="text-[9px] font-black uppercase tracking-widest opacity-80">{an.quote}</span>
+                                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{an.quote}</span>
                                                         </div>
                                                     </div>
                                                 </CardHeader>
-                                                <CardContent className="p-5 space-y-6 relative z-10">
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-2 text-center">
-                                                            <p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
-                                                            <div className="grid gap-2">
+                                                <CardContent className="p-6 space-y-8 relative z-10">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-3 text-center">
+                                                            <p className="text-[8px] font-black text-primary/60 uppercase tracking-[0.3em] italic">Intel Musim</p>
+                                                            <div className="grid gap-2.5">
                                                                 <IntelCard icon={Percent} label="OVR Musim" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
                                                                 <IntelCard icon={Trophy} label="Rank Grup" value={`#${an.entry?.rank || '?'}`} />
                                                             </div>
                                                         </div>
-                                                        <div className="space-y-2 text-center">
-                                                            <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
-                                                            <div className="grid gap-2">
+                                                        <div className="space-y-3 text-center">
+                                                            <p className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em] italic">Intel Karir</p>
+                                                            <div className="grid gap-2.5">
                                                                 <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
                                                                 <IntelCard icon={Star} label="Rank Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {isMounted && <ChartContainer config={chartConfig} className="h-24 w-full opacity-80 group-hover:opacity-100 transition-opacity">
-                                                        <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                            <XAxis dataKey="match" hide />
-                                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} />
-                                                            <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 3 }} activeDot={{ r: 6 }} />
-                                                        </LineChart>
-                                                    </ChartContainer>}
-                                                    <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm transition-transform hover:scale-110", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
+                                                    
+                                                    {isMounted && (
+                                                        <div className="relative pt-4">
+                                                            <div className="flex justify-between items-center px-1 mb-4">
+                                                                <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-2">
+                                                                    <Activity className="w-3.5 h-3.5"/> Momentum Stability
+                                                                </h3>
+                                                                <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black italic px-3 h-6" suppressHydrationWarning>
+                                                                    {an.chartData.length > 1 ? an.chartData[an.chartData.length - 1].points : 0} PTS TREND
+                                                                </Badge>
+                                                            </div>
+                                                            <ChartContainer config={chartConfig} className="h-32 w-full opacity-80 group-hover:opacity-100 transition-opacity">
+                                                                <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                                    <XAxis dataKey="match" hide />
+                                                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} />
+                                                                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
+                                                                    <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={4} dot={{ fill: 'hsl(var(--primary))', r: 4, strokeWidth: 2, stroke: 'black' }} activeDot={{ r: 7, stroke: 'white', strokeWidth: 2 }} />
+                                                                </LineChart>
+                                                            </ChartContainer>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <div className="flex justify-center gap-2 pt-2">
+                                                        {an.form.map((f, idx) => (
+                                                            <div key={idx} className={cn(
+                                                                "w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black border-2 shadow-inner transition-all hover:scale-110", 
+                                                                f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
+                                                                (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")
+                                                            )}>
+                                                                {f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </CardContent>
                                             </Card>
-                                        ) : <div className="h-full flex items-center justify-center opacity-10 p-10 border-2 border-dashed border-white/10 rounded-[1.5rem]"><Loader2 className="w-8 h-8 animate-spin" /></div>}
+                                        ) : <div className="h-full flex items-center justify-center opacity-10 p-16 border-4 border-dashed border-white/5 rounded-[2rem]"><Loader2 className="w-12 h-12 animate-spin" /></div>}
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center mt-6 relative overflow-hidden group/disclaimer">
-                              <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover/disclaimer:translate-x-[100%] transition-transform duration-1000" />
-                              <p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1 relative z-10">Technical Analysis Disclaimer</p>
-                              <p className="text-[10px] font-bold text-primary/80 italic leading-tight text-center relative z-10">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p>
+                            <div className="bg-primary/10 border-2 border-primary/20 rounded-[1.5rem] p-6 text-center mt-10 relative overflow-hidden group/disclaimer shadow-2xl">
+                              <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover/disclaimer:translate-x-[100%] transition-transform duration-1500" />
+                              <p className="text-[9px] text-white/40 font-black tracking-[0.4em] uppercase mb-2 relative z-10 italic">Technical Analysis Disclaimer</p>
+                              <p className="text-[11px] font-bold text-primary/80 italic leading-relaxed text-center relative z-10 px-4">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan stabilitas kemenangan taktis yang tinggi. Sinyal tren positif (di atas nol) memprediksi keunggulan operasional di arena.</p>
                             </div>
                         </div>
                     </div>
