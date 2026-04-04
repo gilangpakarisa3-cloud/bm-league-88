@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan, CheckCircle2, Loader2 } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan, CheckCircle2, Loader2, Binary } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -83,7 +83,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         (hasPlayoffs && (match.round === 'Group' || !match.round) && !isAdmin);
 
     const PlayerInfo = ({ name, team, teamId, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, teamId: string, alignment?: 'left' | 'right', isWinner: boolean }) => {
-        // Use central utility for consistent logo resolution
         const logoUrl = resolveLogo(team?.logoUrl, teamId, name);
         
         return (
@@ -109,7 +108,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                             referrerPolicy="no-referrer" 
                         />
                         <AvatarFallback className="bg-black/40 font-black text-[6px] leading-tight text-center px-0.5">
-                            logo belum berhasil terender
+                            LOGO NULL
                         </AvatarFallback>
                     </Avatar>
                     
@@ -142,7 +141,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     const isW2 = hasValidScore && score2 > score1;
 
     return (
-        <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
+        <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
             {/* Minimalist Ghost Text */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.02] pr-10">
                 <span className="text-[100px] sm:text-[160px] font-black italic text-white uppercase tracking-tighter transition-all duration-1000 group-hover:scale-105">
@@ -184,10 +183,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             </div>
 
             {/* Sub-Footer Meta Bar (Mobile Optimized) */}
-            <div className="flex items-center justify-between px-4 sm:px-10 py-2 sm:py-3 bg-black/20 border-t border-white/5 relative z-10">
+            <div className="flex items-center justify-between px-4 sm:px-10 py-2 sm:py-3 bg-black/40 border-t border-white/5 relative z-10">
                 <div className="flex items-center gap-3">
                     <Calendar className="w-3 h-3 text-white/20" />
-                    <span className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase italic tracking-widest">{displayDate}</span>
+                    <span className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase italic tracking-widest" suppressHydrationWarning>{displayDate}</span>
                     {match.round && match.round !== 'Group' && (
                         <Badge className="bg-primary/10 border-primary/20 text-primary text-[7px] h-4 font-black px-1.5">{match.round}</Badge>
                     )}
@@ -490,8 +489,6 @@ export default function FixturesPage() {
   const playersCol = useMemoFirebase(() => (firestore ? collection(firestore, 'players') : null), [firestore]);
   const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCol);
   
-  const teamsCol = useMemoFirebase(() => (firestore ? collection(firestore, 'players') : null), [firestore]); // Reusing master players collection for masters data
-  const { data: allTeamsMaster } = useCollection<Player>(teamsCol);
   const allTeamsCol = useMemoFirebase(() => (firestore ? collection(firestore, 'teams') : null), [firestore]);
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(allTeamsCol);
   
@@ -542,9 +539,7 @@ export default function FixturesPage() {
             player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
         };
 
-        // Standard transaction for all scoring
         await runTransaction(firestore, async (transaction) => {
-            // 1. Fetch all required data inside transaction for consistency
             let winMatchRef = null;
             let losMatchRef = null;
             if (orig.round && orig.round !== 'Group' && orig.bracketId) {
@@ -582,7 +577,6 @@ export default function FixturesPage() {
                 if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data() as LeagueEntry;
             }
 
-            // 2. Perform updates
             const getOutcome = (s1: number, s2: number) => {
                 if (s1 > s2) return { p1: 'W', p2: 'L' };
                 if (s1 < s2) return { p1: 'L', p2: 'W' };
@@ -601,7 +595,6 @@ export default function FixturesPage() {
                 });
             };
 
-            // Revert old stats if already completed
             if (orig.isCompleted) {
                 const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
                 const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
@@ -617,7 +610,6 @@ export default function FixturesPage() {
                 }
             }
 
-            // Apply new stats
             const newS1 = isMatchBo3 ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
             const newS2 = isMatchBo3 ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
             const newRes = getOutcome(newS1, newS2);
@@ -631,7 +623,6 @@ export default function FixturesPage() {
                 updateStats(orig.player2Id, { played: 1, win: newRes.p2 === 'W' ? 1 : 0, draw: newRes.p2 === 'D' ? 1 : 0, loss: newRes.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
             }
 
-            // Playoff progression
             if (winMatchRef) {
                 const winnerId = newS1 > newS2 ? orig.player1Id : orig.player2Id;
                 const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId!];
@@ -642,7 +633,6 @@ export default function FixturesPage() {
                 }
             }
 
-            // Table entry updates
             if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
                 const e1 = { ...e1Data }; const e2 = { ...e2Data };
                 if (orig.isCompleted) {
