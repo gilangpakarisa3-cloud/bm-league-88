@@ -602,7 +602,7 @@ export default function LeaguePage() {
                 transaction.update(doc(firestore, 'players', pId), { overallPlayed: increment(change.played || 0), overallWin: increment(change.win || 0), overallDraw: increment(change.draw || 0), overallLoss: increment(change.loss || 0), overallGoalsFor: increment(change.gf || 0), overallGoalsAgainst: increment(change.ga || 0) });
             };
             const getOutcome = (s1: number, s2: number) => s1 > s2 ? { p1: 'W', p2: 'L' } : (s1 < s2 ? { p1: 'L', p2: 'W' } : { p1: 'D', p2: 'D' });
-            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0); const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0); const outcome = getOutcome(oldS1, oldS2);
+            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0); const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0); const outcome = getOutcome(oldS1, oldS2);
             if (sData.type === 'Co-Op' && e1Data && e2Data) {
                 const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
                 updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
@@ -633,14 +633,17 @@ export default function LeaguePage() {
     <div className="w-full">
       <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row justify-between items-stretch gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
-          <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
+          <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-6 sm:py-8 px-8 sm:px-12 relative group/header overflow-hidden bg-black/40 backdrop-blur-3xl border-2 border-white/5 rounded-[2.5rem] shadow-2xl transition-all duration-500 hover:border-primary/20">
+            <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
+            <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-white/5 rounded-tr-[2.5rem] pointer-events-none group-hover/header:border-primary/20 transition-colors duration-500" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-white/5 rounded-br-[2.5rem] pointer-events-none opacity-20" />
+            
             <div className="relative z-10 space-y-1">
                 <div className="flex items-center gap-3">
                     <div className="h-px w-8 sm:w-12 bg-primary/40" />
                     <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary/60 italic">Signal Transmission • Active</span>
                 </div>
-                <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
+                <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
                     {t('league_standings_page_title').split(' ')[0]} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">{t('league_standings_page_title').split(' ').slice(1).join(' ')}</span>
                 </h1>
             </div>

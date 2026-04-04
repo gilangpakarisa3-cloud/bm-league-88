@@ -135,8 +135,8 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         );
     }
     
-    const score1 = isMatchBo3 ? match.player1Wins : match.player1Score;
-    const score2 = isMatchBo3 ? match.player2Wins : match.player2Score;
+    const score1 = isMatchBo3 ? match.player1Wins : (match.player1Score ?? 0);
+    const score2 = isMatchBo3 ? match.player2Wins : (match.player2Score ?? 0);
     const hasValidScore = match.isCompleted && score1 !== null && score2 !== null;
     const isW1 = hasValidScore && score1 > score2;
     const isW2 = hasValidScore && score2 > score1;
@@ -748,8 +748,8 @@ export default function FixturesPage() {
                 });
             };
 
-            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0);
-            const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
+            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0);
+            const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0);
             const res = (oldS1 > oldS2) ? { p1: 'W', p2: 'L' } : (oldS1 < oldS2 ? { p1: 'L', p2: 'W' } : { p1: 'D', p2: 'D' });
 
             if (sData.type === 'Co-Op' && e1Data && e2Data) {
@@ -799,8 +799,10 @@ export default function FixturesPage() {
 
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
-             <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-5 pl-6 sm:pl-8 relative group/header overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_25px_rgba(204,253,1,0.8)]" />
+             <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-6 sm:py-8 px-8 sm:px-12 relative group/header overflow-hidden bg-black/40 backdrop-blur-3xl border-2 border-white/5 rounded-[2.5rem] shadow-2xl transition-all duration-500 hover:border-primary/20">
+                <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
+                <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-white/5 rounded-tr-[2.5rem] pointer-events-none group-hover/header:border-primary/20 transition-colors duration-500" />
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-white/5 rounded-br-[2.5rem] pointer-events-none opacity-20" />
                 
                 <div className="relative z-10 space-y-1">
                     <div className="flex items-center gap-3">
@@ -808,7 +810,7 @@ export default function FixturesPage() {
                         <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary/60 italic">Signal Transmission • Active</span>
                     </div>
                     
-                    <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
+                    <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
                         {t('fixtures_page_title').split(' ')[0]} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">{t('fixtures_page_title').split(' ').slice(1).join(' ')}</span>
                     </h1>
                 </div>
