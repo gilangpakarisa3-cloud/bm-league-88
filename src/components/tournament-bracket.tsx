@@ -74,7 +74,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
                                 <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                 <AvatarFallback className="bg-black/40 font-black text-[8px]"><User className="w-2.5 h-2.5"/></AvatarFallback>
                             </Avatar>
-                            <span className="text-[10px] font-black truncate uppercase italic text-white/80" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
+                            <span className="text-[10px] font-black truncate uppercase italic text-white/80 pr-2" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
                         </div>
                       );
                   })}
@@ -132,7 +132,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
                                       <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                       <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-2.5 h-2.5"/></AvatarFallback>
                                   </Avatar>
-                                  <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
+                                  <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-2", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
                               </div>
                               <div className={cn("px-1.5 py-0.5 rounded bg-white/5 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
                           </div>
