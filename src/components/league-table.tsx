@@ -54,39 +54,47 @@ interface SingleTableProps {
 }
 
 const PlayoffQualificationLegend = () => (
-  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-12 p-5 bg-black/40 border-b-2 border-white/5 backdrop-blur-md relative overflow-hidden group/legend shrink-0">
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
-    
-    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
-      <div className="relative">
-        <div className="absolute inset-0 bg-green-500/40 blur-md rounded-full animate-pulse" />
-        <div className="w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-background relative z-10" />
-      </div>
-      <div className="flex flex-col">
-        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Upper Bracket</span>
-        <span className="text-[8px] font-bold text-green-400/80 uppercase tracking-widest mt-1">Peringkat 1 - 4 (Hijau)</span>
-      </div>
-    </div>
+  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 p-4 sm:p-6 bg-black/60 border-b-4 border-white/10 backdrop-blur-2xl relative overflow-hidden group/legend shrink-0">
+    {/* HUD Background Pattern */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
+    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-700">
-      <div className="relative">
-        <div className="absolute inset-0 bg-amber-500/40 blur-md rounded-full animate-pulse" />
-        <div className="w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-background relative z-10" />
+    <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
+      <div className="flex items-center gap-3 group/item">
+        <div className="relative">
+          <div className="absolute -inset-2 bg-green-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+          <div className="w-3.5 h-3.5 rounded-sm bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.6)] border border-black/20 rotate-45" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] sm:text-[11px] font-black uppercase italic text-green-400 pr-2 leading-none">Upper Bracket</span>
+          <span className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Rank 1 - 4 (Hijau)</span>
+        </div>
       </div>
-      <div className="flex flex-col">
-        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Lower Bracket</span>
-        <span className="text-[8px] font-bold text-amber-400/80 uppercase tracking-widest mt-1">Peringkat 5 - 6 (Emas)</span>
-      </div>
-    </div>
 
-    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-1000">
-      <div className="relative">
-        <div className="absolute inset-0 bg-red-500/40 blur-md rounded-full animate-pulse" />
-        <div className="w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-background relative z-10" />
+      <div className="w-px h-6 bg-white/5 hidden sm:block" />
+
+      <div className="flex items-center gap-3 group/item">
+        <div className="relative">
+          <div className="absolute -inset-2 bg-amber-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+          <div className="w-3.5 h-3.5 rounded-sm bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.6)] border border-black/20 rotate-45" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] sm:text-[11px] font-black uppercase italic text-amber-500 pr-2 leading-none">Lower Bracket</span>
+          <span className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Rank 5 - 6 (Emas)</span>
+        </div>
       </div>
-      <div className="flex flex-col">
-        <span className="text-[10px] sm:text-xs font-black uppercase italic text-white pr-2 leading-none">Nangis di Pojokkan</span>
-        <span className="text-[8px] font-bold text-red-400/80 uppercase tracking-widest mt-1">Peringkat 7+ (Merah)</span>
+
+      <div className="w-px h-6 bg-white/5 hidden sm:block" />
+
+      <div className="flex items-center gap-3 group/item">
+        <div className="relative">
+          <div className="absolute -inset-2 bg-red-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+          <div className="w-3.5 h-3.5 rounded-sm bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)] border border-black/20 rotate-45" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] sm:text-[11px] font-black uppercase italic text-red-500 pr-2 leading-none">Nangis di Pojok</span>
+          <span className="text-[7px] sm:text-[8px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Rank 7+ (Merah)</span>
+        </div>
       </div>
     </div>
   </div>
