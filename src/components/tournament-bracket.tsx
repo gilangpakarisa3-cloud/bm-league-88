@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield, Activity } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -47,9 +47,17 @@ interface TournamentBracketProps {
 }
 
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
-  <div className={cn("flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300", variant === "primary" ? "bg-primary/10 border-primary/20" : variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20" : "bg-white/5 border-white/10")}>
-      <div className="flex items-center justify-center gap-1.5"><Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} /><span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span></div>
-      <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+  <div className={cn(
+      "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel",
+      variant === "primary" ? "bg-primary/10 border-primary/30" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/30" : "bg-white/5 border-white/10"
+  )}>
+      <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
+      <div className="flex items-center justify-center gap-1.5 relative z-10">
+          <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/40")} />
+          <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
+      </div>
+      <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
 );
 
@@ -486,8 +494,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 w-full">
                                 <div className="flex items-center gap-4 text-primary justify-center sm:justify-start flex-1">
                                     <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
-                                    <div className="text-center sm:text-left"><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none text-center sm:text-left">HUD Analisis Pertandingan</DialogTitle>
-                                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
+                                    <div className="text-center sm:text-left">
+                                        <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none text-center sm:text-left">HUD Analisis Pertandingan</DialogTitle>
+                                        <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
+                                            <Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge>
+                                            <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="flex gap-4 items-center justify-center bg-white/10 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto shrink-0">
                                     {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
@@ -733,34 +746,42 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 {[analysis1, analysis2].map((an, i) => (
                                     <div key={i} className="flex-1 w-full space-y-4">
                                         {an && an.stats.played > 0 ? (
-                                            <Card className="bg-white/[0.03] border border-white/5 rounded-[1.5rem] overflow-hidden group hover:border-primary/30 transition-all h-full">
-                                                <CardHeader className="p-4 bg-primary/5 border-b border-white/10">
-                                                    <div className="flex flex-col items-center gap-2 text-center">
-                                                        <div className="flex items-center justify-center gap-3">
-                                                            <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic text-center">Statistik: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
-                                                            <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
+                                            <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[1.5rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 h-full relative">
+                                                {/* Decorative HUD Details */}
+                                                <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+                                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+
+                                                <CardHeader className="p-4 bg-primary text-black relative z-10 border-b-2 border-black/10">
+                                                    <div className="flex flex-col items-center gap-1.5 text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Binary className="w-3.5 h-3.5" />
+                                                            <h3 className="text-[10px] font-black tracking-[0.2em] uppercase italic text-center">UNITS: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
                                                         </div>
-                                                        <p className={cn("text-[9px] font-black italic uppercase text-center", an.quoteColor)}>Level: "{an.quote}"</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge className="bg-black text-primary border-none font-black uppercase italic text-[9px] px-3 h-5 shadow-lg">OVR {an.winRate.toFixed(0)}%</Badge>
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest opacity-80">{an.quote}</span>
+                                                        </div>
                                                     </div>
                                                 </CardHeader>
-                                                <CardContent className="p-5 space-y-6">
+                                                <CardContent className="p-5 space-y-6 relative z-10">
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div className="space-y-2 text-center">
                                                             <p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
                                                             <div className="grid gap-2">
                                                                 <IntelCard icon={Percent} label="OVR Musim" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
-                                                                <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${an.entry?.rank || '?'}`} />
+                                                                <IntelCard icon={Trophy} label="Rank Grup" value={`#${an.entry?.rank || '?'}`} />
                                                             </div>
                                                         </div>
                                                         <div className="space-y-2 text-center">
                                                             <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
                                                             <div className="grid gap-2">
                                                                 <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
-                                                                <IntelCard icon={Star} label="Peringkat Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
+                                                                <IntelCard icon={Star} label="Rank Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {isMounted && <ChartContainer config={chartConfig} className="h-24 w-full opacity-80">
+                                                    {isMounted && <ChartContainer config={chartConfig} className="h-24 w-full opacity-80 group-hover:opacity-100 transition-opacity">
                                                         <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
                                                             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                             <XAxis dataKey="match" hide />
@@ -768,7 +789,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                             <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 3 }} activeDot={{ r: 6 }} />
                                                         </LineChart>
                                                     </ChartContainer>}
-                                                    <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
+                                                    <div className="flex justify-center gap-1.5">{an.form.map((f, idx) => (<div key={idx} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm transition-transform hover:scale-110", f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"))}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>))}</div>
                                                 </CardContent>
                                             </Card>
                                         ) : <div className="h-full flex items-center justify-center opacity-10 p-10 border-2 border-dashed border-white/10 rounded-[1.5rem]"><Loader2 className="w-8 h-8 animate-spin" /></div>}
@@ -776,9 +797,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 ))}
                             </div>
 
-                            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center mt-6">
-                              <p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1">Technical Analysis Disclaimer</p>
-                              <p className="text-[10px] font-bold text-primary/80 italic leading-tight text-center">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p>
+                            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center mt-6 relative overflow-hidden group/disclaimer">
+                              <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover/disclaimer:translate-x-[100%] transition-transform duration-1000" />
+                              <p className="text-[8px] text-white/60 font-black tracking-[0.3em] uppercase mb-1 relative z-10">Technical Analysis Disclaimer</p>
+                              <p className="text-[10px] font-bold text-primary/80 italic leading-tight text-center relative z-10">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan konsistensi kemenangan yang tinggi.</p>
                             </div>
                         </div>
                     </div>

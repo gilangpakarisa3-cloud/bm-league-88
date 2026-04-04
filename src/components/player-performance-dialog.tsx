@@ -33,29 +33,29 @@ interface PlayerPerformanceDialogProps {
   singleLeagueTable: WithId<LeagueEntry>[];
 }
 
-// Sub-components moved outside to improve stability
 const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
-      "flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-300",
-      variant === "primary" ? "bg-primary/10 border-primary/20" : 
-      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20" : "bg-white/5 border-white/10"
+      "flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all duration-500 group/stat",
+      variant === "primary" ? "bg-primary/10 border-primary/20 hover:border-primary/50" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/30"
   )}>
-    <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{label}</span>
+    <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em]">{label}</span>
     <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
 );
 
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
-      "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
-      variant === "primary" ? "bg-primary/10 border-primary/20" : 
-      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20" : "bg-white/5 border-white/10"
+      "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel",
+      variant === "primary" ? "bg-primary/10 border-primary/20 hover:border-primary/50" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/30"
   )}>
-      <div className="flex items-center justify-center gap-1.5">
+      <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
+      <div className="flex items-center justify-center gap-1.5 relative z-10">
           <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
-          <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{label}</span>
+          <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/60">{label}</span>
       </div>
-      <span className={cn("font-black text-sm uppercase italic leading-none", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+      <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
 );
 
@@ -237,6 +237,7 @@ export function PlayerPerformanceDialog({
       <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
         <ScrollArea className="max-h-[90vh]">
             <div className="p-6 relative">
+                {/* HUD Scanning Layer */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
 
                 <DialogHeader className="flex flex-col items-center text-center relative z-10">
@@ -245,7 +246,7 @@ export function PlayerPerformanceDialog({
                       
                       {player.group && (
                           <div className="absolute -top-2 -left-2 z-20">
-                              <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] px-2 h-7 italic shadow-xl">
+                              <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] px-2 h-7 italic shadow-xl uppercase">
                                   GRUP {player.group}
                               </Badge>
                           </div>
@@ -274,12 +275,10 @@ export function PlayerPerformanceDialog({
 
                     <div className="space-y-1 pt-4 w-full flex flex-col items-center">
                       <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-white text-center" suppressHydrationWarning>{player.playerName}</DialogTitle>
-                      <DialogDescription asChild>
-                        <div className="flex items-center justify-center gap-2 font-black text-white/40 uppercase tracking-widest text-[10px] text-center">
-                            <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={playerTeamDetails?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
-                            <span className="text-center" suppressHydrationWarning>{player.teamName || 'Independent'}</span>
-                        </div>
-                      </DialogDescription>
+                      <div className="flex items-center justify-center gap-2 font-black text-white/40 uppercase tracking-widest text-[10px] text-center">
+                          <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={playerTeamDetails?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                          <span className="text-center" suppressHydrationWarning>{player.teamName || 'Independent'}</span>
+                      </div>
                       <div className="pt-2 flex justify-center">
                         <Popover>
                             <PopoverTrigger asChild>
@@ -299,49 +298,68 @@ export function PlayerPerformanceDialog({
                 </DialogHeader>
 
                 <div className="space-y-6 mt-8 relative z-10">
-                    <div className="bg-white/[0.03] border-2 border-white/5 rounded-2xl p-5 space-y-5 shadow-inner">
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-[10px] font-black uppercase tracking-widest text-primary/60 italic flex items-center gap-2">
-                                    <Scan className="w-3 h-3"/> Progres Musim
-                                </h3>
-                                <span className="text-[10px] font-black text-primary italic" suppressHydrationWarning>{seasonProgress.toFixed(0)}%</span>
-                            </div>
-                            <Progress value={seasonProgress} className="h-1.5 bg-white/5" />
-                            <p className="text-[8px] font-black text-white/30 mt-2 uppercase tracking-widest" suppressHydrationWarning>Data Sinkronisasi: {stats.played} / {totalMatchesCount} Laga Selesai</p>
-                        </div>
-
-                         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                           <StatDisplay label="Main" value={stats.played} />
-                           <StatDisplay label="Menang" value={stats.win} />
-                           {activeSeason?.type !== 'Co-Op' && <StatDisplay label="Seri" value={stats.draw} />}
-                           <StatDisplay label="Kalah" value={stats.loss} />
-                           <StatDisplay label="Poin" value={player.points} variant="primary" />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                            <div className="space-y-2 text-center">
-                                <p className="text-[8px] font-black text-primary/60 uppercase tracking-widest">Intel Musim</p>
-                                <div className="grid gap-2">
-                                    <IntelCard icon={Percent} label="OVR Musim" value={`${winRate.toFixed(0)}%`} variant="primary" />
-                                    <IntelCard icon={Trophy} label="Peringkat Grup" value={`#${player.rank}`} />
+                    {/* Performance HUD Card */}
+                    <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[1.5rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 relative">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+                        
+                        <CardHeader className="p-4 bg-primary text-black relative z-10 border-b-2 border-black/10">
+                            <div className="flex flex-col items-center gap-1.5 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                    <Binary className="w-3.5 h-3.5" />
+                                    <h3 className="text-[10px] font-black tracking-[0.2em] uppercase italic">SEASON PERFORMANCE HUD</h3>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Badge className="bg-black text-primary border-none font-black uppercase italic text-[9px] px-3 h-5 shadow-lg">OVR {winRate.toFixed(0)}%</Badge>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest opacity-80">{performanceStatus?.text || "Status: Stabil"}</span>
                                 </div>
                             </div>
-                            <div className="space-y-2 text-center">
-                                <p className="text-[8px] font-black text-white/60 uppercase tracking-widest">Intel Karir</p>
-                                <div className="grid gap-2">
-                                    <IntelCard icon={Flame} label="OVR Master" value={masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
-                                    <IntelCard icon={Star} label="Peringkat Global" value={`#${masterInfo?.masterRank || '?'}`} />
+                        </CardHeader>
+
+                        <CardContent className="p-5 space-y-6 relative z-10">
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="text-[8px] font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-2">
+                                        <Scan className="w-3 h-3"/> Signal Progress
+                                    </h3>
+                                    <span className="text-[10px] font-black text-primary italic" suppressHydrationWarning>{seasonProgress.toFixed(0)}%</span>
+                                </div>
+                                <Progress value={seasonProgress} className="h-1 bg-white/10" />
+                                <p className="text-[7px] font-black text-white/20 mt-2 uppercase tracking-widest text-center" suppressHydrationWarning>SYNC: {stats.played} / {totalMatchesCount} UNITS COMPLETED</p>
+                            </div>
+
+                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                                <StatDisplay label="Main" value={stats.played} />
+                                <StatDisplay label="Menang" value={stats.win} />
+                                {activeSeason?.type !== 'Co-Op' && <StatDisplay label="Seri" value={stats.draw} />}
+                                <StatDisplay label="Kalah" value={stats.loss} />
+                                <StatDisplay label="Poin" value={player.points} variant="primary" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                                <div className="space-y-2 text-center">
+                                    <p className="text-[7px] font-black text-primary/60 uppercase tracking-widest">Season Intel</p>
+                                    <div className="grid gap-2">
+                                        <IntelCard icon={Percent} label="OVR Musim" value={`${winRate.toFixed(0)}%`} variant="primary" />
+                                        <IntelCard icon={Trophy} label="Rank Grup" value={`#${player.rank}`} />
+                                    </div>
+                                </div>
+                                <div className="space-y-2 text-center">
+                                    <p className="text-[7px] font-black text-white/60 uppercase tracking-widest">Career Intel</p>
+                                    <div className="grid gap-2">
+                                        <IntelCard icon={Flame} label="OVR Master" value={masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
+                                        <IntelCard icon={Star} label="Rank Global" value={`#${masterInfo?.masterRank || '?'}`} />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                   
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 bg-white/5 h-12 p-1 border-2 border-white/5 rounded-xl">
-                          <TabsTrigger value="history" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Riwayat</TabsTrigger>
-                          <TabsTrigger value="upcoming" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Sisa Laga</TabsTrigger>
-                          <TabsTrigger value="trend" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">Tren</TabsTrigger>
+                      <TabsList className="grid w-full grid-cols-3 bg-black/40 h-12 p-1 border-2 border-white/5 rounded-xl backdrop-blur-md">
+                          <TabsTrigger value="history" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">RIWAYAT</TabsTrigger>
+                          <TabsTrigger value="upcoming" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">SISA LAGA</TabsTrigger>
+                          <TabsTrigger value="trend" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">TREN</TabsTrigger>
                       </TabsList>
                       
                       <TabsContent value="history" className="pt-4 outline-none">
@@ -358,7 +376,7 @@ export function PlayerPerformanceDialog({
                                       </div>
                                       <div className="text-left">
                                           <div className="flex items-center gap-2">
-                                              <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                              <p className="text-xs font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
                                               <Badge variant="outline" className={cn("text-[7px] h-4 px-1.5 font-black uppercase italic tracking-tighter", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/40")}>
                                                   {match.isPlayer1 ? 'Home' : 'Away'}
                                               </Badge>
@@ -376,7 +394,7 @@ export function PlayerPerformanceDialog({
                                   </div>
                               ))}
                               </div>
-                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Activity className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Tidak Ada Data</p></div>}
+                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Activity className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-center">Tidak Ada Data</p></div>}
                       </TabsContent>
                       
                       <TabsContent value="upcoming" className="pt-4 outline-none">
@@ -387,36 +405,32 @@ export function PlayerPerformanceDialog({
                                       <div className="flex items-center gap-3">
                                           <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><Activity className="w-4 h-4 text-white/20"/></div>
                                           <div className="text-left">
-                                              <p className="text-xs font-black tracking-tight uppercase italic" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                              <p className="text-xs font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
                                               <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Terjadwal</p>
                                           </div>
                                       </div>
                                   </div>
                               ))}
                               </div>
-                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Zap className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Musim Selesai</p></div>}
+                          ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Zap className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-center">Musim Selesai</p></div>}
                       </TabsContent>
                       
                        <TabsContent value="trend" className="pt-4 outline-none">
-                          <Card className="bg-white/5 border-2 border-white/5 overflow-hidden rounded-2xl shadow-inner">
+                          <Card className="bg-black/60 backdrop-blur-xl border-2 border-white/5 overflow-hidden rounded-2xl shadow-inner relative group/trend">
+                              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
                               <CardHeader className="p-4 pb-2">
                                   <div className="flex justify-between items-center">
-                                      <CardTitle className="text-[10px] font-black tracking-[0.2em] text-primary uppercase flex items-center gap-2 italic">
-                                          <TrendingUp className="w-3 h-3"/> Stabilitas
+                                      <CardTitle className="text-[9px] font-black tracking-[0.3em] text-primary uppercase flex items-center gap-2 italic">
+                                          <TrendingUp className="w-3 h-3"/> STABILITY TREND
                                       </CardTitle>
                                       <Badge className="bg-primary/10 border-primary/30 text-primary text-[9px] font-black italic" suppressHydrationWarning>
                                           {chartData.length > 1 ? chartData[chartData.length - 1].points : 0} PTS
                                       </Badge>
                                   </div>
-                                   {performanceStatus && (
-                                      <CardDescription className={cn("text-[9px] font-black italic mt-1 uppercase tracking-tighter", performanceStatus.color)}>
-                                          Status: "{performanceStatus.text}"
-                                      </CardDescription>
-                                  )}
                               </CardHeader>
                               <CardContent className="p-4 pt-2">
                                   {isMounted && chartData.length > 1 ? (
-                                      <ChartContainer config={chartConfig} className="h-32 w-full opacity-80">
+                                      <ChartContainer config={chartConfig} className="h-32 w-full opacity-80 group-hover/trend:opacity-100 transition-opacity">
                                           <LineChart data={chartData} margin={{ left: -20, right: 10, top: 10 }}>
                                               <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                               <XAxis dataKey="match" hide />
@@ -425,7 +439,7 @@ export function PlayerPerformanceDialog({
                                               <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", r: 4, strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }} />
                                           </LineChart>
                                       </ChartContainer>
-                                  ) : <div className="text-center py-12 opacity-20 text-[10px] font-black uppercase italic">Data Tidak Cukup</div>}
+                                  ) : <div className="text-center py-12 opacity-20 text-[10px] font-black uppercase italic text-center">Data Tidak Cukup</div>}
                               </CardContent>
                           </Card>
                        </TabsContent>
