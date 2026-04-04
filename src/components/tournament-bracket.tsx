@@ -484,12 +484,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
                         <DialogHeader className="border-b border-white/10 pb-6 relative z-10">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                                <div className="flex items-center gap-4 text-primary">
+                                <div className="flex items-center gap-4 text-primary justify-center sm:justify-start">
                                     <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
-                                    <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD Analisis Pertandingan</DialogTitle>
-                                    <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
+                                    <div className="text-center sm:text-left"><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD Analisis Pertandingan</DialogTitle>
+                                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                                 </div>
-                                <div className="flex gap-4 items-center bg-white/10 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto">
+                                <div className="flex gap-4 items-center justify-center bg-white/10 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto">
                                     {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-primary/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black text-primary italic" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
                                     <div className="w-px h-6 bg-white/10" />
                                     {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-white/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black text-white italic" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
@@ -633,7 +633,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="space-y-1">
                                             <h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
                                             <div className="flex flex-col items-center gap-1.5">
-                                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={analysis1.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
+                                                </div>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
@@ -688,7 +691,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="space-y-1">
                                             <h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
                                             <div className="flex flex-col items-center gap-1.5">
-                                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Avatar className="h-4 w-4 opacity-60"><AvatarImage src={analysis2.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
+                                                </div>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <Badge className={cn("text-xs font-black uppercase tracking-tighter px-5 py-2 border-2 cursor-help shadow-lg animate-in fade-in zoom-in duration-500", 
