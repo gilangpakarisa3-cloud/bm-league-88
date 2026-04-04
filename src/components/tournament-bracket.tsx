@@ -74,7 +74,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
                                 <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                 <AvatarFallback className="bg-black/40 font-black text-[8px]"><User className="w-2.5 h-2.5"/></AvatarFallback>
                             </Avatar>
-                            <span className="text-[10px] font-black truncate uppercase italic pr-4 text-white/80" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
+                            <span className="text-[10px] font-black truncate uppercase italic text-white/80" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
                         </div>
                       );
                   })}
@@ -132,7 +132,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
                                       <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                       <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-2.5 h-2.5"/></AvatarFallback>
                                   </Avatar>
-                                  <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-4", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
+                                  <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
                               </div>
                               <div className={cn("px-1.5 py-0.5 rounded bg-white/5 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
                           </div>
@@ -339,7 +339,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   return (
     <div className="w-full relative">
-        <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black italic leading-none pr-4">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black italic -mt-4 tracking-[0.8em] pr-4">EIGHTY EIGHT</span></div>
+        <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
         {(!matches || matches.filter(m => m.bracketId).length === 0) && rankedTable.length > 0 && (
             <div className="mb-6 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-xl p-4 backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-4"><div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-500 shadow-lg"><Scan className="w-5 h-5" /></div><div className="flex-1">
@@ -352,7 +352,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <div className="basis-[65%] shrink-0 flex flex-col gap-4 sm:gap-8 relative pr-4 sm:pr-8">
                     <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
                         <div className="space-y-6 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic pr-4">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
+                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
                             <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-4">
                                 <div className="flex flex-col gap-8 relative">
                                   <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
@@ -375,7 +375,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     </div>
                     <div className="flex-1 relative bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
                         <div className="space-y-6 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic pr-4">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
+                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
                             <div className="flex items-center gap-4 pl-2 sm:pl-4">
                                 <div className="flex flex-col gap-8">
                                   <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
@@ -452,7 +452,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className="text-center space-y-2 sm:space-y-4">
                             <div className="flex items-center justify-center gap-4">
                                 <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
-                                <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic pr-4 drop-shadow-[0_0_40px_rgba(255,255,255,0.1)] leading-none">Grand Final</h3>
+                                <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic leading-none">Grand Final</h3>
                                 <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
                             </div>
                             <div className="flex flex-col items-center gap-1">
@@ -486,7 +486,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                                 <div className="flex items-center gap-4 text-primary">
                                     <div className="p-3 bg-primary/10 rounded-2xl ring-2 ring-primary/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
-                                    <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none pr-4">HUD Analisis Pertandingan</DialogTitle>
+                                    <div><DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD Analisis Pertandingan</DialogTitle>
                                     <div className="flex items-center gap-2 mt-2"><Badge className="bg-primary/20 text-primary border-primary/30 font-black tracking-widest text-[8px] uppercase">{selectedMatch?.round || 'Playoff'}</Badge><span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Tactical HUD System v4.0.1</span></div></div>
                                 </div>
                                 <div className="flex gap-4 items-center bg-white/10 px-4 py-2 rounded-xl border border-white/10 self-center sm:self-auto">
@@ -502,8 +502,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="flex items-center justify-center gap-4 text-primary">
                                     <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
                                     <div className="flex items-center gap-2">
-                                        <Settings2 className="w-5 h-5" />
-                                        <h4 className="text-sm font-black tracking-widest uppercase italic pr-4">Informasi Jadwal Laga</h4>
+                                        <span className="text-sm font-black tracking-widest uppercase italic">Informasi Jadwal Laga</span>
                                     </div>
                                     <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
                                 </div>
@@ -632,7 +631,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
                                         </div>
                                         <div className="space-y-1">
-                                            <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
+                                            <h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
                                                 <Popover>
@@ -650,7 +649,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
+                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic">SLOT TERSEDIA</h3></div>
                                 )}
                             </div>
 
@@ -687,7 +686,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-sm z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
                                         </div>
                                         <div className="space-y-1">
-                                            <h3 className="text-xl font-black uppercase italic text-white pr-4" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
+                                            <h3 className="text-xl font-black uppercase italic text-white" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span className="text-[8px] font-black text-white/40 uppercase tracking-widest" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
                                                 <Popover>
@@ -705,7 +704,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic pr-4">SLOT TERSEDIA</h3></div>
+                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic">SLOT TERSEDIA</h3></div>
                                 )}
                             </div>
                         </div>
@@ -715,7 +714,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="h-0.5 flex-1 bg-gradient-to-l from-primary/40 to-transparent rounded-full mr-4" />
                                 <div className="flex items-center gap-2">
                                     <Binary className="w-5 h-5" />
-                                    <h4 className="text-lg font-black tracking-widest uppercase italic pr-4">Statistik Momentum</h4>
+                                    <h4 className="text-lg font-black tracking-widest uppercase italic">Statistik Momentum</h4>
                                 </div>
                                 <div className="h-0.5 flex-1 bg-gradient-to-r from-primary/40 to-transparent rounded-full ml-4" />
                             </div>
@@ -728,7 +727,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <CardHeader className="p-4 bg-primary/5 border-b border-white/10">
                                                     <div className="flex flex-col items-center gap-2 text-center">
                                                         <div className="flex items-center justify-center gap-3">
-                                                            <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic pr-4">Statistik: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
+                                                            <h3 className="text-[10px] font-black tracking-widest text-primary/60 uppercase italic">Statistik: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
                                                             <Badge className="bg-primary/10 border-primary/30 text-primary font-black uppercase italic text-[8px]" suppressHydrationWarning>OVR: {an.winRate.toFixed(0)}%</Badge>
                                                         </div>
                                                         <p className={cn("text-[9px] font-black italic uppercase", an.quoteColor)}>Level: "{an.quote}"</p>
