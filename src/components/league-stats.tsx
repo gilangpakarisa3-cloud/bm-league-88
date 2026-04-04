@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { LeagueEntry, Player, Team, WithId, Season } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import { Award, ShieldCheck, User, ShieldAlert, TrendingUp, Handshake, Flame, Target, Zap, Activity } from "lucide-react";
+import { Award, ShieldCheck, User, ShieldAlert, TrendingUp, Handshake, Flame, Target, Zap, Activity, Scan } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
 import { Badge } from "./ui/badge";
@@ -41,84 +41,90 @@ const StatCard = ({
     ghostText?: string
 }) => (
     <Card className={cn(
-        "group relative overflow-hidden transition-all duration-700 border-2 hover:scale-[1.01] bg-card/80 backdrop-blur-3xl rounded-[1.5rem] sm:rounded-[2rem]",
+        "group relative overflow-hidden transition-all duration-700 border-0 bg-transparent rounded-[2rem] sm:rounded-[2.5rem] p-[2px] hover:scale-[1.01]",
         variant === "destructive" 
-            ? "border-red-500/20 hover:border-red-500/50 hover:shadow-[0_0_50px_rgba(239,68,68,0.15)]" 
-            : "border-primary/20 hover:border-primary/50 hover:shadow-[0_0_50px_rgba(204,253,1,0.15)]"
+            ? "bg-red-500/20 hover:shadow-[0_0_60px_rgba(239,68,68,0.2)]" 
+            : "bg-primary/20 hover:shadow-[0_0_60px_rgba(204,253,1,0.2)]"
     )}>
-        {/* Ultra Sport Background Textures */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.02),transparent)] pointer-events-none" />
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(0,0,0,0.1)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.1)_50%,rgba(0,0,0,0.1)_75%,transparent_75%,transparent)] bg-[size:4px_4px] opacity-20 pointer-events-none" />
+        {/* Inner Border Layout */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
         
-        {/* HUD Decoration Corners */}
-        <div className={cn(
-            "absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 opacity-30 pointer-events-none transition-all duration-700 group-hover:opacity-100 rounded-tl-[1.5rem] sm:rounded-tl-[2rem]",
-            variant === "destructive" ? "border-red-500" : "border-primary"
-        )} />
-        <div className={cn(
-            "absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 opacity-10 pointer-events-none transition-all duration-700 group-hover:opacity-40 rounded-br-[1.5rem] sm:rounded-br-[2rem]",
-            variant === "destructive" ? "border-red-500" : "border-primary"
-        )} />
-        
-        {/* Large Ghost Text Background */}
-        <span className="absolute bottom-[-10px] left-0 text-7xl sm:text-9xl font-black text-white/[0.02] uppercase tracking-tighter italic pointer-events-none group-hover:text-white/[0.04] transition-all duration-700 leading-none pl-6 pb-2 select-none pr-8">
-            {ghostText || title.split(' ')[0]}
-        </span>
-
-        <CardHeader className="pb-2 relative z-10">
-            <div className="flex items-center gap-4">
-                <div className={cn(
-                    "p-3 rounded-2xl transition-all duration-700 shadow-2xl relative overflow-hidden group-hover:rotate-6",
-                    variant === "destructive" 
-                        ? "bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white" 
-                        : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black"
-                )}>
-                    <div className="absolute inset-0 bg-current opacity-20 animate-pulse" />
-                    <Icon className="h-6 w-6 relative z-10" />
+        <div className="relative h-full bg-card/90 backdrop-blur-3xl rounded-[calc(2rem-2px)] sm:rounded-[calc(2.5rem-2px)] overflow-hidden flex flex-col">
+            
+            {/* SOLID SPORT HEADER */}
+            <div className={cn(
+                "relative py-4 px-6 sm:px-8 flex items-center justify-between overflow-hidden shrink-0",
+                variant === "destructive" ? "bg-red-500 text-white" : "bg-primary text-black"
+            )}>
+                {/* Slanted Decoration */}
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                
+                <div className="flex items-center gap-3 relative z-10">
+                    <div className="bg-black/20 p-2 rounded-lg border border-black/10">
+                        <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black tracking-[0.1em] uppercase italic leading-none pr-2">{title}</h3>
                 </div>
-                <div className="flex flex-col">
-                    <CardTitle className="text-xs sm:text-sm font-black tracking-[0.2em] uppercase italic pr-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] text-white/90">{title}</CardTitle>
-                    <div className={cn("h-0.5 w-8 rounded-full mt-1", variant === "destructive" ? "bg-red-500/40" : "bg-primary/40")} />
+                
+                <div className="flex items-center gap-2 relative z-10 opacity-60">
+                    <Scan className="w-3.5 h-3.5" />
+                    <span className="text-[8px] font-black uppercase tracking-widest hidden xs:block">Live Intel</span>
                 </div>
             </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-3 pt-4 relative z-10">
-            {players.map(player => (
-                <div key={player.id} className="group/item flex items-center justify-between bg-black/40 p-3 sm:p-4 rounded-2xl border-2 border-white/5 hover:border-primary/30 transition-all duration-500 hover:translate-x-2 shadow-inner relative overflow-hidden">
-                    <div className={cn(
-                        "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
-                        variant === "destructive" ? "bg-red-500/20 group-hover/item:bg-red-500" : "bg-primary/20 group-hover/item:bg-primary"
-                    )} />
-                    
-                    <div className="flex items-center gap-4 overflow-hidden relative z-10">
-                        <div className="relative shrink-0">
+
+            {/* GLASSY BODY */}
+            <div className="flex-1 p-5 sm:p-8 space-y-4 relative overflow-hidden">
+                {/* HUD Decoration Texture */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px:20px] pointer-events-none" />
+                
+                {/* HUD Corner Decorations */}
+                <div className={cn(
+                    "absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 opacity-20 pointer-events-none rounded-tl-2xl",
+                    variant === "destructive" ? "border-red-500" : "border-primary"
+                )} />
+                <div className={cn(
+                    "absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 opacity-10 pointer-events-none rounded-br-xl",
+                    variant === "destructive" ? "border-red-500" : "border-primary"
+                )} />
+
+                {/* Ghost Text */}
+                <span className="absolute bottom-2 left-6 text-8xl sm:text-[10rem] font-black text-white/[0.02] uppercase tracking-tighter italic pointer-events-none leading-none select-none pr-10">
+                    {ghostText || title.split(' ')[0]}
+                </span>
+
+                <div className="space-y-3 relative z-10">
+                    {players.map(player => (
+                        <div key={player.id} className="group/item flex items-center justify-between bg-white/[0.03] p-3 sm:p-4 rounded-2xl border border-white/5 hover:border-primary/20 transition-all duration-500 hover:translate-x-1 shadow-sm relative overflow-hidden">
                             <div className={cn(
-                                "absolute -inset-1.5 rounded-full blur-md opacity-0 transition-opacity duration-500 group-hover/item:opacity-40",
+                                "absolute left-0 top-0 bottom-0 w-1 opacity-20 transition-all duration-500 group-hover/item:opacity-100",
                                 variant === "destructive" ? "bg-red-500" : "bg-primary"
                             )} />
-                            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-2xl relative z-10 transition-transform group-hover/item:scale-110">
-                                <AvatarImage src={player.team?.logoUrl} alt={player.playerName} className="object-cover" />
-                                <AvatarFallback className="bg-black/60"><User className="h-6 w-6 text-white/10" /></AvatarFallback>
-                            </Avatar>
+                            
+                            <div className="flex items-center gap-4 overflow-hidden relative z-10">
+                                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-white/10 shadow-lg group-hover/item:scale-105 transition-transform duration-500">
+                                    <AvatarImage src={player.team?.logoUrl} alt={player.playerName} className="object-cover" />
+                                    <AvatarFallback className="bg-black/60 font-black text-xs">P</AvatarFallback>
+                                </Avatar>
+                                <div className="overflow-hidden">
+                                    <p className="text-sm sm:text-base font-black truncate uppercase italic text-white group-hover/item:text-primary transition-colors leading-tight pr-4">{player.playerName}</p>
+                                    <p className="text-[9px] text-white/30 font-black tracking-widest truncate uppercase group-hover/item:text-white/50 transition-colors">{player.teamName || 'Independent'}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="text-right ml-4 shrink-0 flex items-baseline gap-1 relative z-10">
+                                <span className={cn(
+                                    "text-3xl sm:text-4xl font-black italic tabular-nums leading-none drop-shadow-md",
+                                    variant === "destructive" ? "text-red-500" : "text-primary"
+                                )}>
+                                    {player[valueKey]}
+                                </span>
+                                {valueSuffix && <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{valueSuffix}</span>}
+                            </div>
                         </div>
-                        <div className="overflow-hidden">
-                            <p className="text-sm sm:text-base font-black truncate uppercase italic pr-4 transition-colors text-white group-hover/item:text-primary leading-tight">{player.playerName}</p>
-                            <p className="text-[10px] text-muted-foreground font-black tracking-widest truncate uppercase opacity-40 group-hover/item:opacity-80 transition-opacity">{player.teamName || 'Independent'}</p>
-                        </div>
-                    </div>
-                    <div className="text-right ml-4 flex-shrink-0 flex items-baseline gap-1.5 relative z-10">
-                        <span className={cn(
-                            "text-3xl sm:text-4xl font-black italic tabular-nums leading-none drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]",
-                            variant === "destructive" ? "text-red-500" : "text-primary"
-                        )}>
-                            {player[valueKey]}
-                        </span>
-                        {valueSuffix && <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">{valueSuffix}</span>}
-                    </div>
+                    ))}
                 </div>
-            ))}
-        </CardContent>
+            </div>
+        </div>
     </Card>
 );
 
@@ -284,76 +290,25 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             )}
 
             {showUnbeaten && (
-                <Card className="group relative overflow-hidden transition-all duration-700 border-2 border-primary/20 hover:border-primary/50 bg-card/80 backdrop-blur-3xl hover:shadow-[0_0_50px_rgba(204,253,1,0.15)] rounded-[1.5rem] sm:rounded-[2rem]">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,253,1,0.05),transparent)] pointer-events-none" />
-                    <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary/30 opacity-30 pointer-events-none group-hover:opacity-100 transition-all rounded-tl-[1.5rem] sm:rounded-tl-[2rem]" />
-                    <span className="absolute bottom-[-10px] left-0 text-7xl sm:text-9xl font-black text-white/[0.02] uppercase tracking-tighter italic pointer-events-none leading-none pl-6 pb-2 select-none pr-8">IMMORTAL</span>
-                    <CardHeader className="pb-2 relative z-10">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-black transition-all duration-700 shadow-2xl relative overflow-hidden group-hover:-rotate-6">
-                                <div className="absolute inset-0 bg-current opacity-20 animate-pulse" />
-                                <ShieldCheck className="h-6 w-6 relative z-10" />
-                            </div>
-                            <div className="flex flex-col">
-                                <CardTitle className="text-xs sm:text-sm font-black tracking-[0.2em] uppercase italic pr-4 text-white/90">{t('fun_stats_unbeaten')}</CardTitle>
-                                <div className="h-0.5 w-8 bg-primary/40 rounded-full mt-1" />
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3 pt-4 relative z-10">
-                        {stats.unbeaten.map(player => (
-                            <div key={player.id} className="group/item flex items-center gap-4 bg-black/40 p-3 sm:p-4 rounded-2xl border-2 border-white/5 hover:border-primary/30 transition-all duration-500 hover:translate-x-2 shadow-inner relative overflow-hidden">
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/20 group-hover/item:bg-primary transition-all duration-500" />
-                                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-2xl relative z-10 group-hover/item:scale-110 transition-transform">
-                                    <AvatarImage src={player.team?.logoUrl} alt={player.playerName} className="object-cover" />
-                                    <AvatarFallback className="bg-black/60"><User className="h-6 w-6 text-white/10" /></AvatarFallback>
-                                </Avatar>
-                                <div className="overflow-hidden">
-                                    <p className="text-sm sm:text-base font-black uppercase italic pr-4 truncate text-white group-hover/item:text-primary transition-colors">{player.playerName}</p>
-                                    <p className="text-[10px] text-white/30 font-black tracking-widest uppercase truncate opacity-40 group-hover/item:opacity-80">{player.teamName || 'Independent'}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
+                <StatCard 
+                    title={t('fun_stats_unbeaten')}
+                    icon={ShieldCheck}
+                    players={stats.unbeaten}
+                    valueKey="played"
+                    valueSuffix="Log"
+                    ghostText="IMMORTAL"
+                />
             )}
 
             {seasonType === 'Single' && stats.championshipContenders.length > 0 && (
-                <Card className="group relative overflow-hidden transition-all duration-700 border-2 border-yellow-500/20 hover:border-yellow-500/50 bg-card/80 backdrop-blur-3xl hover:shadow-[0_0_50px_rgba(234,179,8,0.15)] rounded-[1.5rem] sm:rounded-[2rem]">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(234,179,8,0.05),transparent)] pointer-events-none" />
-                    <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-yellow-500/30 opacity-30 pointer-events-none group-hover:opacity-100 transition-all rounded-tl-[1.5rem] sm:rounded-tl-[2rem]" />
-                    <span className="absolute bottom-[-10px] left-0 text-7xl sm:text-9xl font-black text-white/[0.02] uppercase tracking-tighter italic pointer-events-none leading-none pl-6 pb-2 select-none pr-8">TITLE</span>
-                    <CardHeader className="pb-2 relative z-10">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-2xl bg-yellow-500/10 text-yellow-500 group-hover:bg-yellow-500 group-hover:text-black transition-all duration-700 shadow-2xl relative overflow-hidden group-hover:rotate-12">
-                                <div className="absolute inset-0 bg-current opacity-20 animate-pulse" />
-                                <Flame className="h-6 w-6 relative z-10" />
-                            </div>
-                            <div className="flex flex-col">
-                                <CardTitle className="text-xs sm:text-sm font-black tracking-[0.2em] uppercase italic pr-4 text-white/90">{t('fun_stats_championship_contender')}</CardTitle>
-                                <div className="h-0.5 w-8 bg-yellow-500/40 rounded-full mt-1" />
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3 pt-4 relative z-10">
-                        {stats.championshipContenders.map(player => (
-                             <div key={player.id} className="group/item flex items-center justify-between bg-black/40 p-3 sm:p-4 rounded-2xl border-2 border-white/5 hover:border-yellow-500/30 transition-all duration-500 hover:translate-x-2 shadow-inner relative overflow-hidden">
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-500/20 group-hover/item:bg-yellow-500 transition-all duration-500" />
-                                <div className="flex items-center gap-4 overflow-hidden relative z-10">
-                                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-2xl relative z-10 group-hover/item:scale-110 transition-transform">
-                                        <AvatarImage src={player.team?.logoUrl} alt={player.playerName} className="object-cover" />
-                                        <AvatarFallback className="bg-black/60"><User className="h-6 w-6 text-white/10" /></AvatarFallback>
-                                    </Avatar>
-                                    <div className="overflow-hidden">
-                                        <p className="text-sm sm:text-base font-black uppercase italic pr-4 truncate text-white group-hover/item:text-yellow-500 transition-colors leading-tight">{player.playerName}</p>
-                                        <p className="text-[10px] text-white/30 font-black tracking-widest uppercase truncate opacity-40 group-hover/item:opacity-80">{player.teamName || 'Independent'}</p>
-                                    </div>
-                                </div>
-                                <Badge variant="outline" className="text-[10px] font-black border-yellow-500/50 text-yellow-500 bg-yellow-500/10 py-1 h-6 animate-pulse px-3">-{player.pointsBehind} PTS</Badge>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
+                <StatCard 
+                    title={t('fun_stats_championship_contender')}
+                    icon={Flame}
+                    players={stats.championshipContenders}
+                    valueKey="points"
+                    valueSuffix="Pts"
+                    ghostText="TITLE"
+                />
             )}
         </div>
     );
