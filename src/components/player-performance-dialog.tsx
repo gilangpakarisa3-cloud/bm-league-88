@@ -48,7 +48,7 @@ const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: an
   <div className={cn(
       "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel",
       variant === "primary" ? "bg-primary/10 border-primary/20 hover:border-primary/50" : 
-      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/30"
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"
   )}>
       <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
       <div className="flex items-center justify-center gap-1.5 relative z-10">
@@ -356,69 +356,98 @@ export function PlayerPerformanceDialog({
                     </Card>
                   
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 bg-black/40 h-12 p-1 border-2 border-white/5 rounded-xl backdrop-blur-md">
-                          <TabsTrigger value="history" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">RIWAYAT</TabsTrigger>
-                          <TabsTrigger value="upcoming" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">SISA LAGA</TabsTrigger>
-                          <TabsTrigger value="trend" className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black transition-all">TREN</TabsTrigger>
-                      </TabsList>
+                      <div className="flex justify-center mb-6">
+                        <TabsList className="grid grid-cols-3 w-full h-14 sm:h-16 bg-black/60 p-1.5 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
+                            <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary/60" />
+                            <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary/60" />
+                            
+                            {['history', 'upcoming', 'trend'].map((tab) => (
+                                <TabsTrigger 
+                                    key={tab}
+                                    value={tab} 
+                                    className={cn(
+                                        "relative h-full font-black uppercase tracking-[0.1em] text-[10px] italic transition-all duration-700 group/tab overflow-hidden",
+                                        "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                    )}
+                                >
+                                    <span className="relative z-10">{tab === 'history' ? 'RIWAYAT' : tab === 'upcoming' ? 'SISA LAGA' : 'TREN'}</span>
+                                    <div className={cn(
+                                        "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                        "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_30px_rgba(204,253,1,0.4)]",
+                                        "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                    )} />
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                      </div>
                       
-                      <TabsContent value="history" className="pt-4 outline-none">
+                      <TabsContent value="history" className="pt-2 outline-none">
                            {completedMatches.length > 0 ? (
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                               {completedMatches.map(match => (
-                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] transition-all group/match">
-                                  <div className="flex items-center gap-3">
-                                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm", 
-                                          match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
-                                          match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                                          "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")}>
-                                          {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
-                                      </div>
-                                      <div className="text-left">
-                                          <div className="flex items-center gap-2">
-                                              <p className="text-xs font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
-                                              <Badge variant="outline" className={cn("text-[7px] h-4 px-1.5 font-black uppercase italic tracking-tighter", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/40")}>
-                                                  {match.isPlayer1 ? 'Home' : 'Away'}
-                                              </Badge>
-                                          </div>
-                                          <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]" suppressHydrationWarning>{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>
-                                      </div>
-                                  </div>
-                                  <p className="text-lg font-black tabular-nums italic" suppressHydrationWarning>
-                                      {match.isPlayer1 ? (
-                                          <><span className={match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-400' : 'text-yellow-400'}>{match.playerResult}</span><span className="mx-1 text-white/10">-</span><span className="text-white/40">{match.opponentResult}</span></>
-                                      ) : (
-                                          <><span className="text-white/40">{match.opponentResult}</span><span className="mx-1 text-white/10">-</span><span className={match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-400' : 'text-yellow-400'}>{match.playerResult}</span></>
-                                      )}
-                                  </p>
+                                  <div key={match.id} className="group/match relative overflow-hidden transition-all duration-500 border-2 border-white/5 bg-black/40 backdrop-blur-xl hover:border-primary/30 p-3.5 rounded-2xl flex items-center justify-between shadow-2xl">
+                                    <div className={cn(
+                                        "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
+                                        match.result === 'W' ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.8)]" : 
+                                        match.result === 'L' ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" : 
+                                        "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.8)]"
+                                    )} />
+                                    
+                                    <div className="flex items-center gap-3 relative z-10">
+                                        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2 shadow-sm", 
+                                            match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
+                                            match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
+                                            "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")}>
+                                            {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-[11px] font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                                <Badge variant="outline" className={cn("text-[7px] h-4 px-1.5 font-black uppercase italic tracking-tighter", match.isPlayer1 ? "border-primary/30 text-primary" : "border-white/20 text-white/40")}>
+                                                    {match.isPlayer1 ? 'Home' : 'Away'}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]" suppressHydrationWarning>{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 relative z-10 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
+                                        <span className={cn("text-base font-black tabular-nums italic", match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-400' : 'text-yellow-400')} suppressHydrationWarning>
+                                            {match.isPlayer1 ? match.playerResult : match.opponentResult}
+                                        </span>
+                                        <span className="text-[10px] font-black text-white/10">:</span>
+                                        <span className="text-base font-black tabular-nums italic text-white/40" suppressHydrationWarning>
+                                            {match.isPlayer1 ? match.opponentResult : match.playerResult}
+                                        </span>
+                                    </div>
                                   </div>
                               ))}
                               </div>
                           ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Activity className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-center">Tidak Ada Data</p></div>}
                       </TabsContent>
                       
-                      <TabsContent value="upcoming" className="pt-4 outline-none">
+                      <TabsContent value="upcoming" className="pt-2 outline-none">
                            {upcomingMatches.length > 0 ? (
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                               {upcomingMatches.map(match => (
-                                  <div key={match.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border-2 border-dashed border-white/5 opacity-60">
-                                      <div className="flex items-center gap-3">
-                                          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5"><Activity className="w-4 h-4 text-white/20"/></div>
+                                  <div key={match.id} className="group/match relative overflow-hidden transition-all duration-500 border-2 border-dashed border-white/5 bg-black/20 backdrop-blur-sm p-3.5 rounded-2xl flex items-center justify-between opacity-60">
+                                      <div className="flex items-center gap-3 relative z-10">
+                                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/5"><Activity className="w-4 h-4 text-white/20"/></div>
                                           <div className="text-left">
-                                              <p className="text-xs font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
-                                              <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Terjadwal</p>
+                                              <p className="text-[11px] font-black tracking-tight uppercase italic pr-2" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
+                                              <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Sinyal Terdeteksi • Terjadwal</p>
                                           </div>
                                       </div>
+                                      <Badge variant="outline" className="text-[8px] font-black border-white/10 text-white/20 uppercase italic">QUEUE</Badge>
                                   </div>
                               ))}
                               </div>
                           ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-3"><Zap className="w-8 h-8"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-center">Musim Selesai</p></div>}
                       </TabsContent>
                       
-                       <TabsContent value="trend" className="pt-4 outline-none">
-                          <Card className="bg-black/60 backdrop-blur-xl border-2 border-white/5 overflow-hidden rounded-2xl shadow-inner relative group/trend">
+                       <TabsContent value="trend" className="pt-2 outline-none">
+                          <Card className="bg-black/60 backdrop-blur-xl border-2 border-white/5 overflow-hidden rounded-[1.5rem] shadow-inner relative group/trend">
                               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-                              <CardHeader className="p-4 pb-2">
+                              <CardHeader className="p-4 pb-2 bg-primary/5">
                                   <div className="flex justify-between items-center">
                                       <CardTitle className="text-[9px] font-black tracking-[0.3em] text-primary uppercase flex items-center gap-2 italic">
                                           <TrendingUp className="w-3 h-3"/> STABILITY TREND
@@ -428,7 +457,7 @@ export function PlayerPerformanceDialog({
                                       </Badge>
                                   </div>
                               </CardHeader>
-                              <CardContent className="p-4 pt-2">
+                              <CardContent className="p-4 pt-4">
                                   {isMounted && chartData.length > 1 ? (
                                       <ChartContainer config={chartConfig} className="h-32 w-full opacity-80 group-hover/trend:opacity-100 transition-opacity">
                                           <LineChart data={chartData} margin={{ left: -20, right: 10, top: 10 }}>
