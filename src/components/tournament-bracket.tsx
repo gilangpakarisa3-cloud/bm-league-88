@@ -55,7 +55,7 @@ const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: an
       <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
       <div className="flex items-center justify-center gap-1.5 relative z-10">
           <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/40")} />
-          <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
       </div>
       <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
@@ -796,7 +796,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                                     {an.chartData.length > 1 ? an.chartData[an.chartData.length - 1].points : 0} PTS TREND
                                                                 </Badge>
                                                             </div>
-                                                            <ChartContainer config={chartConfig} className="h-32 w-full opacity-80 group-hover:opacity-100 transition-opacity">
+                                                            <ChartContainer config={chartConfig} className="h-32 w-full opacity-80 group-hover/trend:opacity-100 transition-opacity">
                                                                 <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
                                                                     <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                                     <XAxis dataKey="match" hide />
@@ -814,9 +814,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                                 "w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black border-2 shadow-inner transition-all hover:scale-110", 
                                                                 f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
                                                                 (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")
-                                                            )}>
-                                                                {f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}
-                                                            </div>
+                                                            )}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
                                                         ))}
                                                     </div>
                                                 </CardContent>

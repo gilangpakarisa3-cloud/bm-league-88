@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -92,15 +91,6 @@ export function Header() {
 
         {/* Action Section */}
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          <div className="hidden lg:flex flex-col items-end gap-0.5 opacity-40">
-            <div className="flex gap-1">
-              <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
-              <div className="w-1 h-1 bg-primary rounded-full animate-pulse delay-75" />
-              <div className="w-1 h-1 bg-primary rounded-full animate-pulse delay-150" />
-            </div>
-            <span className="text-[7px] font-black uppercase tracking-widest">System Link</span>
-          </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white/5 border-2 border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all shadow-lg group/lang">

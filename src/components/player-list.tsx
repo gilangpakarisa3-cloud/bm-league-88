@@ -63,9 +63,9 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     
     // 1. Calculate OVR for all
     const withOvr = players.map(p => {
-        const possiblePoints = (p.overallPlayed || 0) * 3;
+        const poss = (p.overallPlayed || 0) * 3;
         const actualPoints = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-        const ovrRating = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
+        const ovrRating = poss > 0 ? (actualPoints / poss) * 100 : 0;
         return { ...p, ovrRating };
     });
 
