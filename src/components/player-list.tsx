@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { User, Pencil, Trash2, Shield, Swords, Trophy, Target, Zap, Activity, Users, Scan, Star, Medal } from 'lucide-react';
+import { User, Pencil, Trash2, Shield, Swords, Trophy, Target, Zap, Activity, Users, Scan, Star, Medal, Binary } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
@@ -377,33 +377,40 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                             )}
                                         </div>
 
-                                        {/* Total Goals Section - Redesigned */}
-                                        <div className="relative z-10 flex flex-col bg-black/40 rounded-xl p-4 border border-white/5 group-hover/legacy:border-primary/30 transition-all duration-500 shadow-inner">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
-                                                <div className="flex items-center gap-1.5">
-                                                    <Activity className="w-2.5 h-2.5 text-primary/60" />
-                                                    <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] italic">Offensive Statistics</span>
+                                        {/* Total Goals Section - Redesigned to Super Sport Solid & Glassy */}
+                                        <div className="relative z-10 flex flex-col bg-primary/[0.03] rounded-2xl border-2 border-primary/20 group-hover/legacy:border-primary/50 transition-all duration-500 shadow-2xl overflow-hidden">
+                                            {/* Sub-Header Solid Strip */}
+                                            <div className="bg-primary px-4 py-1.5 flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Binary className="w-3 h-3 text-black" />
+                                                    <span className="text-[8px] font-black text-black uppercase tracking-[0.2em] italic">Offensive Statistics</span>
                                                 </div>
-                                                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
+                                                <Scan className="w-3 h-3 text-black/40" />
                                             </div>
                                             
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-[12px] font-black text-white uppercase italic tracking-tight pr-4">Total Goals Scored</span>
+                                            <div className="p-4 flex items-center justify-between relative">
+                                                {/* Glassy Overlay Pattern */}
+                                                <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.05)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20" />
+                                                
+                                                <div className="flex flex-col gap-0.5 relative z-10">
+                                                    <span className="text-[11px] font-black text-white/60 uppercase tracking-widest">Total Goals Scored</span>
                                                     <span className="text-[7px] font-bold text-white/20 uppercase tracking-widest">Career Aggregate Units</span>
                                                 </div>
-                                                <div className="flex items-center gap-3">
+                                                
+                                                <div className="flex items-center gap-3 relative z-10">
                                                     <div className="flex flex-col items-end leading-none">
-                                                        <span className="text-3xl font-black text-primary italic tabular-nums drop-shadow-[0_0_15px_rgba(204,253,1,0.5)]">
+                                                        <span className="text-3xl font-black text-primary italic tabular-nums drop-shadow-[0_0_15px_rgba(204,253,1,0.5)]" suppressHydrationWarning>
                                                             {player.overallGoalsFor || 0}
                                                         </span>
                                                     </div>
-                                                    <div className="bg-primary/10 p-1.5 rounded-lg border border-primary/20 group-hover/legacy:scale-110 transition-transform duration-500">
+                                                    <div className="bg-black/40 p-1.5 rounded-lg border-2 border-primary/30 group-hover/legacy:scale-110 transition-transform duration-500 shadow-lg">
                                                         <Zap className="w-3.5 h-3.5 text-primary fill-primary animate-pulse" />
                                                     </div>
                                                 </div>
                                             </div>
+                                            
+                                            {/* Bottom Decoration line */}
+                                            <div className="h-1 w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
                                         </div>
                                         
                                         <div className="flex justify-between items-center text-[6px] font-black text-white/20 uppercase tracking-[0.2em] relative z-10 border-t border-white/5 pt-2">
