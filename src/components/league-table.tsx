@@ -149,10 +149,10 @@ const SingleTable = memo(({
          <div className="w-full overflow-x-auto scrollbar-ultra-sport">
         <Table className="min-w-full">
           <TableHeader>
-            <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14">
+            <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14 bg-black/40">
               <TableHead className="w-1.5 p-0"></TableHead>
               <TableHead className="w-8 sm:w-10 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em]">{t('rank')}</TableHead>
-              <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] min-w-[100px] sm:min-w-[140px] uppercase">{t('player')}</TableHead>
+              <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] min-w-[140px] sm:min-w-[180px] uppercase">{t('player')}</TableHead>
               <TableHead className="text-center font-black text-primary w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
               <TableHead className="text-center font-black text-green-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
               {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
@@ -220,59 +220,63 @@ const SingleTable = memo(({
                   </TableCell>
                   <TableCell className="relative overflow-visible py-2 sm:py-3">
                     <div 
-                      className="flex items-center gap-2 sm:gap-4 cursor-pointer group hover:translate-x-1 transition-transform duration-300"
+                      className="flex items-center gap-2 sm:gap-4 cursor-pointer group/node"
                       onClick={() => onSelectPlayer(entry)}
                     >
                        <div className="relative shrink-0">
+                          <div className={cn(
+                              "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity duration-500",
+                              isFirst ? "bg-primary/20 opacity-100" : "group-hover/node:bg-primary/10 group-hover/node:opacity-100"
+                          )} />
                           <Avatar className={cn(
-                              "h-8 w-8 sm:h-12 sm:w-12 border-2 transition-all duration-500 shadow-xl relative z-10",
-                              isFirst ? "border-primary scale-110 shadow-[0_0_20px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover:border-primary"
+                              "h-10 w-10 sm:h-14 sm:w-14 border-2 transition-all duration-500 shadow-xl relative z-10",
+                              isFirst ? "border-primary scale-110" : "border-white/10 group-hover/node:border-primary group-hover/node:scale-105"
                           )}>
                             <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
-                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/30"/></AvatarFallback>
+                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-5 h-5 sm:w-7 sm:h-7 text-white/30"/></AvatarFallback>
                           </Avatar>
                           {isFirst && (
-                             <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-primary rounded-full p-0.5 sm:p-1 shadow-lg border-2 border-background z-20 animate-bounce">
-                                <Trophy className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-black" />
+                             <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 shadow-lg border-2 border-background z-20 animate-bounce">
+                                <Trophy className="w-3 h-3 text-black" />
                              </div>
                           )}
                        </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                      <div className="flex-1 min-w-0 flex flex-col justify-center translate-y-[-1px]">
+                        <div className="flex items-center gap-2">
                            <span className={cn(
-                               "font-black tracking-tight transition-colors truncate uppercase italic transition-colors pr-4", 
-                               isFirst ? "text-xs sm:text-lg text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-[11px] sm:text-base text-white group-hover:text-primary"
+                               "font-black tracking-tight transition-colors truncate uppercase italic pr-2", 
+                               isFirst ? "text-sm sm:text-xl text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-[12px] sm:text-lg text-white group-hover/node:text-primary"
                             )}>
                                 {entry.playerName}
                             </span>
-                            <div className="flex items-center gap-1 mt-0.5 sm:mt-0">
+                            <div className="flex items-center gap-1 shrink-0">
                                 {isUnbeaten && (
-                                    <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
+                                    <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0 h-4 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
                                         UB
                                     </Badge>
                                 )}
                                 {isDefendingChampion && (
-                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1.5 py-0 h-3.5 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
+                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1.5 py-0 h-4 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
                                         CH
                                     </Badge>
                                 )}
                             </div>
                         </div>
-                        <div className="text-[7px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest truncate max-w-[80px] sm:max-w-none">
-                            {entry.team?.name || entry.teamName}
+                        <div className="text-[8px] sm:text-[11px] font-black text-white/30 uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate pr-4 group-hover/node:text-white/50 transition-colors">
+                            {entry.team?.name || entry.teamName || 'Athlete Protocol'}
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-white/80">{entry.played}</TableCell>
-                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-green-400">{entry.win}</TableCell>
-                  {!isCoop && <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400">{entry.draw}</TableCell>}
-                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400">{entry.loss}</TableCell>
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-white/80 tabular-nums">{entry.played}</TableCell>
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-green-400 tabular-nums">{entry.win}</TableCell>
+                  {!isCoop && <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400 tabular-nums">{entry.draw}</TableCell>}
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400 tabular-nums">{entry.loss}</TableCell>
                   {!isCoop && (
                     <>
-                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30">{entry.goalsFor}</TableCell>
-                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30">{entry.goalsAgainst}</TableCell>
-                        <TableCell className={cn("hidden lg:table-cell text-center px-2 text-sm font-black", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))}>
+                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsFor}</TableCell>
+                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsAgainst}</TableCell>
+                        <TableCell className={cn("hidden lg:table-cell text-center px-2 text-sm font-black tabular-nums", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))}>
                             {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
                         </TableCell>
                     </>
@@ -281,17 +285,17 @@ const SingleTable = memo(({
                       <div className="flex justify-center gap-1">
                           {playerForm.length > 0 ? playerForm.map((res, i) => (
                               <div key={i} className={cn(
-                                  "w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black border",
+                                  "w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black border transition-transform hover:scale-110",
                                   res === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : 
                                   res === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : 
                                   "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
                               )}>{res === 'W' ? 'M' : res === 'L' ? 'K' : 'S'}</div>
-                          )) : <span className="text-[8px] font-bold text-white/10 uppercase tracking-tighter italic">No Matches</span>}
+                          )) : <span className="text-[8px] font-bold text-white/10 uppercase tracking-tighter italic">No Data</span>}
                       </div>
                   </TableCell>
                   <TableCell className={cn(
-                      "text-center font-black text-lg sm:text-2xl px-1 sm:px-2 italic transition-all duration-500", 
-                      isFirst ? "text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.6)] scale-110" : "text-primary"
+                      "text-center font-black text-xl sm:text-3xl px-1 sm:px-2 italic transition-all duration-500 tabular-nums", 
+                      isFirst ? "text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.6)]" : "text-primary"
                     )}>
                     {entry.points}
                   </TableCell>
@@ -300,11 +304,11 @@ const SingleTable = memo(({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5"
+                        className="h-10 w-10 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5 rounded-xl"
                         onClick={() => onRemovePlayer?.(entry)}
                         title={`${t('remove')} ${entry.playerName}`}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4.5 w-4.5" />
                         <span className="sr-only">{t('remove_player')}</span>
                       </Button>
                     </TableCell>
@@ -390,7 +394,7 @@ export function LeagueTable({
   const isHybrid = seasonType === 'Hybrid';
 
   return (
-    <div className="w-full overflow-hidden rounded-xl sm:rounded-2xl border-2 border-white/5 bg-card/60 backdrop-blur-xl shadow-2xl">
+    <div className="w-full overflow-hidden rounded-xl sm:rounded-[2.5rem] border-2 border-white/5 bg-card/60 backdrop-blur-3xl shadow-2xl">
         {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend />}
         
         {isHybrid ? (
