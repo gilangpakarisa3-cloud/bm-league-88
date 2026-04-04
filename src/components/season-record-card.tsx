@@ -3,7 +3,7 @@
 import type { SeasonRecord, WithId } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Award, Trash2, Trophy, User, TrendingUp, ShieldAlert, Zap, Star, Activity, ShieldCheck, Target, ChevronRight, Binary, Shield, Medal } from "lucide-react";
+import { Award, Trash2, Trophy, User, TrendingUp, ShieldAlert, Zap, Star, Activity, ShieldCheck, Target, ChevronRight, Binary, Shield, Medal, Scan, CheckCircle2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useTranslation } from "@/hooks/use-translation";
 import { useLanguage } from "@/context/language-context";
@@ -29,13 +29,18 @@ const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip, variant =
                     variant === "destructive" ? "bg-red-500/5 border-red-500/20 hover:border-red-500/50" :
                     "bg-white/5 border-white/10 hover:border-white/20"
                 )}>
-                    {/* Interior HUD Accent */}
                     <div className={cn(
-                        "absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 opacity-20 transition-opacity group-hover/item:opacity-60",
+                        "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500 opacity-20 group-hover/item:opacity-100",
+                        variant === "primary" ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.8)]" : 
+                        variant === "destructive" ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" : "bg-white"
+                    )} />
+                    
+                    <div className={cn(
+                        "absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 opacity-10 transition-opacity group-hover/item:opacity-40",
                         variant === "primary" ? "border-primary" : variant === "destructive" ? "border-red-500" : "border-white"
                     )} />
                     
-                    <div className="flex items-center gap-2 relative z-10">
+                    <div className="flex items-center gap-2 relative z-10 pl-1">
                         <div className={cn(
                             "p-1.5 rounded-lg transition-colors",
                             variant === "primary" ? "bg-primary/10 text-primary" : 
@@ -46,7 +51,7 @@ const StatItem = ({ icon: Icon, label, value, valueClassName, tooltip, variant =
                         </div>
                         <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
                     </div>
-                    <span className={cn("font-black text-sm tracking-tighter uppercase italic truncate mt-1 relative z-10 pr-2", valueClassName)}>{value}</span>
+                    <span className={cn("font-black text-sm tracking-tighter uppercase italic truncate mt-1 relative z-10 pr-2 pl-1", valueClassName)}>{value}</span>
                 </div>
             </TooltipTrigger>
             <TooltipContent className="bg-[#0A192F] border-primary/30 backdrop-blur-xl">
@@ -66,18 +71,15 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
 
     return (
         <div className="group relative">
-            {/* Ultra Sport Dynamic Background Glow */}
             <div className="absolute -inset-1 bg-gradient-to-br from-yellow-400/40 via-transparent to-amber-600/40 rounded-3xl blur-2xl opacity-0 group-hover:opacity-30 transition-all duration-1000" />
             
             <Card className="relative flex flex-col h-full bg-[#0A192F]/80 backdrop-blur-2xl border-2 border-white/5 group-hover:border-yellow-400/40 transition-all duration-700 overflow-hidden rounded-[2.5rem] shadow-2xl">
                 
-                {/* Immersive Background Ghost Text */}
                 <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-[0.03] select-none flex flex-col items-start pt-12 pl-8 overflow-hidden">
                     <span className="text-[10rem] font-black italic leading-none group-hover:text-yellow-400/10 transition-colors duration-700 pr-10">THE</span>
                     <span className="text-[10rem] font-black italic -mt-16 text-primary group-hover:text-yellow-400/20 transition-colors duration-700 pr-10">CHAMPION</span>
                 </div>
 
-                {/* HUD Decoration Frame */}
                 <div className="absolute top-0 left-0 w-24 h-24 border-t-4 border-l-4 border-yellow-400/20 rounded-tl-[2.5rem] pointer-events-none group-hover:border-yellow-400/60 transition-colors duration-700" />
                 <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-yellow-400/10 rounded-br-[2.5rem] pointer-events-none group-hover:border-yellow-400/40 transition-colors duration-700" />
 
@@ -111,9 +113,7 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                 </CardHeader>
 
                 <CardContent className="flex flex-col items-center justify-center text-center p-10 flex-grow relative z-10">
-                    {/* Winner Spotlight Section */}
                     <div className="relative mb-10 group/avatar">
-                        {/* Winner Ambient Glow */}
                         <div className="absolute -inset-12 bg-yellow-400/10 rounded-full blur-[60px] opacity-40 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse" />
                         
                         <div className="relative z-10">
@@ -126,7 +126,6 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                                 </AvatarFallback>
                             </Avatar>
                             
-                            {/* Slanted Crown/Trophy Badge */}
                             <div className="absolute -bottom-4 -right-4 bg-yellow-400 text-black h-14 w-14 rounded-2xl flex items-center justify-center border-4 border-[#0A192F] shadow-2xl rotate-12 group-hover:rotate-0 transition-transform duration-500 group-hover:scale-110">
                                 <Trophy className="w-7 h-7 drop-shadow-lg" />
                             </div>
@@ -145,7 +144,6 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                         </div>
                     </div>
 
-                    {/* Elite Stats Scoreboard */}
                     <div className="w-full bg-black/40 rounded-[2rem] p-6 border-2 border-white/5 relative overflow-hidden shadow-inner group/stats">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent opacity-0 group-hover/stats:opacity-100 transition-opacity duration-1000" />
                         
@@ -178,13 +176,19 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                     </div>
                 </CardContent>
 
-                <CardFooter className="p-8 bg-black/60 backdrop-blur-xl relative z-10 border-t-2 border-white/5">
-                    <div className="w-full space-y-4">
-                        <div className="flex items-center gap-3 px-1 mb-2">
-                            <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] italic">Performance Sub-Units</span>
+                <CardFooter className="p-0 bg-black/60 backdrop-blur-3xl relative z-10 border-t-2 border-white/5 overflow-hidden flex flex-col">
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                    
+                    <div className="w-full bg-yellow-400 py-3 px-8 flex items-center justify-between relative overflow-hidden group/subhead shrink-0">
+                        <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                        <div className="flex items-center gap-3 relative z-10">
+                            <Zap className="w-4 h-4 text-black animate-pulse" />
+                            <h4 className="text-[10px] font-black tracking-[0.2em] uppercase italic text-black">Performance Sub-Units</h4>
                         </div>
-                        
+                        <Scan className="w-3.5 h-3.5 text-black/40 relative z-10" />
+                    </div>
+
+                    <div className="p-8 pt-6 w-full space-y-6 relative z-10">
                         <div className="grid grid-cols-2 gap-3.5">
                             {record.funStats?.mostWins && (
                                 <StatItem 
@@ -223,15 +227,19 @@ export function SeasonRecordCard({ record, isAdmin, onDelete }: { record: WithId
                             />
                         </div>
 
-                        {/* Verified Stamp Overlay */}
-                        <div className="pt-6 mt-2 flex items-center justify-between border-t border-white/5 opacity-40 group-hover:opacity-80 transition-opacity">
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-primary" />
-                                <span className="text-[7px] font-black uppercase tracking-[0.3em] text-white/60">Legacy Integrity Verified</span>
+                        <div className="flex items-center justify-between border-t border-white/5 pt-6 group/verify">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-green-500/10 rounded-lg border border-green-500/20 group-hover/verify:border-green-500/50 transition-colors">
+                                    <ShieldCheck className="w-4 h-4 text-green-400" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase italic tracking-tighter text-white/90">Legacy Integrity Verified</span>
+                                    <span className="text-[7px] font-black text-green-400/60 uppercase tracking-[0.2em]">Authenticity Protocol v2.4</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em]">SECURE LOG</span>
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
+                            <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
+                                <CheckCircle2 className="w-3 h-3 text-green-400 animate-pulse" />
+                                <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">SECURE LOG</span>
                             </div>
                         </div>
                     </div>
