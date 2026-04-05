@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords, Award, Zap, Activity, Flame, Scan } from 'lucide-react';
+import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords, Award, Zap, Activity, Flame, Scan, Binary } from 'lucide-react';
 import { EditableNotice } from '@/components/notice/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -231,55 +231,100 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                 />
             </div>
         ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 px-2 sm:px-0 max-w-[92rem] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 px-2 sm:px-0 max-w-[92rem] mx-auto items-start">
                 {leaderboardData ? (
                     isHybrid ? (
                         <>
-                            <div className="flex flex-col space-y-4">
-                                <div className="flex items-center gap-3 px-4">
-                                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5"/>
+                            {/* Group A Column */}
+                            <div className="flex flex-col group/card relative">
+                                <div className="bg-primary px-6 py-3 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
+                                    <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                                    <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
+                                        <div className="bg-black/20 p-1.5 rounded-lg border border-black/10 shadow-md">
+                                            <Trophy className="w-4 h-4 text-black" />
+                                        </div>
+                                        <h2 className="text-sm sm:text-base font-black uppercase italic tracking-widest text-black leading-none pr-2">4 Besar Grup A</h2>
                                     </div>
-                                    <h2 className="text-base sm:text-lg font-black uppercase italic tracking-tighter pr-2">4 Besar Grup A</h2>
+                                    <div className="flex items-center gap-2 relative z-10 opacity-40 skew-x-[12deg]">
+                                        <Scan className="w-3.5 h-3.5 text-black" />
+                                        <span className="text-[8px] font-black text-black uppercase tracking-widest hidden xs:block">INTEL_NODE</span>
+                                    </div>
                                 </div>
-                                <Card className="border-2 border-white/5 shadow-2xl overflow-hidden bg-card/40 backdrop-blur-xl rounded-2xl group/card">
-                                    {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
-                                        <LeaderboardTable players={leaderboardData.groupA} defendingChampionId={defendingChampionId} />
-                                    ) : (
-                                        <div className="p-12 text-center text-white/20 font-black uppercase tracking-widest text-xs italic">Menanti Kick-Off...</div>
-                                    )}
+
+                                <Card className="border-2 border-white/10 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-primary/30 transition-all duration-500 relative z-10">
+                                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                                    <div className="relative z-10">
+                                        {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
+                                            <LeaderboardTable players={leaderboardData.groupA} defendingChampionId={defendingChampionId} />
+                                        ) : (
+                                            <div className="p-16 text-center text-white/10 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-4">
+                                                <Zap className="w-10 h-10 opacity-20" />
+                                                MENANTI SINYAL KICK-OFF
+                                            </div>
+                                        )}
+                                    </div>
                                 </Card>
                             </div>
-                            <div className="flex flex-col space-y-4">
-                                <div className="flex items-center gap-3 px-4">
-                                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5"/>
+
+                            {/* Group B Column */}
+                            <div className="flex flex-col group/card relative">
+                                <div className="bg-primary px-6 py-3 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
+                                    <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                                    <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
+                                        <div className="bg-black/20 p-1.5 rounded-lg border border-black/10 shadow-md">
+                                            <Trophy className="w-4 h-4 text-black" />
+                                        </div>
+                                        <h2 className="text-sm sm:text-base font-black uppercase italic tracking-widest text-black leading-none pr-2">4 Besar Grup B</h2>
                                     </div>
-                                    <h2 className="text-base sm:text-lg font-black uppercase italic tracking-tighter pr-2">4 Besar Grup B</h2>
+                                    <div className="flex items-center gap-2 relative z-10 opacity-40 skew-x-[12deg]">
+                                        <Scan className="w-3.5 h-3.5 text-black" />
+                                        <span className="text-[8px] font-black text-black uppercase tracking-widest hidden xs:block">INTEL_NODE</span>
+                                    </div>
                                 </div>
-                                <Card className="border-2 border-white/5 shadow-2xl overflow-hidden bg-card/40 backdrop-blur-xl rounded-2xl group/card">
-                                    {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
-                                        <LeaderboardTable players={leaderboardData.groupB} defendingChampionId={defendingChampionId} />
-                                    ) : (
-                                        <div className="p-12 text-center text-white/20 font-black uppercase tracking-widest text-xs italic">Menanti Kick-Off...</div>
-                                    )}
+
+                                <Card className="border-2 border-white/10 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-primary/30 transition-all duration-500 relative z-10">
+                                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                                    <div className="relative z-10">
+                                        {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
+                                            <LeaderboardTable players={leaderboardData.groupB} defendingChampionId={defendingChampionId} />
+                                        ) : (
+                                            <div className="p-16 text-center text-white/10 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-4">
+                                                <Zap className="w-10 h-10 opacity-20" />
+                                                MENANTI SINYAL KICK-OFF
+                                            </div>
+                                        )}
+                                    </div>
                                 </Card>
                             </div>
                         </>
                     ) : (
-                        <div className="lg:col-span-2 flex flex-col max-w-3xl mx-auto w-full space-y-4">
-                            <div className="flex items-center justify-center gap-3">
-                                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                    <Award className="w-5 h-5 sm:w-6 sm:h-6"/>
+                        <div className="lg:col-span-2 flex flex-col max-w-3xl mx-auto w-full group/card relative">
+                            <div className="bg-primary px-8 py-4 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-xl">
+                                <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                                <div className="flex items-center gap-4 relative z-10 skew-x-[12deg]">
+                                    <div className="bg-black/20 p-2 rounded-lg border border-black/10 shadow-lg">
+                                        <Award className="w-6 h-6 text-black" />
+                                    </div>
+                                    <h2 className="text-xl sm:text-2xl font-black uppercase italic tracking-widest text-black leading-none pr-4">{t('home_top_players')}</h2>
                                 </div>
-                                <h2 className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter pr-2 sm:pr-4">{t('home_top_players')}</h2>
+                                <div className="flex items-center gap-3 relative z-10 opacity-40 skew-x-[12deg]">
+                                    <Binary className="w-5 h-5 text-black" />
+                                    <span className="text-[10px] font-black text-black uppercase tracking-[0.3em] hidden xs:block">MASTER_MANIFEST</span>
+                                </div>
                             </div>
-                            <Card className="border-2 border-white/5 shadow-2xl overflow-hidden bg-card/40 backdrop-blur-xl rounded-2xl sm:rounded-3xl group/card">
-                                {leaderboardData.top && leaderboardData.top.length > 0 ? (
-                                    <LeaderboardTable players={leaderboardData.top} defendingChampionId={defendingChampionId} />
-                                ) : (
-                                    <div className="p-12 text-center text-white/20 font-black uppercase tracking-widest text-xs italic">Data klasemen belum tersedia.</div>
-                                )}
+
+                            <Card className="border-4 border-white/10 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-primary/40 transition-all duration-500 relative z-10">
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
+                                <div className="relative z-10">
+                                    {leaderboardData.top && leaderboardData.top.length > 0 ? (
+                                        <LeaderboardTable players={leaderboardData.top} defendingChampionId={defendingChampionId} />
+                                    ) : (
+                                        <div className="p-20 text-center text-white/10 font-black uppercase tracking-widest text-sm italic flex flex-col items-center gap-6">
+                                            <Activity className="w-12 h-12 opacity-20 animate-pulse" />
+                                            {t('no_players_yet')}
+                                        </div>
+                                    )}
+                                </div>
                             </Card>
                         </div>
                     )
@@ -300,7 +345,7 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
   return (
      <Table>
       <TableHeader>
-          <TableRow className="hover:bg-transparent border-b-white/5 h-10 sm:h-12">
+          <TableRow className="hover:bg-transparent border-b-white/5 h-10 sm:h-12 bg-white/[0.02]">
           <TableHead className="w-1 p-0"></TableHead>
           <TableHead className="w-[40px] sm:w-[60px] pl-4 sm:pl-6 font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">#</TableHead>
           <TableHead className="font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">{t('player')}</TableHead>
