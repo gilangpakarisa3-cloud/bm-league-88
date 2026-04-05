@@ -1,6 +1,6 @@
 "use client";
 
-import Link from 'next/link';
+import Link from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Flame, Languages, Settings, Scan, Activity, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,20 +36,17 @@ export function Header() {
       </div>
       
       <div className="container mx-auto flex h-16 sm:h-24 items-center justify-between px-2 sm:px-6 gap-2 sm:gap-6">
-        {/* Brand/Logo Section */}
-        <Link href="/" className="flex items-center gap-3 sm:gap-4 group relative shrink-0">
+        {/* Brand/Logo Section - Compact Version */}
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group relative shrink-0">
           <div className="relative">
             <div className="absolute -inset-2 bg-primary/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <div className="bg-primary p-2 sm:p-2.5 rounded-xl rotate-12 group-hover:rotate-0 transition-all duration-500 shadow-[0_0_20px_rgba(204,253,1,0.5)] border-2 border-black/10 relative z-10">
-              <Flame className="h-5 w-5 sm:h-7 sm:w-7 text-black" />
+            <div className="bg-primary p-1.5 sm:p-2 rounded-xl rotate-12 group-hover:rotate-0 transition-all duration-500 shadow-[0_0_20px_rgba(204,253,1,0.5)] border-2 border-black/10 relative z-10">
+              <Flame className="h-4 w-4 sm:h-6 sm:w-6 text-black" />
             </div>
           </div>
-          <div className="flex flex-col">
-            <span className="font-black text-xl sm:text-3xl tracking-tighter uppercase italic text-white leading-none pr-4">
-              BM <span className="text-primary drop-shadow-[0_0_12px_rgba(204,253,1,0.4)]">88</span>
-            </span>
-            <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-[0.4em] text-white/30 italic">Engineering EightyEight</span>
-          </div>
+          <span className="font-black text-lg sm:text-2xl tracking-tighter uppercase italic text-white leading-none pr-2">
+            BM <span className="text-primary drop-shadow-[0_0_12px_rgba(204,253,1,0.4)]">88</span>
+          </span>
         </Link>
 
         {/* Super Sport Navigation Section */}
