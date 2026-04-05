@@ -344,16 +344,38 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
     
     return (
         <div className="space-y-10">
-            <div className="relative max-w-2xl mx-auto group">
-                <div className="absolute -inset-1 bg-primary/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/50 group-focus-within:text-primary transition-colors" />
-                <Input 
-                    type="text" 
-                    placeholder="Search Battle / Team..." 
-                    className="pl-14 h-14 bg-background/40 border-2 border-white/5 focus:border-primary/50 rounded-2xl text-lg font-black italic tracking-tight uppercase placeholder:text-white/20 transition-all shadow-2xl relative z-10" 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                />
+            <div className="relative max-w-2xl mx-auto group/search">
+                {/* Dynamic Ambient Background Glow */}
+                <div className="absolute -inset-4 bg-primary/5 rounded-none -skew-x-[12deg] blur-3xl opacity-0 group-hover/search:opacity-100 transition-opacity duration-1000" />
+                
+                <div className="relative flex items-center bg-black/60 border-b-4 border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.6)] backdrop-blur-3xl overflow-hidden -skew-x-[12deg] transition-all duration-500 group-hover/search:border-primary/30">
+                    
+                    {/* HUD Decorative Scanning Layer */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
+                        <div className="w-full h-[2px] bg-primary/20 blur-[1px] absolute top-0 left-0 animate-scanning" />
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                    </div>
+
+                    {/* SOLID SPORT SEARCH ICON BOX */}
+                    <div className="h-14 w-14 sm:h-16 sm:w-16 bg-primary flex items-center justify-center shrink-0 shadow-2xl border-r-4 border-black/20 relative z-10">
+                        <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                        <Search className="h-6 w-6 sm:h-7 sm:w-7 text-black skew-x-[12deg]" />
+                    </div>
+                    
+                    <Input 
+                        type="text" 
+                        placeholder="Search Battle / Team..." 
+                        className="flex-1 h-14 sm:h-16 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg sm:text-2xl font-black italic tracking-tight uppercase placeholder:text-white/10 transition-all relative z-10 skew-x-[12deg] pl-6 pr-8 text-white" 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                    />
+                    
+                    {/* HUD Right Accent */}
+                    <div className="hidden sm:flex items-center gap-2 pr-6 skew-x-[12deg] opacity-20 group-hover/search:opacity-40 transition-opacity">
+                        <Scan className="w-4 h-4 text-primary" />
+                        <span className="text-[8px] font-black text-primary uppercase tracking-widest">QUERY_LINK</span>
+                    </div>
+                </div>
             </div>
 
             {(upcomingCount === 0 && completedCount === 0 && searchTerm) ? (
@@ -587,7 +609,7 @@ export default function FixturesPage() {
             };
 
             const updateStats = (pId: string, change: any) => {
-                if (!pId || pId === 'TBD') return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 transaction.update(doc(firestore, 'players', pId), {
                     overallPlayed: increment(change.played || 0),
                     overallWin: increment(change.win || 0),
@@ -732,7 +754,7 @@ export default function FixturesPage() {
             }
 
             const updateStats = (pId: string, change: any) => {
-                if (!pId || pId === 'TBD') return;
+                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 transaction.update(doc(firestore, 'players', pId), {
                     overallPlayed: increment(change.played || 0),
                     overallWin: increment(change.win || 0),
