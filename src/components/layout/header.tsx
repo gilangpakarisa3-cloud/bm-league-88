@@ -70,11 +70,15 @@ export function Header() {
                   >
                     {/* Sport Slanted Background Layer */}
                     <div className={cn(
-                      "absolute inset-0 -skew-x-[8deg] sm:-skew-x-[15deg] transition-all duration-500 -z-10 origin-bottom",
+                      "absolute inset-0 -skew-x-[12deg] transition-all duration-500 -z-10 origin-bottom",
                       isActive 
-                        ? "bg-primary translate-y-0 shadow-[0_0_30px_rgba(204,253,1,0.4)] border-r border-black/20" 
+                        ? "bg-primary translate-y-0 shadow-[0_0_30px_rgba(204,253,1,0.4)] border-r-4 border-black/20" 
                         : "bg-white/[0.03] translate-y-full group-hover/link:translate-y-0 group-hover/link:bg-primary/10 border-r border-white/5"
-                    )} />
+                    )}>
+                      {isActive && (
+                        <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                      )}
+                    </div>
                     
                     <span className="relative z-10 flex items-center gap-1 sm:gap-2 px-0.5">
                       {isActive && <Zap className="w-2 h-2 fill-current animate-pulse hidden md:block" />}
