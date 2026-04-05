@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices, Binary } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -761,7 +761,7 @@ export default function LeaguePage() {
         <div className="space-y-8 sm:space-y-12">
             <div className="w-full">
                 <LeagueTable 
-                    tableData={sortedTable} 
+                    tableData={enrichedTableData} 
                     isLoading={isLoadingTableFinal}
                     onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
                     onSelectPlayer={setSelectedPlayerForStats}
