@@ -91,28 +91,32 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
         players: sortedPlayers.slice(0, 4), 
         color: 'text-yellow-400', 
         bgShadow: 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)]',
-        cardBorder: 'group-hover:border-yellow-400/30'
+        cardBorder: 'group-hover:border-yellow-400/50',
+        cardBg: 'bg-yellow-400/[0.08] backdrop-blur-3xl border-yellow-400/20 shadow-[inset_0_0_60px_rgba(250,204,21,0.05)]'
       },
       { 
         title: 'Top Player', 
         players: sortedPlayers.slice(4, 8), 
         color: 'text-primary', 
         bgShadow: 'bg-primary shadow-[0_0_15px_rgba(204,253,1,0.4)]',
-        cardBorder: 'group-hover:border-primary/30'
+        cardBorder: 'group-hover:border-primary/50',
+        cardBg: 'bg-primary/[0.06] backdrop-blur-3xl border-primary/20 shadow-[inset_0_0_60px_rgba(204,253,1,0.03)]'
       },
       { 
         title: 'Reguler', 
         players: sortedPlayers.slice(8, 12), 
         color: 'text-accent', 
         bgShadow: 'bg-accent shadow-[0_0_15px_rgba(100,255,218,0.4)]',
-        cardBorder: 'group-hover:border-accent/30'
+        cardBorder: 'group-hover:border-accent/50',
+        cardBg: 'bg-accent/[0.06] backdrop-blur-3xl border-accent/20 shadow-[inset_0_0_60px_rgba(100,255,218,0.03)]'
       },
       { 
         title: 'Amateur', 
         players: sortedPlayers.slice(12), 
         color: 'text-pink-500', 
         bgShadow: 'bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]',
-        cardBorder: 'group-hover:border-pink-500/30'
+        cardBorder: 'group-hover:border-pink-500/50',
+        cardBg: 'bg-pink-500/[0.06] backdrop-blur-3xl border-pink-500/20 shadow-[inset_0_0_60px_rgba(236,72,153,0.03)]'
       },
     ].filter(t => t.players.length > 0);
   }, [sortedPlayers]);
@@ -199,7 +203,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                             key={i} 
                             className={cn(
                                 "rounded-full transition-all duration-1000",
-                                i < 3 ? tier.bgShadow : "bg-white/5",
+                                i < 3 ? tier.bgShadow.split(' ')[0] : "bg-white/5",
                                 i === 0 ? "flex-[3] md:h-20" : "flex-1 md:h-4"
                             )} 
                         />
@@ -238,10 +242,14 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                 
                 return (
                     <div key={player.id} className="group relative">
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-primary to-accent rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500" />
+                        <div className={cn(
+                            "absolute -inset-1 bg-gradient-to-br rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-1000",
+                            tier.title === 'Legend' ? "from-yellow-400 to-amber-600" : "from-primary to-accent"
+                        )} />
                         
                         <Card className={cn(
-                            "relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 transition-all duration-500 overflow-hidden rounded-2xl",
+                            "relative flex flex-col h-full transition-all duration-500 overflow-hidden rounded-2xl border-2",
+                            tier.cardBg,
                             tier.cardBorder
                         )}>
                             <div className="relative pt-10 pb-6 flex flex-col items-center overflow-hidden">
@@ -250,15 +258,23 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                 </span>
                                 
                                 <div className="relative z-10">
+                                    {/* Photo Scan Line */}
+                                    <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none z-20 opacity-0 group-hover:opacity-20 transition-opacity">
+                                        <div className={cn("w-full h-1 blur-[1px] animate-scanning", tier.title === 'Legend' ? "bg-yellow-400" : "bg-primary")} />
+                                    </div>
+
                                     <Avatar className={cn(
-                                        "h-28 w-28 border-4 border-white/5 transition-all duration-500 shadow-2xl scale-100 group-hover:scale-105",
+                                        "h-28 w-28 border-4 transition-all duration-500 shadow-2xl scale-100 group-hover:scale-105",
                                         tier.cardBorder.replace('group-hover:', '')
                                     )}>
                                         <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
-                                        <AvatarFallback className="bg-white/5"><User className="h-14 w-14 text-white/20" /></AvatarFallback>
+                                        <AvatarFallback className="bg-black/40"><User className="h-14 w-14 text-white/20" /></AvatarFallback>
                                     </Avatar>
                                     
-                                    <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground h-14 w-14 rounded-xl flex flex-col items-center justify-center border-4 border-background shadow-2xl rotate-12 group-hover:rotate-0 transition-all duration-500">
+                                    <div className={cn(
+                                        "absolute -bottom-2 -right-2 h-14 w-14 rounded-xl flex flex-col items-center justify-center border-4 border-[#0A192F] shadow-2xl rotate-12 group-hover:rotate-0 transition-all duration-500",
+                                        tier.title === 'Legend' ? "bg-yellow-400 text-black" : "bg-primary text-black"
+                                    )}>
                                         <span className="text-sm font-black leading-none">#{player.ovrRank}</span>
                                         <span className="text-[8px] font-black leading-none uppercase opacity-60 mt-1 mb-0.5">OVR</span>
                                         <span className="text-base font-black leading-none italic">{player.ovrRating.toFixed(0)}</span>
@@ -270,14 +286,17 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                 <div className="text-center space-y-1">
                                     <h3 className={cn(
                                         "font-black text-2xl tracking-tighter uppercase italic transition-colors pr-4",
-                                        tier.color.includes('white') ? "text-white group-hover:text-primary" : `text-white group-hover:${tier.color}`
+                                        tier.color.includes('white') ? "text-white group-hover:text-primary" : `text-white group-hover:${tier.color.replace('text-', '')}`
                                     )}>
                                         {player.name}
                                     </h3>
                                     <div className="flex items-center justify-center gap-2">
                                         {team ? (
-                                            <Badge variant="outline" className="bg-white/5 border-white/10 text-[10px] font-black uppercase tracking-widest gap-1.5 py-1">
-                                                <Shield className="w-3 h-3 text-primary" />
+                                            <Badge variant="outline" className={cn(
+                                                "bg-white/5 border-white/10 text-[10px] font-black uppercase tracking-widest gap-1.5 py-1",
+                                                tier.title === 'Legend' ? "text-yellow-400" : "text-primary"
+                                            )}>
+                                                <Shield className="w-3 h-3" />
                                                 {team.name}
                                             </Badge>
                                         ) : (
@@ -291,15 +310,18 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 border-b border-white/5 pb-2">
                                         <span className="flex items-center gap-1.5"><Activity className="w-3 h-3" /> Career Overview</span>
-                                        <span>{player.overallPlayed || 0} Matches</span>
+                                        <span className="text-white/40">{player.overallPlayed || 0} Matches</span>
                                     </div>
                                     
                                     <div className="grid grid-cols-3 gap-3 relative">
                                         {/* Background Glow Connector */}
-                                        <div className="absolute inset-0 bg-primary/5 blur-2xl -z-10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className={cn(
+                                            "absolute inset-0 blur-2xl -z-10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+                                            tier.title === 'Legend' ? "bg-yellow-400/10" : "bg-primary/5"
+                                        )} />
                                         
                                         {[
-                                            { label: 'WIN', value: player.overallWin, color: 'text-primary', borderColor: 'border-primary/30', bgColor: 'bg-primary/5' },
+                                            { label: 'WIN', value: player.overallWin, color: tier.title === 'Legend' ? 'text-yellow-400' : 'text-primary', borderColor: tier.title === 'Legend' ? 'border-yellow-400/30' : 'border-primary/30', bgColor: tier.title === 'Legend' ? 'bg-yellow-400/10' : 'bg-primary/5' },
                                             { label: 'DRAW', value: player.overallDraw, color: 'text-yellow-400', borderColor: 'border-yellow-400/30', bgColor: 'bg-yellow-400/5' },
                                             { label: 'LOSS', value: player.overallLoss, color: 'text-red-500', borderColor: 'border-red-500/30', bgColor: 'bg-red-500/5' }
                                         ].map((stat, i) => (
@@ -334,7 +356,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                     <div className={cn(
                                         "rounded-xl p-3.5 space-y-3 relative overflow-hidden group/legacy shadow-inner border transition-all duration-500",
                                         hasWins 
-                                            ? "bg-yellow-500/10 border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.05)]" 
+                                            ? tier.title === 'Legend' ? "bg-yellow-400/20 border-yellow-400/40 shadow-[0_0_30px_rgba(250,204,21,0.1)]" : "bg-yellow-500/10 border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.05)]"
                                             : "bg-white/5 border-white/10"
                                     )}>
                                         {/* Animated HUD scanning line for the legacy block */}
@@ -363,7 +385,10 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                                     <Badge 
                                                         key={record.seasonId} 
                                                         variant="outline" 
-                                                        className="bg-yellow-500/10 border-yellow-500/40 text-yellow-500 text-[8px] font-black uppercase tracking-tighter italic animate-in fade-in zoom-in duration-500"
+                                                        className={cn(
+                                                            "border-yellow-500/40 text-yellow-500 text-[8px] font-black uppercase tracking-tighter italic animate-in fade-in zoom-in duration-500",
+                                                            tier.title === 'Legend' ? "bg-yellow-400/20" : "bg-yellow-500/10"
+                                                        )}
                                                         style={{ animationDelay: `${idx * 100}ms` }}
                                                     >
                                                         {record.seasonName}
@@ -378,9 +403,15 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                         </div>
 
                                         {/* Total Goals Section - Redesigned to Super Sport Solid & Glassy */}
-                                        <div className="relative z-10 flex flex-col bg-primary/[0.03] rounded-2xl border-2 border-primary/20 group-hover/legacy:border-primary/50 transition-all duration-500 shadow-2xl overflow-hidden">
+                                        <div className={cn(
+                                            "relative z-10 flex flex-col rounded-2xl border-2 transition-all duration-500 shadow-2xl overflow-hidden",
+                                            tier.title === 'Legend' ? "bg-yellow-400/[0.05] border-yellow-400/20 group-hover/legacy:border-yellow-400/50" : "bg-primary/[0.03] border-primary/20 group-hover/legacy:border-primary/50"
+                                        )}>
                                             {/* Sub-Header Solid Strip */}
-                                            <div className="bg-primary px-4 py-1.5 flex items-center justify-between">
+                                            <div className={cn(
+                                                "px-4 py-1.5 flex items-center justify-between",
+                                                tier.title === 'Legend' ? "bg-yellow-400" : "bg-primary"
+                                            )}>
                                                 <div className="flex items-center gap-2">
                                                     <Binary className="w-3 h-3 text-black" />
                                                     <span className="text-[8px] font-black text-black uppercase tracking-[0.2em] italic">Offensive Statistics</span>
@@ -390,7 +421,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                             
                                             <div className="p-4 flex items-center justify-between relative">
                                                 {/* Glassy Overlay Pattern */}
-                                                <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.05)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20" />
+                                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20" />
                                                 
                                                 <div className="flex flex-col gap-0.5 relative z-10">
                                                     <span className="text-[11px] font-black text-white/60 uppercase tracking-widest">Total Goals Scored</span>
@@ -399,18 +430,27 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                                 
                                                 <div className="flex items-center gap-3 relative z-10">
                                                     <div className="flex flex-col items-end leading-none">
-                                                        <span className="text-3xl font-black text-primary italic tabular-nums drop-shadow-[0_0_15px_rgba(204,253,1,0.5)]" suppressHydrationWarning>
+                                                        <span className={cn(
+                                                            "text-3xl font-black italic tabular-nums drop-shadow-md",
+                                                            tier.title === 'Legend' ? "text-yellow-400" : "text-primary"
+                                                        )} suppressHydrationWarning>
                                                             {player.overallGoalsFor || 0}
                                                         </span>
                                                     </div>
-                                                    <div className="bg-black/40 p-1.5 rounded-lg border-2 border-primary/30 group-hover/legacy:scale-110 transition-transform duration-500 shadow-lg">
-                                                        <Zap className="w-3.5 h-3.5 text-primary fill-primary animate-pulse" />
+                                                    <div className={cn(
+                                                        "p-1.5 rounded-lg border-2 group-hover/legacy:scale-110 transition-transform duration-500 shadow-lg",
+                                                        tier.title === 'Legend' ? "bg-black/40 border-yellow-400/30" : "bg-black/40 border-primary/30"
+                                                    )}>
+                                                        <Zap className={cn("w-3.5 h-3.5 fill-current animate-pulse", tier.title === 'Legend' ? "text-yellow-400" : "text-primary")} />
                                                     </div>
                                                 </div>
                                             </div>
                                             
                                             {/* Bottom Decoration line */}
-                                            <div className="h-1 w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+                                            <div className={cn(
+                                                "h-1 w-full bg-gradient-to-r from-transparent via-transparent to-transparent",
+                                                tier.title === 'Legend' ? "via-yellow-400/40" : "via-primary/40"
+                                            )} />
                                         </div>
                                         
                                         <div className="flex justify-between items-center text-[6px] font-black text-white/20 uppercase tracking-[0.2em] relative z-10 border-t border-white/5 pt-2">
@@ -420,7 +460,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <span>Verified system</span>
-                                                <div className="w-1 h-1 bg-primary/40 rounded-full animate-pulse" />
+                                                <div className={cn("w-1 h-1 rounded-full animate-pulse", tier.title === 'Legend' ? "bg-yellow-400/40" : "bg-primary/40")} />
                                             </div>
                                         </div>
                                     </div>
@@ -428,12 +468,15 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                             </CardContent>
 
                             {isAdmin && (
-                                <CardFooter className="grid grid-cols-2 gap-2 p-4 border-t border-white/10 bg-black/20 backdrop-blur-md">
+                                <CardFooter className="grid grid-cols-2 gap-2 p-4 border-t border-white/10 bg-black/40 backdrop-blur-md">
                                     <Button 
                                         variant="ghost" 
                                         size="sm" 
                                         onClick={() => onEdit(player)}
-                                        className="font-black text-[10px] uppercase tracking-widest h-10 border border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                                        className={cn(
+                                            "font-black text-[10px] uppercase tracking-widest h-10 border border-white/10 transition-all",
+                                            tier.title === 'Legend' ? "hover:bg-yellow-400/10 hover:text-yellow-400 hover:border-yellow-400/30" : "hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                                        )}
                                     >
                                         <Pencil className="w-3 h-3 mr-2" />
                                         {t('edit_player_title')}
@@ -442,7 +485,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                                         variant="ghost" 
                                         size="sm" 
                                         onClick={() => confirmDelete(player)}
-                                        className="font-black text-[10px] uppercase tracking-widest h-10 border border-white/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30"
+                                        className="font-black text-[10px] uppercase tracking-widest h-10 border border-white/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all"
                                     >
                                         <Trash2 className="w-3 h-3 mr-2" />
                                         {t('delete')}
