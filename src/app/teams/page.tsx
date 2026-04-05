@@ -12,14 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PlusCircle, Lock, Unlock, Shield, LayoutGrid, KeyRound } from 'lucide-react';
+import { PlusCircle, Lock, Unlock, Shield, LayoutGrid, KeyRound, Scan, Zap, Activity } from 'lucide-react';
 import type { Team, WithId } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 import { useSharedPassword } from '@/context/password-context';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { LiveClock } from '@/components/live-clock';
 
 
 export default function TeamsPage() {
@@ -76,44 +78,75 @@ export default function TeamsPage() {
 
 
   return (
-    <div className="max-w-[92rem] mx-auto px-4 py-8 relative">
+    <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-8 relative">
        {/* Background decorative glows */}
-       <div className="absolute top-0 left-0 -z-10 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
-       <div className="absolute top-1/2 right-0 -z-10 w-80 h-80 bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
+       <div className="absolute top-0 left-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
+       <div className="absolute top-1/2 right-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
-       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
-        <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 border-b border-white/10 pb-10">
-            <div className="text-center md:text-left space-y-3">
-                <div className="flex items-center justify-center md:justify-start gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Shield className="w-6 h-6" />
+       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-12">
+        <div className="flex flex-col md:flex-row justify-between items-stretch gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
+             <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-6 sm:py-8 px-8 sm:px-12 relative group/header overflow-hidden bg-black/40 backdrop-blur-3xl border-2 border-white/5 rounded-[2.5rem] shadow-2xl transition-all duration-500 hover:border-primary/20">
+                <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
+                <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-white/5 rounded-tr-[2.5rem] pointer-events-none group-hover/header:border-primary/20 transition-colors duration-500" />
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-white/5 rounded-br-[2.5rem] pointer-events-none opacity-20" />
+                
+                <div className="relative z-10 space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="h-px w-8 sm:w-12 bg-primary/40" />
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary/60 italic">Strategic Asset Registry • Active</span>
                     </div>
-                    <h1 className="font-headline text-4xl sm:text-5xl font-black tracking-tighter text-primary uppercase italic">
-                        {t('teams_page_title')}
+                    
+                    <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
+                        {t('teams_page_title')} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">ARCHIVE</span>
                     </h1>
                 </div>
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] max-lg">
+
+                <p className="text-[10px] sm:text-xs font-bold text-white/40 uppercase tracking-[0.2em] max-w-lg relative z-10 pt-2">
                   {t('teams_page_subtitle', { defaultValue: "Arsip resmi klub elit Engineering EightyEight."})}
                 </p>
+             </div>
+            <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0"><LiveClock /></div>
+        </div>
+
+        <div className={cn(
+            "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",
+            isAdmin ? "w-full" : "w-fit mx-auto"
+        )}>
+            <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary/40 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-primary/40 pointer-events-none" />
+
+            <div className="flex items-center gap-2 w-full sm:w-auto relative group/select">
+                <div className="p-3 bg-primary/10 text-primary hidden xs:block shadow-lg -skew-x-[12deg] border-r-2 border-primary/30">
+                    <Scan className="w-4 h-4 skew-x-[12deg]" />
+                </div>
+                <div className="px-6 py-2 bg-white/5 border border-white/10 -skew-x-[12deg] flex items-center justify-center min-w-[200px]">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 skew-x-[12deg] italic">Authorized Club Members</span>
+                </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className={cn("flex items-center gap-1", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
                 {isAdmin && (
-                  <Button onClick={handleAdd} className="h-12 px-6 font-black tracking-tighter text-lg gap-2 shadow-[0_0_20px_rgba(204,253,1,0.2)]">
-                      <PlusCircle className="w-5 h-5" />
-                      {t('add_new_team')}
-                  </Button>
+                    <Button 
+                        onClick={handleAdd} 
+                        className="h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 border-black/20 bg-primary text-black shadow-[0_0_30px_rgba(204,253,1,0.2)] hover:scale-105 transition-transform"
+                    >
+                        <div className="skew-x-[12deg] flex items-center relative z-10">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            {t('add_new_team')}
+                        </div>
+                    </Button>
                 )}
-                 <Button 
+                
+                <Button 
                     onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} 
-                    variant="outline" 
-                    disabled={!isPasswordLoaded}
                     className={cn(
-                        "h-12 px-6 font-black tracking-widest text-xs uppercase transition-all duration-500 relative overflow-hidden group/admin",
-                        isAdmin ? "bg-primary text-black border-black shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "bg-primary/60 text-black border-primary/20 hover:bg-primary"
+                        "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
+                        isAdmin 
+                            ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
+                            : "bg-primary text-black border-primary/20 hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.2)]"
                     )}
+                    disabled={!isPasswordLoaded}
                 >
-                    {/* Dynamic Scanning Animation Layer */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <div className={cn(
                             "w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500",
@@ -121,31 +154,44 @@ export default function TeamsPage() {
                         )} />
                     </div>
 
-                    <div className="relative z-10 flex items-center">
-                        {isAdmin ? <Unlock className="mr-2 w-4 h-4" /> : <Lock className="mr-2 w-4 h-4" />}
+                    <div className="skew-x-[12deg] flex items-center relative z-10 text-black">
+                        {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
                         {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                     </div>
                 </Button>
             </div>
         </div>
 
-        <div className="space-y-6">
-            <div className="flex items-center gap-2 mb-2">
-                <LayoutGrid className="w-4 h-4 text-primary" />
-                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Authorized Club Members</h2>
+        <div className="space-y-8 px-2 sm:px-0">
+            <div className="flex flex-col gap-1 items-center justify-center">
+                <div className="flex items-center gap-4">
+                    <div className="h-px w-12 sm:w-20 bg-gradient-to-r from-transparent to-primary/40" />
+                    <h2 className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-[0.4em] sm:tracking-[0.6em] flex items-center justify-center gap-3 italic pr-4">
+                        <Zap className="w-4 h-4 text-primary animate-pulse"/> VERIFIED STRATEGIC UNITS
+                    </h2>
+                    <div className="h-px w-12 sm:w-20 bg-gradient-to-l from-transparent to-primary/40" />
+                </div>
             </div>
+            
             <TeamList onEdit={handleEdit} isAdmin={isAdmin} withAdminCheck={withAdminCheck} />
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-            <DialogContent className="border-primary border-2 bg-card/95 backdrop-blur-xl">
-            <DialogHeader>
-                <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">{editingTeam ? t('edit_team_title') : t('add_new_team')}</DialogTitle>
-                <DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
-                {editingTeam ? t('edit_team_desc', { teamName: editingTeam.name}) : t('add_team_desc')}
-                </DialogDescription>
-            </DialogHeader>
-            <TeamForm team={editingTeam} onSave={handleDialogClose} />
+            <DialogContent className="max-w-xl border-primary border-4 p-0 overflow-hidden bg-background/95 rounded-3xl shadow-2xl transition-all">
+                <DialogHeader className="p-6 border-b border-white/5 bg-black/20 shrink-0">
+                    <div className="flex items-center gap-3 text-primary mb-1">
+                        <Shield className="w-6 h-6" />
+                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">
+                            {editingTeam ? t('edit_team_title') : t('add_new_team')}
+                        </DialogTitle>
+                    </div>
+                    <DialogDescription className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                        {editingTeam ? t('edit_team_desc', { teamName: editingTeam.name}) : t('add_team_desc')}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="p-6">
+                    <TeamForm team={editingTeam} onSave={handleDialogClose} />
+                </div>
             </DialogContent>
         </Dialog>
 
@@ -165,10 +211,11 @@ export default function TeamsPage() {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20">{t('unlock')}</Button>
+                    <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20 text-black">{t('unlock')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
       </div>
     </div>
   );

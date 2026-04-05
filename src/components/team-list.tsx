@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { Pencil, Trash2, Shield, LayoutGrid, Award } from 'lucide-react';
+import { Pencil, Trash2, Shield, LayoutGrid, Award, Scan, Zap, Binary } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
@@ -97,60 +97,84 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
 
   return (
     <>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-8">
             {sortedTeams.map((team: WithId<Team>) => {
                 const logoUrl = team.logoUrl || `https://picsum.photos/seed/team-${team.id}/128/128`;
                 const tierColor = 
-                    team.tier === 1 ? "bg-yellow-400 text-black shadow-[0_0_10px_rgba(250,204,21,0.4)]" :
-                    team.tier === 2 ? "bg-primary text-black shadow-[0_0_10px_rgba(204,253,1,0.4)]" :
+                    team.tier === 1 ? "bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.4)]" :
+                    team.tier === 2 ? "bg-primary text-black shadow-[0_0_20px_rgba(204,253,1,0.4)]" :
                     "bg-white/10 text-white/60";
 
                 return (
                     <div key={team.id} className="group relative">
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
+                        {/* Dynamic Ambient Glow */}
+                        <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-transparent rounded-[2rem] blur-xl opacity-0 group-hover:opacity-40 transition duration-700" />
                         
-                        <Card className="relative flex flex-col h-full bg-card/60 backdrop-blur-xl border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 overflow-hidden rounded-2xl">
-                            <div className="absolute top-3 right-3 z-20">
-                                <Badge className={cn("font-black text-[8px] uppercase tracking-widest h-5 px-2 italic border-none", tierColor)}>
-                                    T{team.tier || 3}
+                        <Card className="relative flex flex-col h-full bg-black/40 backdrop-blur-3xl border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 overflow-hidden rounded-[2rem] shadow-2xl">
+                            
+                            {/* HUD Pattern Overlay */}
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:15px_15px] pointer-events-none" />
+
+                            <div className="absolute top-4 right-4 z-20">
+                                <Badge className={cn(
+                                    "font-black text-[8px] uppercase tracking-widest h-6 px-3 italic border-none -skew-x-[12deg] border-r-4 border-black/20 shadow-lg", 
+                                    tierColor
+                                )}>
+                                    <span className="skew-x-[12deg]">T{team.tier || 3}</span>
                                 </Badge>
                             </div>
 
-                            <span className="absolute top-4 left-4 text-4xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-primary/[0.03] transition-colors pr-4">
+                            {/* Large Ghost Text Background */}
+                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl font-black text-white/[0.02] uppercase tracking-tighter italic whitespace-nowrap pointer-events-none group-hover:text-primary/[0.04] transition-colors pr-10 select-none">
                                 {team.name}
                             </span>
 
-                            <CardContent className="flex flex-col flex-grow items-center justify-center p-8 relative z-10">
-                                <div className="relative mb-6">
-                                    <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <CardContent className="flex flex-col flex-grow items-center justify-center p-6 sm:p-10 relative z-10">
+                                <div className="relative mb-6 sm:mb-8">
+                                    <div className="absolute -inset-4 bg-primary/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse" />
                                     
-                                    <Avatar className="h-24 w-24 border-4 border-white/5 shadow-2xl group-hover:border-primary transition-all duration-500 group-hover:scale-110">
+                                    {/* Scan Line Detail */}
+                                    <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none z-20 opacity-0 group-hover:opacity-20">
+                                        <div className="w-full h-1 bg-primary blur-[1px] animate-scanning" />
+                                    </div>
+
+                                    <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-white/10 shadow-2xl group-hover:border-primary transition-all duration-700 group-hover:scale-110 relative z-10">
                                         <AvatarImage src={logoUrl} alt={`${team.name} logo`} className="object-cover" />
-                                        <AvatarFallback className="bg-white/5"><Shield className="h-12 w-12 text-white/10" /></AvatarFallback>
+                                        <AvatarFallback className="bg-black/60"><Shield className="h-14 w-14 text-white/5" /></AvatarFallback>
                                     </Avatar>
+                                    
+                                    <div className="absolute -bottom-2 -right-2 bg-primary text-black p-2 rounded-xl shadow-2xl z-20 rotate-12 group-hover:rotate-0 transition-transform duration-500 border-4 border-[#0A192F]">
+                                        <Zap className="w-4 h-4 fill-black" />
+                                    </div>
                                 </div>
                                 
-                                <p className="font-black text-lg text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-300 pr-2">
-                                    {team.name}
-                                </p>
+                                <div className="space-y-1 text-center relative z-10">
+                                    <p className="font-black text-xl sm:text-2xl text-center text-white tracking-tighter uppercase italic group-hover:text-primary transition-colors duration-500 pr-4 leading-none">
+                                        {team.name}
+                                    </p>
+                                    <div className="flex items-center justify-center gap-2 opacity-40">
+                                        <Binary className="w-3 h-3" />
+                                        <span className="text-[8px] font-black tracking-[0.3em] uppercase">Tactical Unit Locked</span>
+                                    </div>
+                                </div>
                             </CardContent>
 
                             {isAdmin && (
-                                <CardFooter className="flex justify-center gap-2 p-3 border-t border-white/5 bg-black/20 backdrop-blur-md mt-auto">
+                                <CardFooter className="flex justify-center gap-2 p-4 border-t border-white/5 bg-black/40 backdrop-blur-md mt-auto relative z-20">
                                     <Button 
                                         variant="ghost" 
                                         size="sm" 
                                         onClick={() => onEdit(team)}
-                                        className="h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary transition-colors border border-white/5"
+                                        className="flex-1 font-black text-[9px] uppercase tracking-widest h-10 border border-white/5 hover:bg-primary/10 hover:text-primary transition-all rounded-xl"
                                     >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        <span className="sr-only">{t('edit_team_title')}</span>
+                                        <Pencil className="h-3.5 w-3.5 mr-2" />
+                                        {t('edit_team_title')}
                                     </Button>
                                     <Button 
                                         variant="ghost" 
                                         size="sm" 
                                         onClick={() => confirmDelete(team)}
-                                        className="h-9 w-9 p-0 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5"
+                                        className="h-10 w-10 p-0 hover:bg-red-500/10 hover:text-red-500 transition-all border border-white/5 rounded-xl"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
                                         <span className="sr-only">{t('delete_team')}</span>
@@ -164,7 +188,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
         </div>
 
         <AlertDialog open={!!deletingTeam} onOpenChange={(isOpen) => !isOpen && setDeletingTeam(null)}>
-            <AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl">
+            <AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl rounded-[2rem]">
                 <AlertDialogHeader>
                 <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle>
                 <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
@@ -172,10 +196,10 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-3">
-                <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel>
+                <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic">{t('cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                     onClick={handleDelete}
-                    className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12"
+                    className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic"
                 >
                     {t('delete')}
                 </AlertDialogAction>
