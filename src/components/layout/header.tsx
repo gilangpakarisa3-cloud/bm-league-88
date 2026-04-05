@@ -1,6 +1,6 @@
 "use client";
 
-import Link from 'next/navigation';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Flame, Languages, Settings, Scan, Activity, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
