@@ -53,7 +53,7 @@ const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: an
       <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
       <div className="flex items-center justify-center gap-1.5 relative z-10">
           <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
-          <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/60">{label}</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60">{label}</span>
       </div>
       <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
@@ -420,7 +420,7 @@ export function PlayerPerformanceDialog({
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 relative z-10 bg-black/60 px-4 py-2 rounded-xl border border-white/5 shadow-inner">
-                                        <span className={cn("text-xl font-black tabular-nums italic", match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-400' : 'text-yellow-400')} suppressHydrationWarning>
+                                        <span className={cn("text-xl font-black tabular-nums italic", match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-500' : 'text-yellow-500')} suppressHydrationWarning>
                                             {match.isPlayer1 ? match.playerResult : match.opponentResult}
                                         </span>
                                         <span className="text-xs font-black text-white/10">/</span>
@@ -431,7 +431,7 @@ export function PlayerPerformanceDialog({
                                   </div>
                               ))}
                               </div>
-                          ) : <div className="text-center py-20 opacity-20 flex flex-col items-center gap-4"><Activity className="w-12 h-12"/><p className="text-xs font-black uppercase tracking-[0.4em] italic text-center">No Historical Log Found</p></div>}
+                          ) : <div className="text-center py-20 opacity-20 flex flex-col items-center gap-4"><Activity className="w-12 h-12"/><p className="text-xs font-black uppercase tracking-0.4em italic text-center">No Historical Log Found</p></div>}
                       </TabsContent>
                       
                       <TabsContent value="upcoming" className="mt-0 outline-none animate-in fade-in duration-500">
