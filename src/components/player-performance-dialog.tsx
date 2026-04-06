@@ -421,11 +421,11 @@ export function PlayerPerformanceDialog({
                                     </div>
                                     <div className="flex items-center gap-3 relative z-10 bg-black/60 px-4 py-2 rounded-xl border border-white/5 shadow-inner">
                                         <span className={cn("text-xl font-black tabular-nums italic", match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-500' : 'text-yellow-500')} suppressHydrationWarning>
-                                            {match.isPlayer1 ? match.playerResult : match.opponentResult}
+                                            {match.playerResult}
                                         </span>
                                         <span className="text-xs font-black text-white/10">/</span>
                                         <span className="text-xl font-black tabular-nums italic text-white/30" suppressHydrationWarning>
-                                            {match.isPlayer1 ? match.opponentResult : match.playerResult}
+                                            {match.opponentResult}
                                         </span>
                                     </div>
                                   </div>
