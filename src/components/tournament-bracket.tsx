@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield, Activity } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield, Activity, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -65,24 +65,31 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
   const m = bracketData[bid]; const p = projections?.[bid];
   
   if (!m && p) return (
-      <div className="flex flex-col gap-1 opacity-90 items-center">
+      <div className="flex flex-col gap-1.5 items-center group/proj">
           <div className="flex items-center gap-2">
-            <span className="text-[8px] font-black tracking-widest text-primary/90 uppercase">{label}</span>
-            <Badge variant="outline" className="h-3.5 text-[7px] border-amber-500/50 text-amber-500 py-0 px-1 font-black uppercase italic">Proyeksi</Badge>
+            <span className="text-[8px] font-black tracking-widest text-amber-500 uppercase">{label}</span>
+            <Badge variant="outline" className="h-4 text-[7px] border-amber-500/50 text-amber-500 py-0 px-2 font-black uppercase italic bg-amber-500/10">PROYEKSI</Badge>
           </div>
-          <Card className="w-44 sm:w-48 border-2 border-white/20 border-dashed bg-white/[0.05] cursor-pointer hover:border-primary/40 rounded-xl" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
-              <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative h-20">
+          <Card className="w-44 sm:w-48 border-2 border-amber-500/20 border-dashed bg-black/40 backdrop-blur-xl cursor-pointer hover:border-amber-500/50 transition-all duration-500 rounded-xl relative overflow-hidden group-hover/proj:scale-105" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
+              {/* HUD Scan Effect */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                  <div className="w-full h-1 bg-amber-500/10 blur-[2px] animate-scanning" />
+              </div>
+              
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500/40" />
+              
+              <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10 h-20">
                   {[p.p1, p.p2].map((player, idx) => {
                       const teamId = player.teamId || '';
                       const team = teamId ? teamsById[teamId] : null;
                       const logoUrl = resolveLogo(team?.logoUrl, teamId || player.playerId, player.playerName || player.name);
                       return (
-                        <div key={idx} className="flex items-center px-3 h-10">
-                            <Avatar className="h-6 w-6 border border-white/20 opacity-90 mr-2">
+                        <div key={idx} className="flex items-center px-3 h-10 group-hover/proj:bg-amber-500/5 transition-colors">
+                            <Avatar className="h-6 w-6 border border-white/10 opacity-60 mr-2 group-hover/proj:opacity-100 transition-opacity">
                                 <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                 <AvatarFallback className="bg-black/40 font-black text-[8px]"><User className="w-2.5 h-2.5"/></AvatarFallback>
                             </Avatar>
-                            <span className="text-[10px] font-black truncate uppercase italic text-white/80 pr-2" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
+                            <span className="text-[10px] font-black truncate uppercase italic text-white/40 group-hover/proj:text-white/80 transition-colors pr-2" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
                         </div>
                       );
                   })}
@@ -92,57 +99,71 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
   );
 
   if (!m) return (
-      <div className="flex flex-col gap-1 opacity-30 items-center">
+      <div className="flex flex-col gap-1.5 opacity-30 items-center">
           <span className="text-[8px] font-black tracking-widest text-white/40 uppercase">{label}</span>
-          <div className="w-44 sm:w-48 h-20 bg-white/5 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center gap-1.5"><Loader2 className="w-4 h-4 text-white/10 animate-spin"/><span className="text-[7px] font-black tracking-widest text-white/20 uppercase">KALIBRASI</span></div>
+          <div className="w-44 sm:w-48 h-20 bg-white/5 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-1.5">
+              <Loader2 className="w-4 h-4 text-white/10 animate-spin"/>
+              <span className="text-[7px] font-black tracking-widest text-white/20 uppercase">CALIBRATING</span>
+          </div>
       </div>
   );
 
   const isBattleReady = !m.isCompleted && m.player1Id !== 'TBD' && m.player2Id !== 'TBD';
+  const isLowerBracket = label.startsWith('LB');
 
   return (
-      <div className="flex flex-col gap-1 relative items-center">
+      <div className="flex flex-col gap-1.5 relative items-center group/match">
           <div className="flex items-center gap-2">
-            <span className={cn("text-[8px] font-black tracking-widest uppercase", isBattleReady ? "text-primary" : "text-primary/80")}>{label}</span>
+            <span className={cn("text-[8px] font-black tracking-widest uppercase", isBattleReady ? "text-primary" : "text-white/40")}>{label}</span>
             {isBattleReady && (
                 <div className="flex items-center gap-1">
                     <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                     </span>
-                    <span className="text-[6px] font-black text-primary uppercase tracking-tighter">Live</span>
+                    <span className="text-[6px] font-black text-primary uppercase tracking-tighter">Live Signal</span>
                 </div>
             )}
           </div>
           <Card className={cn(
-              "w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl relative", 
+              "w-44 sm:w-48 overflow-hidden border-2 transition-all duration-500 cursor-pointer hover:ring-4 hover:ring-primary/20 rounded-xl relative group-hover/match:scale-105", 
               m.isCompleted 
-                ? "border-primary/30 bg-white/5" 
+                ? "border-primary/30 bg-black/60 shadow-xl" 
                 : isBattleReady
-                    ? "animate-battle-glow border-primary/40 bg-primary/[0.03]"
-                    : "border-white/20 bg-white/5 border-dashed"
+                    ? "animate-battle-glow border-primary/40 bg-primary/[0.03] shadow-2xl"
+                    : "border-white/10 bg-black/40 border-dashed"
           )} onClick={() => handleCardClick(m)}>
+              {/* Dynamic HUD Lines */}
               {isBattleReady && (
                   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                       <div className="w-full h-1 bg-primary/20 blur-[2px] animate-scanning" />
                   </div>
               )}
               
-              <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10">
+              <div className={cn(
+                  "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
+                  m.isCompleted ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.8)]" : "bg-white/5"
+              )} />
+              
+              <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10 h-20">
                   {[1, 2].map(i => {
                       const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
                       const logoUrl = resolveLogo(t?.logoUrl, m[`player${i}Id`], p.name);
                       return (
-                          <div key={i} className={cn("flex items-center justify-between px-3 h-10 relative", isW ? "bg-primary/15" : "bg-transparent")}>
-                              {isW && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" />}
+                          <div key={i} className={cn("flex items-center justify-between px-3 h-10 relative transition-colors", isW ? "bg-primary/15" : "bg-transparent")}>
                               <div className="flex items-center gap-2 overflow-hidden">
-                                  <Avatar className={cn("h-6 w-6 border-2 transition-all", isW ? "border-primary scale-110" : "border-white/10")}>
+                                  <Avatar className={cn("h-6 w-6 border-2 transition-all duration-500 shadow-sm", isW ? "border-primary scale-110" : "border-white/10")}>
                                       <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                       <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-2.5 h-2.5"/></AvatarFallback>
                                   </Avatar>
                                   <span className={cn("text-[10px] font-black truncate uppercase italic transition-colors pr-2", isW ? "text-primary" : "text-white/80")} suppressHydrationWarning>{p.name}</span>
                               </div>
-                              <div className={cn("px-1.5 py-0.5 rounded bg-white/5 border border-white/5 min-w-[20px] text-center", isW && "border-primary/30")}><span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span></div>
+                              <div className={cn(
+                                  "px-1.5 py-0.5 rounded border min-w-[24px] text-center transition-all",
+                                  isW ? "bg-primary/20 border-primary/40" : "bg-white/5 border-white/5"
+                              )}>
+                                <span className={cn("text-xs font-black italic tabular-nums leading-none", isW ? "text-primary" : "text-white/40")} suppressHydrationWarning>{m.isCompleted ? s : '-'}</span>
+                              </div>
                           </div>
                       )
                   })}
