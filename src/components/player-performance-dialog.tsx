@@ -123,20 +123,18 @@ export function PlayerPerformanceDialog({
             else { const opponentPlayer = playersById[opponentId]; if(opponentPlayer){ opponent = { name: opponentPlayer.name }; opponentTeam = teamsById[opponentPlayer.teamId]; } }
         }
 
+        const isBo3 = isCoop || (m.round && m.round !== 'Group');
+        const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+        const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
+        const playerResult = isPlayer1 ? s1 : s2;
+        const opponentResult = isPlayer1 ? s2 : s1;
+
         let result: 'W' | 'L' | 'D';
-        let playerResult, opponentResult;
-        if (isCoop) {
-            playerResult = isPlayer1 ? m.player1Wins! : m.player2Wins!;
-            opponentResult = isPlayer1 ? m.player2Wins! : m.player1Wins!;
-            result = playerResult > opponentResult ? 'W' : 'L';
-        } else {
-            playerResult = isPlayer1 ? m.player1Score! : m.player2Score!;
-            opponentResult = isPlayer1 ? m.player2Score! : m.player1Score!;
-            if (playerResult > opponentResult) result = 'W';
-            else if (playerResult < opponentResult) result = 'L';
-            else result = 'D';
-        }
-        return { ...m, isPlayer1, opponent, opponentTeam, playerResult, opponentResult, result };
+        if (playerResult > opponentResult) result = 'W';
+        else if (playerResult < opponentResult) result = 'L';
+        else result = 'D';
+
+        return { ...m, isPlayer1, opponent, opponentTeam, s1, s2, result };
       });
       
     const upcomingMatches = playerMatches
@@ -237,7 +235,6 @@ export function PlayerPerformanceDialog({
       <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
         <ScrollArea className="max-h-[90vh]">
             <div className="p-6 relative">
-                {/* HUD Scanning Layer */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
 
                 <DialogHeader className="flex flex-col items-center text-center relative z-10">
@@ -420,12 +417,22 @@ export function PlayerPerformanceDialog({
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 relative z-10 bg-black/60 px-4 py-2 rounded-xl border border-white/5 shadow-inner">
-                                        <span className={cn("text-xl font-black tabular-nums italic", match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-500' : 'text-yellow-500')} suppressHydrationWarning>
-                                            {match.playerResult}
+                                        <span className={cn(
+                                            "text-xl font-black tabular-nums italic", 
+                                            match.isPlayer1 
+                                                ? (match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-500' : 'text-yellow-500')
+                                                : "text-white/30"
+                                        )} suppressHydrationWarning>
+                                            {match.s1}
                                         </span>
                                         <span className="text-xs font-black text-white/10">/</span>
-                                        <span className="text-xl font-black tabular-nums italic text-white/30" suppressHydrationWarning>
-                                            {match.opponentResult}
+                                        <span className={cn(
+                                            "text-xl font-black tabular-nums italic",
+                                            !match.isPlayer1
+                                                ? (match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-500' : 'text-yellow-500')
+                                                : "text-white/30"
+                                        )} suppressHydrationWarning>
+                                            {match.s2}
                                         </span>
                                     </div>
                                   </div>

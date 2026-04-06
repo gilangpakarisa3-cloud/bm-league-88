@@ -55,7 +55,7 @@ const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: an
       <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
       <div className="flex items-center justify-center gap-1.5 relative z-10">
           <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/40")} />
-          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60">{label}</span>
       </div>
       <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
   </div>
@@ -751,7 +751,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div key={i} className="flex-1 w-full">
                                         {an && an.stats.played > 0 ? (
                                             <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 h-full relative">
-                                                {/* Decorative HUD Details */}
                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
                                                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
