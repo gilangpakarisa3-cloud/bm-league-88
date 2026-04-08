@@ -76,6 +76,8 @@ export type CoOpLeagueEntry = {
 
 export type MatchRound = "Group" | "UB-Quarter" | "UB-Semi" | "UB-Final" | "LB-Round 1" | "LB-Round 2" | "LB-Round 3" | "LB-Round 4" | "LB-Round 5" | "LB-Final" | "Grand-Final";
 
+export type MatchStatus = 'Scheduled' | 'Live' | 'Completed' | 'Postponed';
+
 export type Match = {
   seasonId: string;
   player1Id: string; 
@@ -86,6 +88,7 @@ export type Match = {
   player2Score: number | null;
   matchDate: Timestamp;
   isCompleted: boolean;
+  status?: MatchStatus;
   round?: MatchRound;
   bracketId?: string; // e.g., 'playoff-m1'
 }

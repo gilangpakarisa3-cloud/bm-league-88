@@ -61,6 +61,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PLAYOFF_SUCCESSOR_MAP } from '@/lib/constants';
 import { resolveLogo } from '@/lib/logo-utils';
+import { LiveScoreTicker } from '@/components/live-score-ticker';
 
 
 const LEAGUE_ID = 'main-league';
@@ -340,11 +341,11 @@ export default function LeaguePage() {
                     const player2Id = group[j].playerId;
                     const meetings = activeSeason.hybridGroupMeetings || 1;
                     if (meetings === 2) {
-                        batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id, player2Id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
-                        batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: player2Id, player2Id: player1Id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
+                        batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id, player2Id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
+                        batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: player2Id, player2Id: player1Id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
                     } else {
                         let p1 = player1Id; let p2 = player2Id; if (Math.random() > 0.5) [p1, p2] = [p2, p1];
-                        batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: p1, player2Id: p2, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
+                        batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: p1, player2Id: p2, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
                     }
                 }
             }
@@ -361,7 +362,7 @@ export default function LeaguePage() {
             for (let k = 0; k < meetings; k++) {
                 let p1Id = k === 0 ? id1 : id2; let p2Id = k === 0 ? id2 : id1;
                 if (meetings === 1 && Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
-                batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: p1Id, player2Id: p2Id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: seasonType === 'Hybrid' ? 'Group' : undefined });
+                batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: p1Id, player2Id: p2Id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: seasonType === 'Hybrid' ? 'Group' : undefined });
             }
           }
         }
@@ -381,15 +382,15 @@ export default function LeaguePage() {
       { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' },
       { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' },
     ];
-    ubQuarterPairings.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId, player2Id: p.p2.playerId, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 1) * 1000), round: 'UB-Quarter', bracketId: p.bid }));
+    ubQuarterPairings.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId, player2Id: p.p2.playerId, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 1) * 1000), round: 'UB-Quarter', bracketId: p.bid }));
     const lbRound1Starters = [ { p1: groupA[4], bid: 'playoff-m5' }, { p1: groupB[4], bid: 'playoff-m6' }, { p1: groupA[5], bid: 'playoff-m7' }, { p1: groupB[5], bid: 'playoff-m8' } ];
-    lbRound1Starters.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 5) * 1000), round: 'LB-Round 1', bracketId: p.bid }));
+    lbRound1Starters.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 5) * 1000), round: 'LB-Round 1', bracketId: p.bid }));
     const placeholders = [
         { round: 'UB-Semi', bid: 'playoff-m9' }, { round: 'UB-Semi', bid: 'playoff-m10' }, { round: 'LB-Round 2', bid: 'playoff-m11' }, { round: 'LB-Round 2', bid: 'playoff-m12' },
         { round: 'LB-Round 3', bid: 'playoff-m13' }, { round: 'LB-Round 3', bid: 'playoff-m14' }, { round: 'UB-Final', bid: 'playoff-m15' }, { round: 'LB-Semifinal', bid: 'playoff-m16' },
         { round: 'LB-Final', bid: 'playoff-m17' }, { round: 'Grand-Final', bid: 'playoff-m18' }
     ];
-    placeholders.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, matchDate: Timestamp.fromMillis(now + (i + 10) * 1000), round: p.round as any, bracketId: p.bid }));
+    placeholders.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 10) * 1000), round: p.round as any, bracketId: p.bid }));
     batch.commit().then(() => toast({ title: 'Double Elimination Playoff Dibuat!', description: 'Jadwal UB-Quarter dan LB-Round 1 telah berhasil dibuat.' }));
   }, [firestore, activeSeasonId, activeSeason, groupA, groupB, toast]);
 
@@ -621,7 +622,7 @@ export default function LeaguePage() {
             }
             if (winMatchRef) transaction.update(winMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].winner.slot}Id`]: 'TBD' });
             if (losMatchRef && PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser) transaction.update(losMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser!.slot}Id`]: 'TBD' });
-            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
+            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false, status: 'Scheduled' });
         });
         toast({ title: t('match_reverted_title') }); setRevertingMatch(null);
     } catch (e: any) { toast({ variant: 'destructive', title: "Error", description: e.message }); }
@@ -681,6 +682,8 @@ export default function LeaguePage() {
             <LiveClock />
           </div>
         </div>
+
+        <LiveScoreTicker activeSeasonId={activeSeasonId} teamsById={teamsById} playersById={playersById} />
 
         <div className={cn(
             "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",

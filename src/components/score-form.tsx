@@ -13,9 +13,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { Match, Season, Team, WithId } from "@/lib/types";
+import type { Match, Season, Team, WithId, MatchStatus } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2, Loader2, Radio } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -40,11 +40,15 @@ const coopFormSchema = z.object({
   player2Score: z.coerce.number().min(0).default(0),
   time: z.string().min(1, { message: "Waktu wajib diisi" }),
   date: z.date({ required_error: "Tanggal wajib diisi" }),
+  status: z.enum(['Scheduled', 'Live', 'Completed', 'Postponed']),
 }).refine(data => {
-    return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
-           (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
+    if (data.status === 'Completed') {
+        return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
+               (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
+    }
+    return true;
 }, {
-    message: "Salah satu tim harus memiliki tepat 2 kemenangan (Format Best of 3).",
+    message: "Untuk status 'Selesai', salah satu tim harus memiliki tepat 2 kemenangan (Best of 3).",
     path: ["player1Wins"],
 });
 
@@ -53,6 +57,7 @@ const singleFormSchema = z.object({
   player2Score: z.coerce.number().min(0, { message: "Skor minimal 0" }),
   time: z.string().min(1, { message: "Waktu wajib diisi" }),
   date: z.date({ required_error: "Tanggal wajib diisi" }),
+  status: z.enum(['Scheduled', 'Live', 'Completed', 'Postponed']),
 });
 
 type ScoreFormValues = z.infer<typeof coopFormSchema> | z.infer<typeof singleFormSchema>;
@@ -114,7 +119,6 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  // LOGIC: Bo3 is only for Co-Op OR Hybrid/Playoff rounds (not 'Group')
   const isBestOfThree = seasonType === 'Co-Op' || (match.round && match.round !== 'Group');
 
   const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
@@ -145,6 +149,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             player2Score: match.player2Score ?? 0,
             time: timeToUse,
             date: dateToUse,
+            status: match.status || 'Scheduled',
         }
     }
     return {
@@ -152,6 +157,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
       player2Score: match.player2Score ?? 0,
       time: timeToUse,
       date: dateToUse,
+      status: match.status || 'Scheduled',
     }
   }
 
@@ -187,7 +193,6 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
         const p1Total = nextWinners.filter(w => w === 'player1').length;
         const p2Total = nextWinners.filter(w => w === 'player2').length;
         
-        // Update both values together and trigger explicit validation
         form.setValue('player1Wins' as any, p1Total, { shouldDirty: true, shouldValidate: true });
         form.setValue('player2Wins' as any, p2Total, { shouldDirty: true, shouldValidate: true });
         
@@ -199,6 +204,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const p2Wins = isBestOfThree ? (form.watch('player2Wins' as any) || 0) : 0;
   const p1Score = form.watch('player1Score' as any) || 0;
   const p2Score = form.watch('player2Score' as any) || 0;
+  const matchStatus = form.watch('status');
 
   const incrementValue = (field: any) => {
     if (isSaving) return;
@@ -216,7 +222,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
 
   const errors = form.formState.errors;
   const hasErrors = Object.keys(errors).length > 0;
-  const isBo3Incomplete = isBestOfThree && p1Wins < 2 && p2Wins < 2;
+  const isBo3Incomplete = matchStatus === 'Completed' && isBestOfThree && p1Wins < 2 && p2Wins < 2;
 
   const editHour = (form.watch('time') || "00:00").split(':')[0];
   const editMin = (form.watch('time') || "00:00").split(':')[1];
@@ -225,6 +231,36 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className={cn("space-y-6 transition-all duration-500", isSaving && "opacity-60 grayscale-[0.5]")}>
         
+        <div className="bg-primary/10 border-2 border-primary/20 rounded-2xl p-4 flex flex-col items-center gap-3 relative overflow-hidden">
+            <div className="flex items-center gap-3 mb-1">
+                <Radio className={cn("w-4 h-4", matchStatus === 'Live' ? "text-red-500 animate-pulse" : "text-primary/60")} />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic">MATCH STATUS PROTOCOL</span>
+            </div>
+            <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="h-12 bg-black/40 border-primary/30 font-black italic uppercase tracking-widest text-primary focus:border-primary">
+                            <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0A192F] border-primary/30">
+                            <SelectItem value="Scheduled" className="font-black text-white/60 italic">SCHEDULED</SelectItem>
+                            <SelectItem value="Live" className="font-black text-red-500 italic">LIVE DASHBOARD</SelectItem>
+                            <SelectItem value="Completed" className="font-black text-primary italic">FINALIZED (COMPLETED)</SelectItem>
+                            <SelectItem value="Postponed" className="font-black text-amber-500 italic">POSTPONED</SelectItem>
+                        </SelectContent>
+                    </Select>
+                )}
+            />
+            {matchStatus === 'Live' && (
+                <div className="flex items-center gap-2 animate-pulse mt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                    <p className="text-[8px] font-black text-red-500 uppercase tracking-widest italic">Broadcasting to LiveScore Dashboard</p>
+                </div>
+            )}
+        </div>
+
         <div className="relative">
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center pointer-events-none">
                 <div className="relative group/vs">
@@ -361,7 +397,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                     <ul className="list-disc pl-4">
                         {isBo3Incomplete && (
                             <li className="text-[11px] font-bold text-white/80 leading-tight">
-                                Salah satu tim harus mencapai minimal 2 kemenangan dalam format BO3.
+                                Untuk status 'Selesai', salah satu tim harus mencapai minimal 2 kemenangan dalam format BO3.
                             </li>
                         )}
                         {Object.values(errors).map((error: any, i) => (
@@ -473,7 +509,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
               ) : (
                 <>
                   <Save className="w-5 h-5 transition-transform group-hover/btn:scale-110" />
-                  Finalize Match Stats
+                  {matchStatus === 'Live' ? "Sync Live Stats" : "Finalize Match Stats"}
                 </>
               )}
             </Button>

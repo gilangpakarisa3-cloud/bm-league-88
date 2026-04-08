@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan, CheckCircle2, Loader2, Binary } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan, CheckCircle2, Loader2, Binary, Radio } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -25,8 +25,8 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, query, getDocs, getDoc, where, runTransaction, Timestamp, orderBy, increment } from 'firebase/firestore';
-import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
+import { collection, doc, query, getDocs, getDoc, where, runTransaction, Timestamp, orderBy, increment, updateDoc } from 'firebase/firestore';
+import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry, MatchStatus } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -136,16 +136,16 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     
     const score1 = isMatchBo3 ? match.player1Wins : (match.player1Score ?? 0);
     const score2 = isMatchBo3 ? match.player2Wins : (match.player2Score ?? 0);
-    const hasValidScore = match.isCompleted && score1 !== null && score2 !== null;
-    const isW1 = hasValidScore && score1 > score2;
-    const isW2 = hasValidScore && score2 > score1;
+    const hasValidScore = (match.isCompleted || match.status === 'Live') && (score1 !== null || match.player1Score !== null);
+    const isW1 = match.isCompleted && score1! > score2!;
+    const isW2 = match.isCompleted && score2! > score1!;
 
     return (
         <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
             {/* Minimalist Ghost Text */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.02] pr-10">
                 <span className="text-[100px] sm:text-[160px] font-black italic text-white uppercase tracking-tighter transition-all duration-1000 group-hover:scale-105">
-                    {hasValidScore ? 'FINISHED' : 'BATTLE'}
+                    {match.isCompleted ? 'FINISHED' : match.status === 'Live' ? 'LIVE NOW' : 'BATTLE'}
                 </span>
             </div>
 
@@ -160,11 +160,23 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 <div className="flex flex-col items-center justify-center relative">
                     {hasValidScore ? (
                         <div className="relative group/score">
-                            <div className="bg-[#0A192F] border-2 border-white/10 px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-3 sm:gap-5 ring-4 ring-black/40">
-                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW1 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : "text-white/30")}>{score1}</span>
+                            <div className={cn(
+                                "bg-[#0A192F] border-2 px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-3 sm:gap-5 ring-4 ring-black/40",
+                                match.status === 'Live' ? "border-red-500/50 animate-pulse" : "border-white/10"
+                            )}>
+                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW1 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : match.status === 'Live' ? "text-white" : "text-white/30")}>
+                                    {isMatchBo3 ? match.player1Wins : match.player1Score}
+                                </span>
                                 <div className="w-px h-5 sm:h-8 bg-white/10" />
-                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : "text-white/30")}>{score2}</span>
+                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : match.status === 'Live' ? "text-white" : "text-white/30")}>
+                                    {isMatchBo3 ? match.player2Wins : match.player2Score}
+                                </span>
                             </div>
+                            {match.status === 'Live' && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                                    <Badge className="bg-red-500 text-white font-black text-[7px] h-4 px-2 uppercase shadow-lg">LIVE</Badge>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="relative flex flex-col items-center">
@@ -205,10 +217,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                         onClick={() => onEditMatch(match)}
                         disabled={isEditDisabled}
                     >
-                        {hasValidScore ? 'ANALYSIS' : 'LOG SCORE'}
+                        {match.isCompleted ? 'ANALYSIS' : 'UPDATE SCORE'}
                     </Button>
                     
-                    {isAdmin && hasValidScore && (
+                    {isAdmin && match.isCompleted && (
                         <Button 
                             variant="ghost" 
                             size="icon" 
@@ -239,8 +251,8 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
     const leagueTableByPlayerId = useMemo(() => (singleLeagueTable || []).reduce((acc, entry) => { acc[entry.playerId] = entry; return acc; }, {} as Record<string, LeagueEntry>), [singleLeagueTable]);
     const coopTableById = useMemo(() => (coopLeagueTable || []).reduce((acc, e) => { acc[e.id] = e; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>), [coopLeagueTable]);
     
-    const { groupedMatches, upcomingCount, completedCount } = useMemo(() => {
-        if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {} }, upcomingCount: 0, completedCount: 0 };
+    const { groupedMatches, upcomingCount, completedCount, liveCount } = useMemo(() => {
+        if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {}, live: {} }, upcomingCount: 0, completedCount: 0, liveCount: 0 };
         const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
         const enrichedMatches = matches.map(match => {
             let p1, p2, t1, t2, tid1, tid2;
@@ -274,7 +286,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                 const pn2 = m.player2?.name.toLowerCase() || '';
                 if (!terms.every(t => pn1.includes(t) || pn2.includes(t))) return false;
             }
-            if (hasPlayoffs && !m.isCompleted && (m.round === 'Group' || !m.round)) {
+            if (hasPlayoffs && !m.isCompleted && m.status !== 'Live' && (m.round === 'Group' || !m.round)) {
                 return false;
             }
             return true;
@@ -282,35 +294,38 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         
         const grouped = filtered.reduce((acc, m) => {
             const rd = m.round || 'Group';
-            const st = m.isCompleted ? 'completed' : 'upcoming';
+            const st = m.isCompleted ? 'completed' : (m.status === 'Live' ? 'live' : 'upcoming');
             if (!acc[st][rd]) acc[st][rd] = [];
             acc[st][rd].push(m);
             return acc;
-        }, { upcoming: {} as Record<string, any[]>, completed: {} as Record<string, any[]> });
+        }, { upcoming: {} as Record<string, any[]>, completed: {} as Record<string, any[]>, live: {} as Record<string, any[]> });
         
         const sortRounds = (entries: [string, any[]][]) => {
             return entries.sort(([rdA], [rdB]) => {
-                // Descending order for rounds (Latest first)
                 return (ROUND_ORDER[rdB] || 99) - (ROUND_ORDER[rdA] || 99);
             });
         };
 
         const upcomingSorted: Record<string, any[]> = {};
         sortRounds(Object.entries(grouped.upcoming)).forEach(([rd, ms]) => {
-            // Sort by matchDate descending (Newest first)
             upcomingSorted[rd] = ms.sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
         });
 
         const completedSorted: Record<string, any[]> = {};
         sortRounds(Object.entries(grouped.completed)).forEach(([rd, ms]) => {
-            // Sort by matchDate descending (Newest first)
             completedSorted[rd] = ms.sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
         });
 
+        const liveSorted: Record<string, any[]> = {};
+        sortRounds(Object.entries(grouped.live)).forEach(([rd, ms]) => {
+            liveSorted[rd] = ms.sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis());
+        });
+
         return { 
-            groupedMatches: { upcoming: upcomingSorted, completed: completedSorted }, 
+            groupedMatches: { upcoming: upcomingSorted, completed: completedSorted, live: liveSorted }, 
             upcomingCount: Object.values(grouped.upcoming).flat().length, 
-            completedCount: Object.values(grouped.completed).flat().length 
+            completedCount: Object.values(grouped.completed).flat().length,
+            liveCount: Object.values(grouped.live).flat().length
         };
     }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId, hasPlayoffs]);
 
@@ -345,23 +360,16 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
     return (
         <div className="space-y-10">
             <div className="relative max-w-2xl mx-auto group/search">
-                {/* Dynamic Ambient Background Glow */}
                 <div className="absolute -inset-4 bg-primary/5 rounded-none -skew-x-[12deg] blur-3xl opacity-0 group-hover/search:opacity-100 transition-opacity duration-1000" />
-                
                 <div className="relative flex items-center bg-black/60 border-b-4 border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.6)] backdrop-blur-3xl overflow-hidden -skew-x-[12deg] transition-all duration-500 group-hover/search:border-primary/30">
-                    
-                    {/* HUD Decorative Scanning Layer */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
                         <div className="w-full h-[2px] bg-primary/20 blur-[1px] absolute top-0 left-0 animate-scanning" />
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px]" />
                     </div>
-
-                    {/* SOLID SPORT SEARCH ICON BOX */}
                     <div className="h-14 w-14 sm:h-16 sm:w-16 bg-primary flex items-center justify-center shrink-0 shadow-2xl border-r-4 border-black/20 relative z-10">
                         <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
                         <Search className="h-6 w-6 sm:h-7 sm:w-7 text-black skew-x-[12deg]" />
                     </div>
-                    
                     <Input 
                         type="text" 
                         placeholder="Search Battle / Team..." 
@@ -369,8 +377,6 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                         value={searchTerm} 
                         onChange={(e) => setSearchTerm(e.target.value)} 
                     />
-                    
-                    {/* HUD Right Accent */}
                     <div className="hidden sm:flex items-center gap-2 pr-6 skew-x-[12deg] opacity-20 group-hover/search:opacity-40 transition-opacity">
                         <Scan className="w-4 h-4 text-primary" />
                         <span className="text-[8px] font-black text-primary uppercase tracking-widest">QUERY_LINK</span>
@@ -378,18 +384,33 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                 </div>
             </div>
 
-            {(upcomingCount === 0 && completedCount === 0 && searchTerm) ? (
+            {(upcomingCount === 0 && completedCount === 0 && liveCount === 0 && searchTerm) ? (
                 <div className="text-center py-20 opacity-20 flex flex-col items-center gap-4">
                     <Activity className="w-12 h-12" />
                     <h2 className="text-xl font-black uppercase italic tracking-widest">{t('no_matches_found')}</h2>
                 </div>
             ) : (
-                <Tabs defaultValue="upcoming" className="w-full">
+                <Tabs defaultValue={liveCount > 0 ? "live" : "upcoming"} className="w-full">
                     <div className="flex justify-center mb-10">
-                        <TabsList className="grid grid-cols-2 w-full max-w-lg h-16 sm:h-20 bg-black/60 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-sm" />
-                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60 rounded-tr-sm" />
-                            
+                        <TabsList className="grid grid-cols-3 w-full max-w-2xl h-16 sm:h-20 bg-black/60 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
+                            <TabsTrigger 
+                                value="live" 
+                                className={cn(
+                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                )}
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                                    <Radio className={cn("w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100", liveCount > 0 && "animate-pulse text-red-500")} />
+                                    LIVE <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{liveCount}]</span>
+                                </span>
+                                <div className={cn(
+                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                )} />
+                            </TabsTrigger>
+
                             <TabsTrigger 
                                 value="upcoming" 
                                 className={cn(
@@ -399,7 +420,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                             >
                                 <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
                                     <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                    Sisa Laga <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{upcomingCount}]</span>
+                                    Antrian <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{upcomingCount}]</span>
                                 </span>
                                 <div className={cn(
                                     "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
@@ -428,10 +449,39 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                         </TabsList>
                     </div>
 
+                    <TabsContent value="live" className="mt-0 focus-visible:ring-0 outline-none">
+                        <div className="space-y-12">
+                            {Object.entries(groupedMatches.live).map(([rd, rms]) => (
+                                <section key={`live-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex items-center gap-6 mb-6">
+                                        <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-red-500/30 to-transparent rounded-full" />
+                                        <div className="flex flex-col items-center">
+                                            <h3 className="text-base sm:text-lg font-black tracking-[0.2em] text-white uppercase italic pr-2">{roundNames[rd] || rd}</h3>
+                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-red-500/30 text-red-500 py-0 h-5 mt-1 animate-pulse">LIVE BROADCAST</Badge>
+                                        </div>
+                                        <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-red-500/30 to-transparent rounded-full" />
+                                    </div>
+                                    <Card className="overflow-hidden border-2 border-red-500/20 bg-red-500/[0.02] backdrop-blur-xl shadow-[0_0_50px_rgba(239,68,68,0.1)] rounded-[2.5rem]">
+                                        <CardContent className="p-0">
+                                            {rms.map(m => (
+                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                </section>
+                            ))}
+                            {liveCount === 0 && (
+                                <div className="text-center py-24 opacity-10 flex flex-col items-center gap-4">
+                                    <Radio className="w-16 h-16" />
+                                    <p className="text-sm font-black uppercase tracking-[0.4em] italic">No Matches Currently Live</p>
+                                </div>
+                            )}
+                        </div>
+                    </TabsContent>
+
                     <TabsContent value="upcoming" className="mt-0 focus-visible:ring-0 outline-none">
                         <div className="space-y-12">
-                            {Object.entries(groupedMatches.upcoming)
-                                .map(([rd, rms]) => (
+                            {Object.entries(groupedMatches.upcoming).map(([rd, rms]) => (
                                 <section key={`upcoming-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex items-center gap-6 mb-6">
                                         <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full" />
@@ -461,8 +511,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
 
                     <TabsContent value="completed" className="mt-0 focus-visible:ring-0 outline-none">
                         <div className="space-y-12">
-                            {Object.entries(groupedMatches.completed)
-                                .map(([rd, rms]) => (
+                            {Object.entries(groupedMatches.completed).map(([rd, rms]) => (
                                 <section key={`completed-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex items-center gap-6 mb-6">
                                         <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-full" />
@@ -543,145 +592,157 @@ export default function FixturesPage() {
     setIsProcessing(true);
     
     const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
-    const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`);
     
     try {
-        const [mDoc, sDoc] = await Promise.all([getDoc(matchRef), getDoc(seasonRef)]);
-        if (!mDoc.exists() || !sDoc.exists()) throw new Error("Match or Season data not found.");
-        
+        const mDoc = await getDoc(matchRef);
+        if (!mDoc.exists()) throw new Error("Match data not found.");
         const orig = mDoc.data() as Match;
-        const sData = sDoc.data() as Season;
-        const isMatchBo3 = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
         
         const [h, m] = values.time.split(':').map(Number); 
         const matchTimestamp = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
+        
+        const isCompleted = values.status === 'Completed';
+        const isLive = values.status === 'Live';
+
         const matchUpdateData: any = {
             player1Score: values.player1Score,
             player2Score: values.player2Score,
             matchDate: matchTimestamp,
-            isCompleted: true,
-            player1Wins: isMatchBo3 ? (values.player1Wins ?? 0) : null,
-            player2Wins: isMatchBo3 ? (values.player2Wins ?? 0) : null,
+            status: values.status,
+            isCompleted: isCompleted,
+            player1Wins: values.player1Wins !== undefined ? values.player1Wins : null,
+            player2Wins: values.player2Wins !== undefined ? values.player2Wins : null,
         };
 
-        await runTransaction(firestore, async (transaction) => {
-            let winMatchRef = null;
-            let losMatchRef = null;
-            if (orig.round && orig.round !== 'Group' && orig.bracketId) {
-                const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId];
-                if (succ) {
-                    const mCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
-                    const winSnap = await getDocs(query(mCol, where('bracketId', '==', succ.winner.bid)));
-                    if (!winSnap.empty) winMatchRef = winSnap.docs[0].ref;
-                    if (succ.loser) {
-                        const losSnap = await getDocs(query(mCol, where('bracketId', '==', succ.loser.bid)));
-                        if (!losSnap.empty) losMatchRef = losSnap.docs[0].ref;
+        if (isCompleted) {
+            // ONLY RUN TRANSACTION FOR COMPLETED MATCHES
+            await runTransaction(firestore, async (transaction) => {
+                const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`);
+                const sSnap = await transaction.get(seasonRef);
+                const sData = sSnap.data() as Season;
+                const isMatchBo3 = sData.type === 'Co-Op' || (orig.round && orig.round !== 'Group');
+
+                let winMatchRef = null;
+                let losMatchRef = null;
+                if (orig.round && orig.round !== 'Group' && orig.bracketId) {
+                    const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId];
+                    if (succ) {
+                        const mCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
+                        const winSnap = await getDocs(query(mCol, where('bracketId', '==', succ.winner.bid)));
+                        if (!winSnap.empty) winMatchRef = winSnap.docs[0].ref;
+                        if (succ.loser) {
+                            const losSnap = await getDocs(query(mCol, where('bracketId', '==', succ.loser.bid)));
+                            if (!losSnap.empty) losMatchRef = losSnap.docs[0].ref;
+                        }
                     }
                 }
-            }
 
-            let p1EntryRef = null;
-            let p2EntryRef = null;
-            let e1Data: LeagueEntry | null = null;
-            let e2Data: LeagueEntry | null = null;
+                let p1EntryRef = null;
+                let p2EntryRef = null;
+                let e1Data: LeagueEntry | null = null;
+                let e2Data: LeagueEntry | null = null;
 
-            if (orig.round === 'Group' || !orig.round) {
-                const tblName = sData.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
-                const tblCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
-                if (sData.type === 'Co-Op') {
-                    p1EntryRef = doc(tblCol, orig.player1Id);
-                    p2EntryRef = doc(tblCol, orig.player2Id);
-                } else {
-                    const snap1 = await getDocs(query(tblCol, where('playerId', '==', orig.player1Id)));
-                    const snap2 = await getDocs(query(tblCol, where('playerId', '==', orig.player2Id)));
-                    if (!snap1.empty) p1EntryRef = snap1.docs[0].ref;
-                    if (!snap2.empty) p2EntryRef = snap2.docs[0].ref;
+                if (orig.round === 'Group' || !orig.round) {
+                    const tblName = sData.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
+                    const tblCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
+                    if (sData.type === 'Co-Op') {
+                        p1EntryRef = doc(tblCol, orig.player1Id);
+                        p2EntryRef = doc(tblCol, orig.player2Id);
+                    } else {
+                        const snap1 = await getDocs(query(tblCol, where('playerId', '==', orig.player1Id)));
+                        const snap2 = await getDocs(query(tblCol, where('playerId', '==', orig.player2Id)));
+                        if (!snap1.empty) p1EntryRef = snap1.docs[0].ref;
+                        if (!snap2.empty) p2EntryRef = snap2.docs[0].ref;
+                    }
+                    
+                    if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data() as LeagueEntry;
+                    if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data() as LeagueEntry;
                 }
-                
-                if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data() as LeagueEntry;
-                if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data() as LeagueEntry;
-            }
 
-            const getOutcome = (s1: number, s2: number) => {
-                if (s1 > s2) return { p1: 'W', p2: 'L' };
-                if (s1 < s2) return { p1: 'L', p2: 'W' };
-                return { p1: 'D', p2: 'D' };
-            };
+                const getOutcome = (s1: number, s2: number) => {
+                    if (s1 > s2) return { p1: 'W', p2: 'L' };
+                    if (s1 < s2) return { p1: 'L', p2: 'W' };
+                    return { p1: 'D', p2: 'D' };
+                };
 
-            const updateStats = (pId: string, change: any) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
-                transaction.update(doc(firestore, 'players', pId), {
-                    overallPlayed: increment(change.played || 0),
-                    overallWin: increment(change.win || 0),
-                    overallDraw: increment(change.draw || 0),
-                    overallLoss: increment(change.loss || 0),
-                    overallGoalsFor: increment(change.gf || 0),
-                    overallGoalsAgainst: increment(change.ga || 0),
-                });
-            };
+                const updateStats = (pId: string, change: any) => {
+                    if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
+                    transaction.update(doc(firestore, 'players', pId), {
+                        overallPlayed: increment(change.played || 0),
+                        overallWin: increment(change.win || 0),
+                        overallDraw: increment(change.draw || 0),
+                        overallLoss: increment(change.loss || 0),
+                        overallGoalsFor: increment(change.gf || 0),
+                        overallGoalsAgainst: increment(change.ga || 0),
+                    });
+                };
 
-            if (orig.isCompleted) {
-                const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
-                const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
-                const oldRes = getOutcome(oldS1, oldS2);
-                
+                if (orig.isCompleted) {
+                    const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
+                    const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
+                    const oldRes = getOutcome(oldS1, oldS2);
+                    
+                    if (sData.type === 'Co-Op' && e1Data && e2Data) {
+                        const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
+                        [d1.player1Id, d1.player2Id].forEach(id => updateStats(id, { played: -1, win: oldRes.p1 === 'W' ? -1 : 0, loss: oldRes.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) }));
+                        [d2.player1Id, d2.player2Id].forEach(id => updateStats(id, { played: -1, win: oldRes.p2 === 'W' ? -1 : 0, loss: oldRes.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) }));
+                    } else {
+                        updateStats(orig.player1Id, { played: -1, win: oldRes.p1 === 'W' ? -1 : 0, draw: oldRes.p1 === 'D' ? -1 : 0, loss: oldRes.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
+                        updateStats(orig.player2Id, { played: -1, win: oldRes.p2 === 'W' ? -1 : 0, draw: oldRes.p2 === 'D' ? -1 : 0, loss: oldRes.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
+                    }
+                }
+
+                const newS1 = isMatchBo3 ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
+                const newS2 = isMatchBo3 ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
+                const newRes = getOutcome(newS1, newS2);
+
                 if (sData.type === 'Co-Op' && e1Data && e2Data) {
                     const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
-                    [d1.player1Id, d1.player2Id].forEach(id => updateStats(id, { played: -1, win: oldRes.p1 === 'W' ? -1 : 0, loss: oldRes.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) }));
-                    [d2.player1Id, d2.player2Id].forEach(id => updateStats(id, { played: -1, win: oldRes.p2 === 'W' ? -1 : 0, loss: oldRes.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) }));
+                    [d1.player1Id, d1.player2Id].forEach(id => updateStats(id, { played: 1, win: newRes.p1 === 'W' ? 1 : 0, loss: newRes.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 }));
+                    [d2.player1Id, d2.player2Id].forEach(id => updateStats(id, { played: 1, win: newRes.p2 === 'W' ? 1 : 0, loss: newRes.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 }));
                 } else {
-                    updateStats(orig.player1Id, { played: -1, win: oldRes.p1 === 'W' ? -1 : 0, draw: oldRes.p1 === 'D' ? -1 : 0, loss: oldRes.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
-                    updateStats(orig.player2Id, { played: -1, win: oldRes.p2 === 'W' ? -1 : 0, draw: oldRes.p2 === 'D' ? -1 : 0, loss: oldRes.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
+                    updateStats(orig.player1Id, { played: 1, win: newRes.p1 === 'W' ? 1 : 0, draw: newRes.p1 === 'D' ? 1 : 0, loss: newRes.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
+                    updateStats(orig.player2Id, { played: 1, win: newRes.p2 === 'W' ? 1 : 0, draw: newRes.p2 === 'D' ? 1 : 0, loss: newRes.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
                 }
-            }
 
-            const newS1 = isMatchBo3 ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
-            const newS2 = isMatchBo3 ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
-            const newRes = getOutcome(newS1, newS2);
-
-            if (sData.type === 'Co-Op' && e1Data && e2Data) {
-                const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
-                [d1.player1Id, d1.player2Id].forEach(id => updateStats(id, { played: 1, win: newRes.p1 === 'W' ? 1 : 0, loss: newRes.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 }));
-                [d2.player1Id, d2.player2Id].forEach(id => updateStats(id, { played: 1, win: newRes.p2 === 'W' ? 1 : 0, loss: newRes.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 }));
-            } else {
-                updateStats(orig.player1Id, { played: 1, win: newRes.p1 === 'W' ? 1 : 0, draw: newRes.p1 === 'D' ? 1 : 0, loss: newRes.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
-                updateStats(orig.player2Id, { played: 1, win: newRes.p2 === 'W' ? 1 : 0, draw: newRes.p2 === 'D' ? 1 : 0, loss: newRes.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
-            }
-
-            if (winMatchRef) {
-                const winnerId = newS1 > newS2 ? orig.player1Id : orig.player2Id;
-                const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId!];
-                transaction.update(winMatchRef, { [`player${succ.winner.slot}Id`]: winnerId });
-                if (losMatchRef && succ.loser) {
-                    const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
-                    transaction.update(losMatchRef, { [`player${succ.loser.slot}Id`]: loserId });
-                }
-            }
-
-            if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
-                const e1 = { ...e1Data }; const e2 = { ...e2Data };
-                if (orig.isCompleted) {
-                    e1.played--; e2.played--;
-                    if (sData.type === 'Co-Op') {
-                        if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
-                    } else {
-                        e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= mDoc.data().player1Score!;
-                        if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
+                if (winMatchRef) {
+                    const winnerId = newS1 > newS2 ? orig.player1Id : orig.player2Id;
+                    const succ = PLAYOFF_SUCCESSOR_MAP[orig.bracketId!];
+                    transaction.update(winMatchRef, { [`player${succ.winner.slot}Id`]: winnerId });
+                    if (losMatchRef && succ.loser) {
+                        const loserId = winnerId === orig.player1Id ? orig.player2Id : orig.player1Id;
+                        transaction.update(losMatchRef, { [`player${succ.loser.slot}Id`]: loserId });
                     }
                 }
-                e1.played++; e2.played++;
-                if (sData.type === 'Co-Op') {
-                    if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
-                } else {
-                    e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
-                    if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
-                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
-                }
-                transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
-            }
 
-            transaction.update(matchRef, matchUpdateData);
-        });
+                if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
+                    const e1 = { ...e1Data }; const e2 = { ...e2Data };
+                    if (orig.isCompleted) {
+                        e1.played--; e2.played--;
+                        if (sData.type === 'Co-Op') {
+                            if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
+                        } else {
+                            e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= mDoc.data().player1Score!;
+                            if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
+                        }
+                    }
+                    e1.played++; e2.played++;
+                    if (sData.type === 'Co-Op') {
+                        if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
+                    } else {
+                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
+                        if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
+                        e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                    }
+                    transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
+                }
+
+                transaction.update(matchRef, matchUpdateData);
+            });
+        } else {
+            // FOR LIVE OR SCHEDULED, JUST UPDATE THE MATCH DOC
+            await updateDoc(matchRef, matchUpdateData);
+        }
 
         toast({ title: t('score_updated_title') });
         setEditingMatch(null);
@@ -794,7 +855,7 @@ export default function FixturesPage() {
             if (winMatchRef) transaction.update(winMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].winner.slot}Id`]: 'TBD' });
             if (losMatchRef && PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser) transaction.update(losMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser!.slot}Id`]: 'TBD' });
 
-            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false });
+            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false, status: 'Scheduled' });
         });
 
         toast({ title: t('match_reverted_title') });
@@ -934,7 +995,7 @@ export default function FixturesPage() {
                     <div className="flex items-center gap-3 text-primary mb-1">
                         {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6" />}
                         <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">
-                            {isProcessing ? "Menyinkronkan..." : t('update_match_score_title')}
+                            {isProcessing ? "Menyinkronkan..." : "Update Match Engagement"}
                         </DialogTitle>
                     </div>
                     {editingMatch && (<DialogDescription className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
