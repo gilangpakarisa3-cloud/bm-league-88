@@ -5,7 +5,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Match, Season, Team, Player, WithId } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Zap, Activity, Scan, Swords } from 'lucide-react';
+import { Zap, Activity, Scan, Swords, Binary, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { resolveLogo } from '@/lib/logo-utils';
@@ -32,23 +32,37 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: Live
   if (isLoading || !liveMatches || liveMatches.length === 0) return null;
 
   return (
-    <div className="w-full bg-black/40 border-y-2 border-primary/20 py-4 sm:py-6 overflow-hidden relative group backdrop-blur-xl animate-in fade-in duration-1000 mb-10">
+    <div className="w-full bg-black/40 border-y-4 border-primary/10 py-6 sm:py-10 overflow-hidden relative group backdrop-blur-3xl animate-in fade-in slide-in-from-top-4 duration-1000 mb-12">
       {/* HUD Background Decoration */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.01)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20 pointer-events-none" />
       
+      {/* Dynamic Scan Line Across Ticker */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
+          <div className="w-full h-[2px] bg-primary blur-[1px] absolute top-0 left-0 animate-scanning" />
+      </div>
+
       <div className="container mx-auto px-4 relative z-10">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-            </span>
-            <h2 className="text-[10px] sm:text-xs font-black text-red-500 uppercase tracking-[0.4em] italic">LIVE ENGAGEMENTS</h2>
-          </div>
-          <div className="h-px flex-1 bg-gradient-to-r from-red-500/40 to-transparent" />
+        {/* CENTERED HEADER */}
+        <div className="flex flex-col items-center gap-4 mb-8">
+            <div className="bg-red-500 px-8 py-2 flex items-center justify-center relative overflow-hidden -skew-x-[15deg] border-r-4 border-black/20 shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                <div className="flex items-center gap-3 relative z-10 skew-x-[15deg]">
+                    <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    </span>
+                    <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-[0.4em] italic pr-2">LIVE ENGAGEMENTS</h2>
+                </div>
+            </div>
+            <div className="flex items-center gap-2 opacity-30">
+                <div className="h-px w-12 bg-white" />
+                <Binary className="w-4 h-4 text-white" />
+                <div className="h-px w-12 bg-white" />
+            </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start">
+        {/* CENTERED MATCH CARDS */}
+        <div className="flex flex-wrap gap-6 sm:gap-10 justify-center">
           {liveMatches.map((match) => {
             const p1 = playersById[match.player1Id];
             const p2 = playersById[match.player2Id];
@@ -59,34 +73,69 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: Live
             const logo2 = resolveLogo(t2?.logoUrl, match.player2Id, p2?.name || match.player2Id);
 
             return (
-              <div key={match.id} className="bg-black/60 border-2 border-white/10 rounded-2xl p-3 sm:p-4 flex items-center gap-4 sm:gap-6 shadow-2xl hover:border-primary/40 transition-all duration-500 group/live">
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-center gap-1">
-                    <Avatar className="h-10 w-10 border-2 border-white/10 group-hover/live:border-primary transition-colors">
-                      <AvatarImage src={logo1} className="object-cover" />
-                      <AvatarFallback className="bg-black/40 text-[8px]">P1</AvatarFallback>
-                    </Avatar>
-                    <span className="text-[8px] font-black text-white/40 uppercase tracking-tighter truncate max-w-[60px]">{p1?.name || match.player1Id}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-xl border border-white/5 ring-4 ring-black/20">
-                    <span className="text-2xl sm:text-3xl font-black text-primary italic tabular-nums">{match.player1Score ?? 0}</span>
-                    <div className="w-px h-6 bg-white/10" />
-                    <span className="text-2xl sm:text-3xl font-black text-primary italic tabular-nums">{match.player2Score ?? 0}</span>
-                  </div>
+              <div key={match.id} className="relative group/live-card">
+                {/* Glow Effect */}
+                <div className="absolute -inset-2 bg-primary/5 rounded-[2.5rem] blur-2xl opacity-0 group-hover/live-card:opacity-100 transition-opacity duration-700" />
+                
+                <div className="bg-black/60 border-2 border-white/10 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 flex flex-col sm:flex-row items-center gap-6 sm:gap-10 shadow-2xl hover:border-primary/40 transition-all duration-500 relative overflow-hidden backdrop-blur-3xl min-w-[280px] sm:min-w-[450px]">
+                    
+                    {/* Interior Scan Line */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-0 group-hover/live-card:opacity-20 transition-opacity">
+                        <div className="w-full h-1 bg-primary blur-[1px] animate-scanning" />
+                    </div>
 
-                  <div className="flex flex-col items-center gap-1">
-                    <Avatar className="h-10 w-10 border-2 border-white/10 group-hover/live:border-primary transition-colors">
-                      <AvatarImage src={logo2} className="object-cover" />
-                      <AvatarFallback className="bg-black/40 text-[8px]">P2</AvatarFallback>
-                    </Avatar>
-                    <span className="text-[8px] font-black text-white/40 uppercase tracking-tighter truncate max-w-[60px]">{p2?.name || match.player2Id}</span>
-                  </div>
-                </div>
+                    <div className="flex items-center justify-between w-full relative z-10 gap-4 sm:gap-8">
+                        {/* Player 1 */}
+                        <div className="flex flex-col items-center gap-3 flex-1">
+                            <div className="relative">
+                                <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg opacity-0 group-hover/live-card:opacity-100 transition-opacity" />
+                                <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-110">
+                                    <AvatarImage src={logo1} className="object-cover" />
+                                    <AvatarFallback className="bg-black/40 text-[10px] font-black">P1</AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p1?.name || match.player1Id}</span>
+                        </div>
+                        
+                        {/* CENTER SCORE HUB */}
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="relative group/score-box">
+                                <div className="absolute -inset-4 bg-primary/5 rounded-2xl blur-xl animate-pulse" />
+                                <div className="bg-[#0A192F] border-2 border-primary/30 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl shadow-[0_0_40px_rgba(204,253,1,0.1)] flex items-center gap-4 sm:gap-6 relative z-10 -skew-x-[12deg] group-hover/live-card:border-primary transition-colors">
+                                    <span className="text-3xl sm:text-5xl font-black text-primary italic tabular-nums skew-x-[12deg] drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] leading-none">{match.player1Score ?? 0}</span>
+                                    <div className="w-px h-8 sm:h-12 bg-white/10 skew-x-[12deg]" />
+                                    <span className="text-3xl sm:text-5xl font-black text-primary italic tabular-nums skew-x-[12deg] drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] leading-none">{match.player2Score ?? 0}</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Badge className="bg-red-500 text-white border-none font-black text-[8px] h-5 px-3 uppercase italic shadow-lg animate-pulse">LIVE BROADCAST</Badge>
+                            </div>
+                        </div>
 
-                <div className="hidden sm:flex flex-col items-end gap-1">
-                  <Badge className="bg-primary/10 text-primary border-primary/20 text-[7px] font-black px-2 h-4 uppercase">IN PROGRESS</Badge>
-                  <span className="text-[7px] font-black text-white/20 uppercase tracking-widest">{match.round || 'MATCH'}</span>
+                        {/* Player 2 */}
+                        <div className="flex flex-col items-center gap-3 flex-1">
+                            <div className="relative">
+                                <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg opacity-0 group-hover/live-card:opacity-100 transition-opacity" />
+                                <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-110">
+                                    <AvatarImage src={logo2} className="object-cover" />
+                                    <AvatarFallback className="bg-black/40 text-[10px] font-black">P2</AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p2?.name || match.player2Id}</span>
+                        </div>
+                    </div>
+
+                    {/* Meta Footer for the card */}
+                    <div className="w-full flex items-center justify-between pt-4 mt-2 border-t border-white/5 relative z-10">
+                        <div className="flex items-center gap-2">
+                            <Activity className="w-3 h-3 text-primary/40 animate-pulse" />
+                            <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] italic">{match.round || 'MATCH_INTEL'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-black text-primary/60 uppercase tracking-widest italic">ENCRYPTION ACTIVE</span>
+                            <Scan className="w-3 h-3 text-primary/40" />
+                        </div>
+                    </div>
                 </div>
               </div>
             );
