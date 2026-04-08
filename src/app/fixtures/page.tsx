@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan, CheckCircle2, Loader2, Binary, Radio } from 'lucide-react';
+import { Pencil, Search, Unlock, Undo2, Lock, Calendar, Swords, Clock, Zap, Activity, Trophy, LayoutGrid, KeyRound, CalendarIcon, Shield, ChevronRight, Scan, CheckCircle2, Loader2, Binary, Radio, Plus, Minus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -64,10 +65,11 @@ const ROUND_ORDER: Record<string, number> = {
     'Grand-Final': 10
 };
 
-const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isAdmin, activeSeason, hasPlayoffs }: {
+const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQuickUpdate, isAdmin, activeSeason, hasPlayoffs }: {
     match: any;
     onEditMatch: (match: any) => void;
     onRevertMatch: (match: WithId<Match>) => void;
+    onQuickUpdate: (matchId: string, field: string, delta: number) => void;
     isAdmin: boolean;
     activeSeason: WithId<Season> | null;
     hasPlayoffs: boolean;
@@ -134,8 +136,8 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
         );
     }
     
-    const score1 = isMatchBo3 ? match.player1Wins : (match.player1Score ?? 0);
-    const score2 = isMatchBo3 ? match.player2Wins : (match.player2Score ?? 0);
+    const score1 = isMatchBo3 ? (match.player1Wins ?? 0) : (match.player1Score ?? 0);
+    const score2 = isMatchBo3 ? (match.player2Wins ?? 0) : (match.player2Score ?? 0);
     const hasValidScore = (match.isCompleted || match.status === 'Live') && (score1 !== null || match.player1Score !== null);
     const isW1 = match.isCompleted && score1! > score2!;
     const isW2 = match.isCompleted && score2! > score1!;
@@ -152,7 +154,13 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
             <div className="relative z-10 grid grid-cols-[1fr_80px_1fr] sm:grid-cols-[1fr_140px_1fr] items-center gap-2 sm:gap-6 p-4 sm:p-8">
                 
                 {/* Home Player (Left) */}
-                <div className="w-full">
+                <div className="w-full flex items-center gap-2">
+                    {isAdmin && match.status === 'Live' && (
+                        <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
+                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', 1)}><Plus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
+                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
+                        </div>
+                    )}
                     <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.teamId1 || match.player1Id} alignment="right" isWinner={isW1} />
                 </div>
                 
@@ -165,11 +173,11 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                                 match.status === 'Live' ? "border-red-500/50 animate-pulse" : "border-white/10"
                             )}>
                                 <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW1 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : match.status === 'Live' ? "text-white" : "text-white/30")}>
-                                    {isMatchBo3 ? match.player1Wins : match.player1Score}
+                                    {score1}
                                 </span>
                                 <div className="w-px h-5 sm:h-8 bg-white/10" />
                                 <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : match.status === 'Live' ? "text-white" : "text-white/30")}>
-                                    {isMatchBo3 ? match.player2Wins : match.player2Score}
+                                    {score2}
                                 </span>
                             </div>
                             {match.status === 'Live' && (
@@ -189,8 +197,14 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
                 </div>
                 
                 {/* Away Player (Right) */}
-                <div className="w-full">
+                <div className="w-full flex items-center gap-2">
                     <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.teamId2 || match.player2Id} alignment="left" isWinner={isW2} />
+                    {isAdmin && match.status === 'Live' && (
+                        <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-right-2 duration-500">
+                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', 1)}><Plus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
+                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', -1)}><Minus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -236,7 +250,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, isA
     );
 });
 
-const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatch, onRevertMatch, isAdmin, allPlayers, allTeams, matches, isLoadingMatches, activeSeason, hasPlayoffs }: { activeSeasonId: string | null; onEditMatch: (match: any) => void; onRevertMatch: (match: WithId<Match>) => void; isAdmin: boolean; allPlayers: WithId<Player>[]; allTeams: WithId<Team>[]; matches: WithId<Match>[] | null; isLoadingMatches: boolean; activeSeason: WithId<Season> | null; hasPlayoffs: boolean; }) {
+const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatch, onRevertMatch, onQuickUpdate, isAdmin, allPlayers, allTeams, matches, isLoadingMatches, activeSeason, hasPlayoffs }: { activeSeasonId: string | null; onEditMatch: (match: any) => void; onRevertMatch: (match: WithId<Match>) => void; onQuickUpdate: (matchId: string, field: string, delta: number) => void; isAdmin: boolean; allPlayers: WithId<Player>[]; allTeams: WithId<Team>[]; matches: WithId<Match>[] | null; isLoadingMatches: boolean; activeSeason: WithId<Season> | null; hasPlayoffs: boolean; }) {
     const firestore = useFirestore();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
@@ -464,7 +478,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                     <Card className="overflow-hidden border-2 border-red-500/20 bg-red-500/[0.02] backdrop-blur-xl shadow-[0_0_50px_rgba(239,68,68,0.1)] rounded-[2.5rem]">
                                         <CardContent className="p-0">
                                             {rms.map(m => (
-                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
+                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} onQuickUpdate={onQuickUpdate} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
                                         </CardContent>
                                     </Card>
@@ -494,7 +508,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                     <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
                                         <CardContent className="p-0">
                                             {rms.map(m => (
-                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
+                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} onQuickUpdate={onQuickUpdate} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
                                         </CardContent>
                                     </Card>
@@ -524,7 +538,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                     <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
                                         <CardContent className="p-0">
                                             {rms.map(m => (
-                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
+                                                <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} onQuickUpdate={onQuickUpdate} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
                                         </CardContent>
                                     </Card>
@@ -585,6 +599,16 @@ export default function FixturesPage() {
     if (!isPasswordLoaded) return;
     if (passwordInput === ADMIN_PASSWORD) { setIsAdmin(true); setPasswordPromptOpen(false); toast({ title: t('admin_mode_unlocked_title') }); } else { toast({ variant: 'destructive', title: t('incorrect_password') }); }
     setPasswordInput('');
+  };
+
+  const handleQuickUpdate = async (matchId: string, field: string, delta: number) => {
+    if (!firestore || !activeSeasonId || !isAdmin) return;
+    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchId);
+    try {
+        await updateDoc(matchRef, { [field]: increment(delta) });
+    } catch (e) {
+        console.error("Quick update failed:", e);
+    }
   };
 
   const handleUpdateScore = async (matchId: string, values: any) => {
@@ -986,7 +1010,7 @@ export default function FixturesPage() {
                 <p className="font-black tracking-[0.4em] text-xs uppercase italic text-primary animate-pulse">{t('loading_fixtures')}</p>
             </div>
         ) : (
-            <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
+            <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} onQuickUpdate={handleQuickUpdate} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
         )}
 
         <Dialog open={!!editingMatch} onOpenChange={(open) => !open && !isProcessing && setEditingMatch(null)}>

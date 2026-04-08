@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -683,7 +684,7 @@ export default function LeaguePage() {
           </div>
         </div>
 
-        <LiveScoreTicker activeSeasonId={activeSeasonId} teamsById={teamsById} playersById={playersById} />
+        <LiveScoreTicker activeSeasonId={activeSeasonId} teamsById={teamsById} playersById={playersById} isAdmin={isAdmin} />
 
         <div className={cn(
             "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",

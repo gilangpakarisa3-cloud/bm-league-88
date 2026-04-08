@@ -3,21 +3,23 @@
 
 import { useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import type { Match, Season, Team, Player, WithId } from '@/lib/types';
+import { collection, query, where, doc, updateDoc, increment } from 'firebase/firestore';
+import type { Match, Team, Player, WithId } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Zap, Activity, Scan, Swords, Binary, Radio } from 'lucide-react';
+import { Zap, Scan, Binary, Radio, Plus, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { resolveLogo } from '@/lib/logo-utils';
 
 interface LiveScoreTickerProps {
   activeSeasonId: string | null;
   teamsById: Record<string, WithId<Team>>;
   playersById: Record<string, WithId<Player>>;
+  isAdmin?: boolean;
 }
 
-export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: LiveScoreTickerProps) {
+export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmin }: LiveScoreTickerProps) {
   const firestore = useFirestore();
 
   const liveMatchesQuery = useMemoFirebase(() => {
@@ -29,6 +31,18 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: Live
   }, [firestore, activeSeasonId]);
 
   const { data: liveMatches, isLoading } = useCollection<Match>(liveMatchesQuery);
+
+  const handleQuickUpdate = async (matchId: string, field: 'player1Score' | 'player2Score', delta: number) => {
+    if (!firestore || !activeSeasonId || !isAdmin) return;
+    const matchRef = doc(firestore, `leagues/main-league/seasons/${activeSeasonId}/matches`, matchId);
+    try {
+        await updateDoc(matchRef, {
+            [field]: increment(delta)
+        });
+    } catch (e) {
+        console.error("Quick update failed:", e);
+    }
+  };
 
   if (isLoading || !liveMatches || liveMatches.length === 0) return null;
 
@@ -87,15 +101,23 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: Live
 
                     <div className="flex items-center justify-between w-full relative z-10 gap-4 sm:gap-8">
                         {/* Player 1 */}
-                        <div className="flex flex-col items-center gap-3 flex-1">
-                            <div className="relative">
-                                <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg opacity-0 group-hover/live-card:opacity-100 transition-opacity" />
-                                <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-110">
-                                    <AvatarImage src={logo1} className="object-cover" />
-                                    <AvatarFallback className="bg-black/40 text-[10px] font-black">P1</AvatarFallback>
-                                </Avatar>
+                        <div className="flex items-center gap-4 flex-1">
+                            {isAdmin && (
+                                <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
+                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => handleQuickUpdate(match.id, 'player1Score', 1)}><Plus className="h-3 w-3" /></Button>
+                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => handleQuickUpdate(match.id, 'player1Score', -1)}><Minus className="h-3 w-3" /></Button>
+                                </div>
+                            )}
+                            <div className="flex flex-col items-center gap-3 flex-1">
+                                <div className="relative">
+                                    <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg opacity-0 group-hover/live-card:opacity-100 transition-opacity" />
+                                    <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-110">
+                                        <AvatarImage src={logo1} className="object-cover" />
+                                        <AvatarFallback className="bg-black/40 text-[10px] font-black">P1</AvatarFallback>
+                                    </Avatar>
+                                </div>
+                                <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p1?.name || match.player1Id}</span>
                             </div>
-                            <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p1?.name || match.player1Id}</span>
                         </div>
                         
                         {/* CENTER SCORE HUB */}
@@ -114,15 +136,23 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: Live
                         </div>
 
                         {/* Player 2 */}
-                        <div className="flex flex-col items-center gap-3 flex-1">
-                            <div className="relative">
-                                <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg opacity-0 group-hover/live-card:opacity-100 transition-opacity" />
-                                <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-110">
-                                    <AvatarImage src={logo2} className="object-cover" />
-                                    <AvatarFallback className="bg-black/40 text-[10px] font-black">P2</AvatarFallback>
-                                </Avatar>
+                        <div className="flex items-center gap-4 flex-1">
+                            <div className="flex flex-col items-center gap-3 flex-1">
+                                <div className="relative">
+                                    <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg opacity-0 group-hover/live-card:opacity-100 transition-opacity" />
+                                    <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-110">
+                                        <AvatarImage src={logo2} className="object-cover" />
+                                        <AvatarFallback className="bg-black/40 text-[10px] font-black">P2</AvatarFallback>
+                                    </Avatar>
+                                </div>
+                                <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p2?.name || match.player2Id}</span>
                             </div>
-                            <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p2?.name || match.player2Id}</span>
+                            {isAdmin && (
+                                <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-right-2 duration-500">
+                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => handleQuickUpdate(match.id, 'player2Score', 1)}><Plus className="h-3 w-3" /></Button>
+                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => handleQuickUpdate(match.id, 'player2Score', -1)}><Minus className="h-3 w-3" /></Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
