@@ -124,18 +124,6 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: Live
                             <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p2?.name || match.player2Id}</span>
                         </div>
                     </div>
-
-                    {/* Meta Footer for the card */}
-                    <div className="w-full flex items-center justify-between pt-4 mt-2 border-t border-white/5 relative z-10">
-                        <div className="flex items-center gap-2">
-                            <Activity className="w-3 h-3 text-primary/40 animate-pulse" />
-                            <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] italic">{match.round || 'MATCH_INTEL'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[8px] font-black text-primary/60 uppercase tracking-widest italic">ENCRYPTION ACTIVE</span>
-                            <Scan className="w-3 h-3 text-primary/40" />
-                        </div>
-                    </div>
                 </div>
               </div>
             );
