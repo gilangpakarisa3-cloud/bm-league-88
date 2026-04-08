@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -51,7 +52,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById }: Live
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
                     </span>
-                    <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-[0.4em] italic pr-2">LIVE ENGAGEMENTS</h2>
+                    <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-[0.4em] italic pr-2">Live Score</h2>
                 </div>
             </div>
             <div className="flex items-center gap-2 opacity-30">
