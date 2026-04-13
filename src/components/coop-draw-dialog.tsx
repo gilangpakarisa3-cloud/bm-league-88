@@ -1,22 +1,24 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
-import type { WithId, Season, Player, LeagueEntry, Team, PlayerWithTeam } from '@/lib/types';
+import type { WithId, Season, Player, LeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Users, Swords, Trash2, User } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Swords, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { Avatar, AvatarFallback } from './ui/avatar';
 import { ScrollArea } from './ui/scroll-area';
+import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
 
 
 const LEAGUE_ID = 'main-league';
-const SEED_POT_SIZE = 8; // Top 8 players from previous season go to Pot 1
+const SEED_POT_SIZE = 8; 
 
 export type DrawnPair = { player1: PlayerWithTeam, player2: PlayerWithTeam };
 type PlayerInPot = WithId<LeagueEntry> & { prevRank: number };
@@ -25,7 +27,6 @@ interface CoopDrawDialogProps {
   season: WithId<Season> | null;
   registeredPlayers: WithId<LeagueEntry>[];
   allPlayers: WithId<Player>[];
-  allTeams: WithId<Team>[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSavePairs: (pairs: { player1: PlayerWithTeam; player2: PlayerWithTeam; teamId: string; teamName: string }[]) => void;
@@ -33,7 +34,6 @@ interface CoopDrawDialogProps {
   onRemovePlayer: (leagueEntryId: string, playerName: string) => void;
 }
 
-// Fisher-Yates shuffle algorithm
 const shuffleArray = <T,>(array: T[]): T[] => {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -43,7 +43,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
     return newArray;
 };
 
-export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams, open, onOpenChange, onSavePairs, isAdmin, onRemovePlayer }: CoopDrawDialogProps) {
+export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, onOpenChange, onSavePairs, isAdmin, onRemovePlayer }: CoopDrawDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [previousSeason, setPreviousSeason] = useState<WithId<Season> | null>(null);
@@ -52,7 +52,6 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
   const [pot1, setPot1] = useState<PlayerInPot[]>([]);
   const [pot2, setPot2] = useState<PlayerInPot[]>([]);
   const [drawnPairs, setDrawnPairs] = useState<{player1: PlayerInPot, player2: PlayerInPot}[] | null>(null);
-  const [pairTeams, setPairTeams] = useState<Record<string, string>>({}); // pairId -> teamId map
   
   const allPlayersMap = useMemo(() => {
     return allPlayers.reduce((acc, p) => {
@@ -66,82 +65,59 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
 
     const findPreviousSeason = async () => {
         setIsLoading(true);
-        setDrawnPairs(null); // Reset drawn pairs when dialog opens
-        setPairTeams({});
+        setDrawnPairs(null);
         
-        // 1. Find the most recent 'Completed' season
         const seasonsQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc'));
         const seasonsSnap = await getDocs(seasonsQuery);
         const allSeasons = seasonsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Season>));
         const prevSeason = allSeasons.find(s => s.status === 'Completed');
         
-        if (!prevSeason) {
-            toast({ variant: 'destructive', title: "Tidak Ada Musim Sebelumnya", description: "Tidak dapat menemukan musim 'Completed' untuk dasar pengundian."});
-            setIsLoading(false);
-            return;
+        if (prevSeason) {
+            setPreviousSeason(prevSeason);
+            const prevTableQuery = query(
+                collection(firestore, `leagues/${LEAGUE_ID}/seasons/${prevSeason.id}/leagueTable`),
+                orderBy('points', 'desc'),
+                orderBy('goalDifference', 'desc'),
+                orderBy('goalsFor', 'desc')
+            );
+            const prevTableSnap = await getDocs(prevTableQuery);
+            setPreviousSeasonTable(prevTableSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<LeagueEntry>)));
         }
-        setPreviousSeason(prevSeason);
-        
-        // 2. Fetch the league table for that previous season
-        const prevTableQuery = query(
-            collection(firestore, `leagues/${LEAGUE_ID}/seasons/${prevSeason.id}/leagueTable`),
-            orderBy('points', 'desc'),
-            orderBy('goalDifference', 'desc'),
-            orderBy('goalsFor', 'desc')
-        );
-        const prevTableSnap = await getDocs(prevTableQuery);
-        const prevTable = prevTableSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<LeagueEntry>));
-        setPreviousSeasonTable(prevTable);
         setIsLoading(false);
     };
 
     findPreviousSeason();
-  }, [open, firestore, toast]);
+  }, [open, firestore]);
   
   useEffect(() => {
-      if (isLoading || !previousSeason || registeredPlayers.length === 0) {
-        setPot1([]);
-        setPot2([]);
-        return;
+      if (isLoading || registeredPlayers.length === 0) {
+        setPot1([]); setPot2([]); return;
       };
 
       const previousSeasonRankMap = new Map(previousSeasonTable.map((p, index) => [p.playerId, index + 1]));
-
       const playersInCurrentSeason: PlayerInPot[] = registeredPlayers
-        .map(entry => {
-            const prevRank = previousSeasonRankMap.get(entry.playerId) || Infinity;
-            return { 
-                ...entry,
-                prevRank 
-            };
-        })
+        .map(entry => ({ ...entry, prevRank: previousSeasonRankMap.get(entry.playerId) || Infinity }))
         .sort((a, b) => a.prevRank - b.prevRank);
 
       const newPot1 = playersInCurrentSeason.slice(0, SEED_POT_SIZE);
       const pot1PlayerIds = new Set(newPot1.map(p => p.playerId));
       const newPot2 = playersInCurrentSeason.filter(p => !pot1PlayerIds.has(p.playerId));
 
-      setPot1(newPot1);
-      setPot2(newPot2);
-
-  }, [isLoading, previousSeason, previousSeasonTable, registeredPlayers]);
+      setPot1(newPot1); setPot2(newPot2);
+  }, [isLoading, previousSeasonTable, registeredPlayers]);
 
   const handleMovePlayer = useCallback((playerToMove: PlayerInPot, destination: 'pot1' | 'pot2') => {
     if (destination === 'pot1') {
       setPot2(prev => prev.filter(p => p.id !== playerToMove.id));
       setPot1(prev => [...prev, playerToMove].sort((a,b) => a.prevRank - b.prevRank));
-    } else { // destination is pot2
+    } else {
       setPot1(prev => prev.filter(p => p.id !== playerToMove.id));
       setPot2(prev => [...prev, playerToMove].sort((a,b) => a.prevRank - b.prevRank));
     }
   }, []);
 
-  const handlePairTeamChange = useCallback((pairId: string, teamId: string) => {
-    setPairTeams(prev => ({ ...prev, [pairId]: teamId }));
-  }, []);
-  
   const handleDraw = useCallback(() => {
-      if (pot1.length === 0 && pot2.length < 2) {
+      if (pot1.length + pot2.length < 2) {
           toast({ variant: 'destructive', title: "Pemain Tidak Cukup", description: "Minimal perlu 2 pemain untuk membuat pasangan." });
           return;
       }
@@ -150,19 +126,13 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
       const shuffledPot2 = shuffleArray(pot2);
       const pairs: {player1: PlayerInPot, player2: PlayerInPot}[] = [];
       
-      // Pair players from Pot 1 with players from Pot 2
       while(shuffledPot1.length > 0 && shuffledPot2.length > 0) {
-          const p1 = shuffledPot1.pop()!;
-          const p2 = shuffledPot2.pop()!;
-          pairs.push({ player1: p1, player2: p2 });
+          pairs.push({ player1: shuffledPot1.pop()!, player2: shuffledPot2.pop()! });
       }
 
-      // Pair remaining players from the larger pot
       const remainingPlayers = [...shuffledPot1, ...shuffledPot2];
       while(remainingPlayers.length >= 2) {
-          const p1 = remainingPlayers.pop()!;
-          const p2 = remainingPlayers.pop()!;
-          pairs.push({ player1: p1, player2: p2 });
+          pairs.push({ player1: remainingPlayers.pop()!, player2: remainingPlayers.pop()! });
       }
       
       setDrawnPairs(pairs);
@@ -170,133 +140,91 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
   
   const handleFinalSave = () => {
     if (!drawnPairs) return;
-
-    // Check if all pairs have a team selected
-    const allTeamsSelected = drawnPairs.every(pair => {
-      const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
-      return pairTeams[pairId] && pairTeams[pairId] !== 'no-team';
-    });
-
-    if (!allTeamsSelected) {
-      toast({ variant: 'destructive', title: "Tim Belum Dipilih", description: "Harap pilih satu tim untuk setiap pasangan." });
-      return;
-    }
-
-    const pairsToSave = drawnPairs.map(pair => {
-      const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
-      const teamId = pairTeams[pairId];
-      const team = allTeams.find(t => t.id === teamId)!;
-
-      return { 
+    const pairsToSave = drawnPairs.map(pair => ({ 
         player1: allPlayersMap[pair.player1.playerId],
         player2: allPlayersMap[pair.player2.playerId],
-        teamId: team.id,
-        teamName: team.name,
-      };
-    });
-
+        teamId: '',
+        teamName: '',
+    }));
     onSavePairs(pairsToSave);
   }
 
-  const handleRemoveFromPot = (player: PlayerInPot) => {
-    onRemovePlayer(player.id, player.playerName);
-  }
-
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0">
+      <DialogContent className="max-w-4xl p-0 border-primary border-4 bg-background/95 rounded-[2.5rem] shadow-2xl">
         <ScrollArea className="max-h-[90vh]">
-          <div className="p-6">
-            <DialogHeader>
-              <DialogTitle>Undian Pasangan Co-Op: {season?.name}</DialogTitle>
-              <DialogDescription>
-                Berdasarkan klasemen musim lalu '{previousSeason?.name}'. {SEED_POT_SIZE} pemain teratas masuk Pot 1 (Unggulan). Anda bisa memindahkan pemain antar pot jika diperlukan.
+          <div className="p-8">
+            <DialogHeader className="mb-6">
+              <DialogTitle className="text-3xl font-black italic uppercase text-white tracking-tighter">Undian Pasangan Co-Op</DialogTitle>
+              <DialogDescription className="text-xs font-bold text-white/40 uppercase tracking-widest">
+                Musim: {season?.name} • Seeded Draw System Active
               </DialogDescription>
             </DialogHeader>
             
             {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="ml-4">Mencari data musim lalu...</p>
+                <div className="flex flex-col items-center justify-center h-64 gap-4">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                    <p className="font-black text-[10px] uppercase tracking-widest text-primary/60">Menganalisis Performa Musim Lalu...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <PotDisplay 
                         title="Pot 1 (Unggulan)" 
                         players={pot1} 
                         isAdmin={isAdmin} 
-                        onRemovePlayer={handleRemoveFromPot}
+                        onRemovePlayer={(p) => onRemovePlayer(p.id, p.playerName)}
                         onMovePlayer={(player) => handleMovePlayer(player, 'pot2')}
                         moveIcon={<ArrowDownCircle className="h-4 w-4 text-amber-500" />}
-                        moveTooltip="Pindahkan ke Pot 2"
+                        variant="primary"
                     />
                     <PotDisplay 
                         title="Pot 2" 
                         players={pot2} 
                         isAdmin={isAdmin} 
-                        onRemovePlayer={handleRemoveFromPot}
+                        onRemovePlayer={(p) => onRemovePlayer(p.id, p.playerName)}
                         onMovePlayer={(player) => handleMovePlayer(player, 'pot1')}
                         moveIcon={<ArrowUpCircle className="h-4 w-4 text-green-500" />}
-                        moveTooltip="Pindahkan ke Pot 1 (Unggulan)"
+                        variant="default"
                     />
                 </div>
             )}
 
             {drawnPairs && (
-                <div className="mt-4">
-                    <h3 className="text-lg font-semibold text-center mb-2 text-primary">Hasil Undian & Pemilihan Tim</h3>
-                    <div className="border rounded-md p-4 space-y-3">
-                        {drawnPairs.map((pair, index) => {
-                            const pairId = [pair.player1.playerId, pair.player2.playerId].sort().join('-');
-                            const player1 = allPlayersMap[pair.player1.playerId];
-                            const player2 = allPlayersMap[pair.player2.playerId];
-                            
-                            return (
-                                <div key={index} className="p-3 bg-card rounded-md border">
-                                    <p className="text-sm font-bold text-center mb-3 text-primary/80">Pasangan {index + 1}</p>
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 items-center mb-3">
-                                        <div className="font-semibold text-sm flex items-center gap-2">
-                                            <Avatar className="h-6 w-6"><AvatarFallback>{player1.name.charAt(0)}</AvatarFallback></Avatar>
-                                            {player1.name}
+                <div className="mt-10 animate-in fade-in zoom-in-95 duration-500">
+                    <h3 className="text-xl font-black italic uppercase text-primary text-center mb-6">Hasil Undian Pasangan</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {drawnPairs.map((pair, index) => (
+                            <div key={index} className="bg-black/40 border-2 border-primary/20 p-4 rounded-2xl relative overflow-hidden group">
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/40" />
+                                <div className="flex items-center justify-between">
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-8 w-8 border border-white/10"><AvatarFallback>{pair.player1.playerName.charAt(0)}</AvatarFallback></Avatar>
+                                            <span className="font-black text-xs uppercase italic text-white/90">{pair.player1.playerName}</span>
                                         </div>
-                                        <div className="font-semibold text-sm flex items-center gap-2">
-                                            <Avatar className="h-6 w-6"><AvatarFallback>{player2.name.charAt(0)}</AvatarFallback></Avatar>
-                                            {player2.name}
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-8 w-8 border border-white/10"><AvatarFallback>{pair.player2.playerName.charAt(0)}</AvatarFallback></Avatar>
+                                            <span className="font-black text-xs uppercase italic text-white/90">{pair.player2.playerName}</span>
                                         </div>
                                     </div>
-                                    <Select
-                                        value={pairTeams[pairId] || 'no-team'}
-                                        onValueChange={(teamId) => handlePairTeamChange(pairId, teamId)}
-                                        disabled={!isAdmin}
-                                    >
-                                        <SelectTrigger className="h-9 text-xs w-full">
-                                            <SelectValue placeholder="Pilih tim untuk pasangan ini..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="no-team" disabled>Pilih Tim...</SelectItem>
-                                            {allTeams.map(team => (
-                                                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Badge className="bg-primary/10 border-primary/30 text-primary font-black italic">PAIR {index + 1}</Badge>
                                 </div>
-                            )
-                        })}
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
 
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-10 pt-6 border-t border-white/5">
                 {drawnPairs ? (
-                    <Button onClick={handleFinalSave} className="w-full sm:w-auto" disabled={isLoading}>
-                        <Swords className="mr-2 h-4 w-4"/>
-                        Simpan Pasangan & Buat Klasemen
+                    <Button onClick={handleFinalSave} className="w-full h-14 font-black uppercase italic text-lg shadow-[0_0_30px_rgba(204,253,1,0.2)]">
+                        <Swords className="mr-3 h-6 w-6"/>
+                        Kunci Pasangan & Lanjut Ke Draft Tim
                     </Button>
                 ): (
-                    <Button onClick={handleDraw} className="w-full sm:w-auto" disabled={isLoading || (pot1.length === 0 && pot2.length < 2)}>
-                        <Shuffle className="mr-2 h-4 w-4"/>
-                        Undi Pasangan
+                    <Button onClick={handleDraw} className="w-full h-14 font-black uppercase italic text-lg" disabled={isLoading || (pot1.length + pot2.length < 2)}>
+                        <Shuffle className="mr-3 h-6 w-6"/>
+                        Mulai Undian Pasangan
                     </Button>
                 )}
             </DialogFooter>
@@ -307,52 +235,37 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, allTeams
   );
 }
 
-const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, moveTooltip }: { 
+const PotDisplay = ({ title, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, variant = "default" }: { 
     title: string;
     players: PlayerInPot[];
     isAdmin: boolean;
     onRemovePlayer: (player: PlayerInPot) => void;
     onMovePlayer: (player: PlayerInPot) => void;
     moveIcon: React.ReactNode;
-    moveTooltip: string;
-}) => {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-center text-primary">{title} ({players.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-2">
-                    {players.map(player => {
-                        return (
-                            <div key={player.id} className="flex items-center justify-between text-sm font-medium p-2 bg-card rounded-md border gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-semibold">{player.playerName}</span>
-                                </div>
-                                <div className="flex items-center gap-1 ml-auto">
-                                    {isAdmin && (
-                                    <div className="flex items-center">
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onMovePlayer(player); }}>
-                                                            {moveIcon}
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent><p>{moveTooltip}</p></TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemovePlayer(player); }}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                )}
-                                </div>
+    variant?: "primary" | "default";
+}) => (
+    <Card className={cn(
+        "bg-black/20 border-2 rounded-[1.5rem] overflow-hidden",
+        variant === "primary" ? "border-primary/20" : "border-white/5"
+    )}>
+        <CardHeader className="p-4 bg-white/5 border-b border-white/5">
+            <CardTitle className={cn("text-center font-black text-sm uppercase tracking-widest", variant === "primary" ? "text-primary" : "text-white/60")}>{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+            <div className="space-y-2">
+                {players.map(player => (
+                    <div key={player.id} className="flex items-center justify-between p-3 bg-white/[0.03] border border-white/5 rounded-xl group hover:bg-white/[0.05] transition-all">
+                        <span className="font-bold text-sm uppercase italic text-white/80">{player.playerName}</span>
+                        {isAdmin && (
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" onClick={() => onMovePlayer(player)}>{moveIcon}</Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-500/10 text-red-500" onClick={() => onRemovePlayer(player)}><Trash2 className="h-4 w-4" /></Button>
                             </div>
-                        )
-                    })}
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
+                        )}
+                    </div>
+                ))}
+                {players.length === 0 && <p className="text-center py-10 text-[10px] font-black uppercase text-white/10 italic">Pot Kosong</p>}
+            </div>
+        </CardContent>
+    </Card>
+);

@@ -144,15 +144,18 @@ export default function LeaguePage() {
     }, {} as Record<string, WithId<Team>>);
   }, [allTeams]);
 
-  const playerRegistrationCollection = useMemoFirebase(
-      () => {
-        if (!firestore || !activeSeasonId || !activeSeason) return null;
-        const collName = activeSeason.type === 'Co-Op' ? 'coopLeagueTable' : 'leagueTable';
-        return collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${collName}`);
-      },
-      [firestore, activeSeasonId, activeSeason]
+  // Pool individu (leagueTable) - digunakan untuk pendaftaran awal dan pengundian CO-OP
+  const individualPoolCollection = useMemoFirebase(
+      () => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
+      [firestore, activeSeasonId]
   );
-  const { data: registeredPlayers } = useCollection<any>(playerRegistrationCollection);
+  const { data: individualPool } = useCollection<LeagueEntry>(individualPoolCollection);
+
+  // Entri aktif untuk Financial Hub & Standings (Individu untuk Single/Hybrid, Pasangan untuk Co-Op)
+  const participantEntries = useMemo(() => {
+    if (activeSeason?.type === 'Co-Op') return coopLeagueTable || [];
+    return singleLeagueTable || [];
+  }, [activeSeason, coopLeagueTable, singleLeagueTable]);
 
   const playersCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'players') : null),
@@ -267,7 +270,7 @@ export default function LeaguePage() {
     const registrationFee = activeSeason.registrationFee || 0;
     const sponsorship = activeSeason.sponsorshipAmount || 0;
 
-    const paidCount = (registeredPlayers || []).filter(p => p.hasPaid).length;
+    const paidCount = (participantEntries || []).filter(p => p.hasPaid).length;
     const regPool = paidCount * registrationFee;
     const totalPool = regPool + sponsorship;
 
@@ -276,7 +279,7 @@ export default function LeaguePage() {
       registrationPool: regPool,
       sponsorshipPool: sponsorship
     };
-  }, [registeredPlayers, activeSeason]);
+  }, [participantEntries, activeSeason]);
 
   const allSeasonMatches = useMemo(() => (matches || []), [matches]);
   const groupStageMatches = useMemo(() => allSeasonMatches.filter(m => !m.round || m.round === 'Group'), [allSeasonMatches]);
@@ -465,7 +468,18 @@ export default function LeaguePage() {
     existingDocsSnap.forEach(doc => batch.delete(doc.ref));
     pairs.forEach(pair => {
         const tId = [pair.player1.id, pair.player2.id].sort().join('-');
-        batch.set(doc(targetCol, tId), { teamName: `${pair.player1.name} & ${pair.player2.name}`, player1Id: pair.player1.id, player1Name: pair.player1.name, player1TeamId: pair.teamId, player1TeamName: pair.teamName, player2Id: pair.player2.id, player2Name: pair.player2.name, player2TeamId: pair.teamId, player2TeamName: pair.teamName, played: 0, win: 0, loss: 0, points: 0, hasPaid: false });
+        batch.set(doc(targetCol, tId), { 
+            teamName: `${pair.player1.name} & ${pair.player2.name}`, 
+            player1Id: pair.player1.id, 
+            player1Name: pair.player1.name, 
+            player1TeamId: pair.teamId || '', 
+            player1TeamName: pair.teamName || '', 
+            player2Id: pair.player2.id, 
+            player2Name: pair.player2.name, 
+            player2TeamId: pair.teamId || '', 
+            player2TeamName: pair.teamName || '', 
+            played: 0, win: 0, loss: 0, points: 0, hasPaid: false 
+        });
     });
     batch.commit().then(() => { toast({ title: 'Pasangan Disimpan!', description: `${pairs.length} tim Co-Op telah dibuat.` }); setShowDrawDialog(false); });
   };
@@ -482,9 +496,22 @@ export default function LeaguePage() {
   const handleSaveTeamDraftResults = async (assignments: { entryId: string, teamId: string, teamName: string }[]) => {
     if (!firestore || !activeSeasonId) return;
     const batch = writeBatch(firestore);
-    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`);
+    const isCoop = activeSeason?.type === 'Co-Op';
+    const targetColName = isCoop ? 'coopLeagueTable' : 'leagueTable';
+    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${targetColName}`);
+    
     assignments.forEach(a => {
-        batch.update(doc(targetCol, a.entryId), { teamId: a.teamId, teamName: a.teamName });
+        const entryRef = doc(targetCol, a.entryId);
+        if (isCoop) {
+            batch.update(entryRef, {
+                player1TeamId: a.teamId,
+                player1TeamName: a.teamName,
+                player2TeamId: a.teamId,
+                player2TeamName: a.teamName
+            });
+        } else {
+            batch.update(entryRef, { teamId: a.teamId, teamName: a.teamName });
+        }
     });
     batch.commit().then(() => { toast({ title: 'Draft Tim Selesai!', description: 'Data tim pemain telah diperbarui.' }); setShowTeamDraftDialog(false); });
   };
@@ -721,10 +748,10 @@ export default function LeaguePage() {
                 {activeSeason.status === 'Not Started' && (
                     <>
                         <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</span></Button>
-                        <Button onClick={() => withAdminCheck(() => setShowTeamDraftDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"><span className="skew-x-[12deg] flex items-center"><Dices className="mr-2 h-4 w-4" />TEAM DRAFT</span></Button>
-                        {activeSeason?.type === 'Co-Op' && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</span></Button>}
-                        {activeSeason?.type === 'Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(registeredPlayers?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Group className="mr-2 h-4 w-4" />UNDI GRUP</span></Button>}
-                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={((activeSeason.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</span></Button>
+                        <Button onClick={() => withAdminCheck(() => setShowTeamDraftDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"><span className="skew-x-[12deg] flex items-center"><Dices className="mr-2 h-4 w-4" />TEAM DRAFT</span></Button>
+                        {activeSeason?.type === 'Co-Op' && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</span></Button>}
+                        {activeSeason?.type === 'Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Group className="mr-2 h-4 w-4" />UNDI GRUP</span></Button>}
+                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</span></Button>
                         <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant="default" className="flex-1 sm:flex-none h-12 px-8 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-black/20 shadow-xl shadow-primary/20 transition-all" disabled={!hasFixtures || (sortedTable || []).length < 2}><span className="skew-x-[12deg] flex items-center"><Play className="mr-2 h-4 w-4" />{t('start_season')}</span></Button>
                     </>
                 )}
@@ -791,7 +818,7 @@ export default function LeaguePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
                     <div className="lg:col-span-8"><LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} /></div>
                     <div className="lg:col-span-4">
-                        {activeSeason?.registrationFee && (registeredPlayers || []).length > 0 && (
+                        {activeSeason?.registrationFee && (participantEntries || []).length > 0 && (
                             <Card className="group relative overflow-hidden transition-all duration-700 border-0 bg-transparent rounded-[2.5rem] p-[2px] hover:scale-[1.01] hover:shadow-[0_0_60px_rgba(250,204,21,0.2)]">
                                 {/* Inner Border Layout */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-transparent pointer-events-none" />
@@ -853,10 +880,10 @@ export default function LeaguePage() {
                                                         <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Payment Quota</p>
                                                     </div>
                                                     <span className="text-[10px] font-black text-yellow-400 italic" suppressHydrationWarning>
-                                                        {registeredPlayers?.filter(p => p.hasPaid).length} / {registeredPlayers?.length} UNITS
+                                                        {participantEntries?.filter(p => p.hasPaid).length} / {participantEntries?.length} UNITS
                                                     </span>
                                                 </div>
-                                                <Progress value={((registeredPlayers?.filter(p => p.hasPaid).length || 0) / (registeredPlayers?.length || 1)) * 100} className="h-1.5 bg-white/5" color="bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]" />
+                                                <Progress value={((participantEntries?.filter(p => p.hasPaid).length || 0) / (participantEntries?.length || 1)) * 100} className="h-1.5 bg-white/5" color="bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]" />
                                             </div>
                                         </div>
 
@@ -871,7 +898,7 @@ export default function LeaguePage() {
                                             
                                             <ScrollArea className="h-[500px] sm:h-[650px] pr-4">
                                                 <div className="space-y-2.5 pb-10">
-                                                    {(registeredPlayers || []).map(player => {
+                                                    {(participantEntries || []).map(player => {
                                                         const type = activeSeason?.type || 'Single';
                                                         const teamId = type === 'Co-Op' ? player.player1TeamId : player.teamId;
                                                         const name = type === 'Co-Op' ? player.teamName : player.playerName;
@@ -973,11 +1000,11 @@ export default function LeaguePage() {
 
       <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Konfirmasi Penjadwalan</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru secara acak' : 'membuat jadwal pertandingan baru secara acak'}.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Batal</AlertDialogCancel><AlertDialogAction onClick={handleGenerateFixtures} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
 
-      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><DialogHeader><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('register_players')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription></DialogHeader><RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={registeredPlayers || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} /></DialogContent></Dialog>
+      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><DialogHeader><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('register_players')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription></DialogHeader><RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={individualPool || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} /></DialogContent></Dialog>
 
-      <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} allPlayers={allPlayers || []} allTeams={allTeams || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
-      <GroupDrawDialog open={showGroupDrawDialog} onOpenChange={setShowGroupDrawDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} onSaveGroups={handleSaveGroups} />
-      <TeamDraftDialog open={showTeamDraftDialog} onOpenChange={setShowTeamDraftDialog} season={activeSeason} registeredPlayers={registeredPlayers || []} allTeams={allTeams || []} onSaveAssignments={handleSaveTeamDraftResults} isAdmin={isAdmin} />
+      <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={individualPool || []} allPlayers={allPlayers || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
+      <GroupDrawDialog open={showGroupDrawDialog} onOpenChange={setShowGroupDrawDialog} season={activeSeason} registeredPlayers={individualPool || []} onSaveGroups={handleSaveGroups} />
+      <TeamDraftDialog open={showTeamDraftDialog} onOpenChange={setShowTeamDraftDialog} season={activeSeason} registeredPlayers={participantEntries || []} allTeams={allTeams || []} onSaveAssignments={handleSaveTeamDraftResults} isAdmin={isAdmin} />
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
       <PlayerPerformanceDialog player={selectedPlayerForStats} matches={matches || []} allPlayers={allPlayers || []} allTeams={allTeams || []} coopLeagueTable={coopLeagueTable || []} singleLeagueTable={singleLeagueTable || []} activeSeason={activeSeason} totalPlayersInSeason={(activeSeason?.type === 'Co-Op' ? coopLeagueTable?.length : singleLeagueTable?.length) || 0} open={!!selectedPlayerForStats} onOpenChange={() => setSelectedPlayerForStats(null)} isAdmin={isAdmin} defendingChampionId={defendingChampionId} />
       

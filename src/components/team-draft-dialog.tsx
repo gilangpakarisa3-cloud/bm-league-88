@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Users, CheckCircle2, Binary, Loader2, Zap, Trash2, Trophy, Shuffle, Scan, Activity, X } from 'lucide-react';
-import type { Team, LeagueEntry, Season, WithId } from '@/lib/types';
+import type { Team, LeagueEntry, Season, WithId, CoOpLeagueEntry } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -16,7 +17,7 @@ interface TeamDraftDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   season: WithId<Season> | null;
-  registeredPlayers: WithId<LeagueEntry>[];
+  registeredPlayers: any[]; // Bisa individu atau pasangan CO-OP
   allTeams: WithId<Team>[];
   onSaveAssignments: (assignments: { entryId: string, teamId: string, teamName: string }[]) => void;
   isAdmin: boolean;
@@ -26,28 +27,34 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
   const { toast } = useToast();
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
-  const [assignments, setAssignments] = useState<Record<string, string>>({}); // playerEntryId -> teamId
+  const [assignments, setAssignments] = useState<Record<string, string>>({}); 
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastDrawResult, setLastDrawResult] = useState<{ winnerName: string, teamName: string, isManual: boolean } | null>(null);
+
+  const isCoop = season?.type === 'Co-Op';
 
   const availableTeams = useMemo(() => {
     const assignedTeamIds = new Set(Object.values(assignments));
     return allTeams.filter(t => !assignedTeamIds.has(t.id)).sort((a, b) => (a.tier || 3) - (b.tier || 3));
   }, [allTeams, assignments]);
 
-  const unassignedPlayers = useMemo(() => {
-    return registeredPlayers.filter(p => !assignments[p.id]).sort((a,b) => a.playerName.localeCompare(b.playerName));
-  }, [registeredPlayers, assignments]);
+  const unassignedEntries = useMemo(() => {
+    return registeredPlayers.filter(p => !assignments[p.id]).map(p => ({
+        id: p.id,
+        name: isCoop ? (p as CoOpLeagueEntry).teamName : (p as LeagueEntry).playerName
+    })).sort((a,b) => a.name.localeCompare(b.name));
+  }, [registeredPlayers, assignments, isCoop]);
 
-  const assignedPlayers = useMemo(() => {
+  const assignedEntries = useMemo(() => {
     return registeredPlayers.filter(p => !!assignments[p.id]).map(p => ({
-        ...p,
+        id: p.id,
+        name: isCoop ? (p as CoOpLeagueEntry).teamName : (p as LeagueEntry).playerName,
         teamId: assignments[p.id],
         team: allTeams.find(t => t.id === assignments[p.id])
     })).sort((a, b) => (a.team?.tier || 3) - (b.team?.tier || 3));
-  }, [registeredPlayers, assignments, allTeams]);
+  }, [registeredPlayers, assignments, allTeams, isCoop]);
 
-  const togglePlayerSelection = (id: string) => {
+  const toggleSelection = (id: string) => {
     setSelectedPlayerIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
@@ -75,26 +82,25 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
         const pool = selectedPlayerIds;
         const winnerId = pool[Math.floor(Math.random() * pool.length)];
         const winnerEntry = registeredPlayers.find(p => p.id === winnerId);
+        const winnerName = isCoop ? (winnerEntry as CoOpLeagueEntry).teamName : (winnerEntry as LeagueEntry).playerName;
 
         setAssignments(prev => ({ ...prev, [winnerId]: selectedTeamId }));
         setLastDrawResult({
-            winnerName: winnerEntry?.playerName || 'Unknown',
+            winnerName: winnerName || 'Unknown',
             teamName: team.name,
             isManual
         });
 
         toast({
             title: isManual ? "VERIFICATION SUCCESS" : "OUTCOME LOCKED",
-            description: isManual 
-                ? `${winnerEntry?.playerName} assigned to ${team.name}.`
-                : `${winnerEntry?.playerName} won ${team.name} via Seeded Draw.`
+            description: `${winnerName} secured ${team.name}.`
         });
 
         setSelectedTeamId(null);
         setSelectedPlayerIds([]);
         setIsDrawing(false);
     }, delay);
-  }, [selectedTeamId, selectedPlayerIds, allTeams, registeredPlayers, toast]);
+  }, [selectedTeamId, selectedPlayerIds, allTeams, registeredPlayers, toast, isCoop]);
 
   const handleFinalSubmit = () => {
     const data = Object.entries(assignments).map(([entryId, teamId]) => {
@@ -122,7 +128,9 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     </div>
                 </div>
                 <div className="space-y-1">
-                    <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic pr-4 drop-shadow-[0_0_20px_255,255,255,0.1)]">Team Draft System</DialogTitle>
+                    <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic pr-4 drop-shadow-[0_0_20px_255,255,255,0.1)]">
+                        {isCoop ? 'CO-OP Pair Draft' : 'Team Draft System'}
+                    </DialogTitle>
                     <div className="flex items-center gap-3">
                         <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[8px] font-black uppercase tracking-[0.2em] h-5">Protocol: Multi-Tier Fairness Engine v2.0</Badge>
                         <span className="text-[8px] font-bold text-white/20 uppercase tracking-[0.4em] hidden sm:block">Real-time Allocation Matrix</span>
@@ -180,20 +188,22 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     <div className="p-6 border-b border-white/5 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <Users className="w-5 h-5 text-primary" />
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 italic pr-2">Athlete Manifest</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 italic pr-2">
+                                {isCoop ? 'Pairs Manifest' : 'Athlete Manifest'}
+                            </h3>
                         </div>
                         <TabsList className="bg-black/40 border-2 border-white/5 h-11 p-1 rounded-xl">
                             <TabsTrigger 
                                 value="unassigned" 
                                 className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black rounded-lg transition-all px-4"
                             >
-                                Free Agent [{unassignedPlayers.length}]
+                                Unassigned [{unassignedEntries.length}]
                             </TabsTrigger>
                             <TabsTrigger 
                                 value="assigned" 
                                 className="text-[9px] font-black uppercase tracking-widest italic data-[state=active]:bg-primary data-[state=active]:text-black rounded-lg transition-all px-4"
                             >
-                                Locked [{assignedPlayers.length}]
+                                Locked [{assignedEntries.length}]
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -204,14 +214,14 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                 <div className="px-6 py-6 space-y-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
-                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 italic">Available Roster</span>
+                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 italic">Available Pool</span>
                                     </div>
-                                    {unassignedPlayers.length > 0 ? unassignedPlayers.map(player => {
-                                        const isSelected = selectedPlayerIds.includes(player.id);
+                                    {unassignedEntries.length > 0 ? unassignedEntries.map(entry => {
+                                        const isSelected = selectedPlayerIds.includes(entry.id);
                                         return (
                                             <button
-                                                key={player.id}
-                                                onClick={() => togglePlayerSelection(player.id)}
+                                                key={entry.id}
+                                                onClick={() => toggleSelection(entry.id)}
                                                 className={cn(
                                                     "w-full flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden group",
                                                     isSelected ? "bg-primary/15 border-primary/50 shadow-inner" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
@@ -219,7 +229,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className={cn("w-1 h-6 rounded-full transition-all duration-500", isSelected ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.8)]" : "bg-white/10")} />
-                                                    <p className={cn("text-[13px] font-black uppercase italic tracking-tight transition-colors", isSelected ? "text-primary" : "text-white/80 group-hover:text-white")}>{player.playerName}</p>
+                                                    <p className={cn("text-[13px] font-black uppercase italic tracking-tight transition-colors", isSelected ? "text-primary" : "text-white/80 group-hover:text-white")}>{entry.name}</p>
                                                 </div>
                                                 {isSelected && <CheckCircle2 className="w-5 h-5 text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" />}
                                             </button>
@@ -227,7 +237,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                     }) : (
                                         <div className="py-12 text-center border-4 border-dashed border-white/5 rounded-3xl opacity-20">
                                             <Users className="w-10 h-10 mx-auto mb-3" />
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] italic">All Athletes Assigned</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] italic">All Units Assigned</p>
                                         </div>
                                     )}
                                 </div>
@@ -242,19 +252,19 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                         <span className="text-[8px] font-black uppercase tracking-[0.2em] text-green-400/60 italic">Verified Allocation</span>
                                     </div>
                                     <div className="grid grid-cols-1 gap-2.5">
-                                        {assignedPlayers.length > 0 ? assignedPlayers.map(player => (
-                                            <div key={player.id} className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 border-green-500/20 bg-green-500/5 relative group/assigned overflow-hidden">
+                                        {assignedEntries.length > 0 ? assignedEntries.map(entry => (
+                                            <div key={entry.id} className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 border-green-500/20 bg-green-500/5 relative group/assigned overflow-hidden">
                                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500/40" />
                                                 <div className="flex items-center gap-4">
                                                     <Avatar className="h-10 w-10 border-2 border-green-500/30 shadow-lg">
-                                                        <AvatarImage src={player.team?.logoUrl} />
+                                                        <AvatarImage src={entry.team?.logoUrl} />
                                                         <AvatarFallback className="bg-black/40 text-[8px] font-black uppercase">TEAM</AvatarFallback>
                                                     </Avatar>
                                                     <div className="text-left">
-                                                        <p className="text-sm font-black uppercase italic text-white/90 tracking-tight leading-tight pr-4">{player.playerName}</p>
+                                                        <p className="text-sm font-black uppercase italic text-white/90 tracking-tight leading-tight pr-4">{entry.name}</p>
                                                         <div className="flex items-center gap-2">
-                                                            <Badge className="bg-green-500/20 text-green-400 border-none text-[7px] h-4 font-black">T{player.team?.tier || 3}</Badge>
-                                                            <p className="text-[9px] font-black text-white/30 uppercase tracking-widest italic">{player.team?.name}</p>
+                                                            <Badge className="bg-green-500/20 text-green-400 border-none text-[7px] h-4 font-black">T{entry.team?.tier || 3}</Badge>
+                                                            <p className="text-[9px] font-black text-white/30 uppercase tracking-widest italic">{entry.team?.name}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -262,7 +272,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                                     variant="ghost" 
                                                     size="icon" 
                                                     className="h-9 w-9 text-white/10 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover/assigned:opacity-100 transition-all rounded-lg"
-                                                    onClick={() => removeAssignment(player.id)}
+                                                    onClick={() => removeAssignment(entry.id)}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
@@ -280,7 +290,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     </div>
                 </Tabs>
 
-                {/* Outcome HUD - Nested inside flow to avoid roster overlap */}
+                {/* Outcome HUD */}
                 {lastDrawResult && !isDrawing && (
                     <div className="px-6 py-2 animate-in slide-in-from-bottom-2 duration-500 shrink-0 bg-black/40 border-t border-white/10 relative z-20">
                         <div className={cn(
@@ -320,7 +330,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                     </div>
                 )}
 
-                {/* Draft Control Footer - Compact Style */}
+                {/* Draft Control Footer */}
                 <div className="p-4 sm:p-6 shrink-0 bg-black/60 border-t border-white/10 backdrop-blur-xl relative z-10">
                     <div className="bg-black/40 border-2 border-primary/20 rounded-2xl p-4 relative overflow-hidden group/processor">
                         <div className="flex items-center justify-between mb-3 px-1">
@@ -340,7 +350,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                             </div>
                             <div className="flex flex-col p-3 bg-white/[0.02] rounded-xl border border-white/5">
                                 <span className="text-[7px] font-black text-white/20 uppercase tracking-widest mb-1">Load</span>
-                                <span className="text-[11px] font-black text-white uppercase italic" suppressHydrationWarning>{selectedPlayerIds.length} Athletes</span>
+                                <span className="text-[11px] font-black text-white uppercase italic" suppressHydrationWarning>{selectedPlayerIds.length} Units</span>
                             </div>
                         </div>
 
