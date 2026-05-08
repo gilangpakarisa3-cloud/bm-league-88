@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -8,7 +7,7 @@ import { useFirestore } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import type { WithId, Season, Player, LeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Swords, Trash2, Zap, Scan, Loader, CheckCircle2 } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Swords, Trash2, Zap, Scan, Loader, CheckCircle2, Binary } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ScrollArea } from './ui/scroll-area';
