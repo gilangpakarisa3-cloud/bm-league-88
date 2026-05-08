@@ -172,21 +172,22 @@ const SingleTable = memo(({
           <TableBody>
             {tableData.map((entry) => {
               const currentType = seasonType || 'Single';
+              const isPlayoffHybrid = currentType === 'Hybrid' || currentType === 'Co-Op Hybrid';
               const playerForm = playerFormsMap[entry.playerId || entry.id] || [];
               
               const isFirst = entry.rank === 1;
               const isQualificationZone =
-                  (currentType === 'Hybrid' && entry.rank >= 1 && entry.rank <= 4) ||
+                  (isPlayoffHybrid && entry.rank >= 1 && entry.rank <= 4) ||
                   (currentType === 'Single' && entry.rank > 1 && entry.rank <= 4);
               
               const isLowerBracketZone = 
-                  currentType === 'Hybrid' && 
+                  isPlayoffHybrid && 
                   totalPlayers >= 6 && 
                   (entry.rank === 5 || entry.rank === 6);
 
               const isRelegationZone = 
                   (currentType === 'Single' && totalPlayers > 3 && entry.rank >= totalPlayers - 2) ||
-                  (currentType === 'Hybrid' && totalPlayers > 6 && entry.rank > 6);
+                  (isPlayoffHybrid && totalPlayers > 6 && entry.rank > 6);
               
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
@@ -359,8 +360,10 @@ export function LeagueTable({
     });
   }, [tableData, teamsById, playersById]);
 
+  const isHybrid = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid';
+
   const { groupA, groupB } = useMemo(() => {
-    if (seasonType !== 'Hybrid') return { groupA: [], groupB: [] };
+    if (!isHybrid) return { groupA: [], groupB: [] };
     
     const sortAndRank = (data: typeof enrichedTableData) => 
         data.sort((a, b) => {
@@ -374,11 +377,11 @@ export function LeagueTable({
     const b = sortAndRank(enrichedTableData.filter(p => p.group === 'B'));
     
     return { groupA: a, groupB: b };
-  }, [enrichedTableData, seasonType]);
+  }, [enrichedTableData, isHybrid]);
 
 
   if (isLoading) {
-    return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op'} />;
+    return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid'} />;
   }
   
   if (tableData.length === 0) {
@@ -391,7 +394,7 @@ export function LeagueTable({
     );
   }
   
-  const isHybrid = seasonType === 'Hybrid';
+  const isSeasonCoop = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid';
 
   return (
     <div className="w-full overflow-hidden rounded-xl sm:rounded-[2.5rem] border-2 border-white/5 bg-card/60 backdrop-blur-3xl shadow-2xl">
@@ -483,6 +486,7 @@ export function LeagueTable({
                         isAdmin={isAdmin}
                         defendingChampionId={defendingChampionId}
                         matches={matches}
+                        isCoop={isSeasonCoop}
                      />
                 </TabsContent>
                 <TabsContent value="group_b" className="mt-0">
@@ -497,6 +501,7 @@ export function LeagueTable({
                         isAdmin={isAdmin}
                         defendingChampionId={defendingChampionId}
                          matches={matches}
+                         isCoop={isSeasonCoop}
                      />
                 </TabsContent>
                 <TabsContent value="playoff" className="mt-0 ">
@@ -514,7 +519,7 @@ export function LeagueTable({
         ) : (
              <SingleTable 
                 tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))}
-                isCoop={seasonType === 'Co-Op'}
+                isCoop={isSeasonCoop}
                 totalPlayers={enrichedTableData.length}
                 onSelectPlayer={onSelectPlayer}
                 seasonType={seasonType}

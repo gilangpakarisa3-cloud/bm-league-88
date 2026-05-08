@@ -31,7 +31,7 @@ export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
-  type?: 'Single' | 'Co-Op' | 'Hybrid';
+  type?: 'Single' | 'Co-Op' | 'Hybrid' | 'Co-Op Hybrid';
   hybridGroupMeetings?: 1 | 2;
   startDate?: Timestamp;
   endDate?: Timestamp;
@@ -59,6 +59,7 @@ export type LeagueEntry = {
 };
 
 export type CoOpLeagueEntry = {
+  id: string;
   teamName: string;
   player1Id: string;
   player1Name: string;
@@ -72,6 +73,8 @@ export type CoOpLeagueEntry = {
   win: number;
   loss: number;
   points: number;
+  hasPaid?: boolean;
+  group?: 'A' | 'B';
 }
 
 export type MatchRound = "Group" | "UB-Quarter" | "UB-Semi" | "UB-Final" | "LB-Round 1" | "LB-Round 2" | "LB-Round 3" | "LB-Round 4" | "LB-Round 5" | "LB-Final" | "Grand-Final";

@@ -9,7 +9,7 @@ import { Trophy, Shield, ArrowRight, Info, User, LayoutGrid, Swords, Award, Zap,
 import { EditableNotice } from '@/components/notice/editable-notice';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Season, LeagueEntry, WithId, Player, Team, Match, SeasonRecord } from '@/lib/types';
+import type { Season, LeagueEntry, WithId, Player, Team, Match, SeasonRecord, CoOpLeagueEntry } from '@/lib/types';
 import { useState, useMemo, useEffect } from 'react';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -49,15 +49,15 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
   }, [seasons]);
 
   const activeSeason = useMemo(() => seasons?.find(s => s.id === activeSeasonId), [seasons, activeSeasonId]);
-  const isCoop = activeSeason?.type === 'Co-Op';
-  const isHybrid = activeSeason?.type === 'Hybrid';
+  const isCoopType = activeSeason?.type === 'Co-Op' || activeSeason?.type === 'Co-Op Hybrid';
+  const isHybrid = activeSeason?.type === 'Hybrid' || activeSeason?.type === 'Co-Op Hybrid';
 
   const leagueTableQuery = useMemoFirebase(
     () => {
       if (!firestore || !activeSeasonId) return null;
-      const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
+      const tableName = isCoopType ? 'coopLeagueTable' : 'leagueTable';
       
-      if (isCoop) {
+      if (isCoopType) {
           return query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`), orderBy('points', 'desc'));
       }
       return query(
@@ -67,10 +67,10 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
           orderBy('goalsFor', 'desc')
       );
     },
-    [firestore, activeSeasonId, isCoop]
+    [firestore, activeSeasonId, isCoopType]
   );
 
-  const { data: allLeaguePlayers, isLoading: isLoadingTable } = useCollection<LeagueEntry>(leagueTableQuery);
+  const { data: allLeaguePlayers, isLoading: isLoadingTable } = useCollection<any>(leagueTableQuery);
   
   const matchesQuery = useMemoFirebase(
     () => (firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null),
@@ -126,7 +126,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
     if (!allLeaguePlayers || !activeSeason) return null;
 
     let enrichedTable: any[];
-    if (isCoop) {
+    if (isCoopType) {
         enrichedTable = allLeaguePlayers.map(entry => {
             const coopEntry = entry as any;
             const teamId = coopEntry.player1TeamId;
@@ -160,10 +160,10 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
     if (isHybrid) {
         const groupA = enrichedTable
             .filter(p => p.group === 'A')
-            .sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
+            .sort((a,b) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0));
         const groupB = enrichedTable
             .filter(p => p.group === 'B')
-            .sort((a,b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
+            .sort((a,b) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0));
         
         return {
             groupA: groupA.slice(0, 4).map((p, i) => ({ ...p, rank: i + 1 })),
@@ -177,7 +177,7 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
         top: sorted.slice(0, 10),
         isHybrid: false
     };
-  }, [allLeaguePlayers, teamsById, playersById, isCoop, isHybrid, activeSeason]);
+  }, [allLeaguePlayers, teamsById, playersById, isCoopType, isHybrid, activeSeason]);
 
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams || isLoadingMatches;
 
@@ -200,13 +200,15 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
       )
   }
 
+  const formatKey = activeSeason?.type?.toLowerCase().replace(' ', '_') || 'single';
+
   return (
      <section className="space-y-8 w-full">
         {activeSeason && (
             <div className="flex flex-col items-center gap-3 mb-2 px-4">
                 <Badge variant="outline" className="text-primary border-primary bg-primary/10 px-4 sm:px-6 py-1 font-black uppercase tracking-widest italic text-[9px] sm:text-[10px]">
                     <Activity className="w-3 h-3 mr-2 inline" />
-                    {t(`home_format_${activeSeason.type?.toLowerCase() || 'single'}`)}
+                    Format: {activeSeason.type || 'Single'}
                 </Badge>
                 <h2 className="text-xl sm:text-3xl font-black text-center tracking-tighter uppercase italic pr-2 sm:pr-4">{activeSeason.name}</h2>
                 <div className="h-1 w-16 sm:w-24 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
@@ -355,7 +357,8 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
       <TableBody>
           {players.map((entry) => {
             const isFirst = entry.rank === 1 && !isBottom;
-            const isDefendingChampion = entry.playerId === defendingChampionId;
+            const pId = entry.playerId || entry.id;
+            const isDefendingChampion = pId === defendingChampionId;
             return (
               <TableRow key={entry.id} className={cn(
                   "border-b-white/5 transition-all duration-300 group/row h-14 sm:h-16",

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
-import type { WithId, Season, Player, LeagueEntry } from '@/lib/types';
+import type { WithId, Season, Player, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shuffle, Users, Swords, Group, Loader, Trophy, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -15,14 +15,14 @@ import { Badge } from './ui/badge';
 
 const LEAGUE_ID = 'main-league';
 
-type PlayerInPot = WithId<LeagueEntry> & { prevRank: number };
+type PlayerInPot = any & { prevRank: number; displayName: string };
 
 interface GroupDrawDialogProps {
   season: WithId<Season> | null;
-  registeredPlayers: WithId<LeagueEntry>[];
+  registeredPlayers: any[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaveGroups: (groups: { groupA: WithId<LeagueEntry>[], groupB: WithId<LeagueEntry>[] }) => void;
+  onSaveGroups: (groups: { groupA: any[], groupB: any[] }) => void;
 }
 
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -37,7 +37,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange, onSaveGroups }: GroupDrawDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [previousSeasonTable, setPreviousSeasonTable] = useState<WithId<LeagueEntry>[]>([]);
+  const [previousSeasonTable, setPreviousSeasonTable] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pot1, setPot1] = useState<PlayerInPot[]>([]);
   const [pot2, setPot2] = useState<PlayerInPot[]>([]);
@@ -46,6 +46,8 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
   // Reveal state
   const [revealedCount, setRevealedCount] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
+
+  const isCoop = season?.type === 'Co-Op Hybrid';
 
   useEffect(() => {
     if (!open || !firestore) return;
@@ -59,17 +61,18 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
         const seasonsQuery = query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc'));
         const seasonsSnap = await getDocs(seasonsQuery);
         const allSeasons = seasonsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<Season>));
-        const prevSeason = allSeasons.find(s => s.status === 'Completed' && s.type !== 'Co-Op');
+        
+        // Find previous season of the SAME format if possible
+        const prevSeason = allSeasons.find(s => s.status === 'Completed' && s.type === season?.type);
         
         if (prevSeason) {
+            const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
             const prevTableQuery = query(
-                collection(firestore, `leagues/${LEAGUE_ID}/seasons/${prevSeason.id}/leagueTable`),
-                orderBy('points', 'desc'),
-                orderBy('goalDifference', 'desc'),
-                orderBy('goalsFor', 'desc')
+                collection(firestore, `leagues/${LEAGUE_ID}/seasons/${prevSeason.id}/${tableName}`),
+                orderBy('points', 'desc')
             );
             const prevTableSnap = await getDocs(prevTableQuery);
-            const prevTable = prevTableSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithId<LeagueEntry>));
+            const prevTable = prevTableSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setPreviousSeasonTable(prevTable);
         } else {
             setPreviousSeasonTable([]); 
@@ -78,7 +81,7 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
     };
 
     findPreviousSeason();
-  }, [open, firestore]);
+  }, [open, firestore, season, isCoop]);
   
   useEffect(() => {
       if (isLoading || registeredPlayers.length === 0) {
@@ -87,12 +90,14 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
         return;
       }
 
-      const previousSeasonRankMap = new Map(previousSeasonTable.map((p, index) => [p.playerId, index + 1]));
+      // Rank mapping based on ID or PlayerID
+      const previousSeasonRankMap = new Map(previousSeasonTable.map((p, index) => [p.playerId || p.id, index + 1]));
 
       const playersInCurrentSeason: PlayerInPot[] = registeredPlayers
         .map(entry => ({ 
             ...entry,
-            prevRank: previousSeasonRankMap.get(entry.playerId) || Infinity
+            displayName: isCoop ? (entry as CoOpLeagueEntry).teamName : (entry as LeagueEntry).playerName,
+            prevRank: previousSeasonRankMap.get(entry.playerId || entry.id) || Infinity
         }))
         .sort((a, b) => a.prevRank - b.prevRank);
       
@@ -103,7 +108,7 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
       setPot1(newPot1);
       setPot2(newPot2);
 
-  }, [isLoading, previousSeasonTable, registeredPlayers]);
+  }, [isLoading, previousSeasonTable, registeredPlayers, isCoop]);
 
   const handleDraw = useCallback(() => {
     const shuffledPot1 = shuffleArray(pot1);
@@ -159,7 +164,7 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                 <DialogTitle className="text-3xl font-black tracking-tighter">Undian grup: {season?.name}</DialogTitle>
               </div>
               <DialogDescription className="text-base font-medium">
-                Sistem seeded draw: Pemain dibagi menjadi pot unggulan dan penantang. Tim akan diundi secara acak bergantian antara grup A dan grup B untuk menjaga keseimbangan kompetisi.
+                Sistem seeded draw: {isCoop ? 'Pasangan' : 'Pemain'} dibagi menjadi pot unggulan dan penantang. Unit akan diundi secara acak bergantian antara grup A dan grup B untuk menjaga keseimbangan kompetisi.
               </DialogDescription>
             </DialogHeader>
             
@@ -245,7 +250,7 @@ const PotDisplay = ({ title, subtitle, players, variant }: { title: string; subt
                     variant === 'primary' ? "text-primary" : "text-yellow-500"
                 )}>{title}</CardTitle>
                 <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">{subtitle}</p>
-                <Badge variant="outline" className={cn("h-6 font-black mt-1", variant === 'gold' && "border-yellow-500/50 text-yellow-500")}>{players.length} Pemain</Badge>
+                <Badge variant="outline" className={cn("h-6 font-black mt-1", variant === 'gold' && "border-yellow-500/50 text-yellow-500")}>{players.length} Unit</Badge>
             </div>
         </CardHeader>
         <CardContent>
@@ -261,7 +266,7 @@ const PotDisplay = ({ title, subtitle, players, variant }: { title: string; subt
                                    "text-xs font-black opacity-30 group-hover:opacity-100 transition-opacity",
                                    variant === 'gold' && "group-hover:text-yellow-500"
                                 )}>#{idx + 1}</span>
-                               <span className="font-bold text-sm">{player.playerName}</span>
+                               <span className="font-bold text-sm" suppressHydrationWarning>{player.displayName}</span>
                            </div>
                            <Badge variant="secondary" className={cn("text-[9px] font-bold", variant === 'gold' && "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20")}>Lalu: {player.prevRank === Infinity ? 'N/A' : `Rank ${player.prevRank}`}</Badge>
                         </div>
@@ -319,7 +324,7 @@ const GroupDisplay = ({ title, players, revealedCount, groupIndex, variant = 'pr
                                         <div className="px-4 flex items-center justify-between w-full">
                                             <div className="flex items-center gap-3">
                                                 <span className={cn("text-xs font-black opacity-50", isGold ? "text-yellow-500" : "text-primary")}>Pos {i + 1}</span>
-                                                <span className="font-black text-base tracking-tight uppercase">{player.playerName}</span>
+                                                <span className="font-black text-base tracking-tight uppercase" suppressHydrationWarning>{player.displayName}</span>
                                             </div>
                                             <Badge variant="outline" className={cn("text-[8px] font-bold border-white/10", isGold ? "text-yellow-500" : "text-primary")}>Drawn</Badge>
                                         </div>

@@ -70,7 +70,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
             <span className="text-[8px] font-black tracking-widest text-amber-500 uppercase">{label}</span>
             <Badge variant="outline" className="h-4 text-[7px] border-amber-500/50 text-amber-500 py-0 px-2 font-black uppercase italic bg-amber-500/10">PROYEKSI</Badge>
           </div>
-          <Card className="w-44 sm:w-48 border-2 border-amber-500/20 border-dashed bg-black/40 backdrop-blur-xl cursor-pointer hover:border-amber-500/50 transition-all duration-500 rounded-xl relative overflow-hidden group-hover/proj:scale-105" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || 'TBD', player2Id: p.p2.playerId || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name, playerId: p.p1.playerId }, p2: { name: p.p2.playerName || p.p2.name, playerId: p.p2.playerId } })}>
+          <Card className="w-44 sm:w-48 border-2 border-amber-500/20 border-dashed bg-black/40 backdrop-blur-xl cursor-pointer hover:border-amber-500/50 transition-all duration-500 rounded-xl relative overflow-hidden group-hover/proj:scale-105" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || p.p1.id || 'TBD', player2Id: p.p2.playerId || p.p2.id || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name || p.p1.teamName, playerId: p.p1.playerId || p.p1.id }, p2: { name: p.p2.playerName || p.p2.name || p.p2.teamName, playerId: p.p2.playerId || p.p2.id } })}>
               {/* HUD Scan Effect */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                   <div className="w-full h-1 bg-amber-500/10 blur-[2px] animate-scanning" />
@@ -80,16 +80,16 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
               
               <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10 h-20">
                   {[p.p1, p.p2].map((player, idx) => {
-                      const teamId = player.teamId || '';
+                      const teamId = player.teamId || player.player1TeamId || '';
                       const team = teamId ? teamsById[teamId] : null;
-                      const logoUrl = resolveLogo(team?.logoUrl, teamId || player.playerId, player.playerName || player.name);
+                      const logoUrl = resolveLogo(team?.logoUrl, teamId || player.playerId || player.id, player.playerName || player.name || player.teamName);
                       return (
                         <div key={idx} className="flex items-center px-3 h-10 group-hover/proj:bg-amber-500/5 transition-colors">
                             <Avatar className="h-6 w-6 border border-white/10 opacity-60 mr-2 group-hover/proj:opacity-100 transition-opacity">
                                 <AvatarImage key={logoUrl} src={logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                 <AvatarFallback className="bg-black/40 font-black text-[8px]"><User className="w-2.5 h-2.5"/></AvatarFallback>
                             </Avatar>
-                            <span className="text-[10px] font-black truncate uppercase italic text-white/40 group-hover/proj:text-white/80 transition-colors pr-2" suppressHydrationWarning>{player.playerName || player.name || 'TBD'}</span>
+                            <span className="text-[10px] font-black truncate uppercase italic text-white/40 group-hover/proj:text-white/80 transition-colors pr-2" suppressHydrationWarning>{player.playerName || player.name || player.teamName || 'TBD'}</span>
                         </div>
                       );
                   })}
@@ -109,7 +109,6 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
   );
 
   const isBattleReady = !m.isCompleted && m.player1Id !== 'TBD' && m.player2Id !== 'TBD';
-  const isLowerBracket = label.startsWith('LB');
 
   return (
       <div className="flex flex-col gap-1.5 relative items-center group/match">
@@ -248,8 +247,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const rankedTable = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return [];
-    const sortFn = (a: any, b: any) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor || a.playerName.localeCompare(b.playerName);
-    if (season?.type === 'Hybrid') {
+    const sortFn = (a: any, b: any) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0) || a.playerName.localeCompare(b.playerName);
+    if (season?.type === 'Hybrid' || season?.type === 'Co-Op Hybrid') {
       const gA = [...leagueTable].filter(p => p.group === 'A').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
       const gB = [...leagueTable].filter(p => p.group === 'B').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
       return [...gA, ...gB];
@@ -270,13 +269,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const getPlayerAnalysis = (playerId: string) => {
     if (!playerId || playerId === 'TBD' || playerId.includes('TBD') || playerId.includes('Loser')) return null;
     const playerMatches = matches.filter(m => m.isCompleted && (m.player1Id === playerId || m.player2Id === playerId)).sort((a, b) => a.matchDate.toMillis() - b.matchDate.toMillis());
-    const entry = rankedTable.find(e => e.playerId === playerId);
-    const team = entry?.teamId ? teamsById[entry.teamId] : (playersById[playerId]?.teamId ? teamsById[playersById[playerId].teamId] : null);
+    const entry = rankedTable.find(e => (e.playerId || e.id) === playerId);
+    const teamId = entry?.teamId || entry?.player1TeamId || playersById[playerId]?.teamId || '';
+    const team = teamId ? teamsById[teamId] : null;
     const masterInfo = masterPlayersRanked.find(p => p.id === playerId);
     const stats = playerMatches.reduce((acc, m) => {
       acc.played++; const isP1 = m.player1Id === playerId;
-      const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-      const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+      const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
+      const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+      const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
       const pRes = isP1 ? s1 : s2; const oRes = isP1 ? s2 : s1;
       if (pRes > oRes) acc.win++; else if (pRes < oRes) acc.loss++; else acc.draw++;
       if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += isP1 ? m.player2Score : m.player1Score; }
@@ -289,8 +290,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
     const form = playerMatches.slice(-5).map(m => {
       const isP1 = m.player1Id === playerId;
-      const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-      const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+      const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
+      const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+      const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
       const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
       if (pR > oR) return 'W';
       if (pR < oR) return 'L';
@@ -298,8 +300,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     });
     let cum = 0; const chartData = [{ match: 0, points: 0 }, ...playerMatches.map((m, i) => {
       const isP1 = m.player1Id === playerId;
-      const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-      const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+      const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
+      const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+      const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
       const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
       cum += (pR > oR ? 1 : (pR < oR ? -1 : 0)); return { match: i + 1, points: cum };
     })];
@@ -317,14 +320,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
     if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
     
-    const logoUrl = resolveLogo(team?.logoUrl, playerId, entry?.playerName || playersById[playerId]?.name);
+    const logoUrl = resolveLogo(team?.logoUrl, playerId, entry?.playerName || entry?.teamName || playersById[playerId]?.name);
 
     return { stats, winRate, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId, logoUrl };
   };
 
   const projections = useMemo(() => {
     if (!rankedTable || rankedTable.length === 0) return null;
-    const sR = (data: any[]) => [...data].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor);
+    const sR = (data: any[]) => [...data].sort((a, b) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0));
     const gA = sR(rankedTable.filter(p => p.group === 'A')); const gB = sR(rankedTable.filter(p => p.group === 'B'));
     const proj: Record<string, any> = {};
     if (gA.length >= 4 && gB.length >= 4) {
@@ -332,10 +335,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         proj['playoff-m3'] = { p1: gB[0], p2: gA[3] }; proj['playoff-m4'] = { p1: gA[1], p2: gB[2] };
     }
     if (gA.length >= 6 && gB.length >= 6) {
-        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', playerId: 'TBD-L1' } };
-        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', playerId: 'TBD-L2' } };
-        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', playerId: 'TBD-L3' } };
-        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', playerId: 'TBD-L4' } };
+        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', teamName: 'Loser UB-QF 1', id: 'TBD-L1' } };
+        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', teamName: 'Loser UB-QF 2', id: 'TBD-L2' } };
+        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', teamName: 'Loser UB-QF 3', id: 'TBD-L3' } };
+        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', teamName: 'Loser UB-QF 4', id: 'TBD-L4' } };
     }
     return proj;
   }, [rankedTable]);
@@ -344,18 +347,20 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const d: Record<string, any> = {};
     matches.forEach(m => {
       if (m.bracketId) {
-        const e1 = rankedTable.find(e => e.playerId === m.player1Id); const e2 = rankedTable.find(e => e.playerId === m.player2Id);
-        const t1 = e1 ? teamsById[e1.teamId] : (playersById[m.player1Id]?.teamId ? teamsById[playersById[m.player1Id].teamId] : null);
-        const t2 = e2 ? teamsById[e2.teamId] : (playersById[m.player2Id]?.teamId ? teamsById[playersById[m.player2Id].teamId] : null);
+        const e1 = rankedTable.find(e => (e.playerId || e.id) === m.player1Id); const e2 = rankedTable.find(e => (e.playerId || e.id) === m.player2Id);
+        const t1Id = e1?.teamId || e1?.player1TeamId || playersById[m.player1Id]?.teamId || '';
+        const t2Id = e2?.teamId || e2?.player1TeamId || playersById[m.player2Id]?.teamId || '';
+        const t1 = t1Id ? teamsById[t1Id] : null;
+        const t2 = t2Id ? teamsById[t2Id] : null;
         const s1 = m.player1Wins ?? m.player1Score ?? 0; const s2 = m.player2Wins ?? m.player2Score ?? 0;
-        d[m.bracketId] = { ...m, p1: e1 ? { name: e1.playerName, playerId: e1.playerId } : (playersById[m.player1Id] || { name: m.player1Id, playerId: m.player1Id }), p2: e2 ? { name: e2.playerName, playerId: e2.playerId } : (playersById[m.player2Id] || { name: m.player2Id, playerId: m.player2Id }), t1, t2, s1, s2, isW1: m.isCompleted && s1 > s2, isW2: m.isCompleted && s2 > s1 };
+        d[m.bracketId] = { ...m, p1: e1 ? { name: e1.playerName || e1.teamName, playerId: e1.playerId || e1.id } : (playersById[m.player1Id] || { name: m.player1Id, playerId: m.player1Id }), p2: e2 ? { name: e2.playerName || e2.teamName, playerId: e2.playerId || e2.id } : (playersById[m.player2Id] || { name: m.player2Id, playerId: m.player2Id }), t1, t2, s1, s2, isW1: m.isCompleted && s1 > s2, isW2: m.isCompleted && s2 > s1 };
       }
     });
     return d;
   }, [matches, playersById, teamsById, rankedTable]);
 
-  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t]);
-  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t]);
+  const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t, season]);
+  const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t, season]);
   
   const sCD = useMemo(() => {
     const dD = [-5, 5]; if (!analysis1 && !analysis2) return dD;
