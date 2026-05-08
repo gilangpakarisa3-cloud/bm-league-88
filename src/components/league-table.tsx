@@ -53,56 +53,60 @@ interface SingleTableProps {
   matches: WithId<Match>[];
 }
 
-const PlayoffQualificationLegend = () => (
-  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 p-6 sm:p-10 bg-black/60 border-b-4 border-yellow-400/30 backdrop-blur-3xl relative overflow-hidden group/legend shrink-0">
-    {/* HUD Background Pattern with Yellow Tint */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(250,204,21,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(250,204,21,0.02)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
-    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
-    
-    {/* HUD Decoration Corners */}
-    <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-yellow-400/20 rounded-tl-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
-    <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-yellow-400/20 rounded-br-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
+const PlayoffQualificationLegend = ({ seasonType }: { seasonType?: string }) => {
+  const isCoopHybrid = seasonType === 'Co-Op Hybrid';
+  
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 p-6 sm:p-10 bg-black/60 border-b-4 border-yellow-400/30 backdrop-blur-3xl relative overflow-hidden group/legend shrink-0">
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(250,204,21,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(250,204,21,0.02)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
+      <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-yellow-400/20 rounded-tl-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
+      <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-yellow-400/20 rounded-br-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
 
-    <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-20 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
-      <div className="flex items-center gap-4 group/item">
-        <div className="relative">
-          <div className="absolute -inset-3 bg-green-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
-          <div className="w-6 h-6 bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+      <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-20 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
+        <div className="flex items-center gap-4 group/item">
+          <div className="relative">
+            <div className="absolute -inset-3 bg-green-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+            <div className="w-6 h-6 bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+          </div>
+          <div className="flex flex-col text-left">
+            <span className="text-sm sm:text-base font-black uppercase italic text-green-400 leading-none">Zona Playoff</span>
+            <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 1 - 4 (Hijau)</span>
+          </div>
         </div>
-        <div className="flex flex-col text-left">
-          <span className="text-sm sm:text-base font-black uppercase italic text-green-400 leading-none">Upper Bracket</span>
-          <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 1 - 4 (Hijau)</span>
-        </div>
-      </div>
 
-      <div className="w-px h-12 bg-white/5 hidden lg:block" />
+        {!isCoopHybrid && (
+            <>
+                <div className="w-px h-12 bg-white/5 hidden lg:block" />
+                <div className="flex items-center gap-4 group/item">
+                  <div className="relative">
+                    <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-lg opacity-40 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+                    <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 5 - 6 (Emas)</span>
+                  </div>
+                </div>
+            </>
+        )}
 
-      <div className="flex items-center gap-4 group/item">
-        <div className="relative">
-          <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-lg opacity-40 group-hover/item:opacity-100 transition-opacity animate-pulse" />
-          <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
-        </div>
-        <div className="flex flex-col text-left">
-          <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
-          <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 5 - 6 (Emas)</span>
-        </div>
-      </div>
+        <div className="w-px h-12 bg-white/5 hidden lg:block" />
 
-      <div className="w-px h-12 bg-white/5 hidden lg:block" />
-
-      <div className="flex items-center gap-4 group/item">
-        <div className="relative">
-          <div className="absolute -inset-3 bg-red-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
-          <div className="w-6 h-6 bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
-        </div>
-        <div className="flex flex-col text-left">
-          <span className="text-sm sm:text-base font-black uppercase italic text-red-500 leading-none">Nangis di Pojok</span>
-          <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 7+ (Merah)</span>
+        <div className="flex items-center gap-4 group/item">
+          <div className="relative">
+            <div className="absolute -inset-3 bg-red-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+            <div className="w-6 h-6 bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+          </div>
+          <div className="flex flex-col text-left">
+            <span className="text-sm sm:text-base font-black uppercase italic text-red-500 leading-none">Zona Eliminasi</span>
+            <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank {isCoopHybrid ? '5+' : '7+'} (Merah)</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const SingleTable = memo(({ 
     tableData, 
@@ -133,8 +137,9 @@ const SingleTable = memo(({
                 .reverse()
                 .map(m => {
                     const isP1 = m.player1Id === playerId;
-                    const s1 = isCoop || (m.round && m.round !== 'Group') ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
-                    const s2 = isCoop || (m.round && m.round !== 'Group') ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
+                    const isBo3 = isCoop || (m.round && m.round !== 'Group');
+                    const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+                    const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
                     const pRes = isP1 ? s1 : s2;
                     const oRes = isP1 ? s2 : s1;
                     if (pRes > oRes) return 'W';
@@ -176,18 +181,17 @@ const SingleTable = memo(({
               const playerForm = playerFormsMap[entry.playerId || entry.id] || [];
               
               const isFirst = entry.rank === 1;
-              const isQualificationZone =
-                  (isPlayoffHybrid && entry.rank >= 1 && entry.rank <= 4) ||
-                  (currentType === 'Single' && entry.rank > 1 && entry.rank <= 4);
+              const isQualificationZone = entry.rank >= 1 && entry.rank <= 4;
               
               const isLowerBracketZone = 
-                  isPlayoffHybrid && 
+                  currentType === 'Hybrid' && 
                   totalPlayers >= 6 && 
                   (entry.rank === 5 || entry.rank === 6);
 
               const isRelegationZone = 
                   (currentType === 'Single' && totalPlayers > 3 && entry.rank >= totalPlayers - 2) ||
-                  (isPlayoffHybrid && totalPlayers > 6 && entry.rank > 6);
+                  (currentType === 'Hybrid' && totalPlayers > 6 && entry.rank > 6) ||
+                  (currentType === 'Co-Op Hybrid' && entry.rank > 4);
               
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
@@ -288,7 +292,7 @@ const SingleTable = memo(({
                               <div key={i} className={cn(
                                   "w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black border transition-transform hover:scale-110",
                                   res === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : 
-                                  res === 'L' ? "bg-red-500/20 text-red-400 border-red-500/50" : 
+                                  res === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
                                   "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
                               )}>{res === 'W' ? 'M' : res === 'L' ? 'K' : 'S'}</div>
                           )) : <span className="text-[8px] font-bold text-white/10 uppercase tracking-tighter italic">No Data</span>}
@@ -361,9 +365,10 @@ export function LeagueTable({
   }, [tableData, teamsById, playersById]);
 
   const isHybrid = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid';
+  const isCoopHybrid = seasonType === 'Co-Op Hybrid';
 
   const { groupA, groupB } = useMemo(() => {
-    if (!isHybrid) return { groupA: [], groupB: [] };
+    if (!isHybrid || isCoopHybrid) return { groupA: [], groupB: [] };
     
     const sortAndRank = (data: typeof enrichedTableData) => 
         data.sort((a, b) => {
@@ -377,7 +382,7 @@ export function LeagueTable({
     const b = sortAndRank(enrichedTableData.filter(p => p.group === 'B'));
     
     return { groupA: a, groupB: b };
-  }, [enrichedTableData, isHybrid]);
+  }, [enrichedTableData, isHybrid, isCoopHybrid]);
 
 
   if (isLoading) {
@@ -398,59 +403,82 @@ export function LeagueTable({
 
   return (
     <div className="w-full overflow-hidden rounded-xl sm:rounded-[2.5rem] border-2 border-white/5 bg-card/60 backdrop-blur-3xl shadow-2xl">
-        {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend />}
+        {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend seasonType={seasonType} />}
         
         {isHybrid ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
+                <TabsList className={cn(
+                    "grid w-full bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]",
+                    isCoopHybrid ? "grid-cols-2" : "grid-cols-3"
+                )}>
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
                     <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-sm" />
                     <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60 rounded-tr-sm" />
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/20 blur-sm" />
 
-                    <TabsTrigger 
-                        value="group_a" 
-                        className={cn(
-                            "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                            "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
-                        )}
-                    >
-                        <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                            <div className="relative">
-                                <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
-                            </div>
-                            Grup A <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupA.length}]</span>
-                        </span>
-                        <div className={cn(
-                            "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                            "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                            "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
-                        )} />
-                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
-                    </TabsTrigger>
+                    {!isCoopHybrid ? (
+                        <>
+                            <TabsTrigger 
+                                value="group_a" 
+                                className={cn(
+                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                )}
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                                    <div className="relative">
+                                        <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
+                                        <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
+                                    </div>
+                                    Grup A <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupA.length}]</span>
+                                </span>
+                                <div className={cn(
+                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                )} />
+                            </TabsTrigger>
 
-                    <TabsTrigger 
-                        value="group_b" 
-                        className={cn(
-                            "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                            "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
-                        )}
-                    >
-                        <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                            <div className="relative">
-                                <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
-                            </div>
-                            Grup B <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupB.length}]</span>
-                        </span>
-                        <div className={cn(
-                            "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                            "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                            "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
-                        )} />
-                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
-                    </TabsTrigger>
+                            <TabsTrigger 
+                                value="group_b" 
+                                className={cn(
+                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                )}
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                                    <div className="relative">
+                                        <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
+                                        <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
+                                    </div>
+                                    Grup B <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupB.length}]</span>
+                                </span>
+                                <div className={cn(
+                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                )} />
+                            </TabsTrigger>
+                        </>
+                    ) : (
+                        <TabsTrigger 
+                            value="standings" 
+                            className={cn(
+                                "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
+                                "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                            )}
+                        >
+                            <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
+                                <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />
+                                Klasemen
+                            </span>
+                            <div className={cn(
+                                "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
+                                "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                            )} />
+                        </TabsTrigger>
+                    )}
 
                     <TabsTrigger 
                         value="playoff" 
@@ -460,10 +488,7 @@ export function LeagueTable({
                         )}
                     >
                          <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                            <div className="relative">
-                                <Swords className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
-                            </div>
+                            <Swords className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />
                             Playoff
                         </span>
                         <div className={cn(
@@ -471,44 +496,65 @@ export function LeagueTable({
                             "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
                             "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
                         )} />
-                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/40 scale-x-0 group-data-[state=active]/tab:scale-x-100 transition-transform duration-1000 delay-300" />
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="group_a" className="mt-0">
-                    <SingleTable 
-                        tableData={groupA} 
-                        totalPlayers={groupA.length}
-                        onSelectPlayer={onSelectPlayer}
-                        seasonType={seasonType}
-                        isLoading={isLoading}
-                        onRemovePlayer={onRemovePlayer}
-                        seasonStatus={seasonStatus}
-                        isAdmin={isAdmin}
-                        defendingChampionId={defendingChampionId}
-                        matches={matches}
-                        isCoop={isSeasonCoop}
-                     />
-                </TabsContent>
-                <TabsContent value="group_b" className="mt-0">
-                     <SingleTable 
-                        tableData={groupB}
-                        totalPlayers={groupB.length}
-                        onSelectPlayer={onSelectPlayer}
-                        seasonType={seasonType}
-                        isLoading={isLoading}
-                         onRemovePlayer={onRemovePlayer}
-                        seasonStatus={seasonStatus}
-                        isAdmin={isAdmin}
-                        defendingChampionId={defendingChampionId}
-                         matches={matches}
-                         isCoop={isSeasonCoop}
-                     />
-                </TabsContent>
+
+                {isCoopHybrid ? (
+                    <TabsContent value="standings" className="mt-0">
+                        <SingleTable 
+                            tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))}
+                            isCoop={true}
+                            totalPlayers={enrichedTableData.length}
+                            onSelectPlayer={onSelectPlayer}
+                            seasonType={seasonType}
+                            isLoading={isLoading}
+                            onRemovePlayer={onRemovePlayer}
+                            seasonStatus={seasonStatus}
+                            isAdmin={isAdmin}
+                            defendingChampionId={defendingChampionId}
+                            matches={matches}
+                        />
+                    </TabsContent>
+                ) : (
+                    <>
+                        <TabsContent value="group_a" className="mt-0">
+                            <SingleTable 
+                                tableData={groupA} 
+                                totalPlayers={groupA.length}
+                                onSelectPlayer={onSelectPlayer}
+                                seasonType={seasonType}
+                                isLoading={isLoading}
+                                onRemovePlayer={onRemovePlayer}
+                                seasonStatus={seasonStatus}
+                                isAdmin={isAdmin}
+                                defendingChampionId={defendingChampionId}
+                                matches={matches}
+                                isCoop={isSeasonCoop}
+                             />
+                        </TabsContent>
+                        <TabsContent value="group_b" className="mt-0">
+                             <SingleTable 
+                                tableData={groupB}
+                                totalPlayers={groupB.length}
+                                onSelectPlayer={onSelectPlayer}
+                                seasonType={seasonType}
+                                isLoading={isLoading}
+                                 onRemovePlayer={onRemovePlayer}
+                                seasonStatus={seasonStatus}
+                                isAdmin={isAdmin}
+                                defendingChampionId={defendingChampionId}
+                                 matches={matches}
+                                 isCoop={isSeasonCoop}
+                             />
+                        </TabsContent>
+                    </>
+                )}
+
                 <TabsContent value="playoff" className="mt-0 ">
                      <TournamentBracket 
                         matches={matches}
                         playersById={playersById}
-                         teamsById={teamsById}
+                        teamsById={teamsById}
                         leagueTable={tableData}
                         season={activeSeason}
                         isAdmin={isAdmin}

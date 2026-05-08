@@ -71,13 +71,10 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
             <Badge variant="outline" className="h-4 text-[7px] border-amber-500/50 text-amber-500 py-0 px-2 font-black uppercase italic bg-amber-500/10">PROYEKSI</Badge>
           </div>
           <Card className="w-44 sm:w-48 border-2 border-amber-500/20 border-dashed bg-black/40 backdrop-blur-xl cursor-pointer hover:border-amber-500/50 transition-all duration-500 rounded-xl relative overflow-hidden group-hover/proj:scale-105" onClick={() => handleCardClick({ ...p, player1Id: p.p1.playerId || p.p1.id || 'TBD', player2Id: p.p2.playerId || p.p2.id || 'TBD', id: `proj-${bid}`, isProjection: true, round: label, p1: { name: p.p1.playerName || p.p1.name || p.p1.teamName, playerId: p.p1.playerId || p.p1.id }, p2: { name: p.p2.playerName || p.p2.name || p.p2.teamName, playerId: p.p2.playerId || p.p2.id } })}>
-              {/* HUD Scan Effect */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                   <div className="w-full h-1 bg-amber-500/10 blur-[2px] animate-scanning" />
               </div>
-              
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500/40" />
-              
               <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10 h-20">
                   {[p.p1, p.p2].map((player, idx) => {
                       const teamId = player.teamId || player.player1TeamId || '';
@@ -132,18 +129,15 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
                     ? "animate-battle-glow border-primary/40 bg-primary/[0.03] shadow-2xl"
                     : "border-white/10 bg-black/40 border-dashed"
           )} onClick={() => handleCardClick(m)}>
-              {/* Dynamic HUD Lines */}
               {isBattleReady && (
                   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                       <div className="w-full h-1 bg-primary/20 blur-[2px] animate-scanning" />
                   </div>
               )}
-              
               <div className={cn(
                   "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
                   m.isCompleted ? "bg-primary shadow-[0_0_10px_rgba(204,253,1,0.8)]" : "bg-white/5"
               )} />
-              
               <CardContent className="p-0 flex flex-col divide-y divide-white/5 relative z-10 h-20">
                   {[1, 2].map(i => {
                       const isW = i === 1 ? m.isW1 : m.isW2; const p = i === 1 ? m.p1 : m.p2; const t = i === 1 ? m.t1 : m.t2; const s = i === 1 ? m.s1 : m.s2;
@@ -221,24 +215,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const handleSaveManualSchedule = async () => {
     if (!firestore || !season || !selectedMatch || !editDate || !editTime) return;
     setIsUpdatingSchedule(true);
-    
     const [h, m] = editTime.split(':').map(Number);
     const newDate = new Date(editDate);
     newDate.setHours(h, m, 0, 0);
-    
     const matchRef = doc(firestore, 'leagues', 'main-league', 'seasons', season.id, 'matches', selectedMatch.id);
-    
     try {
-        await updateDoc(matchRef, {
-            matchDate: Timestamp.fromDate(newDate)
-        });
+        await updateDoc(matchRef, { matchDate: Timestamp.fromDate(newDate) });
         toast({ title: "Jadwal Diperbarui", description: "Waktu pertandingan telah berhasil disinkronisasi." });
     } catch (error: any) {
-        const permissionError = new FirestorePermissionError({
-            path: matchRef.path,
-            operation: 'update',
-            requestResourceData: { matchDate: Timestamp.fromDate(newDate) }
-        });
+        const permissionError = new FirestorePermissionError({ path: matchRef.path, operation: 'update', requestResourceData: { matchDate: Timestamp.fromDate(newDate) } });
         errorEmitter.emit('permission-error', permissionError);
     } finally {
         setIsUpdatingSchedule(false);
@@ -251,7 +236,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     if (season?.type === 'Hybrid' || season?.type === 'Co-Op Hybrid') {
       const gA = [...leagueTable].filter(p => p.group === 'A').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
       const gB = [...leagueTable].filter(p => p.group === 'B').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
-      return [...gA, ...gB];
+      const gAll = season.type === 'Co-Op Hybrid' ? [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i+1 })) : [];
+      return season.type === 'Co-Op Hybrid' ? gAll : [...gA, ...gB];
     }
     return [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
   }, [leagueTable, season]);
@@ -283,11 +269,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += isP1 ? m.player2Score : m.player1Score; }
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
-    
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
-
     const form = playerMatches.slice(-5).map(m => {
       const isP1 = m.player1Id === playerId;
       const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
@@ -306,30 +290,26 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
       cum += (pR > oR ? 1 : (pR < oR ? -1 : 0)); return { match: i + 1, points: cum };
     })];
-    
-    let pST = "Balance"; 
-    let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; 
-    let pSD = t('play_style_balanced_desc');
-    
-    if (stats.played > 0) {
-        const avgGF = stats.gf / stats.played; const avgGA = stats.ga / stats.played;
-        if (avgGF > 1.6) { pST = "Attacking"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); }
-        else if (avgGA < 1.2 && stats.played >= 3) { pST = "Defense & Counter"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); }
-    }
-    
+    let pST = "Balance"; let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; let pSD = t('play_style_balanced_desc');
+    if (stats.played > 0) { const avgGF = stats.gf / stats.played; const avgGA = stats.ga / stats.played; if (avgGF > 1.6) { pST = "Attacking"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); } else if (avgGA < 1.2 && stats.played >= 3) { pST = "Defense & Counter"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); } }
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
     if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
-    
     const logoUrl = resolveLogo(team?.logoUrl, playerId, entry?.playerName || entry?.teamName || playersById[playerId]?.name);
-
     return { stats, winRate, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId, logoUrl };
   };
 
   const projections = useMemo(() => {
     if (!rankedTable || rankedTable.length === 0) return null;
+    const proj: Record<string, any> = {};
+    if (season?.type === 'Co-Op Hybrid') {
+        if (rankedTable.length >= 4) {
+            proj['playoff-sf1'] = { p1: rankedTable[0], p2: rankedTable[3] };
+            proj['playoff-sf2'] = { p1: rankedTable[1], p2: rankedTable[2] };
+        }
+        return proj;
+    }
     const sR = (data: any[]) => [...data].sort((a, b) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0));
     const gA = sR(rankedTable.filter(p => p.group === 'A')); const gB = sR(rankedTable.filter(p => p.group === 'B'));
-    const proj: Record<string, any> = {};
     if (gA.length >= 4 && gB.length >= 4) {
         proj['playoff-m1'] = { p1: gA[0], p2: gB[3] }; proj['playoff-m2'] = { p1: gB[1], p2: gA[2] };
         proj['playoff-m3'] = { p1: gB[0], p2: gA[3] }; proj['playoff-m4'] = { p1: gA[1], p2: gB[2] };
@@ -341,23 +321,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', teamName: 'Loser UB-QF 4', id: 'TBD-L4' } };
     }
     return proj;
-  }, [rankedTable]);
+  }, [rankedTable, season]);
 
   const bracketData = useMemo(() => {
     const d: Record<string, any> = {};
     matches.forEach(m => {
       if (m.bracketId) {
+        const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
         const e1 = rankedTable.find(e => (e.playerId || e.id) === m.player1Id); const e2 = rankedTable.find(e => (e.playerId || e.id) === m.player2Id);
         const t1Id = e1?.teamId || e1?.player1TeamId || playersById[m.player1Id]?.teamId || '';
         const t2Id = e2?.teamId || e2?.player1TeamId || playersById[m.player2Id]?.teamId || '';
-        const t1 = t1Id ? teamsById[t1Id] : null;
-        const t2 = t2Id ? teamsById[t2Id] : null;
-        const s1 = m.player1Wins ?? m.player1Score ?? 0; const s2 = m.player2Wins ?? m.player2Score ?? 0;
+        const t1 = t1Id ? teamsById[t1Id] : null; const t2 = t2Id ? teamsById[t2Id] : null;
+        const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+        const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
         d[m.bracketId] = { ...m, p1: e1 ? { name: e1.playerName || e1.teamName, playerId: e1.playerId || e1.id } : (playersById[m.player1Id] || { name: m.player1Id, playerId: m.player1Id }), p2: e2 ? { name: e2.playerName || e2.teamName, playerId: e2.playerId || e2.id } : (playersById[m.player2Id] || { name: m.player2Id, playerId: m.player2Id }), t1, t2, s1, s2, isW1: m.isCompleted && s1 > s2, isW2: m.isCompleted && s2 > s1 };
       }
     });
     return d;
-  }, [matches, playersById, teamsById, rankedTable]);
+  }, [matches, playersById, teamsById, rankedTable, season]);
 
   const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t, season]);
   const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t, season]);
@@ -370,6 +351,96 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const editHour = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[0];
   const editMin = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[1];
+
+  if (season?.type === 'Co-Op Hybrid') {
+    return (
+        <div className="w-full relative py-20 overflow-hidden">
+            <div className="flex flex-col items-center gap-20">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-32 relative">
+                    {/* Semi Finals Column */}
+                    <div className="flex flex-col gap-16 relative">
+                        <div className="absolute top-0 -left-10 h-full w-px bg-primary/10" />
+                        <MatchCard bid="playoff-sf1" label="SEMI FINAL 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                        <MatchCard bid="playoff-sf2" label="SEMI FINAL 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                    </div>
+
+                    {/* Connector SVG */}
+                    <div className="hidden md:block absolute left-1/2 -translate-x-1/2 w-32 h-64 pointer-events-none opacity-20">
+                        <svg viewBox="0 0 100 200" fill="none" className="w-full h-full stroke-primary" strokeWidth="2">
+                            <path d="M0 50 L50 50 L50 150 L0 150 M50 100 L100 100" />
+                        </svg>
+                    </div>
+
+                    {/* Grand Final Section */}
+                    <div className="flex flex-col items-center gap-12 relative">
+                        <div className="relative group/trophy cursor-default mb-4">
+                            <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
+                            <div className="relative p-10 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
+                                <Trophy className="w-16 h-16 text-yellow-400 animate-float" />
+                            </div>
+                        </div>
+                        <MatchCard bid="playoff-final" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                    </div>
+                </div>
+            </div>
+
+            <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
+                <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
+                    <ScrollArea className="max-h-[90vh]">
+                        <div className="p-4 sm:p-10 space-y-6 relative">
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
+                            <DialogHeader className="p-6 bg-primary text-black relative z-10 border-b-4 border-black/10 rounded-t-[1.5rem]">
+                                <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-center">DETAIL ANALISIS PLAYOFF</DialogTitle>
+                            </DialogHeader>
+                            {/* Reuse existing dialog content structure... */}
+                            <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10 px-2 sm:px-0 mt-10">
+                                <div className="flex flex-col items-center text-center gap-4 w-full">
+                                    {analysis1 ? (
+                                        <>
+                                            <Avatar className="h-28 w-28 border-4 border-primary"><AvatarImage src={analysis1.logoUrl} className="object-cover" /><AvatarFallback>P1</AvatarFallback></Avatar>
+                                            <h3 className="text-xl font-black text-white uppercase italic">{selectedMatch?.p1?.name}</h3>
+                                        </>
+                                    ) : <div className="opacity-10 font-black italic">TBD</div>}
+                                </div>
+                                <div className="flex items-center justify-center py-10 sm:py-0"><div className="bg-[#0A192F] border-4 border-primary rounded-2xl w-16 h-16 flex items-center justify-center shadow-xl rotate-45"><span className="text-primary font-black text-2xl italic -rotate-45">VS</span></div></div>
+                                <div className="flex flex-col items-center text-center gap-4 w-full">
+                                    {analysis2 ? (
+                                        <>
+                                            <Avatar className="h-28 w-28 border-4 border-white"><AvatarImage src={analysis2.logoUrl} className="object-cover" /><AvatarFallback>P2</AvatarFallback></Avatar>
+                                            <h3 className="text-xl font-black text-white uppercase italic">{selectedMatch?.p2?.name}</h3>
+                                        </>
+                                    ) : <div className="opacity-10 font-black italic">TBD</div>}
+                                </div>
+                            </div>
+                            
+                            {!selectedMatch?.isProjection && isAdmin && (
+                                <div className="mt-10 p-8 bg-black/60 border-2 border-primary/20 rounded-2xl relative z-10 flex flex-col items-center gap-6">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">KONFIGURASI JADWAL LAGA</h4>
+                                    <div className="flex flex-wrap justify-center gap-6">
+                                        <Popover>
+                                            <PopoverTrigger asChild><Button variant="outline" className="h-14 min-w-[200px] font-black uppercase">{editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}</Button></PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0 bg-background border-primary/30"><Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus /></PopoverContent>
+                                        </Popover>
+                                        <div className="flex items-center gap-2">
+                                            <Select value={editHour} onValueChange={(v) => setEditTime(`${v}:${editMin}`)}><SelectTrigger className="h-14 w-20 font-black text-xl"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
+                                            <span className="text-primary font-black">:</span>
+                                            <Select value={editMin} onValueChange={(v) => setEditTime(`${editHour}:${v}`)}><SelectTrigger className="h-14 w-20 font-black text-xl"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
+                                        </div>
+                                    </div>
+                                    <Button onClick={handleSaveManualSchedule} disabled={isUpdatingSchedule} className="h-14 px-12 font-black uppercase italic tracking-widest gap-2">
+                                        {isUpdatingSchedule ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5" />}
+                                        SIMPAN JADWAL
+                                    </Button>
+                                    {selectedMatch?.isCompleted && onRevertMatch && <Button variant="outline" className="border-amber-500/30 text-amber-500 font-black" onClick={() => { onRevertMatch(selectedMatch); setSelectedMatch(null); }}>RESET VALIDASI SKOR</Button>}
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+  }
 
   return (
     <div className="w-full relative">
@@ -442,7 +513,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                 </div>
-                {/* GRAND FINAL SECTION */}
                 <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2 animate-pulse-soft" />
@@ -456,31 +526,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
                             <div className="absolute -inset-1 w-[300px] h-[300px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
                             <div className="relative p-12 sm:p-20 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
-                                <svg 
-                                  viewBox="0 0 24 24" 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  strokeWidth="1" 
-                                  className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-in zoom-in duration-1000 animate-float"
-                                >
-                                  <circle cx="12" cy="12" r="11.5" strokeWidth="0.2" strokeOpacity="0.1" />
-                                  <circle cx="12" cy="12" r="10.2" strokeWidth="1.2" />
-                                  <circle cx="12" cy="12" r="8.5" strokeWidth="0.4" strokeOpacity="0.3" />
-                                  
-                                  <path d="M12 2v20M2 12h20" strokeWidth="0.1" strokeOpacity="0.2" />
-                                  <path d="M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93" strokeWidth="0.1" strokeOpacity="0.1" />
-
-                                  <path d="M12 2.5l3.5 6h-7z" fill="currentColor" fillOpacity="0.3" strokeWidth="1.2" />
-                                  
-                                  <circle cx="18.5" cy="12" r="2.5" strokeWidth="1.8" />
-                                  
-                                  <path d="M9.5 16.5l5 5M14.5 16.5l-5 5" strokeWidth="1.8" />
-                                  
-                                  <rect x="3" y="9.5" width="5" height="5" strokeWidth="1.8" />
-                                  
-                                  <circle cx="12" cy="12" r="5" strokeWidth="0.3" strokeDasharray="1 1" strokeOpacity="0.4" />
-                                </svg>
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 bg-yellow-400 px-3 py-0.5 rounded text-[8px] font-black text-black uppercase tracking-widest">APEX UNIT</div>
+                                <Trophy className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-float" />
                             </div>
                         </div>
                         <div className="text-center space-y-2 sm:space-y-4">
@@ -489,23 +535,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic leading-none">Grand Final</h3>
                                 <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
                             </div>
-                            <div className="flex flex-col items-center gap-1">
-                                <p className="text-[10px] font-black text-primary tracking-[0.1em] uppercase opacity-90 italic">Sang Penyandang Gelar KING, Raja dari segala Raja</p>
-                                <div className="flex gap-1.5 mt-2">
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
-                                    <div className="w-2 h-2 bg-primary/40 rounded-full" />
-                                    <div className="w-2 h-2 bg-primary/20 rounded-full" />
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
                         <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
                         <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                        <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-full flex justify-between px-2 pointer-events-none opacity-40">
-                            <div className="flex flex-col items-start"><span className="text-[6px] font-black text-white/40 uppercase">Match Stakes</span><span className="text-[8px] font-bold text-primary italic uppercase">Absolute Glory</span></div>
-                            <div className="flex flex-col items-end"><span className="text-[6px] font-black text-white/40 uppercase">System Integrity</span><span className="text-[8px] font-bold text-primary italic uppercase">100.0%</span></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -516,7 +550,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 <ScrollArea className="max-h-[90vh]">
                     <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
-                        
                         <DialogHeader className="p-6 bg-primary text-black relative z-10 border-b-4 border-black/10 rounded-t-[1.5rem] sm:rounded-t-[2.2rem]">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 w-full">
                                 <div className="flex items-center gap-4 justify-center sm:justify-start flex-1">
@@ -525,120 +558,34 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD ANALISIS PERTANDINGAN</DialogTitle>
                                         <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                                             <Badge className="bg-black text-primary border-none font-black tracking-widest text-[8px] px-3 h-5 shadow-lg uppercase">{selectedMatch?.round || 'Playoff'}</Badge>
-                                            <span className="text-[8px] font-bold text-black/60 uppercase tracking-widest">Tactical HUD System v4.0.1</span>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex gap-4 items-center justify-center bg-black/5 px-4 py-2 rounded-xl border border-black/10 self-center sm:self-auto shrink-0">
-                                    {analysis1?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-black/60 uppercase mb-1">Grup {analysis1.entry.group || 'A'}</span><span className="text-sm font-black italic tabular-nums" suppressHydrationWarning>{analysis1.entry.points} PTS</span></div>}
-                                    <div className="w-px h-6 bg-black/10" />
-                                    {analysis2?.entry && <div className="flex flex-col items-center"><span className="text-[7px] font-black text-black/60 uppercase mb-1">Grup {analysis2.entry.group || 'B'}</span><span className="text-sm font-black italic tabular-nums" suppressHydrationWarning>{analysis2.entry.points} PTS</span></div>}
                                 </div>
                             </div>
                         </DialogHeader>
 
                         {!selectedMatch?.isProjection && (
                             <div className="relative z-10 space-y-6 animate-in slide-in-from-top-4 duration-700 px-2 sm:px-0">
-                                <div className="flex items-center justify-center gap-4 text-primary">
-                                    <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                        <span className="text-[10px] font-black tracking-[0.3em] uppercase italic text-center">INFORMASI JADWAL LAGA</span>
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                    </div>
-                                    <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
-                                </div>
-
                                 <div className="max-w-2xl mx-auto bg-black/80 backdrop-blur-2xl border-y-4 border-primary/40 p-8 rounded-none relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                                    <div className="absolute top-0 left-0 w-2 h-2 bg-primary" />
-                                    <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
-                                    <div className="absolute bottom-0 left-0 w-2 h-2 bg-primary" />
-                                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-primary" />
-                                    
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center">
                                         <div className="flex flex-col items-center space-y-3">
-                                            <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic flex items-center gap-2">
-                                                <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
-                                            </Label>
-                                            <div className="w-full max-w-[320px]">
-                                                <Popover>
-                                                    <PopoverTrigger asChild disabled={!isAdmin}>
-                                                        <Button variant="outline" className={cn(
-                                                            "w-full h-14 bg-white/5 border-2 border-white/10 font-black text-sm sm:text-base uppercase rounded-none tracking-tighter transition-all px-4 text-center",
-                                                            isAdmin ? "hover:border-primary/50 cursor-pointer" : "cursor-default opacity-100 border-primary/20"
-                                                        )}>
-                                                            {editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    {isAdmin && (
-                                                        <PopoverContent className="w-auto p-0 bg-background border-primary/30" align="center">
-                                                            <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-none" />
-                                                        </PopoverContent>
-                                                    )}
-                                                </Popover>
-                                            </div>
+                                            <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic flex items-center gap-2"><CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan</Label>
+                                            <Popover><PopoverTrigger asChild disabled={!isAdmin}><Button variant="outline" className="w-full h-14 bg-white/5 border-2 border-white/10 font-black text-sm uppercase rounded-none tracking-tighter transition-all px-4 text-center">{editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}</Button></PopoverTrigger>
+                                            {isAdmin && <PopoverContent className="w-auto p-0 bg-background border-primary/30" align="center"><Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-none" /></PopoverContent>}</Popover>
                                         </div>
-
                                         <div className="flex flex-col items-center space-y-3">
-                                            <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic flex items-center gap-2">
-                                                <Clock className="w-3 h-3" /> Waktu Kick-Off (24H)
-                                            </Label>
+                                            <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic flex items-center gap-2"><Clock className="w-3 h-3" /> Waktu Kick-Off (24H)</Label>
                                             <div className="flex items-center justify-center gap-3">
-                                                <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}>
-                                                    <SelectTrigger className={cn(
-                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-32 px-4 rounded-none overflow-visible text-center [&>span]:text-center [&>span]:flex-1 not-italic",
-                                                        !isAdmin && "border-primary/20 opacity-100"
-                                                    )}>
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="bg-[#0A192F] border-primary/30">
-                                                        {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                                            <SelectItem key={v} value={v} className="font-black">{v}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}><SelectTrigger className="h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-32 rounded-none text-center"><SelectValue /></SelectTrigger><SelectContent className="bg-[#0A192F] border-primary/30">{Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
                                                 <span className="text-primary font-black text-2xl">:</span>
-                                                <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}>
-                                                    <SelectTrigger className={cn(
-                                                        "h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-32 px-4 rounded-none overflow-visible text-center [&>span]:text-center [&>span]:flex-1 not-italic",
-                                                        !isAdmin && "border-primary/20 opacity-100"
-                                                    )}>
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="bg-[#0A192F] border-primary/30">
-                                                        {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                                            <SelectItem key={v} value={v} className="font-black">{v}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}><SelectTrigger className="h-14 bg-white/5 border-2 border-white/10 focus:border-primary/50 font-black text-xl tabular-nums w-32 rounded-none text-center"><SelectValue /></SelectTrigger><SelectContent className="bg-[#0A192F] border-primary/30">{Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
                                             </div>
                                         </div>
                                     </div>
-
                                     {isAdmin && (
                                         <div className="mt-10 flex flex-col items-center gap-4">
-                                            <Button 
-                                                onClick={handleSaveManualSchedule} 
-                                                disabled={isUpdatingSchedule}
-                                                className="h-14 px-12 font-black uppercase italic tracking-[0.2em] gap-3 shadow-[0_0_30px_rgba(204,253,1,0.2)] rounded-none"
-                                            >
-                                                {isUpdatingSchedule ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                                SIMPAN KONFIGURASI JADWAL
-                                            </Button>
-                                            
-                                            {selectedMatch?.isCompleted && onRevertMatch && (
-                                                <Button 
-                                                    variant="outline" 
-                                                    className="bg-amber-500/10 border-2 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[9px] h-10 px-6 rounded-none transition-all gap-2"
-                                                    onClick={() => {
-                                                        onRevertMatch(selectedMatch);
-                                                        setSelectedMatch(null);
-                                                    }}
-                                                >
-                                                    <Undo2 className="w-3.5 h-3.5" />
-                                                    RESET VALIDASI SKOR
-                                                </Button>
-                                            )}
+                                            <Button onClick={handleSaveManualSchedule} disabled={isUpdatingSchedule} className="h-14 px-12 font-black uppercase italic tracking-[0.2em] gap-3 shadow-[0_0_30px_rgba(204,253,1,0.2)] rounded-none">{isUpdatingSchedule ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} SIMPAN KONFIGURASI JADWAL</Button>
+                                            {selectedMatch?.isCompleted && onRevertMatch && <Button variant="outline" className="bg-amber-500/10 border-2 border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-widest text-[9px] h-10 px-6 rounded-none transition-all gap-2" onClick={() => { onRevertMatch(selectedMatch); setSelectedMatch(null); }}><Undo2 className="w-3.5 h-3.5" /> RESET VALIDASI SKOR</Button>}
                                         </div>
                                     )}
                                 </div>
@@ -646,213 +593,36 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         )}
 
                         <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10 px-2 sm:px-0">
-                            <div className="flex flex-col items-center text-center gap-4 group w-full">
+                            <div className="flex flex-col items-center text-center gap-4 w-full">
                                 {analysis1 ? (
                                     <>
                                         <div className="relative">
                                             <div className={cn("absolute -inset-4 rounded-full blur-3xl opacity-20", analysis1.playStyleType === 'attacking' ? "bg-red-500" : analysis1.playStyleType === 'defensive' ? "bg-blue-500" : "bg-primary")} />
-                                            {selectedMatch?.isCompleted && (
-                                                <span className="absolute inset-0 flex items-center justify-center text-[120px] font-black italic text-white/[0.05] pointer-events-none -z-0 select-none">
-                                                    {selectedMatch.s1}
-                                                </span>
-                                            )}
-                                            {analysis1.entry?.group && (
-                                                <div className="absolute -top-1 -left-1 z-20">
-                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-3 h-7 italic shadow-xl uppercase">GRUP {analysis1.entry.group}</Badge>
-                                                </div>
-                                            )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
                                                 <AvatarImage key={analysis1.logoUrl} src={analysis1.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                                 <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                             </Avatar>
-                                            {analysis1.isDefendingChampion && (
-                                                <div className="absolute -top-1 -right-1 z-20">
-                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1.5 rounded-lg shadow-lg"><Award className="w-4 h-4"/></Badge>
-                                                </div>
-                                            )}
                                             <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
                                         </div>
-                                        <div className="space-y-1 w-full flex flex-col items-center">
-                                            <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
-                                            <div className="flex flex-col items-center gap-2.5 w-full">
-                                                <div className="flex items-center justify-center gap-2 text-center w-full bg-white/5 px-4 py-1.5 rounded-xl border border-white/5">
-                                                    <Avatar className="h-4 w-4 opacity-80"><AvatarImage src={analysis1.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
-                                                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest text-center" suppressHydrationWarning>{analysis1.team?.name || 'Independent'}</span>
-                                                </div>
-                                                <div className="flex justify-center">
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Badge className={cn("text-[10px] font-black uppercase tracking-tighter px-6 py-2.5 border-2 cursor-help shadow-2xl transition-all hover:scale-105", 
-                                                                analysis1.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                                                                analysis1.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
-                                                                "bg-primary/20 text-primary border-primary/30")}>
-                                                                {analysis1.playStyleText}
-                                                            </Badge>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl rounded-[1.5rem] shadow-2xl"><p className="text-[11px] font-bold leading-relaxed text-white text-center">{analysis1.playStyleDescription}</p></PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
                                     </>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>
-                                )}
+                                ) : <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>}
                             </div>
-
-                            <div className="flex items-center justify-center py-10 sm:py-0 h-full relative">
-                                <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl" />
-                                <div className="bg-[#0A192F] border-4 border-primary rounded-2xl w-16 h-16 flex items-center justify-center shadow-[0_0_40px_rgba(204,253,1,0.2)] z-10 rotate-45 group/vs">
-                                    <span className="text-primary font-black text-2xl italic -rotate-45 pr-0.5 group-hover/vs:scale-110 transition-transform">VS</span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center text-center gap-4 group w-full">
+                            <div className="flex items-center justify-center py-10 sm:py-0 h-full relative"><div className="bg-[#0A192F] border-4 border-primary rounded-2xl w-16 h-16 flex items-center justify-center shadow-[0_0_40px_rgba(204,253,1,0.2)] z-10 rotate-45 group/vs"><span className="text-primary font-black text-2xl italic -rotate-45 pr-0.5 group-hover/vs:scale-110 transition-transform">VS</span></div></div>
+                            <div className="flex flex-col items-center text-center gap-4 w-full">
                                 {analysis2 ? (
                                     <>
                                         <div className="relative">
                                             <div className={cn("absolute -inset-4 rounded-full blur-3xl opacity-20", analysis2.playStyleType === 'attacking' ? "bg-red-500" : analysis2.playStyleType === 'defensive' ? "bg-blue-500" : "bg-white")} />
-                                            {selectedMatch?.isCompleted && (
-                                                <span className="absolute inset-0 flex items-center justify-center text-[120px] font-black italic text-white/[0.05] pointer-events-none -z-0 select-none">
-                                                    {selectedMatch.s2}
-                                                </span>
-                                            )}
-                                            {analysis2.entry?.group && (
-                                                <div className="absolute -top-1 -left-1 z-20">
-                                                    <Badge className="bg-primary text-black border-2 border-background font-black text-[9px] px-3 h-7 italic shadow-xl uppercase">GRUP {analysis2.entry.group}</Badge>
-                                                </div>
-                                            )}
                                             <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105">
                                                 <AvatarImage key={analysis2.logoUrl} src={analysis2.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                                 <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                             </Avatar>
-                                            {analysis2.isDefendingChampion && (
-                                                <div className="absolute -top-1 -right-1 z-20">
-                                                    <Badge className="bg-amber-500 text-white border-2 border-background p-1.5 rounded-lg shadow-lg"><Award className="w-4 h-4"/></Badge>
-                                                </div>
-                                            )}
                                             <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
                                         </div>
-                                        <div className="space-y-1 w-full flex flex-col items-center">
-                                            <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
-                                            <div className="flex flex-col items-center gap-2.5 w-full">
-                                                <div className="flex items-center justify-center gap-2 text-center w-full bg-white/5 px-4 py-1.5 rounded-xl border border-white/5">
-                                                    <Avatar className="h-4 w-4 opacity-80"><AvatarImage src={analysis2.team?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
-                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center" suppressHydrationWarning>{analysis2.team?.name || 'Independent'}</span>
-                                                </div>
-                                                <div className="flex justify-center">
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Badge className={cn("text-[10px] font-black uppercase tracking-tighter px-6 py-2.5 border-2 cursor-help shadow-2xl transition-all hover:scale-105", 
-                                                                analysis2.playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                                                                analysis2.playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
-                                                                "bg-primary/20 text-primary border-primary/30")}>
-                                                                {analysis2.playStyleText}
-                                                            </Badge>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl rounded-[1.5rem] shadow-2xl"><p className="text-[11px] font-bold leading-relaxed text-white text-center">{analysis2.playStyleDescription}</p></PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
                                     </>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-8 mt-10 relative z-10 px-2 sm:px-0">
-                            <div className="flex items-center justify-center gap-4 text-primary">
-                                <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
-                                <div className="flex items-center gap-3">
-                                    <Binary className="w-5 h-5 animate-pulse" />
-                                    <h4 className="text-xl font-black tracking-widest uppercase italic text-center">STATISTIK MOMENTUM LAGA</h4>
-                                </div>
-                                <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
-                            </div>
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                                {[analysis1, analysis2].map((an, i) => (
-                                    <div key={i} className="flex-1 w-full">
-                                        {an && an.stats.played > 0 ? (
-                                            <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 h-full relative">
-                                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-                                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-
-                                                <CardHeader className="p-5 bg-primary text-black relative z-10 border-b-2 border-black/10">
-                                                    <div className="flex flex-col items-center gap-2 text-center">
-                                                        <div className="flex items-center justify-center gap-3">
-                                                            <Binary className="w-4 h-4" />
-                                                            <h3 className="text-[11px] font-black tracking-[0.2em] uppercase italic text-center">UNIT: {i === 0 ? selectedMatch?.p1?.name : selectedMatch?.p2?.name}</h3>
-                                                        </div>
-                                                        <div className="flex items-center gap-3 bg-black/10 px-3 py-1 rounded-lg">
-                                                            <Badge className="bg-black text-primary border-none font-black uppercase italic text-[10px] px-3 h-6 shadow-lg">OVR {an.winRate.toFixed(0)}%</Badge>
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
-                                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{an.quote}</span>
-                                                        </div>
-                                                    </div>
-                                                </CardHeader>
-                                                <CardContent className="p-6 space-y-8 relative z-10">
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="space-y-3 text-center">
-                                                            <p className="text-[8px] font-black text-primary/60 uppercase tracking-[0.3em] italic">Intel Musim</p>
-                                                            <div className="grid gap-2.5">
-                                                                <IntelCard icon={Percent} label="OVR Musim" value={`${an.winRate.toFixed(0)}%`} variant="primary" />
-                                                                <IntelCard icon={Trophy} label="Rank Grup" value={`#${an.entry?.rank || '?'}`} />
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-3 text-center">
-                                                            <p className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em] italic">Intel Karir</p>
-                                                            <div className="grid gap-2.5">
-                                                                <IntelCard icon={Flame} label="OVR Master" value={an.masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
-                                                                <IntelCard icon={Star} label="Rank Global" value={`#${an.masterInfo?.masterRank || '?'}`} />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    {isMounted && (
-                                                        <div className="relative pt-4">
-                                                            <div className="flex justify-between items-center px-1 mb-4">
-                                                                <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-2">
-                                                                    <Activity className="w-3.5 h-3.5"/> Momentum Stability
-                                                                </h3>
-                                                                <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black italic px-3 h-6" suppressHydrationWarning>
-                                                                    {an.chartData.length > 1 ? an.chartData[an.chartData.length - 1].points : 0} PTS TREND
-                                                                </Badge>
-                                                            </div>
-                                                            <ChartContainer config={chartConfig} className="h-32 w-full opacity-80 group-hover/trend:opacity-100 transition-opacity">
-                                                                <LineChart data={an.chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                                                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                                    <XAxis dataKey="match" hide />
-                                                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} domain={sCD} />
-                                                                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
-                                                                    <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={4} dot={{ fill: 'hsl(var(--primary))', r: 4, strokeWidth: 2, stroke: 'black' }} activeDot={{ r: 7, stroke: 'white', strokeWidth: 2 }} />
-                                                                </LineChart>
-                                                            </ChartContainer>
-                                                        </div>
-                                                    )}
-                                                    
-                                                    <div className="flex justify-center gap-2 pt-2">
-                                                        {an.form.map((f, idx) => (
-                                                            <div key={idx} className={cn(
-                                                                "w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black border-2 shadow-inner transition-all hover:scale-110", 
-                                                                f === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
-                                                                (f === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")
-                                                            )}>{f === 'W' ? 'M' : f === 'L' ? 'K' : 'S'}</div>
-                                                        ))}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ) : <div className="h-full flex items-center justify-center opacity-10 p-16 border-4 border-dashed border-white/5 rounded-[2rem]"><Loader2 className="w-12 h-12 animate-spin" /></div>}
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="bg-primary/10 border-2 border-primary/20 rounded-[1.5rem] p-6 text-center mt-10 relative overflow-hidden group/disclaimer shadow-2xl">
-                              <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover/disclaimer:translate-x-[100%] transition-transform duration-1500" />
-                              <p className="text-[9px] text-white/40 font-black tracking-[0.4em] uppercase mb-2 relative z-10 italic">Technical Analysis Disclaimer</p>
-                              <p className="text-[11px] font-bold text-primary/80 italic leading-relaxed text-center relative z-10 px-4">Data dikalkulasi berdasarkan akumulasi performa seluruh kompetisi musim ini. Grafik yang meningkat menunjukkan stabilitas kemenangan taktis yang tinggi. Sinyal tren positif (di atas nol) memprediksi keunggulan operasional di arena.</p>
+                                ) : <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>}
                             </div>
                         </div>
                     </div>

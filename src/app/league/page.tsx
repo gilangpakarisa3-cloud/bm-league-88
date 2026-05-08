@@ -145,14 +145,12 @@ export default function LeaguePage() {
     }, {} as Record<string, WithId<Team>>);
   }, [allTeams]);
 
-  // Pool individu (leagueTable) - digunakan untuk pendaftaran awal dan pengundian CO-OP
   const individualPoolCollection = useMemoFirebase(
       () => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`) : null,
       [firestore, activeSeasonId]
   );
   const { data: individualPool } = useCollection<LeagueEntry>(individualPoolCollection);
 
-  // Entri aktif untuk Financial Hub & Standings (Individu untuk Single/Hybrid, Pasangan untuk Co-Op)
   const participantEntries = useMemo(() => {
     if (isSeasonCoop) return coopLeagueTable || [];
     return singleLeagueTable || [];
@@ -228,27 +226,26 @@ export default function LeaguePage() {
         enrichedTable = [];
     }
 
+    const sortFn = (a: any, b: any) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (isSeasonCoop) return b.win - a.win;
+        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+        return a.playerName.localeCompare(b.playerName);
+    };
+
     if (activeSeason?.status === 'Not Started') {
         return [...enrichedTable].sort((a, b) => a.playerName.localeCompare(b.playerName)).map((entry, index) => ({...entry, rank: index + 1}));
     }
     
-    if (isSeasonCoop) {
-      return [...enrichedTable].sort((a, b) => b.points - a.points).map((entry, index) => ({...entry, rank: index + 1}));
-    }
-    
-    return [...enrichedTable].sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-      return a.playerName.localeCompare(b.playerName);
-    }).map((entry, index) => ({...entry, rank: index + 1}));
+    return [...enrichedTable].sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
 
   }, [singleLeagueTable, coopLeagueTable, activeSeason, playersById, teamsById, isSeasonCoop]);
 
   const isHybrid = activeSeason?.type === 'Hybrid' || activeSeason?.type === 'Co-Op Hybrid';
 
   const { groupA, groupB } = useMemo(() => {
-    if (!isHybrid) return { groupA: [], groupB: [] };
+    if (!isHybrid || activeSeason?.type === 'Co-Op Hybrid') return { groupA: [], groupB: [] };
     
     const sortAndRank = (data: typeof sortedTable) => 
         data.sort((a, b) => {
@@ -262,7 +259,7 @@ export default function LeaguePage() {
     const b = sortAndRank(sortedTable.filter(p => p.group === 'B'));
     
     return { groupA: a, groupB: b };
-  }, [sortedTable, isHybrid]);
+  }, [sortedTable, isHybrid, activeSeason]);
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   
@@ -303,6 +300,18 @@ export default function LeaguePage() {
     }
   }, [seasons, activeSeasonId]);
 
+  useEffect(() => {
+    if (activeSeason?.type === 'Co-Op Hybrid') {
+        if (activeLeagueTab !== 'standings' && activeLeagueTab !== 'playoff') {
+            setActiveLeagueTab('standings');
+        }
+    } else if (activeSeason?.type === 'Hybrid') {
+        if (activeLeagueTab === 'standings') {
+            setActiveLeagueTab('group_a');
+        }
+    }
+  }, [activeSeason, activeLeagueTab]);
+
   const handlePasswordCheck = () => {
     if (passwordInput === ADMIN_PASSWORD) {
         setIsAdmin(true);
@@ -339,7 +348,17 @@ export default function LeaguePage() {
     const seasonType = activeSeason.type || 'Single';
     const isHybridMode = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid';
     
-    if (isHybridMode) {
+    if (seasonType === 'Co-Op Hybrid') {
+        const group = tableToUse;
+        const now = Date.now();
+        let matchCounter = 0;
+        for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) {
+                const id1 = group[i].id; const id2 = group[j].id;
+                batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: id1, player2Id: id2, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
+            }
+        }
+    } else if (seasonType === 'Hybrid') {
         const gA = tableToUse.filter(p => p.group === 'A');
         const gB = tableToUse.filter(p => p.group === 'B');
         const generateGroupMatches = (group: any[]) => {
@@ -380,32 +399,39 @@ export default function LeaguePage() {
     batch.commit().then(() => toast({ title: t('fixtures_generated_title'), description: `Jadwal pertandingan untuk ${activeSeason.name} telah dibuat.` }));
   }, [firestore, activeSeason, activeSeasonId, singleLeagueTable, coopLeagueTable, t, toast, isSeasonCoop]);
 
-  const handleGenerateDoubleElimination = useCallback(async () => {
+  const handleGeneratePlayoffs = useCallback(async () => {
     if (!firestore || !activeSeasonId || !activeSeason || !isHybrid) return;
-    if (groupA.length < 6 || groupB.length < 6) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Masing-masing grup harus memiliki setidaknya 6 tim.' }); return; }
     const matchesColRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
     const existingKnockoutSnap = await getDocs(query(matchesColRef, where('round', '!=', 'Group')));
     if (!existingKnockoutSnap.empty) { toast({ variant: 'destructive', title: 'Babak Gugur Sudah Ada', description: 'Jadwal playoff sudah ada.' }); return; }
     const batch = writeBatch(firestore);
     const now = Date.now();
+
+    if (activeSeason.type === 'Co-Op Hybrid') {
+        if (sortedTable.length < 4) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Harus ada minimal 4 tim untuk memulai playoff.' }); return; }
+        // SF1: 1 vs 4
+        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[0].id, player2Id: sortedTable[3].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 1000), round: 'UB-Semi', bracketId: 'playoff-sf1' });
+        // SF2: 2 vs 3
+        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[1].id, player2Id: sortedTable[2].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 2000), round: 'UB-Semi', bracketId: 'playoff-sf2' });
+        // Final
+        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 3000), round: 'Grand-Final', bracketId: 'playoff-final' });
+        batch.commit().then(() => toast({ title: 'Playoff Co-Op Dibuat!', description: 'Jadwal Semi-Final 1 vs 4 dan 2 vs 3 telah dibuat.' }));
+        return;
+    }
     
+    // Default Hybrid (Double Elimination)
+    if (groupA.length < 6 || groupB.length < 6) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Masing-masing grup harus memiliki setidaknya 6 tim.' }); return; }
     const ubQuarterPairings = [
       { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' },
       { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' },
     ];
     ubQuarterPairings.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId || p.p1.id, player2Id: p.p2.playerId || p.p2.id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 1) * 1000), round: 'UB-Quarter', bracketId: p.bid }));
-    
     const lbRound1Starters = [ { p1: groupA[4], bid: 'playoff-m5' }, { p1: groupB[4], bid: 'playoff-m6' }, { p1: groupA[5], bid: 'playoff-m7' }, { p1: groupB[5], bid: 'playoff-m8' } ];
     lbRound1Starters.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId || p.p1.id, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 5) * 1000), round: 'LB-Round 1', bracketId: p.bid }));
-    
-    const placeholders = [
-        { round: 'UB-Semi', bid: 'playoff-m9' }, { round: 'UB-Semi', bid: 'playoff-m10' }, { round: 'LB-Round 2', bid: 'playoff-m11' }, { round: 'LB-Round 2', bid: 'playoff-m12' },
-        { round: 'LB-Round 3', bid: 'playoff-m13' }, { round: 'LB-Round 3', bid: 'playoff-m14' }, { round: 'UB-Final', bid: 'playoff-m15' }, { round: 'LB-Semifinal', bid: 'playoff-m16' },
-        { round: 'LB-Final', bid: 'playoff-m17' }, { round: 'Grand-Final', bid: 'playoff-m18' }
-    ];
+    const placeholders = [ { round: 'UB-Semi', bid: 'playoff-m9' }, { round: 'UB-Semi', bid: 'playoff-m10' }, { round: 'LB-Round 2', bid: 'playoff-m11' }, { round: 'LB-Round 2', bid: 'playoff-m12' }, { round: 'LB-Round 3', bid: 'playoff-m13' }, { round: 'LB-Round 3', bid: 'playoff-m14' }, { round: 'UB-Final', bid: 'playoff-m15' }, { round: 'LB-Semifinal', bid: 'playoff-m16' }, { round: 'LB-Final', bid: 'playoff-m17' }, { round: 'Grand-Final', bid: 'playoff-m18' } ];
     placeholders.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 10) * 1000), round: p.round as any, bracketId: p.bid }));
     batch.commit().then(() => toast({ title: 'Double Elimination Playoff Dibuat!', description: 'Jadwal UB-Quarter dan LB-Round 1 telah berhasil dibuat.' }));
-  }, [firestore, activeSeasonId, activeSeason, groupA, groupB, toast, isHybrid]);
+  }, [firestore, activeSeasonId, activeSeason, groupA, groupB, sortedTable, toast, isHybrid]);
 
   const handleSeasonDialogSubmit = () => {
     if (firestore && newSeasonName.trim()) {
@@ -557,8 +583,9 @@ export default function LeaguePage() {
     let totP = 0, totW = 0, totD = 0, totL = 0, totGF = 0, totGA = 0;
     playerMatches.forEach(m => {
         totP++; const isP1 = m.player1Id === wIdToFilter;
-        const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-        const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+        const isBo3 = isSeasonCoop || (m.round && m.round !== 'Group');
+        const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+        const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
         const pRes = isP1 ? s1 : s2; const oRes = isP1 ? s2 : s1;
         if (pRes > oRes) totW++; else if (pRes < oRes) totL++; else totD++;
         if (m.player1Score !== null && m.player2Score !== null) { totGF += isP1 ? m.player1Score : m.player2Score; totGA += isP1 ? m.player2Score : m.player1Score; }
@@ -760,7 +787,7 @@ export default function LeaguePage() {
                         <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</span></Button>
                         <Button onClick={() => withAdminCheck(() => setShowTeamDraftDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"><span className="skew-x-[12deg] flex items-center"><Dices className="mr-2 h-4 w-4" />TEAM DRAFT</span></Button>
                         {isSeasonCoop && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</span></Button>}
-                        {isHybrid && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Group className="mr-2 h-4 w-4" />UNDI GRUP</span></Button>}
+                        {isHybrid && activeSeason.type !== 'Co-Op Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Group className="mr-2 h-4 w-4" />UNDI GRUP</span></Button>}
                         <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</span></Button>
                         <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant="default" className="flex-1 sm:flex-none h-12 px-8 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-black/20 shadow-xl shadow-primary/20 transition-all" disabled={!hasFixtures || (sortedTable || []).length < 2}><span className="skew-x-[12deg] flex items-center"><Play className="mr-2 h-4 w-4" />{t('start_season')}</span></Button>
                     </>
@@ -768,7 +795,7 @@ export default function LeaguePage() {
                 {activeSeason.status === 'In Progress' && (
                     <>
                         {isHybrid && groupStageMatches.length > 0 && !hasPlayoffs && (
-                            <Button onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGenerateDoubleElimination) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} variant={areGroupStageMatchesComplete ? "default" : "outline"} className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-white/10 transition-all"><span className="skew-x-[12deg] flex items-center"><Swords className="mr-2 h-4 w-4" />START PLAYOFF</span></Button>
+                            <Button onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGeneratePlayoffs) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} variant={areGroupStageMatchesComplete ? "default" : "outline"} className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-white/10 transition-all"><span className="skew-x-[12deg] flex items-center"><Swords className="mr-2 h-4 w-4" />START PLAYOFF</span></Button>
                         )}
                         <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] transition-all"><span className="skew-x-[12deg] flex items-center"><Flag className="mr-2 h-4 w-4" />{t('finish_season')}</span></Button>
                     </>
@@ -830,42 +857,26 @@ export default function LeaguePage() {
                     <div className="lg:col-span-4">
                         {activeSeason?.registrationFee && (participantEntries || []).length > 0 && (
                             <Card className="group relative overflow-hidden transition-all duration-700 border-0 bg-transparent rounded-[2.5rem] p-[2px] hover:scale-[1.01] hover:shadow-[0_0_60px_rgba(250,204,21,0.2)]">
-                                {/* Inner Border Layout */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-transparent pointer-events-none" />
-                                
                                 <div className="relative h-full bg-card/90 backdrop-blur-3xl rounded-[calc(2.5rem-2px)] overflow-hidden flex flex-col">
-                                    
-                                    {/* SOLID SPORT HEADER (VIBRANT YELLOW) */}
                                     <div className="relative py-5 px-8 flex items-center justify-between overflow-hidden shrink-0 bg-yellow-400 text-black">
-                                        {/* Slanted Decoration */}
                                         <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                                        
                                         <div className="flex items-center gap-3 relative z-10">
                                             <div className="bg-black/20 p-2 rounded-lg border border-black/10 shadow-lg">
                                                 <Wallet className="h-5 w-5" />
                                             </div>
                                             <h3 className="text-sm sm:text-base font-black tracking-[0.1em] uppercase italic leading-none pr-2">Financial Hub</h3>
                                         </div>
-                                        
                                         <div className="flex items-center gap-2 relative z-10 opacity-60">
                                             <Scan className="w-3.5 h-3.5" />
                                             <span className="text-[8px] font-black uppercase tracking-widest hidden xs:block">Cash Flow Intel</span>
                                         </div>
                                     </div>
-
-                                    {/* GLASSY BODY */}
                                     <div className="flex-1 p-6 sm:p-8 space-y-6 relative overflow-hidden">
-                                        {/* HUD Decoration Texture */}
                                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                                        
-                                        {/* HUD Corner Decorations */}
                                         <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-yellow-400/20 opacity-40 pointer-events-none rounded-tl-2xl" />
                                         <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-yellow-400/20 opacity-20 pointer-events-none rounded-br-xl" />
-
-                                        {/* Ghost Text */}
                                         <span className="absolute bottom-4 left-8 text-8xl font-black text-yellow-400/[0.03] uppercase tracking-tighter italic pointer-events-none leading-none select-none pr-10">FUNDS</span>
-
-                                        {/* Main Prize Pool Display */}
                                         <div className="bg-black/60 border-2 border-yellow-400/20 p-6 rounded-3xl text-center space-y-2 relative overflow-hidden group/pool shadow-inner">
                                             <div className="absolute inset-0 bg-yellow-400/[0.02] pointer-events-none" />
                                             <div className="flex items-center justify-center gap-2 mb-1">
@@ -875,14 +886,12 @@ export default function LeaguePage() {
                                             <p className="text-3xl sm:text-4xl font-black text-yellow-400 italic drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] tabular-nums leading-none mb-4" suppressHydrationWarning>
                                                 {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
                                             </p>
-                                            
                                             <div className="flex flex-wrap items-center justify-center gap-2 pt-2 border-t border-white/5">
                                                 <Badge variant="outline" className="text-[8px] font-black border-yellow-400/30 text-yellow-400 bg-yellow-400/5 uppercase py-1 px-3">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge>
                                                 {sponsorshipPool > 0 && (
                                                     <Badge variant="outline" className="text-[8px] font-black border-amber-500/30 text-amber-500 bg-amber-500/5 uppercase py-1 px-3">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge>
                                                 )}
                                             </div>
-
                                             <div className="mt-6 space-y-2.5">
                                                 <div className="flex justify-between items-end px-1">
                                                     <div className="flex items-center gap-2">
@@ -896,8 +905,6 @@ export default function LeaguePage() {
                                                 <Progress value={((participantEntries?.filter(p => p.hasPaid).length || 0) / (participantEntries?.length || 1)) * 100} className="h-1.5 bg-white/5" color="bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]" />
                                             </div>
                                         </div>
-
-                                        {/* List Verification */}
                                         <div className="space-y-4 pt-2">
                                             <div className="flex items-center justify-between px-1">
                                                 <h4 className="text-[10px] font-black tracking-[0.3em] text-yellow-400/60 flex items-center gap-2 uppercase italic">
@@ -905,7 +912,6 @@ export default function LeaguePage() {
                                                 </h4>
                                                 <div className="h-px flex-1 bg-gradient-to-r from-yellow-400/20 to-transparent ml-4" />
                                             </div>
-                                            
                                             <ScrollArea className="h-[500px] sm:h-[650px] pr-4">
                                                 <div className="space-y-2.5 pb-10">
                                                     {(participantEntries || []).map(player => {
@@ -916,7 +922,6 @@ export default function LeaguePage() {
                                                         const teamName = isPlayerCoop ? player.player1TeamName : player.teamName;
                                                         const team = teamsById[teamId];
                                                         const teamLogo = resolveLogo(team?.logoUrl, teamId, name);
-                                                        
                                                         return (
                                                             <div key={player.id} className={cn(
                                                                 "flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all duration-500 group/item relative overflow-hidden",
@@ -928,7 +933,6 @@ export default function LeaguePage() {
                                                                     "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
                                                                     player.hasPaid ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]" : "bg-white/5"
                                                                 )} />
-                                                                
                                                                 <div className='flex items-center gap-4 overflow-hidden pl-2 relative z-10'>
                                                                     <div className="relative shrink-0">
                                                                         <div className={cn(
@@ -954,7 +958,6 @@ export default function LeaguePage() {
                                                                         )} suppressHydrationWarning>{teamName || 'Athlete Protocol'}</span>
                                                                     </div>
                                                                 </div>
-                                                                
                                                                 <div className="flex items-center gap-4 relative z-10 shrink-0">
                                                                     <div className={cn(
                                                                         "px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter border shadow-sm transition-all",
@@ -998,7 +1001,7 @@ export default function LeaguePage() {
       </Dialog>
 
       <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}>
-        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col"><DialogHeader className="shrink-0"><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle></DialogHeader><ScrollArea className="flex-1 py-4 pr-2"><div className="space-y-4 sm:space-y-6"><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="grid grid-cols-2 gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid (Indiv)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op Hybrid" id="co-op-hybrid"/><Label htmlFor="co-op-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid (Co-Op)</Label></div></RadioGroup></div>{(newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid') && (<div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label></div></RadioGroup></div>)}<div className="space-y-2 sm:space-y-3"><Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-xs sm:text-sm"/></div><div className="grid grid-cols-2 gap-3 sm:gap-4"><div className="space-y-2 sm:space-y-3"><Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div><div className="space-y-2 sm:space-y-3"><Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div></div><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></ScrollArea></DialogContent>
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col"><DialogHeader className="shrink-0"><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle></DialogHeader><ScrollArea className="flex-1 py-4 pr-2"><div className="space-y-4 sm:space-y-6"><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="grid grid-cols-2 gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid (Indiv)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op Hybrid" id="co-op-hybrid"/><Label htmlFor="co-op-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid (Co-Op)</Label></div></RadioGroup></div>{(newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid') && (<div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label></div></RadioGroup></div>)}<div className="space-y-2 sm:space-y-3"><Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-sm sm:text-sm"/></div><div className="grid grid-cols-2 gap-3 sm:gap-4"><div className="space-y-2 sm:space-y-3"><Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div><div className="space-y-2 sm:space-y-3"><Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div></div><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></ScrollArea></DialogContent>
       </Dialog>
 
       <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeason} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
@@ -1007,7 +1010,7 @@ export default function LeaguePage() {
 
       <AlertDialog open={showFinishSeasonConfirm} onOpenChange={(open) => setShowFinishSeasonConfirm(open)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan selesaikan musim <strong>{activeSeason?.name}</strong> secara permanen.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={() => { handleUpdateSeasonStatus('Completed'); setShowFinishSeasonConfirm(false); }} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Selesaikan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
 
-      <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Selesaikan Fase Grup?</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan format Playoff akan dibuat.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleGenerateDoubleElimination} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Selesaikan Fase Grup?</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan format Playoff akan dibuat.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleGeneratePlayoffs} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
 
       <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Konfirmasi Penjadwalan</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru secara acak' : 'membuat jadwal pertandingan baru secara acak'}.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Batal</AlertDialogCancel><AlertDialogAction onClick={handleGenerateFixtures} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
 
