@@ -31,7 +31,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastDrawResult, setLastDrawResult] = useState<{ winnerName: string, teamName: string, isManual: boolean } | null>(null);
 
-  const isCoop = season?.type === 'Co-Op';
+  const isCoop = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid';
 
   const availableTeams = useMemo(() => {
     const assignedTeamIds = new Set(Object.values(assignments));
@@ -41,14 +41,14 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
   const unassignedEntries = useMemo(() => {
     return registeredPlayers.filter(p => !assignments[p.id]).map(p => ({
         id: p.id,
-        name: isCoop ? (p as CoOpLeagueEntry).teamName : (p as LeagueEntry).playerName
+        name: (isCoop ? (p as CoOpLeagueEntry).teamName : (p as LeagueEntry).playerName) || 'Unit Tanpa Nama'
     })).sort((a,b) => a.name.localeCompare(b.name));
   }, [registeredPlayers, assignments, isCoop]);
 
   const assignedEntries = useMemo(() => {
     return registeredPlayers.filter(p => !!assignments[p.id]).map(p => ({
         id: p.id,
-        name: isCoop ? (p as CoOpLeagueEntry).teamName : (p as LeagueEntry).playerName,
+        name: (isCoop ? (p as CoOpLeagueEntry).teamName : (p as LeagueEntry).playerName) || 'Unit Tanpa Nama',
         teamId: assignments[p.id],
         team: allTeams.find(t => t.id === assignments[p.id])
     })).sort((a, b) => (a.team?.tier || 3) - (b.team?.tier || 3));
