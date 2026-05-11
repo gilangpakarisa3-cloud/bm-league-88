@@ -119,7 +119,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  const isBestOfThree = seasonType === 'Co-Op' || (match.round && match.round !== 'Group');
+  // Check if it should be BO3 based on season type OR knockout round
+  const isBestOfThree = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid' || (match.round && match.round !== 'Group');
 
   const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
     const winners: (string | null)[] = [null, null, null];

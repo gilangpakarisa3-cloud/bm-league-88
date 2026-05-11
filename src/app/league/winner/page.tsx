@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -62,16 +61,17 @@ function LeagueWinnerPageContents({ seasonId }: { seasonId: string | null }) {
                 const allMatches = allMatchesSnap.docs.map(d => d.data() as Match);
                 
                 // 1. Identify Winner
-                if (season.type === 'Hybrid') {
+                if (season.type === 'Hybrid' || season.type === 'Co-Op Hybrid') {
                     const finalMatch = allMatches.find(m => m.round === 'Grand-Final' && m.isCompleted);
                     if (finalMatch) {
-                        const s1 = finalMatch.player1Wins !== null ? finalMatch.player1Wins : (finalMatch.player1Score ?? 0);
-                        const s2 = finalMatch.player2Wins !== null ? finalMatch.player2Wins : (finalMatch.player2Score ?? 0);
+                        const isBo3 = season.type === 'Co-Op Hybrid' || (finalMatch.round && finalMatch.round !== 'Group');
+                        const s1 = isBo3 ? (finalMatch.player1Wins ?? 0) : (finalMatch.player1Score ?? 0);
+                        const s2 = isBo3 ? (finalMatch.player2Wins ?? 0) : (finalMatch.player2Score ?? 0);
                         winnerPlayerId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
                     }
                 }
                 
-                const isCoop = season.type === 'Co-Op';
+                const isCoop = season.type === 'Co-Op' || season.type === 'Co-Op Hybrid';
                 const tableName = isCoop ? 'coopLeagueTable' : 'leagueTable';
                 const tableRef = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${seasonId}/${tableName}`);
                 
@@ -130,7 +130,7 @@ function LeagueWinnerPageContents({ seasonId }: { seasonId: string | null }) {
                     let totalPoints = Number(winnerData.points) || 0;
 
                     // 3. For Hybrid seasons, we must add stats from knockout matches manually
-                    if (season.type === 'Hybrid') {
+                    if (season.type === 'Hybrid' || season.type === 'Co-Op Hybrid') {
                         const knockoutMatches = allMatches.filter(m => 
                             !!m.isCompleted && 
                             m.round !== 'Group' && 
@@ -139,8 +139,9 @@ function LeagueWinnerPageContents({ seasonId }: { seasonId: string | null }) {
                         
                         knockoutMatches.forEach(m => {
                             const isP1 = m.player1Id === winnerPlayerId;
-                            const s1 = m.player1Wins !== null ? m.player1Wins : (m.player1Score ?? 0);
-                            const s2 = m.player2Wins !== null ? m.player2Wins : (m.player2Score ?? 0);
+                            const isBo3 = season.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
+                            const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+                            const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
                             const pResult = isP1 ? s1 : s2;
                             const oResult = isP1 ? s2 : s1;
                             if (pResult > oResult) totalWin++;
