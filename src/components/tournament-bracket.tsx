@@ -5,7 +5,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield, Activity, Sparkles } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield, Activity, Sparkles, TrendingUp, CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import {
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip } from 'recharts';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -45,6 +45,17 @@ interface TournamentBracketProps {
   defendingChampionId?: string;
   onRevertMatch?: (match: WithId<Match>) => void;
 }
+
+const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
+  <div className={cn(
+      "flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all duration-500 group/stat",
+      variant === "primary" ? "bg-primary/10 border-primary/20 hover:border-primary/50" : 
+      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/30"
+  )}>
+    <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em]">{label}</span>
+    <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1.5", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+  </div>
+);
 
 const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
   <div className={cn(
@@ -182,8 +193,6 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const [editTime, setEditTime] = useState<string>('00:00');
   const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
 
-  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
-
   useEffect(() => { setIsMounted(true); }, []);
 
   useEffect(() => {
@@ -259,6 +268,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const teamId = entry?.teamId || entry?.player1TeamId || playersById[playerId]?.teamId || '';
     const team = teamId ? teamsById[teamId] : null;
     const masterInfo = masterPlayersRanked.find(p => p.id === playerId);
+    
     const stats = playerMatches.reduce((acc, m) => {
       acc.played++; const isP1 = m.player1Id === playerId;
       const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
@@ -269,9 +279,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       if (m.player1Score !== null && m.player2Score !== null) { acc.gf += isP1 ? m.player1Score : m.player2Score; acc.ga += isP1 ? m.player2Score : m.player1Score; }
       return acc;
     }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
+
     const possiblePoints = stats.played * 3;
     const actualPoints = (stats.win * 3) + (stats.draw * 1);
     const winRate = possiblePoints > 0 ? (actualPoints / possiblePoints) * 100 : 0;
+    
     const form = playerMatches.slice(-5).map(m => {
       const isP1 = m.player1Id === playerId;
       const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
@@ -282,6 +294,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       if (pR < oR) return 'L';
       return 'D';
     });
+
     let cum = 0; const chartData = [{ match: 0, points: 0 }, ...playerMatches.map((m, i) => {
       const isP1 = m.player1Id === playerId;
       const isBo3 = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid' || (m.round && m.round !== 'Group');
@@ -290,10 +303,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
       cum += (pR > oR ? 1 : (pR < oR ? -1 : 0)); return { match: i + 1, points: cum };
     })];
+
     let pST = "Balance"; let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; let pSD = t('play_style_balanced_desc');
     if (stats.played > 0) { const avgGF = stats.gf / stats.played; const avgGA = stats.ga / stats.played; if (avgGF > 1.6) { pST = "Attacking"; pSType = 'attacking'; pSD = t('play_style_attacking_desc'); } else if (avgGA < 1.2 && stats.played >= 3) { pST = "Defense & Counter"; pSType = 'defensive'; pSD = t('play_style_defensive_desc'); } }
+    
     let q = "Stabil"; let qC = "text-white/60"; const rWC = form.filter(f => f === 'W').length;
     if (rWC === 5) { q = "Tak terkalahkan"; qC = "text-green-400"; } else if (rWC >= 3) { q = "Performa bagus"; qC = "text-green-400"; } else if (form.filter(f => f === 'L').length >= 3) { q = "Performa menurun"; qC = "text-red-400"; }
+    
     const logoUrl = resolveLogo(team?.logoUrl, playerId, entry?.playerName || entry?.teamName || playersById[playerId]?.name);
     return { stats, winRate, form, chartData, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, quote: q, quoteColor: qC, team, entry, masterInfo, isDefendingChampion: playerId === defendingChampionId, logoUrl };
   };
@@ -343,108 +359,25 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const analysis1 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player1Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t, season]);
   const analysis2 = useMemo(() => selectedMatch ? getPlayerAnalysis(selectedMatch.player2Id) : null, [selectedMatch, matches, rankedTable, teamsById, playersById, masterPlayersRanked, defendingChampionId, t, season]);
   
-  const sCD = useMemo(() => {
-    const dD = [-5, 5]; if (!analysis1 && !analysis2) return dD;
-    const aP = [...(analysis1?.chartData.map(d=>d.points) || []), ...(analysis2?.chartData.map(d=>d.points) || [])];
-    if (aP.length === 0) return dD; const mV = Math.max(...aP.map(Math.abs), 5); return [-mV, mV];
+  const combinedTrendData = useMemo(() => {
+    if (!analysis1 && !analysis2) return [];
+    const len1 = analysis1?.chartData.length || 0;
+    const len2 = analysis2?.chartData.length || 0;
+    const maxLen = Math.max(len1, len2);
+    return Array.from({ length: maxLen }).map((_, i) => ({
+        match: i,
+        p1: analysis1?.chartData[i]?.points ?? (i >= len1 && len1 > 0 ? analysis1.chartData[len1-1].points : 0),
+        p2: analysis2?.chartData[i]?.points ?? (i >= len2 && len2 > 0 ? analysis2.chartData[len2-1].points : 0)
+    }));
   }, [analysis1, analysis2]);
 
   const editHour = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[0];
   const editMin = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[1];
 
-  if (season?.type === 'Co-Op Hybrid') {
-    return (
-        <div className="w-full relative py-20 overflow-hidden">
-            <div className="flex flex-col items-center gap-20">
-                <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-32 relative">
-                    {/* Semi Finals Column */}
-                    <div className="flex flex-col gap-16 relative">
-                        <div className="absolute top-0 -left-10 h-full w-px bg-primary/10" />
-                        <MatchCard bid="playoff-sf1" label="SEMI FINAL 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                        <MatchCard bid="playoff-sf2" label="SEMI FINAL 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                    </div>
-
-                    {/* Connector SVG */}
-                    <div className="hidden md:block absolute left-1/2 -translate-x-1/2 w-32 h-64 pointer-events-none opacity-20">
-                        <svg viewBox="0 0 100 200" fill="none" className="w-full h-full stroke-primary" strokeWidth="2">
-                            <path d="M0 50 L50 50 L50 150 L0 150 M50 100 L100 100" />
-                        </svg>
-                    </div>
-
-                    {/* Grand Final Section */}
-                    <div className="flex flex-col items-center gap-12 relative">
-                        <div className="relative group/trophy cursor-default mb-4">
-                            <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
-                            <div className="relative p-10 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
-                                <Trophy className="w-16 h-16 text-yellow-400 animate-float" />
-                            </div>
-                        </div>
-                        <MatchCard bid="playoff-final" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                    </div>
-                </div>
-            </div>
-
-            <Dialog open={!!selectedMatch} onOpenChange={(o) => !o && setSelectedMatch(null)}>
-                <DialogContent className="max-w-4xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
-                    <ScrollArea className="max-h-[90vh]">
-                        <div className="p-4 sm:p-10 space-y-6 relative">
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
-                            <DialogHeader className="p-6 bg-primary text-black relative z-10 border-b-4 border-black/10 rounded-t-[1.5rem]">
-                                <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-center">DETAIL ANALISIS PLAYOFF</DialogTitle>
-                            </DialogHeader>
-                            {/* Reuse existing dialog content structure... */}
-                            <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10 px-2 sm:px-0 mt-10">
-                                <div className="flex flex-col items-center text-center gap-4 w-full">
-                                    {analysis1 ? (
-                                        <>
-                                            <Avatar className="h-28 w-28 border-4 border-primary"><AvatarImage src={analysis1.logoUrl} className="object-cover" /><AvatarFallback>P1</AvatarFallback></Avatar>
-                                            <h3 className="text-xl font-black text-white uppercase italic">{selectedMatch?.p1?.name}</h3>
-                                        </>
-                                    ) : <div className="opacity-10 font-black italic">TBD</div>}
-                                </div>
-                                <div className="flex items-center justify-center py-10 sm:py-0"><div className="bg-[#0A192F] border-4 border-primary rounded-2xl w-16 h-16 flex items-center justify-center shadow-xl rotate-45"><span className="text-primary font-black text-2xl italic -rotate-45">VS</span></div></div>
-                                <div className="flex flex-col items-center text-center gap-4 w-full">
-                                    {analysis2 ? (
-                                        <>
-                                            <Avatar className="h-28 w-28 border-4 border-white"><AvatarImage src={analysis2.logoUrl} className="object-cover" /><AvatarFallback>P2</AvatarFallback></Avatar>
-                                            <h3 className="text-xl font-black text-white uppercase italic">{selectedMatch?.p2?.name}</h3>
-                                        </>
-                                    ) : <div className="opacity-10 font-black italic">TBD</div>}
-                                </div>
-                            </div>
-                            
-                            {!selectedMatch?.isProjection && isAdmin && (
-                                <div className="mt-10 p-8 bg-black/60 border-2 border-primary/20 rounded-2xl relative z-10 flex flex-col items-center gap-6">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">KONFIGURASI JADWAL LAGA</h4>
-                                    <div className="flex flex-wrap justify-center gap-6">
-                                        <Popover>
-                                            <PopoverTrigger asChild><Button variant="outline" className="h-14 min-w-[200px] font-black uppercase">{editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}</Button></PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 bg-background border-primary/30"><Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus /></PopoverContent>
-                                        </Popover>
-                                        <div className="flex items-center gap-2">
-                                            <Select value={editHour} onValueChange={(v) => setEditTime(`${v}:${editMin}`)}><SelectTrigger className="h-14 w-20 font-black text-xl"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
-                                            <span className="text-primary font-black">:</span>
-                                            <Select value={editMin} onValueChange={(v) => setEditTime(`${editHour}:${v}`)}><SelectTrigger className="h-14 w-20 font-black text-xl"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
-                                        </div>
-                                    </div>
-                                    <Button onClick={handleSaveManualSchedule} disabled={isUpdatingSchedule} className="h-14 px-12 font-black uppercase italic tracking-widest gap-2">
-                                        {isUpdatingSchedule ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5" />}
-                                        SIMPAN JADWAL
-                                    </Button>
-                                    {selectedMatch?.isCompleted && onRevertMatch && <Button variant="outline" className="border-amber-500/30 text-amber-500 font-black" onClick={() => { onRevertMatch(selectedMatch); setSelectedMatch(null); }}>RESET VALIDASI SKOR</Button>}
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
-                </DialogContent>
-            </Dialog>
-        </div>
-    );
-  }
-
   return (
     <div className="w-full relative">
         <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
+        
         {(!matches || matches.filter(m => m.bracketId).length === 0) && rankedTable.length > 0 && (
             <div className="mb-6 px-4 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-xl p-4 backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-4"><div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-500 shadow-lg"><Scan className="w-5 h-5" /></div><div className="flex-1">
@@ -452,96 +385,119 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                 </div></div>
             </div></div>
         )}
+
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-10 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20">
             <div className="min-w-[1400px] flex items-stretch gap-0 p-4 sm:p-6 animate-in fade-in duration-1000">
-                <div className="basis-[65%] shrink-0 flex flex-col gap-4 sm:gap-8 relative pr-4 sm:pr-8">
-                    <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
-                        <div className="space-y-6 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
-                            <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-4">
-                                <div className="flex flex-col gap-8 relative">
-                                  <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                </div>
-                                <div className="flex flex-col gap-28 py-12">
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
-                                </div>
-                                <div className="flex flex-col gap-28 py-12">
-                                  <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m10" label="UB SEMI 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                </div>
-                                <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-primary"/></div>
-                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} /></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex-1 relative bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
-                        <div className="space-y-6 relative h-full flex flex-col justify-center">
-                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
-                            <div className="flex items-center gap-4 pl-2 sm:pl-4">
-                                <div className="flex flex-col gap-8">
-                                  <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                </div>
-                                <div className="flex flex-col gap-28 py-12">
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
-                                </div>
-                                <div className="flex flex-col gap-28 py-12">
-                                  <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                </div>
-                                <div className="flex flex-col gap-28 py-12">
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
-                                  <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
-                                </div>
-                                <div className="flex flex-col gap-28 py-12">
-                                  <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                </div>
-                                <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
-                                <div className="flex flex-col justify-center gap-8">
-                                  <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                  <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                {season?.type !== 'Co-Op Hybrid' ? (
+                   <>
+                    <div className="basis-[65%] shrink-0 flex flex-col gap-4 sm:gap-8 relative pr-4 sm:pr-8">
+                        <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
+                            <div className="space-y-6 relative h-full flex flex-col justify-center">
+                                <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
+                                <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-4">
+                                    <div className="flex flex-col gap-8 relative">
+                                      <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                    </div>
+                                    <div className="flex flex-col gap-28 py-12">
+                                      <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
+                                      <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
+                                    </div>
+                                    <div className="flex flex-col gap-28 py-12">
+                                      <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m10" label="UB SEMI 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                    </div>
+                                    <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-primary"/></div>
+                                    <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} /></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2 animate-pulse-soft" />
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2 animate-pulse-soft" />
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
-                    </div>
-                    <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary/40 rounded-tr-2xl pointer-events-none" />
-                    <div className="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-primary/40 rounded-br-2xl pointer-events-none" />
-                    <div className="flex flex-col items-center gap-8 sm:gap-12 relative z-10">
-                        <div className="relative group/trophy cursor-default">
-                            <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
-                            <div className="absolute -inset-1 w-[300px] h-[300px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
-                            <div className="relative p-12 sm:p-20 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
-                                <Trophy className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-float" />
+                        <div className="flex-1 relative bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
+                            <div className="space-y-6 relative h-full flex flex-col justify-center">
+                                <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
+                                <div className="flex items-center gap-4 pl-2 sm:pl-4">
+                                    <div className="flex flex-col gap-8">
+                                      <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                    </div>
+                                    <div className="flex flex-col gap-28 py-12">
+                                      <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
+                                      <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
+                                    </div>
+                                    <div className="flex flex-col gap-28 py-12">
+                                      <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                    </div>
+                                    <div className="flex flex-col gap-28 py-12">
+                                      <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
+                                      <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
+                                    </div>
+                                    <div className="flex flex-col gap-28 py-12">
+                                      <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                    </div>
+                                    <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
+                                    <div className="flex flex-col justify-center gap-8">
+                                      <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                      <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="text-center space-y-2 sm:space-y-4">
-                            <div className="flex items-center justify-center gap-4">
-                                <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
-                                <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic leading-none">Grand Final</h3>
-                                <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
+                    </div>
+                    <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2 animate-pulse-soft" />
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2 animate-pulse-soft" />
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
+                        </div>
+                        <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary/40 rounded-tr-2xl pointer-events-none" />
+                        <div className="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-primary/40 rounded-br-2xl pointer-events-none" />
+                        <div className="flex flex-col items-center gap-8 sm:gap-12 relative z-10">
+                            <div className="relative group/trophy cursor-default">
+                                <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
+                                <div className="absolute -inset-1 w-[300px] h-[300px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
+                                <div className="relative p-12 sm:p-20 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
+                                    <Trophy className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-float" />
+                                </div>
+                            </div>
+                            <div className="text-center space-y-2 sm:space-y-4">
+                                <div className="flex items-center justify-center gap-4">
+                                    <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
+                                    <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic leading-none">Grand Final</h3>
+                                    <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
+                            <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
+                            <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                        </div>
+                    </div>
+                   </>
+                ) : (
+                    <div className="w-full flex flex-col items-center gap-20 py-20">
+                         <div className="flex items-center justify-center gap-10 md:gap-40 relative">
+                            <div className="flex flex-col gap-24 relative">
+                                <div className="absolute top-0 -left-10 h-full w-px bg-primary/10" />
+                                <MatchCard bid="playoff-sf1" label="SEMI FINAL 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                <MatchCard bid="playoff-sf2" label="SEMI FINAL 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                            </div>
+                            <div className="flex flex-col items-center gap-12">
+                                <div className="relative group/trophy cursor-default">
+                                    <div className="relative p-12 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
+                                        <Trophy className="w-20 h-20 text-yellow-400 animate-float" />
+                                    </div>
+                                </div>
+                                <MatchCard bid="playoff-final" label="GRAND FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                             </div>
                         </div>
                     </div>
-                    <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
-                        <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
-                        <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                    </div>
-                </div>
+                )}
             </div>
         </div>
 
@@ -551,14 +507,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
                         <DialogHeader className="p-6 bg-primary text-black relative z-10 border-b-4 border-black/10 rounded-t-[1.5rem] sm:rounded-t-[2.2rem]">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 w-full">
-                                <div className="flex items-center gap-4 justify-center sm:justify-start flex-1">
-                                    <div className="p-3 bg-black/10 rounded-2xl ring-2 ring-black/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
-                                    <div className="text-center sm:text-left">
-                                        <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD ANALISIS PERTANDINGAN</DialogTitle>
-                                        <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
-                                            <Badge className="bg-black text-primary border-none font-black tracking-widest text-[8px] px-3 h-5 shadow-lg uppercase">{selectedMatch?.round || 'Playoff'}</Badge>
-                                        </div>
+                            <div className="flex items-center gap-4 justify-center sm:justify-start">
+                                <div className="p-3 bg-black/10 rounded-2xl ring-2 ring-black/20 shadow-lg"><BarChart3 className="w-8 h-8" /></div>
+                                <div className="text-center sm:text-left">
+                                    <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter uppercase italic leading-none">HUD ANALISIS PERTANDINGAN</DialogTitle>
+                                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
+                                        <Badge className="bg-black text-primary border-none font-black tracking-widest text-[8px] px-3 h-5 shadow-lg uppercase">{selectedMatch?.round || 'Playoff Battle'}</Badge>
                                     </div>
                                 </div>
                             </div>
@@ -605,6 +559,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
                                         </div>
                                         <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
+                                        <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[8px] tracking-widest bg-primary/5">{analysis1.team?.name || 'Independent'}</Badge>
                                     </>
                                 ) : <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>}
                             </div>
@@ -618,12 +573,136 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 <AvatarImage key={analysis2.logoUrl} src={analysis2.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
                                                 <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
                                             </Avatar>
-                                            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
+                                            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-white text-white font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
                                         </div>
                                         <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
+                                        <Badge variant="outline" className="border-white/20 text-white/60 uppercase text-[8px] tracking-widest bg-white/5">{analysis2.team?.name || 'Independent'}</Badge>
                                     </>
                                 ) : <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>}
                             </div>
+                        </div>
+
+                        {analysis1 && analysis2 && (
+                            <div className="space-y-10 relative z-10 animate-in fade-in duration-1000 delay-300">
+                                <div className="bg-black/40 border-2 border-white/5 rounded-[2rem] p-8 space-y-8 relative overflow-hidden group/stats">
+                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-transparent to-white/20 opacity-20" />
+                                     <div className="flex flex-col items-center gap-2 mb-4">
+                                         <h3 className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase italic flex items-center gap-3"><Zap className="w-3.5 h-3.5 text-primary" /> Probability Matrix</h3>
+                                         <div className="flex items-center gap-6 w-full max-w-sm">
+                                             <span className="text-2xl font-black text-primary italic tabular-nums">{analysis1.winRate.toFixed(0)}%</span>
+                                             <div className="h-3 flex-1 bg-white/5 rounded-full overflow-hidden flex border border-white/10">
+                                                 <div className="h-full bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" style={{ width: `${analysis1.winRate}%` }} />
+                                                 <div className="h-full bg-white/20" style={{ width: `${analysis2.winRate}%` }} />
+                                             </div>
+                                             <span className="text-2xl font-black text-white/40 italic tabular-nums">{analysis2.winRate.toFixed(0)}%</span>
+                                         </div>
+                                     </div>
+
+                                     <div className="space-y-5">
+                                         {[
+                                             { label: 'MATCH LOGS', v1: analysis1.stats.played, v2: analysis2.stats.played },
+                                             { label: 'TOTAL VICTORIES', v1: analysis1.stats.win, v2: analysis2.stats.win, color: 'text-green-400' },
+                                             { label: 'UNIT GOALS', v1: analysis1.stats.gf, v2: analysis2.stats.gf, color: 'text-primary' },
+                                             { label: 'MASTER OVR', v1: analysis1.masterInfo?.ovrRating.toFixed(0) || '0', v2: analysis2.masterInfo?.ovrRating.toFixed(0) || '0', color: 'text-yellow-500' }
+                                         ].map((stat, i) => (
+                                             <div key={i} className="space-y-1.5">
+                                                 <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-white/20">
+                                                     <span suppressHydrationWarning>{stat.v1} Units</span>
+                                                     <span className="text-white/40 italic" suppressHydrationWarning>{stat.label}</span>
+                                                     <span suppressHydrationWarning>{stat.v2} Units</span>
+                                                 </div>
+                                                 <div className="flex items-center gap-2 h-1.5 w-full">
+                                                     <div className="flex-1 bg-white/5 h-full rounded-full overflow-hidden flex justify-end">
+                                                         <div className={cn("h-full transition-all duration-1000", stat.color ? stat.color.replace('text-', 'bg-') : "bg-primary/40")} style={{ width: `${(Number(stat.v1) / (Number(stat.v1) + Number(stat.v2) || 1)) * 100}%` }} />
+                                                     </div>
+                                                     <div className="w-1.5 h-1.5 rounded-full bg-white/10 shrink-0" />
+                                                     <div className="flex-1 bg-white/5 h-full rounded-full overflow-hidden">
+                                                         <div className={cn("h-full transition-all duration-1000", stat.color ? stat.color.replace('text-', 'bg-') : "bg-white/20")} style={{ width: `${(Number(stat.v2) / (Number(stat.v1) + Number(stat.v2) || 1)) * 100}%` }} />
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         ))}
+                                     </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     <Card className="bg-black/60 border-2 border-primary/20 rounded-2xl p-6 relative overflow-hidden group/p1">
+                                         <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgba(204,253,1,0.5)]" />
+                                         <div className="flex flex-col gap-4 relative z-10">
+                                             <div className="flex justify-between items-start">
+                                                 <div className="flex flex-col">
+                                                     <span className="text-[7px] font-black uppercase tracking-[0.4em] text-primary/60 italic mb-1">Play Style</span>
+                                                     <h4 className="text-lg font-black uppercase italic text-white pr-2">{analysis1.playStyleText}</h4>
+                                                 </div>
+                                                 <div className="flex gap-1">
+                                                     {analysis1.form.map((f, i) => (
+                                                         <div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30")}>{f}</div>
+                                                     ))}
+                                                 </div>
+                                             </div>
+                                             <p className="text-[10px] font-bold text-white/40 leading-relaxed italic" suppressHydrationWarning>"{analysis1.playStyleDescription}"</p>
+                                         </div>
+                                     </Card>
+
+                                     <Card className="bg-black/60 border-2 border-white/10 rounded-2xl p-6 relative overflow-hidden group/p2">
+                                         <div className="absolute right-0 top-0 w-1 h-full bg-white/20" />
+                                         <div className="flex flex-col gap-4 relative z-10 text-right">
+                                             <div className="flex justify-between items-start flex-row-reverse">
+                                                 <div className="flex flex-col">
+                                                     <span className="text-[7px] font-black uppercase tracking-[0.4em] text-white/30 italic mb-1">Tactical DNA</span>
+                                                     <h4 className="text-lg font-black uppercase italic text-white pr-2">{analysis2.playStyleText}</h4>
+                                                 </div>
+                                                 <div className="flex gap-1">
+                                                     {analysis2.form.map((f, i) => (
+                                                         <div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30")}>{f}</div>
+                                                     ))}
+                                                 </div>
+                                             </div>
+                                             <p className="text-[10px] font-bold text-white/40 leading-relaxed italic" suppressHydrationWarning>"{analysis2.playStyleDescription}"</p>
+                                         </div>
+                                     </Card>
+                                </div>
+
+                                <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/5 overflow-hidden rounded-[2rem] shadow-2xl relative group/trend">
+                                    <CardHeader className="p-5 pb-3 bg-primary/5 border-b border-white/5">
+                                        <div className="flex justify-between items-center">
+                                            <CardTitle className="text-[10px] font-black tracking-[0.3em] text-primary uppercase flex items-center gap-2.5 italic">
+                                                <TrendingUp className="w-4 h-4"/> DUAL-CORE MOMENTUM COMPARISON
+                                            </CardTitle>
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-primary" />
+                                                    <span className="text-[8px] font-black uppercase text-white/40 italic">{analysis1.entry?.playerName?.split(' ')[0]}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-white/40" />
+                                                    <span className="text-[8px] font-black uppercase text-white/40 italic">{analysis2.entry?.playerName?.split(' ')[0]}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-6 pt-8">
+                                        {isMounted && combinedTrendData.length > 1 ? (
+                                            <div className="h-48 w-full opacity-80 group-hover/trend:opacity-100 transition-opacity">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <LineChart data={combinedTrendData} margin={{ left: -20, right: 10, top: 10 }}>
+                                                        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                        <XAxis dataKey="match" hide />
+                                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} allowDecimals={false} />
+                                                        <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
+                                                        <Line type="monotone" dataKey="p1" stroke="hsl(var(--primary))" strokeWidth={4} dot={{ fill: "hsl(var(--primary))", r: 4, strokeWidth: 2, stroke: "black" }} activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }} />
+                                                        <Line type="monotone" dataKey="p2" stroke="rgba(255,255,255,0.3)" strokeWidth={3} strokeDasharray="5 5" dot={{ fill: "rgba(255,255,255,0.3)", r: 3, strokeWidth: 2, stroke: "black" }} />
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-4"><Activity className="w-10 h-10"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-center">Menunggu Transmisi Data Lengkap...</p></div>}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+
+                        <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 text-center relative overflow-hidden">
+                             <p className="text-[9px] font-bold text-primary/60 italic leading-relaxed uppercase tracking-tighter">Data di atas disinkronisasi secara real-time berdasarkan performa di seluruh fase kompetisi. Stabilitas sinyal positif menunjukkan keunggulan taktikal.</p>
                         </div>
                     </div>
                 </ScrollArea>
