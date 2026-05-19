@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -84,7 +85,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
         (match.player1Id === 'TBD' || match.player2Id === 'TBD') ||
         (hasPlayoffs && (match.round === 'Group' || !match.round) && !isAdmin);
 
-    const PlayerInfo = ({ name, team, teamId, alignment = 'left', isWinner }: { name: string, team: WithId<Team> | null, teamId: string, alignment?: 'left' | 'right', isWinner: boolean }) => {
+    const PlayerInfo = ({ name, team, teamId, alignment = 'left', isWinner, wins }: { name: string, team: WithId<Team> | null, teamId: string, alignment?: 'left' | 'right', isWinner: boolean, wins?: number | null }) => {
         const logoUrl = resolveLogo(team?.logoUrl, teamId, name);
         
         return (
@@ -113,6 +114,15 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                             LOGO NULL
                         </AvatarFallback>
                     </Avatar>
+
+                    {isMatchBo3 && wins !== undefined && (
+                        <div className={cn(
+                            "absolute -bottom-1 flex items-center justify-center w-5 h-5 rounded-full border-2 border-background font-black text-[8px] z-20 shadow-lg",
+                            alignment === 'right' ? "-right-1 bg-primary text-black" : "-left-1 bg-primary text-black"
+                        )}>
+                            {wins || 0}
+                        </div>
+                    )}
                     
                     {isWinner && (
                         <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg border-2 border-background animate-bounce">
@@ -136,11 +146,16 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
         );
     }
     
-    const score1 = isMatchBo3 ? (match.player1Wins ?? 0) : (match.player1Score ?? 0);
-    const score2 = isMatchBo3 ? (match.player2Wins ?? 0) : (match.player2Score ?? 0);
+    const score1 = match.player1Score ?? 0;
+    const score2 = match.player2Score ?? 0;
+    const wins1 = match.player1Wins ?? 0;
+    const wins2 = match.player2Wins ?? 0;
+
     const hasValidScore = (match.isCompleted || match.status === 'Live') && (score1 !== null || match.player1Score !== null);
-    const isW1 = match.isCompleted && score1! > score2!;
-    const isW2 = match.isCompleted && score2! > score1!;
+    const isW1 = match.isCompleted && (isMatchBo3 ? wins1 > wins2 : score1 > score2);
+    const isW2 = match.isCompleted && (isMatchBo3 ? wins2 > wins1 : score2 > score1);
+
+    const gameIdx = isMatchBo3 ? (wins1 + wins2 + 1) : 1;
 
     return (
         <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
@@ -161,13 +176,13 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                             <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
                         </div>
                     )}
-                    <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.teamId1 || match.player1Id} alignment="right" isWinner={isW1} />
+                    <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.teamId1 || match.player1Id} alignment="right" isWinner={isW1} wins={isMatchBo3 ? wins1 : undefined} />
                 </div>
                 
                 {/* Unified Score Module (Center) */}
                 <div className="flex flex-col items-center justify-center relative">
                     {hasValidScore ? (
-                        <div className="relative group/score">
+                        <div className="relative group/score flex flex-col items-center gap-2">
                             <div className={cn(
                                 "bg-[#0A192F] border-2 px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-3 sm:gap-5 ring-4 ring-black/40",
                                 match.status === 'Live' ? "border-red-500/50 animate-pulse" : "border-white/10"
@@ -181,8 +196,13 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                                 </span>
                             </div>
                             {match.status === 'Live' && (
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
                                     <Badge className="bg-red-500 text-white font-black text-[7px] h-4 px-2 uppercase shadow-lg">LIVE</Badge>
+                                    {isMatchBo3 && (
+                                        <Badge variant="outline" className="mt-1 bg-primary/10 border-primary/30 text-primary text-[6px] h-3 px-1.5 font-black italic">
+                                            GAME {gameIdx}
+                                        </Badge>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -198,7 +218,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                 
                 {/* Away Player (Right) */}
                 <div className="w-full flex items-center gap-2">
-                    <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.teamId2 || match.player2Id} alignment="left" isWinner={isW2} />
+                    <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.teamId2 || match.player2Id} alignment="left" isWinner={isW2} wins={isMatchBo3 ? wins2 : undefined} />
                     {isAdmin && match.status === 'Live' && (
                         <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-right-2 duration-500">
                             <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', 1)}><Plus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
@@ -1082,3 +1102,4 @@ export default function FixturesPage() {
     </div>
   );
 }
+

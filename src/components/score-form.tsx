@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -15,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Match, Season, Team, WithId, MatchStatus } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2, Loader2, Radio } from "lucide-react";
+import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2, Loader2, Radio, Swords } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -225,6 +226,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const hasErrors = Object.keys(errors).length > 0;
   const isBo3Incomplete = matchStatus === 'Completed' && isBestOfThree && p1Wins < 2 && p2Wins < 2;
 
+  const gameIdx = isBestOfThree ? (p1Wins + p2Wins + 1) : 1;
+
   const editHour = (form.watch('time') || "00:00").split(':')[0];
   const editMin = (form.watch('time') || "00:00").split(':')[1];
 
@@ -255,9 +258,16 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                 )}
             />
             {matchStatus === 'Live' && (
-                <div className="flex items-center gap-2 animate-pulse mt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                    <p className="text-[8px] font-black text-red-500 uppercase tracking-widest italic">Broadcasting to LiveScore Dashboard</p>
+                <div className="flex flex-col items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                        <p className="text-[8px] font-black text-red-500 uppercase tracking-widest italic">Broadcasting to LiveScore Dashboard</p>
+                    </div>
+                    {isBestOfThree && (
+                        <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary text-[9px] font-black uppercase italic tracking-tighter px-4 h-6 animate-in zoom-in-95 duration-500">
+                           <Swords className="w-3 h-3 mr-2" /> UPDATING GAME {gameIdx} OF 3
+                        </Badge>
+                    )}
                 </div>
             )}
         </div>
@@ -315,7 +325,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         value={p1Score} 
                         onIncrement={() => incrementValue('player1Score')} 
                         onDecrement={() => decrementValue('player1Score')} 
-                        label="Total goals"
+                        label={isBestOfThree && matchStatus === 'Live' ? `Game ${gameIdx} Goals` : "Total goals"}
                         disabled={isSaving}
                     />
                 </div>
@@ -364,7 +374,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         value={p2Score} 
                         onIncrement={() => incrementValue('player2Score')} 
                         onDecrement={() => decrementValue('player2Score')} 
-                        label="Total goals"
+                        label={isBestOfThree && matchStatus === 'Live' ? `Game ${gameIdx} Goals` : "Total goals"}
                         disabled={isSaving}
                     />
                 </div>
@@ -519,3 +529,4 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
     </Form>
   );
 }
+
