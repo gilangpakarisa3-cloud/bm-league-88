@@ -7,7 +7,7 @@ import { useFirestore } from '@/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import type { WithId, Season, Player, LeagueEntry, PlayerWithTeam } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowDownCircle, ArrowUpCircle, Loader2, Shuffle, Swords, Trash2, Zap, Scan, Loader, CheckCircle2, Binary } from 'lucide-react';
+import { Loader2, Shuffle, Swords, Trash2, Zap, Scan, Loader, CheckCircle2, Binary, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ScrollArea } from './ui/scroll-area';
@@ -16,10 +16,9 @@ import { cn } from '@/lib/utils';
 
 
 const LEAGUE_ID = 'main-league';
-const SEED_POT_SIZE = 8; 
 
 export type DrawnPair = { player1: PlayerWithTeam, player2: PlayerWithTeam };
-type PlayerInPot = WithId<LeagueEntry> & { prevRank: number };
+type PlayerInPool = WithId<LeagueEntry> & { prevRank: number };
 
 interface CoopDrawDialogProps {
   season: WithId<Season> | null;
@@ -44,12 +43,10 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, onOpenChange, onSavePairs, isAdmin, onRemovePlayer }: CoopDrawDialogProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [previousSeason, setPreviousSeason] = useState<WithId<Season> | null>(null);
   const [previousSeasonTable, setPreviousSeasonTable] = useState<WithId<LeagueEntry>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [pot1, setPot1] = useState<PlayerInPot[]>([]);
-  const [pot2, setPot2] = useState<PlayerInPot[]>([]);
-  const [drawnPairs, setDrawnPairs] = useState<{player1: PlayerInPot, player2: PlayerInPot}[] | null>(null);
+  const [playerPool, setPlayerPool] = useState<PlayerInPool[]>([]);
+  const [drawnPairs, setDrawnPairs] = useState<{player1: PlayerInPool, player2: PlayerInPool}[] | null>(null);
   
   // Reveal state
   const [revealedCount, setRevealedCount] = useState(0);
@@ -65,7 +62,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
   useEffect(() => {
     if (!open || !firestore) return;
 
-    const findPreviousSeason = async () => {
+    const findPreviousSeasonData = async () => {
         setIsLoading(true);
         setDrawnPairs(null);
         setRevealedCount(0);
@@ -77,7 +74,6 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
         const prevSeason = allSeasons.find(s => s.status === 'Completed');
         
         if (prevSeason) {
-            setPreviousSeason(prevSeason);
             const prevTableQuery = query(
                 collection(firestore, `leagues/${LEAGUE_ID}/seasons/${prevSeason.id}/leagueTable`),
                 orderBy('points', 'desc'),
@@ -90,53 +86,42 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
         setIsLoading(false);
     };
 
-    findPreviousSeason();
+    findPreviousSeasonData();
   }, [open, firestore]);
   
   useEffect(() => {
       if (isLoading || registeredPlayers.length === 0) {
-        setPot1([]); setPot2([]); return;
+        setPlayerPool([]); return;
       };
 
       const previousSeasonRankMap = new Map(previousSeasonTable.map((p, index) => [p.playerId, index + 1]));
-      const playersInCurrentSeason: PlayerInPot[] = registeredPlayers
+      const players: PlayerInPool[] = registeredPlayers
         .map(entry => ({ ...entry, prevRank: previousSeasonRankMap.get(entry.playerId) || Infinity }))
-        .sort((a, b) => a.prevRank - b.prevRank);
+        .sort((a, b) => a.playerName.localeCompare(b.playerName));
 
-      const newPot1 = playersInCurrentSeason.slice(0, SEED_POT_SIZE);
-      const pot1PlayerIds = new Set(newPot1.map(p => p.playerId));
-      const newPot2 = playersInCurrentSeason.filter(p => !pot1PlayerIds.has(p.playerId));
-
-      setPot1(newPot1); setPot2(newPot2);
+      setPlayerPool(players);
   }, [isLoading, previousSeasonTable, registeredPlayers]);
 
-  const handleMovePlayer = useCallback((playerToMove: PlayerInPot, destination: 'pot1' | 'pot2') => {
-    if (destination === 'pot1') {
-      setPot2(prev => prev.filter(p => p.id !== playerToMove.id));
-      setPot1(prev => [...prev, playerToMove].sort((a,b) => a.prevRank - b.prevRank));
-    } else {
-      setPot1(prev => prev.filter(p => p.id !== playerToMove.id));
-      setPot2(prev => [...prev, playerToMove].sort((a,b) => a.prevRank - b.prevRank));
-    }
-  }, []);
-
   const handleDraw = useCallback(() => {
-      if (pot1.length + pot2.length < 2) {
+      if (playerPool.length < 2) {
           toast({ variant: 'destructive', title: "Pemain Tidak Cukup", description: "Minimal perlu 2 pemain untuk membuat pasangan." });
           return;
       }
       
-      const shuffledPot1 = shuffleArray(pot1);
-      const shuffledPot2 = shuffleArray(pot2);
-      const pairs: {player1: PlayerInPot, player2: PlayerInPot}[] = [];
+      const shuffled = shuffleArray(playerPool);
+      const pairs: {player1: PlayerInPool, player2: PlayerInPool}[] = [];
       
-      while(shuffledPot1.length > 0 && shuffledPot2.length > 0) {
-          pairs.push({ player1: shuffledPot1.pop()!, player2: shuffledPot2.pop()! });
+      while(shuffled.length >= 2) {
+          pairs.push({ player1: shuffled.pop()!, player2: shuffled.pop()! });
       }
 
-      const remainingPlayers = [...shuffledPot1, ...shuffledPot2];
-      while(remainingPlayers.length >= 2) {
-          pairs.push({ player1: remainingPlayers.pop()!, player2: remainingPlayers.pop()! });
+      if (shuffled.length > 0) {
+          toast({ 
+              variant: 'destructive', 
+              title: "Jumlah Ganjil Detected", 
+              description: `Pemain '${shuffled[0].playerName}' tidak mendapatkan pasangan. Harap daftarkan 1 pemain lagi atau hapus 1 pemain.` 
+          });
+          return;
       }
       
       setDrawnPairs(pairs);
@@ -154,8 +139,8 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
               setIsRevealing(false);
               toast({ title: "Undian Pasangan Selesai!", description: "Seluruh pemain telah dipasangkan secara acak." });
           }
-      }, 1000); // Reveal one pair every 1 second
-  }, [pot1, pot2, toast]);
+      }, 1000);
+  }, [playerPool, toast]);
   
   const handleFinalSave = () => {
     if (!drawnPairs || isRevealing) return;
@@ -173,7 +158,6 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
       <DialogContent className="max-w-4xl p-0 border-primary border-4 bg-background/95 rounded-[2.5rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
         <ScrollArea className="max-h-[90vh]">
           <div className="p-8 relative">
-             {/* HUD Texture Overlay */}
              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
 
             <DialogHeader className="mb-10 text-center relative z-10">
@@ -182,11 +166,11 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                       <Shuffle className="w-8 h-8" />
                   </div>
               </div>
-              <DialogTitle className="text-4xl font-black italic uppercase text-white tracking-tighter leading-none">Undian Pasangan Co-Op</DialogTitle>
+              <DialogTitle className="text-4xl font-black italic uppercase text-white tracking-tighter leading-none">Undian Pasangan CO-OP</DialogTitle>
               <div className="flex items-center justify-center gap-3 mt-4">
-                <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[8px] font-black uppercase tracking-[0.3em] h-6 px-4 italic">Seeded Draw System Active</Badge>
+                <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[8px] font-black uppercase tracking-[0.3em] h-6 px-4 italic">Single Pool Randomizer Active</Badge>
                 <div className="h-px w-12 bg-white/10" />
-                <span className="text-[8px] font-bold text-white/30 uppercase tracking-[0.4em]">Protocol v4.0.1</span>
+                <span className="text-[8px] font-bold text-white/30 uppercase tracking-[0.4em]">Protocol v5.0</span>
               </div>
             </DialogHeader>
             
@@ -201,27 +185,50 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
             ) : (
                 <div className="space-y-10 relative z-10">
                     {!drawnPairs && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <PotDisplay 
-                                title="Pot 1 (Unggulan)" 
-                                subtitle="Top Performance Tier"
-                                players={pot1} 
-                                isAdmin={isAdmin} 
-                                onRemovePlayer={(p) => onRemovePlayer(p.id, p.playerName)}
-                                onMovePlayer={(player) => handleMovePlayer(player, 'pot2')}
-                                moveIcon={<ArrowDownCircle className="h-4 w-4 text-amber-500" />}
-                                variant="primary"
-                            />
-                            <PotDisplay 
-                                title="Pot 2 (Challengers)" 
-                                subtitle="Rising Competitors"
-                                players={pot2} 
-                                isAdmin={isAdmin} 
-                                onRemovePlayer={(p) => onRemovePlayer(p.id, p.playerName)}
-                                onMovePlayer={(player) => handleMovePlayer(player, 'pot1')}
-                                moveIcon={<ArrowUpCircle className="h-4 w-4 text-green-500" />}
-                                variant="default"
-                            />
+                        <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <Card className="bg-black/40 border-2 border-white/5 rounded-[2rem] overflow-hidden transition-all duration-500 group/pool hover:border-primary/20">
+                                <CardHeader className="p-6 bg-white/[0.02] border-b border-white/5">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <CardTitle className="text-center font-black text-base uppercase tracking-[0.2em] italic text-white/60">Pool Pemain Terdaftar</CardTitle>
+                                        <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20 italic">Verified Tournament Roster</p>
+                                        <Badge variant="outline" className="mt-2 h-6 font-black border-primary/30 text-primary bg-primary/5 uppercase">{playerPool.length} Unit Tersedia</Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {playerPool.map((player, idx) => (
+                                            <div key={player.id} className="flex items-center justify-between p-3.5 bg-white/[0.02] border border-white/5 rounded-xl group/item hover:bg-white/[0.05] hover:border-primary/20 transition-all">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px] font-black text-white/20 tabular-nums">#{idx + 1}</span>
+                                                    <span className="font-black text-sm uppercase italic text-white/80 tracking-tight" suppressHydrationWarning>{player.playerName}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {isAdmin && (
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-500/10 text-white/20 hover:text-red-500 rounded-lg opacity-0 group-hover/item:opacity-100 transition-opacity" onClick={() => onRemovePlayer(player.id, player.playerName)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Badge className="bg-white/5 text-white/40 border-none text-[8px] font-black h-5 uppercase">RANK {player.prevRank === Infinity ? 'NEW' : player.prevRank}</Badge>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {playerPool.length === 0 && (
+                                        <div className="py-20 text-center opacity-10 flex flex-col items-center gap-4">
+                                            <Users className="w-12 h-12" />
+                                            <p className="text-xs font-black uppercase tracking-[0.4em] italic">Belum Ada Pemain Terdaftar</p>
+                                        </div>
+                                    )}
+                                    {playerPool.length % 2 !== 0 && playerPool.length > 0 && (
+                                        <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-4 animate-pulse">
+                                            <Zap className="w-5 h-5 text-red-500" />
+                                            <p className="text-[10px] font-black text-red-500/80 uppercase tracking-widest leading-relaxed">
+                                                Warning: Jumlah pemain ganjil ({playerPool.length}). Harap daftarkan pemain genap untuk mode CO-OP.
+                                            </p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
                         </div>
                     )}
 
@@ -316,7 +323,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                     <Button 
                         onClick={handleDraw} 
                         className="w-full h-16 font-black uppercase italic text-lg tracking-tighter gap-4 bg-primary text-black hover:bg-primary/90 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95" 
-                        disabled={isLoading || (pot1.length + pot2.length < 2)}
+                        disabled={isLoading || (playerPool.length < 2) || (playerPool.length % 2 !== 0)}
                     >
                         <Shuffle className="h-6 w-6"/>
                         Mulai Undian Pasangan
@@ -329,56 +336,3 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
     </Dialog>
   );
 }
-
-const PotDisplay = ({ title, subtitle, players, isAdmin, onRemovePlayer, onMovePlayer, moveIcon, variant = "default" }: { 
-    title: string;
-    subtitle: string;
-    players: PlayerInPot[];
-    isAdmin: boolean;
-    onRemovePlayer: (player: PlayerInPot) => void;
-    onMovePlayer: (player: PlayerInPot) => void;
-    moveIcon: React.ReactNode;
-    variant?: "primary" | "default";
-}) => (
-    <Card className={cn(
-        "bg-black/40 border-2 rounded-[2rem] overflow-hidden transition-all duration-500 group/pot",
-        variant === "primary" ? "border-primary/20 hover:border-primary/40" : "border-white/5 hover:border-white/20"
-    )}>
-        <CardHeader className="p-6 bg-white/[0.02] border-b border-white/5">
-            <div className="flex flex-col items-center gap-1">
-                <CardTitle className={cn(
-                    "text-center font-black text-base uppercase tracking-[0.2em] italic", 
-                    variant === "primary" ? "text-primary" : "text-white/60"
-                )}>{title}</CardTitle>
-                <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20 italic">{subtitle}</p>
-            </div>
-        </CardHeader>
-        <CardContent className="p-4">
-            <div className="space-y-2">
-                {players.map((player, idx) => (
-                    <div key={player.id} className="flex items-center justify-between p-3.5 bg-white/[0.02] border border-white/5 rounded-xl group/item hover:bg-white/[0.05] hover:border-white/10 transition-all">
-                        <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-black text-white/20 tabular-nums">#{idx + 1}</span>
-                            <span className="font-black text-sm uppercase italic text-white/80 tracking-tight" suppressHydrationWarning>{player.playerName}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {isAdmin && (
-                                <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 rounded-lg" onClick={() => onMovePlayer(player)}>{moveIcon}</Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-500/10 text-red-500 rounded-lg" onClick={() => onRemovePlayer(player)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
-                            )}
-                            <Badge className="bg-white/5 text-white/40 border-none text-[8px] font-black h-5">RANK {player.prevRank === Infinity ? 'NEW' : player.prevRank}</Badge>
-                        </div>
-                    </div>
-                ))}
-                {players.length === 0 && (
-                    <div className="py-12 text-center opacity-10 flex flex-col items-center gap-3">
-                        <Scan className="w-10 h-10" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] italic">No Signal Detected</p>
-                    </div>
-                )}
-            </div>
-        </CardContent>
-    </Card>
-);
