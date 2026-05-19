@@ -847,7 +847,7 @@ export default function LeaguePage() {
         <div className="space-y-8 sm:space-y-12">
             <div className="w-full">
                 <LeagueTable 
-                    tableData={enrichedTableData} 
+                    tableData={sortedTable} 
                     isLoading={isLoadingTableFinal}
                     onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
                     onSelectPlayer={setSelectedPlayerForStats}

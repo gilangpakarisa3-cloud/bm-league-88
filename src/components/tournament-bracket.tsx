@@ -632,7 +632,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                  </div>
                                                  <div className="flex gap-1">
                                                      {analysis1.form.map((f, i) => (
-                                                         <div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30")}>{f}</div>
+                                                         <div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50")}>{f}</div>
                                                      ))}
                                                  </div>
                                              </div>
@@ -650,7 +650,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                  </div>
                                                  <div className="flex gap-1">
                                                      {analysis2.form.map((f, i) => (
-                                                         <div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30")}>{f}</div>
+                                                         <div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50")}>{f}</div>
                                                      ))}
                                                  </div>
                                              </div>
@@ -668,11 +668,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <div className="flex items-center gap-4">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-2 h-2 rounded-full bg-primary" />
-                                                    <span className="text-[8px] font-black uppercase text-white/40 italic">{analysis1.entry?.playerName?.split(' ')[0]}</span>
+                                                    <span className="text-[8px] font-black uppercase text-white/40 italic" suppressHydrationWarning>{analysis1.entry?.playerName?.split(' ')[0]}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-2 h-2 rounded-full bg-white/40" />
-                                                    <span className="text-[8px] font-black uppercase text-white/40 italic">{analysis2.entry?.playerName?.split(' ')[0]}</span>
+                                                    <span className="text-[8px] font-black uppercase text-white/40 italic" suppressHydrationWarning>{analysis2.entry?.playerName?.split(' ')[0]}</span>
                                                 </div>
                                             </div>
                                         </div>
