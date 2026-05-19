@@ -53,9 +53,7 @@ interface SingleTableProps {
   matches: WithId<Match>[];
 }
 
-const PlayoffQualificationLegend = ({ seasonType }: { seasonType?: string }) => {
-  const isCoopHybrid = seasonType === 'Co-Op Hybrid';
-  
+const PlayoffQualificationLegend = () => {
   return (
     <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 p-6 sm:p-10 bg-black/60 border-b-4 border-yellow-400/30 backdrop-blur-3xl relative overflow-hidden group/legend shrink-0">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(250,204,21,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(250,204,21,0.02)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
@@ -63,33 +61,30 @@ const PlayoffQualificationLegend = ({ seasonType }: { seasonType?: string }) => 
       <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-yellow-400/20 rounded-tl-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
       <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-yellow-400/20 rounded-br-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
 
-      <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-20 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
+      <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-20 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
         <div className="flex items-center gap-4 group/item">
           <div className="relative">
             <div className="absolute -inset-3 bg-green-500/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity animate-pulse" />
             <div className="w-6 h-6 bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-sm sm:text-base font-black uppercase italic text-green-400 leading-none">Zona Playoff</span>
-            <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 1 - 4 (Hijau)</span>
+            <span className="text-sm sm:text-base font-black uppercase italic text-green-400 leading-none">Upper Bracket</span>
+            <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Peringkat 1 - 4</span>
           </div>
         </div>
 
-        {!isCoopHybrid && (
-            <>
-                <div className="w-px h-12 bg-white/5 hidden lg:block" />
-                <div className="flex items-center gap-4 group/item">
-                  <div className="relative">
-                    <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-lg opacity-40 group-hover/item:opacity-100 transition-opacity animate-pulse" />
-                    <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
-                    <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank 5 - 6 (Emas)</span>
-                  </div>
-                </div>
-            </>
-        )}
+        <div className="w-px h-12 bg-white/5 hidden lg:block" />
+
+        <div className="flex items-center gap-4 group/item">
+          <div className="relative">
+            <div className="absolute -inset-4 bg-yellow-400/20 rounded-full blur-lg opacity-40 group-hover/item:opacity-100 transition-opacity animate-pulse" />
+            <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
+          </div>
+          <div className="flex flex-col text-left">
+            <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
+            <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Peringkat 5 - 6</span>
+          </div>
+        </div>
 
         <div className="w-px h-12 bg-white/5 hidden lg:block" />
 
@@ -99,8 +94,8 @@ const PlayoffQualificationLegend = ({ seasonType }: { seasonType?: string }) => 
             <div className="w-6 h-6 bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-sm sm:text-base font-black uppercase italic text-red-500 leading-none">Zona Eliminasi</span>
-            <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Rank {isCoopHybrid ? '5+' : '7+'} (Merah)</span>
+            <span className="text-sm sm:text-base font-black uppercase italic text-red-500 leading-none">Eliminasi</span>
+            <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Peringkat 7+</span>
           </div>
         </div>
       </div>
@@ -136,14 +131,14 @@ const SingleTable = memo(({
                 .slice(0, 5)
                 .reverse()
                 .map(m => {
-                    const isP1 = m.player1Id === playerId;
+                    const isPlayer1 = m.player1Id === playerId;
                     const isBo3 = isCoop || (m.round && m.round !== 'Group');
                     const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
                     const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
-                    const pRes = isP1 ? s1 : s2;
-                    const oRes = isP1 ? s2 : s1;
-                    if (pRes > oRes) return 'W';
-                    if (pRes < oRes) return 'L';
+                    const playerResult = isPlayer1 ? s1 : s2;
+                    const opponentResult = isPlayer1 ? s2 : s1;
+                    if (playerResult > opponentResult) return 'W';
+                    if (playerResult < opponentResult) return 'L';
                     return 'D';
                 });
         });
@@ -181,17 +176,9 @@ const SingleTable = memo(({
               const playerForm = playerFormsMap[entry.playerId || entry.id] || [];
               
               const isFirst = entry.rank === 1;
-              const isQualificationZone = entry.rank >= 1 && entry.rank <= 4;
-              
-              const isLowerBracketZone = 
-                  currentType === 'Hybrid' && 
-                  totalPlayers >= 6 && 
-                  (entry.rank === 5 || entry.rank === 6);
-
-              const isRelegationZone = 
-                  (currentType === 'Single' && totalPlayers > 3 && entry.rank >= totalPlayers - 2) ||
-                  (currentType === 'Hybrid' && totalPlayers > 6 && entry.rank > 6) ||
-                  (currentType === 'Co-Op Hybrid' && entry.rank > 4);
+              const isUpperBracketZone = isPlayoffHybrid && entry.rank >= 1 && entry.rank <= 4;
+              const isLowerBracketZone = isPlayoffHybrid && (entry.rank === 5 || entry.rank === 6);
+              const isRelegationZone = (currentType === 'Single' && totalPlayers > 3 && entry.rank >= totalPlayers - 2) || (isPlayoffHybrid && entry.rank > 6);
               
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
@@ -202,23 +189,23 @@ const SingleTable = memo(({
                   className={cn(
                     "transition-all h-16 sm:h-20 border-b-white/5 relative group/row",
                     isFirst ? "bg-primary/[0.08] hover:bg-primary/[0.15]" :
-                    isQualificationZone ? "bg-green-500/[0.05] hover:bg-green-500/[0.1]" :
-                    isLowerBracketZone ? "bg-amber-500/[0.05] hover:bg-amber-500/[0.1]" :
+                    isUpperBracketZone ? "bg-green-500/[0.05] hover:bg-green-500/[0.1]" :
+                    isLowerBracketZone ? "bg-yellow-500/[0.05] hover:bg-yellow-500/[0.1]" :
                     isRelegationZone ? "bg-red-500/[0.05] hover:bg-red-500/[0.1]" : "hover:bg-white/[0.03]"
                   )}
                 >
                   <TableCell className={cn("p-0 w-1.5 transition-all duration-500", 
                     isFirst ? 'bg-primary shadow-[0_0_20px_rgba(204,253,1,0.8)]' :
-                    isQualificationZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
-                    isLowerBracketZone ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]' :
+                    isUpperBracketZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
+                    isLowerBracketZone ? 'bg-yellow-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]' :
                     isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent'
                   )}>
                   </TableCell>
                   <TableCell className={cn(
                     "text-center font-black text-base sm:text-xl px-1 italic transition-all duration-500",
                     isFirst ? "text-primary scale-125 drop-shadow-[0_0_15px_rgba(204,253,1,0.7)]" : 
-                    isQualificationZone ? "text-green-400" :
-                    isLowerBracketZone ? "text-amber-500" :
+                    isUpperBracketZone ? "text-green-400" :
+                    isLowerBracketZone ? "text-yellow-400" :
                     isRelegationZone ? "text-red-500" : "text-white/40"
                     )}>
                     {entry.rank}
@@ -403,7 +390,7 @@ export function LeagueTable({
 
   return (
     <div className="w-full overflow-hidden rounded-xl sm:rounded-[2.5rem] border-2 border-white/5 bg-card/60 backdrop-blur-3xl shadow-2xl">
-        {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend seasonType={seasonType} />}
+        {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend />}
         
         {isHybrid ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">

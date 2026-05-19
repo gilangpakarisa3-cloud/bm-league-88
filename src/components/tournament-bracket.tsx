@@ -319,8 +319,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     const proj: Record<string, any> = {};
     if (season?.type === 'Co-Op Hybrid') {
         if (rankedTable.length >= 4) {
-            proj['playoff-sf1'] = { p1: rankedTable[0], p2: rankedTable[3] };
-            proj['playoff-sf2'] = { p1: rankedTable[1], p2: rankedTable[2] };
+            proj['playoff-m9'] = { p1: rankedTable[0], p2: rankedTable[3] };
+            proj['playoff-m10'] = { p1: rankedTable[1], p2: rankedTable[2] };
+        }
+        if (rankedTable.length >= 6) {
+            proj['playoff-m13'] = { p1: rankedTable[4], p2: { playerName: 'Loser UB-SF 1', teamName: 'Unit TBD', id: 'TBD-L1' } };
+            proj['playoff-m14'] = { p1: rankedTable[5], p2: { playerName: 'Loser UB-SF 2', teamName: 'Unit TBD', id: 'TBD-L2' } };
         }
         return proj;
     }
@@ -331,10 +335,10 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         proj['playoff-m3'] = { p1: gB[0], p2: gA[3] }; proj['playoff-m4'] = { p1: gA[1], p2: gB[2] };
     }
     if (gA.length >= 6 && gB.length >= 6) {
-        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', teamName: 'Loser UB-QF 1', id: 'TBD-L1' } };
-        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', teamName: 'Loser UB-QF 2', id: 'TBD-L2' } };
-        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', teamName: 'Loser UB-QF 3', id: 'TBD-L3' } };
-        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', teamName: 'Loser UB-QF 4', id: 'TBD-L4' } };
+        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', teamName: 'Unit TBD', id: 'TBD-L1' } };
+        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', teamName: 'Unit TBD', id: 'TBD-L2' } };
+        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', teamName: 'Unit TBD', id: 'TBD-L3' } };
+        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', teamName: 'Unit TBD', id: 'TBD-L4' } };
     }
     return proj;
   }, [rankedTable, season]);
@@ -374,6 +378,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const editHour = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[0];
   const editMin = selectedMatch?.isProjection ? '00' : (editTime || "00:00").split(':')[1];
 
+  const isCoopHybrid = season?.type === 'Co-Op Hybrid';
+
   return (
     <div className="w-full relative">
         <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
@@ -388,13 +394,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
         <div ref={scrollRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave} className="w-full overflow-x-auto pb-10 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-primary/20">
             <div className="min-w-[1400px] flex items-stretch gap-0 p-4 sm:p-6 animate-in fade-in duration-1000">
-                {season?.type !== 'Co-Op Hybrid' ? (
-                   <>
-                    <div className="basis-[65%] shrink-0 flex flex-col gap-4 sm:gap-8 relative pr-4 sm:pr-8">
-                        <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
-                            <div className="space-y-6 relative h-full flex flex-col justify-center">
-                                <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
-                                <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-4">
+                <div className="basis-[65%] shrink-0 flex flex-col gap-4 sm:gap-8 relative pr-4 sm:pr-8">
+                    {/* UPPER BRACKET */}
+                    <div className="flex-1 relative bg-primary/[0.02] border-2 border-primary/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
+                        <div className="space-y-6 relative h-full flex flex-col justify-center">
+                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-primary uppercase italic">UPPER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Double Life Active</span></div></div>
+                            <div className="flex items-center gap-4 sm:gap-8 pl-2 sm:pl-4">
+                                {!isCoopHybrid && (
+                                  <>
                                     <div className="flex flex-col gap-8 relative">
                                       <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                       <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
@@ -405,19 +412,25 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                       <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
                                       <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-primary opacity-20"/></div>
                                     </div>
-                                    <div className="flex flex-col gap-28 py-12">
-                                      <MatchCard bid="playoff-m9" label="UB SEMI 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                      <MatchCard bid="playoff-m10" label="UB SEMI 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                    </div>
-                                    <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-primary"/></div>
-                                    <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} /></div>
+                                  </>
+                                )}
+                                <div className="flex flex-col gap-28 py-12">
+                                  <MatchCard bid="playoff-m9" label={isCoopHybrid ? "UB SEMI 1" : "UB SEMI 1"} bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m10" label={isCoopHybrid ? "UB SEMI 2" : "UB SEMI 2"} bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
+                                <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-primary"/></div>
+                                <div className="flex flex-col justify-center"><MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} /></div>
                             </div>
                         </div>
-                        <div className="flex-1 relative bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
-                            <div className="space-y-6 relative h-full flex flex-col justify-center">
-                                <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
-                                <div className="flex items-center gap-4 pl-2 sm:pl-4">
+                    </div>
+
+                    {/* LOWER BRACKET */}
+                    <div className="flex-1 relative bg-yellow-500/[0.02] border-2 border-yellow-500/10 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 backdrop-blur-sm transition-all duration-700">
+                        <div className="space-y-6 relative h-full flex flex-col justify-center">
+                            <div className="flex items-center gap-3"><div className="h-6 w-1 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.8)]" /><div className="flex flex-col"><h3 className="text-lg sm:text-xl font-black tracking-widest text-amber-500 uppercase italic">LOWER BRACKET</h3><span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">Sudden Death Protocol</span></div></div>
+                            <div className="flex items-center gap-4 pl-2 sm:pl-4">
+                                {!isCoopHybrid && (
+                                  <>
                                     <div className="flex flex-col gap-8">
                                       <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                       <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
@@ -436,68 +449,51 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                       <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                       <div className="h-[96px] flex items-center justify-center"><ChevronRight className="w-3 h-3 text-amber-500 opacity-20"/></div>
                                     </div>
-                                    <div className="flex flex-col gap-28 py-12">
-                                      <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                      <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                    </div>
-                                    <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
-                                    <div className="flex flex-col justify-center gap-8">
-                                      <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                      <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                    </div>
+                                  </>
+                                )}
+                                <div className="flex flex-col gap-28 py-12">
+                                  <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                </div>
+                                <div className="flex flex-col justify-center opacity-20"><ChevronRight className="w-4 h-4 text-amber-500"/></div>
+                                <div className="flex flex-col justify-center gap-8">
+                                  <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                                  <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2 animate-pulse-soft" />
-                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2 animate-pulse-soft" />
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
-                        </div>
-                        <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary/40 rounded-tr-2xl pointer-events-none" />
-                        <div className="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-primary/40 rounded-br-2xl pointer-events-none" />
-                        <div className="flex flex-col items-center gap-8 sm:gap-12 relative z-10">
-                            <div className="relative group/trophy cursor-default">
-                                <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
-                                <div className="absolute -inset-1 w-[300px] h-[300px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
-                                <div className="relative p-12 sm:p-20 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
-                                    <Trophy className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-float" />
-                                </div>
-                            </div>
-                            <div className="text-center space-y-2 sm:space-y-4">
-                                <div className="flex items-center justify-center gap-4">
-                                    <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
-                                    <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic leading-none">Grand Final</h3>
-                                    <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
-                            <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
-                            <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                        </div>
+                </div>
+
+                <div className="basis-[35%] shrink-0 flex flex-col items-center justify-center gap-10 sm:gap-16 border-l-4 border-primary/20 bg-gradient-to-b from-primary/[0.05] via-background to-primary/[0.05] px-6 sm:px-16 rounded-r-[3rem] sm:rounded-r-[4rem] relative group/final overflow-hidden shadow-[inset_0_0_100px_rgba(204,253,1,0.05)]">
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.08] rounded-full blur-[120px] -translate-y-1/2 animate-pulse-soft" />
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-500/[0.08] rounded-full blur-[120px] translate-y-1/2 animate-pulse-soft" />
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
                     </div>
-                   </>
-                ) : (
-                    <div className="w-full flex flex-col items-center gap-20 py-20">
-                         <div className="flex items-center justify-center gap-10 md:gap-40 relative">
-                            <div className="flex flex-col gap-24 relative">
-                                <div className="absolute top-0 -left-10 h-full w-px bg-primary/10" />
-                                <MatchCard bid="playoff-sf1" label="SEMI FINAL 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
-                                <MatchCard bid="playoff-sf2" label="SEMI FINAL 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                    <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary/40 rounded-tr-2xl pointer-events-none" />
+                    <div className="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-primary/40 rounded-br-2xl pointer-events-none" />
+                    <div className="flex flex-col items-center gap-8 sm:gap-12 relative z-10">
+                        <div className="relative group/trophy cursor-default">
+                            <div className="absolute -inset-16 bg-yellow-400/10 rounded-full blur-3xl opacity-40 animate-pulse" />
+                            <div className="absolute -inset-1 w-[300px] h-[300px] border-4 border-dashed border-yellow-400/20 rounded-full animate-spin-slow pointer-events-none" />
+                            <div className="relative p-12 sm:p-20 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 sm:border-8 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
+                                <Trophy className="text-yellow-400 w-[100px] h-[100px] sm:w-[140px] sm:h-[140px] drop-shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-float" />
                             </div>
-                            <div className="flex flex-col items-center gap-12">
-                                <div className="relative group/trophy cursor-default">
-                                    <div className="relative p-12 bg-gradient-to-br from-yellow-400/20 to-amber-600/5 rounded-full border-4 border-yellow-400/60 shadow-[0_0_80px_rgba(250,204,21,0.3)] backdrop-blur-sm transition-transform duration-700 group-hover/trophy:scale-110">
-                                        <Trophy className="w-20 h-20 text-yellow-400 animate-float" />
-                                    </div>
-                                </div>
-                                <MatchCard bid="playoff-final" label="GRAND FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                        </div>
+                        <div className="text-center space-y-2 sm:space-y-4">
+                            <div className="flex items-center justify-center gap-4">
+                                <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
+                                <h3 className="text-5xl sm:text-7xl font-black tracking-tighter text-white uppercase italic leading-none">Grand Final</h3>
+                                <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
                             </div>
                         </div>
                     </div>
-                )}
+                    <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
+                        <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
+                        <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
+                    </div>
+                </div>
             </div>
         </div>
 

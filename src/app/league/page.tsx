@@ -409,17 +409,35 @@ export default function LeaguePage() {
 
     if (activeSeason.type === 'Co-Op Hybrid') {
         if (sortedTable.length < 4) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Harus ada minimal 4 tim untuk memulai playoff.' }); return; }
-        // SF1: 1 vs 4
-        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[0].id, player2Id: sortedTable[3].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 1000), round: 'UB-Semi', bracketId: 'playoff-sf1' });
-        // SF2: 2 vs 3
-        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[1].id, player2Id: sortedTable[2].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 2000), round: 'UB-Semi', bracketId: 'playoff-sf2' });
-        // Final
-        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 3000), round: 'Grand-Final', bracketId: 'playoff-final' });
-        batch.commit().then(() => toast({ title: 'Playoff Co-Op Dibuat!', description: 'Jadwal Semi-Final 1 vs 4 dan 2 vs 3 telah dibuat.' }));
+        
+        // UB Semi 1: 1 vs 4
+        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[0].id, player2Id: sortedTable[3].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 1000), round: 'UB-Semi', bracketId: 'playoff-m9' });
+        // UB Semi 2: 2 vs 3
+        batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[1].id, player2Id: sortedTable[2].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 2000), round: 'UB-Semi', bracketId: 'playoff-m10' });
+        
+        // LB R1 matches (m13, m14)
+        if (sortedTable.length >= 6) {
+          batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[4].id, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 3000), round: 'LB-Round 3', bracketId: 'playoff-m13' });
+          batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[5].id, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 4000), round: 'LB-Round 3', bracketId: 'playoff-m14' });
+        } else {
+          batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 3000), round: 'LB-Round 3', bracketId: 'playoff-m13' });
+          batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 4000), round: 'LB-Round 3', bracketId: 'playoff-m14' });
+        }
+        
+        // Placeholders for remaining rounds
+        const placeholders = [
+          { round: 'UB-Final', bid: 'playoff-m15' },
+          { round: 'LB-Semifinal', bid: 'playoff-m16' },
+          { round: 'LB-Final', bid: 'playoff-m17' },
+          { round: 'Grand-Final', bid: 'playoff-m18' }
+        ];
+        placeholders.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 5) * 1000), round: p.round as any, bracketId: p.bid }));
+
+        batch.commit().then(() => toast({ title: 'Playoff Co-Op Dibuat!', description: 'Bagan Double Elimination (6 Tim) telah berhasil dibuat.' }));
         return;
     }
     
-    // Default Hybrid (Double Elimination)
+    // Default Hybrid (Double Elimination 12-Team)
     if (groupA.length < 6 || groupB.length < 6) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Masing-masing grup harus memiliki setidaknya 6 tim.' }); return; }
     const ubQuarterPairings = [
       { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' },
@@ -829,7 +847,7 @@ export default function LeaguePage() {
         <div className="space-y-8 sm:space-y-12">
             <div className="w-full">
                 <LeagueTable 
-                    tableData={sortedTable} 
+                    tableData={enrichedTableData} 
                     isLoading={isLoadingTableFinal}
                     onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
                     onSelectPlayer={setSelectedPlayerForStats}
@@ -1022,7 +1040,7 @@ export default function LeaguePage() {
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
       <PlayerPerformanceDialog player={selectedPlayerForStats} matches={matches || []} allPlayers={allPlayers || []} allTeams={allTeams || []} coopLeagueTable={coopLeagueTable || []} singleLeagueTable={singleLeagueTable || []} activeSeason={activeSeason} totalPlayersInSeason={(isSeasonCoop ? coopLeagueTable?.length : singleLeagueTable?.length) || 0} open={!!selectedPlayerForStats} onOpenChange={() => setSelectedPlayerForStats(null)} isAdmin={isAdmin} defendingChampionId={defendingChampionId} />
       
-      <AlertDialog open={!!revertingMatch} onOpenChange={(open) => !open && setRevertingMatch(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-none"><AlertDialogHeader><div className="flex items-center gap-4 text-amber-500 mb-2"><Undo2 className="w-8 h-8" /><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('revert_match_confirm_title')}</AlertDialogTitle></div>{revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}</AlertDialogHeader><AlertDialogFooter className="gap-4 mt-6"><AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={!!revertingMatch} onOpenChange={(open) => !open && setRevertingMatch(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-none"><AlertDialogHeader><div className="flex items-center gap-4 text-amber-500 mb-2"><Undo2 className="w-8 h-8" /><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('revert_match_confirm_title')}</AlertDialogTitle></div>{revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}</AlertDialogHeader><AlertDialogFooter className="gap-4 mt-6"><AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     </div>
   );
 }
