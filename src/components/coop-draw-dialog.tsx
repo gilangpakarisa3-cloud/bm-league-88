@@ -208,7 +208,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     )}
-                                                    <Badge className="bg-white/5 text-white/40 border-none text-[8px] font-black h-5 uppercase">RANK {player.prevRank === Infinity ? 'NEW' : player.prevRank}</Badge>
+                                                    <Badge className="bg-white/5 text-white/40 border-none text-[8px] font-black h-5 uppercase">LALU: RANK {player.prevRank === Infinity ? 'NEW' : player.prevRank}</Badge>
                                                 </div>
                                             </div>
                                         ))}
