@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -34,9 +33,14 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
   const isCoop = season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid';
 
   const availableTeams = useMemo(() => {
+    // Only on mode CO-OP, can use duplicate team. 
+    // In other modes, assigned teams are filtered out.
+    if (isCoop) {
+      return [...allTeams].sort((a, b) => (a.tier || 3) - (b.tier || 3));
+    }
     const assignedTeamIds = new Set(Object.values(assignments));
     return allTeams.filter(t => !assignedTeamIds.has(t.id)).sort((a, b) => (a.tier || 3) - (b.tier || 3));
-  }, [allTeams, assignments]);
+  }, [allTeams, assignments, isCoop]);
 
   const unassignedEntries = useMemo(() => {
     return registeredPlayers.filter(p => !assignments[p.id]).map(p => ({
@@ -146,9 +150,13 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                 <div className="p-6 pb-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="h-4 w-1 bg-primary rounded-full shadow-[0_0_10px_rgba(204,253,1,0.8)]" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/60 italic pr-2">Available Strategic Units</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/60 italic pr-2">
+                          {isCoop ? 'Strategic Units' : 'Available Strategic Units'}
+                        </h3>
                     </div>
-                    <Badge variant="outline" className="h-6 font-black border-white/10 text-white/30 tracking-widest">{availableTeams.length} UNITS REM.</Badge>
+                    <Badge variant="outline" className="h-6 font-black border-white/10 text-white/30 tracking-widest">
+                      {isCoop ? `${allTeams.length} TOTAL` : `${availableTeams.length} UNITS REM.`}
+                    </Badge>
                 </div>
                 <ScrollArea className="flex-1 px-6">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pb-12">
@@ -224,7 +232,7 @@ export function TeamDraftDialog({ open, onOpenChange, season, registeredPlayers,
                                                 onClick={() => toggleSelection(entry.id)}
                                                 className={cn(
                                                     "w-full flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden group",
-                                                    isSelected ? "bg-primary/15 border-primary/50 shadow-inner" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
+                                                    isSelected ? "bg-primary/15 border-primary/50 shadow-inner" : "bg-white/[0.02] border-white/5 hover:border-white/[0.05]"
                                                 )}
                                             >
                                                 <div className="flex items-center gap-4">
