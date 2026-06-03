@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -684,8 +682,8 @@ export default function FixturesPage() {
 
                 let p1EntryRef = null;
                 let p2EntryRef = null;
-                let e1Data: LeagueEntry | null = null;
-                let e2Data: LeagueEntry | null = null;
+                let e1Data: LeagueEntry | CoOpLeagueEntry | null = null;
+                let e2Data: LeagueEntry | CoOpLeagueEntry | null = null;
 
                 if (orig.round === 'Group' || !orig.round) {
                     const tblName = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid' ? 'coopLeagueTable' : 'leagueTable';
@@ -700,8 +698,8 @@ export default function FixturesPage() {
                         if (!snap2.empty) p2EntryRef = snap2.docs[0].ref;
                     }
                     
-                    if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data() as LeagueEntry;
-                    if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data() as LeagueEntry;
+                    if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data() as any;
+                    if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data() as any;
                 }
 
                 const getOutcome = (s1: number, s2: number) => {
@@ -761,11 +759,13 @@ export default function FixturesPage() {
                 }
 
                 if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
-                    const e1 = { ...e1Data }; const e2 = { ...e2Data };
+                    const e1 = { ...e1Data } as any; const e2 = { ...e2Data } as any;
                     if (orig.isCompleted) {
                         e1.played--; e2.played--;
                         if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
                             if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
+                            e1.goalsFor -= (orig.player1Score || 0); e1.goalsAgainst -= (orig.player2Score || 0);
+                            e2.goalsFor -= (orig.player2Score || 0); e2.goalsAgainst -= (orig.player1Score || 0);
                         } else {
                             e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= mDoc.data().player1Score!;
                             if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
@@ -774,11 +774,13 @@ export default function FixturesPage() {
                     e1.played++; e2.played++;
                     if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
                         if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
+                        e1.goalsFor += (values.player1Score || 0); e1.goalsAgainst += (values.player2Score || 0);
+                        e2.goalsFor += (values.player2Score || 0); e2.goalsAgainst += (values.player1Score || 0);
                     } else {
                         e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                         if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
-                        e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                     }
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                     transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
                 }
 
@@ -839,8 +841,8 @@ export default function FixturesPage() {
 
             let p1EntryRef = null;
             let p2EntryRef = null;
-            let e1Data: LeagueEntry | null = null;
-            let e2Data: LeagueEntry | null = null;
+            let e1Data: any = null;
+            let e2Data: any = null;
 
             if (mToRev.round === 'Group' || !mToRev.round) {
                 const tblName = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid' ? 'coopLeagueTable' : 'leagueTable';
@@ -855,8 +857,8 @@ export default function FixturesPage() {
                     if (!snap2.empty) p2EntryRef = snap2.docs[0].ref;
                 }
                 
-                if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data() as LeagueEntry;
-                if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data() as LeagueEntry;
+                if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data();
+                if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data();
             }
 
             const updateStats = (pId: string, change: any) => {
@@ -889,11 +891,13 @@ export default function FixturesPage() {
                 e1.played--; e2.played--;
                 if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
                     if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
+                    e1.goalsFor -= (mToRev.player1Score || 0); e1.goalsAgainst -= (mToRev.player2Score || 0);
+                    e2.goalsFor -= (mToRev.player2Score || 0); e2.goalsAgainst -= (mToRev.player1Score || 0);
                 } else {
                     e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
                     if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
-                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 }
+                e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
 
@@ -1102,4 +1106,3 @@ export default function FixturesPage() {
     </div>
   );
 }
-

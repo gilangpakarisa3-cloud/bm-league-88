@@ -228,7 +228,7 @@ export default function LeaguePage() {
 
     const sortFn = (a: any, b: any) => {
         if (b.points !== a.points) return b.points - a.points;
-        if (isSeasonCoop) return b.win - a.win;
+        if (isSeasonCoop && b.win !== a.win) return b.win - a.win;
         if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
         if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
         return a.playerName.localeCompare(b.playerName);
@@ -531,7 +531,7 @@ export default function LeaguePage() {
             player2Name: pair.player2.name, 
             player2TeamId: pair.teamId || '', 
             player2TeamName: pair.teamName || '', 
-            played: 0, win: 0, loss: 0, points: 0, hasPaid: false 
+            played: 0, win: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0, hasPaid: false 
         });
     });
     batch.commit().then(() => { toast({ title: 'Pasangan Disimpan!', description: `${pairs.length} tim Co-Op telah dibuat.` }); setShowDrawDialog(false); });
@@ -699,7 +699,12 @@ export default function LeaguePage() {
             }
             if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
                 const e1 = { ...e1Data }; const e2 = { ...e2Data }; e1.played--; e2.played--;
-                if (isSeasonCoop) { if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } }
+                if (isSeasonCoop) { 
+                    if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } 
+                    e1.goalsFor -= (mToRev.player1Score || 0); e1.goalsAgainst -= (mToRev.player2Score || 0);
+                    e2.goalsFor -= (mToRev.player2Score || 0); e2.goalsAgainst -= (mToRev.player1Score || 0);
+                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                }
                 else { e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!; if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; } e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst; }
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
@@ -1044,3 +1049,4 @@ export default function LeaguePage() {
     </div>
   );
 }
+

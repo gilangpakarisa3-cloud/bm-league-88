@@ -72,6 +72,9 @@ export type CoOpLeagueEntry = {
   played: number;
   win: number;
   loss: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
   points: number;
   hasPaid?: boolean;
   group?: 'A' | 'B';

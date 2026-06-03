@@ -161,9 +161,9 @@ const SingleTable = memo(({
                 <>
                     <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
                     <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-primary/60 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gd_short')}</TableHead>
                 </>
               )}
+              <TableHead className="hidden lg:table-cell text-center font-black text-primary/60 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gd_short')}</TableHead>
               <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-40 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
               <TableHead className="text-center font-black text-primary w-12 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-[0.2em] uppercase">{t('actions')}</TableHead>}
@@ -268,11 +268,11 @@ const SingleTable = memo(({
                     <>
                         <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsFor}</TableCell>
                         <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsAgainst}</TableCell>
-                        <TableCell className={cn("hidden lg:table-cell text-center px-2 text-sm font-black tabular-nums", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))}>
-                            {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
-                        </TableCell>
                     </>
                   )}
+                  <TableCell className={cn("hidden lg:table-cell text-center px-2 text-sm font-black tabular-nums", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))}>
+                      {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
+                  </TableCell>
                   <TableCell className="hidden xl:table-cell text-center px-2">
                       <div className="flex justify-center gap-1">
                           {playerForm.length > 0 ? playerForm.map((res, i) => (
