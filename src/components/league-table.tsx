@@ -356,11 +356,17 @@ const TopScorerTable = memo(({
                 {/* EL-PREDATOR CARD */}
                 {predator && (
                     <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500">
-                         <div className="absolute inset-0 bg-[linear-gradient(rgba(250,204,21,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(250,204,21,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
                          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 -mr-16 -mt-16 rounded-full blur-3xl" />
                          
                          <div className="flex items-center justify-between mb-6 relative z-10">
-                            <Badge className="bg-yellow-400 text-black font-black italic text-[9px] px-3 h-6 tracking-widest -skew-x-[12deg] shadow-lg">EL-PREDATOR</Badge>
+                            <div className="relative group/pred-badge">
+                                <div className="absolute -inset-2 bg-yellow-400/20 blur-xl opacity-0 group-hover/pred-badge:opacity-100 transition-opacity animate-pulse" />
+                                <div className="relative flex items-center bg-black border-2 border-yellow-400 px-4 py-1.5 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] transition-all">
+                                    <Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" />
+                                    <span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg] leading-none">EL-PREDATOR</span>
+                                </div>
+                            </div>
                             <Target className="w-5 h-5 text-yellow-400/40 animate-pulse" />
                          </div>
 
