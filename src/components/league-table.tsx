@@ -445,12 +445,12 @@ const TopScorerTable = memo(({
                                             : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]'
                                     )}>
                                         {isPredator && (
-                                            <div className="absolute inset-0 z-0 pointer-events-none w-[2000px]">
+                                            <div className="absolute inset-0 z-0 pointer-events-none w-[800px]">
                                                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-transparent to-transparent opacity-30" />
                                                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
                                                 <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50 group-hover/row:opacity-100 group-hover/row:h-2 transition-all duration-500" />
                                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] group-hover/row:opacity-[0.08] transition-opacity duration-700 pr-20">
-                                                    <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">APEX PREDATOR</span>
+                                                    <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">PREDATOR</span>
                                                 </div>
                                             </div>
                                         )}
