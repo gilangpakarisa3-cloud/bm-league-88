@@ -635,74 +635,6 @@ export default function LeaguePage() {
     return { seasonProgress: (completed / matches.length) * 100, completedMatchesCount: completed };
   }, [matches]);
 
-  const handleRevertMatch = useCallback(async (matchToRevert: WithId<Match>) => {
-    if (!firestore || !activeSeasonId) return;
-    const matchRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, matchToRevert.id);
-    const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`);
-    try {
-        const [mDoc, sDoc] = await Promise.all([getDoc(matchRef), getDoc(seasonRef)]);
-        if (!mDoc.exists() || !sDoc.exists() || !mDoc.data().isCompleted) throw new Error("Match not completed or found.");
-        const mToRev = mDoc.data() as Match; const sData = sDoc.data() as Season; const isMatchBo3 = isSeasonCoop || (mToRev.round && mToRev.round !== 'Group');
-        let winMatchRef = null; let losMatchRef = null;
-        if (mToRev.round && mToRev.round !== 'Group' && mToRev.bracketId) {
-            const succ = PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId];
-            if (succ) {
-                const mCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`);
-                const [winSnap, losSnap] = await Promise.all([ getDocs(query(mCol, where('bracketId', '==', succ.winner.bid))), succ.loser ? getDocs(query(mCol, where('bracketId', '==', succ.loser.bid))) : Promise.resolve(null) ]);
-                if (winSnap && !winSnap.empty) { winMatchRef = winSnap.docs[0].ref; if (winSnap.docs[0].data().isCompleted) throw new Error("Gagal: Laga babak selanjutnya sudah dimainkan."); }
-                if (losSnap && !losSnap.empty) { losMatchRef = losSnap.docs[0].ref; if (losSnap.docs[0].data().isCompleted) throw new Error("Gagal: Laga babak selanjutnya sudah dimainkan."); }
-            }
-        }
-        let p1EntryRef = null; let p2EntryRef = null;
-        if (mToRev.round === 'Group' || !mToRev.round) {
-            const tblName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
-            const tblCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
-            if (isSeasonCoop) { p1EntryRef = doc(tblCol, mToRev.player1Id); p2EntryRef = doc(tblCol, mToRev.player2Id); }
-            else {
-                const [snap1, snap2] = await Promise.all([ getDocs(query(tblCol, where('playerId', '==', mToRev.player1Id))), getDocs(query(tblCol, where('playerId', '==', mToRev.player2Id))) ]);
-                if (!snap1.empty) p1EntryRef = snap1.docs[0].ref; if (!snap2.empty) p2EntryRef = snap2.docs[0].ref;
-            }
-        }
-        await runTransaction(firestore, async (transaction) => {
-            let e1Data = null; let e2Data = null;
-            if (p1EntryRef && p2EntryRef) { const [e1Snap, e2Snap] = await Promise.all([transaction.get(p1EntryRef), transaction.get(p2EntryRef)]); if (e1Snap.exists()) e1Data = e1Snap.data() as LeagueEntry; if (e2Snap.exists()) e2Data = e2Snap.data() as LeagueEntry; }
-            const updatePlayerStats = (pId: string, change: { played: number, win: number, draw: number, loss: number, gf: number, ga: number }) => {
-                if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
-                transaction.update(doc(firestore, 'players', pId), { overallPlayed: increment(change.played || 0), overallWin: increment(change.win || 0), overallDraw: increment(change.draw || 0), overallLoss: increment(change.loss || 0), overallGoalsFor: increment(change.gf || 0), overallGoalsAgainst: increment(change.ga || 0) });
-            };
-            const getOutcome = (s1: number, s2: number) => s1 > s2 ? { p1: 'W', p2: 'L' } : (s1 < s2 ? { p1: 'L', p2: 'W' } : { p1: 'D', p2: 'D' });
-            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0); const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0); const outcome = getOutcome(oldS1, oldS2);
-            if (isSeasonCoop && e1Data && e2Data) {
-                const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
-                updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
-                updatePlayerStats(d1.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
-                updatePlayerStats(d2.player1Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
-                updatePlayerStats(d2.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
-            } else {
-                updatePlayerStats(mToRev.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: outcome.p1 === 'D' ? -1 : 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
-                updatePlayerStats(mToRev.player2Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: outcome.p2 === 'D' ? -1 : 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
-            }
-            if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
-                const e1 = { ...e1Data }; const e2 = { ...e2Data }; e1.played--; e2.played--;
-                if (isSeasonCoop) { 
-                    if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } 
-                    e1.goalsFor -= (mToRev.player1Score || 0); e1.goalsAgainst -= (mToRev.player2Score || 0);
-                    e2.goalsFor -= (mToRev.player2Score || 0); e2.goalsAgainst -= (mToRev.player1Score || 0);
-                    e1.player1Goals -= (mToRev.player1p1Goals || 0); e1.player2Goals -= (mToRev.player1p2Goals || 0);
-                    e2.player1Goals -= (mToRev.player2p1Goals || 0); e2.player2Goals -= (mToRev.player2p2Goals || 0);
-                    e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
-                }
-                else { e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!; if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; } e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst; }
-                transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
-            }
-            if (winMatchRef) transaction.update(winMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].winner.slot}Id`]: 'TBD' });
-            if (losMatchRef && PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser) transaction.update(losMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser!.slot}Id`]: 'TBD' });
-            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, player1p1Goals: null, player1p2Goals: null, player2p1Goals: null, player2p2Goals: null, isCompleted: false, status: 'Scheduled' });
-        });
-        toast({ title: t('match_reverted_title') }); setRevertingMatch(null);
-    } catch (e: any) { toast({ variant: 'destructive', title: "Error", description: e.message }); }
-  }, [firestore, activeSeasonId, t, toast, isSeasonCoop]);
-
   const isLoadingTableFinal = isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
 
   return (
@@ -815,7 +747,7 @@ export default function LeaguePage() {
 
           <div className={cn("flex items-center gap-1", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
             <Button 
-                onClick={() => isAdmin ? setIsAdmin(false) : withAdminCheck(() => setIsAdmin(true))} 
+                onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPrompt({ open: true, action: () => setIsAdmin(true) })} 
                 className={cn(
                     "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
                     isAdmin ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" : "bg-primary text-black border-primary/20 hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.2)]"
@@ -853,7 +785,6 @@ export default function LeaguePage() {
                     activeSeason={activeSeason}
                     activeTab={activeLeagueTab}
                     onTabChange={setActiveLeagueTab}
-                    onRevertMatch={(m) => withAdminCheck(() => setRevertingMatch(m))}
                 />
             </div>
             
@@ -1047,7 +978,7 @@ export default function LeaguePage() {
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-4 mt-6">
             <AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction>
+            <AlertDialogAction onClick={() => revertingMatch && console.error('revert logic need to be re-implemented')} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

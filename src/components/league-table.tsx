@@ -365,23 +365,23 @@ const TopScorerTable = memo(({
                                     ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" 
                                     : "hover:bg-primary/[0.15] hover:shadow-[inset_0_0_40px_rgba(204,253,1,0.1)]"
                             )}>
-                                {isPredator && (
-                                    <div className="absolute inset-0 z-0">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-transparent to-transparent opacity-30" />
-                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
-                                        <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50 group-hover/row:opacity-100 group-hover/row:h-2 transition-all duration-500" />
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] group-hover/row:opacity-[0.08] transition-opacity duration-700 pr-20">
-                                            <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">APEX PREDATOR</span>
-                                        </div>
-                                    </div>
-                                )}
-                                
                                 <TableCell className={cn(
-                                    "p-0 w-2 transition-all duration-500", 
+                                    "p-0 w-2 transition-all duration-500 relative", 
                                     isPredator 
                                         ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)] scale-y-110' 
                                         : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]'
-                                )} />
+                                )}>
+                                    {isPredator && (
+                                        <div className="absolute inset-0 z-0 pointer-events-none w-[2000px]">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-transparent to-transparent opacity-30" />
+                                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
+                                            <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50 group-hover/row:opacity-100 group-hover/row:h-2 transition-all duration-500" />
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] group-hover/row:opacity-[0.08] transition-opacity duration-700 pr-20">
+                                                <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">APEX PREDATOR</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </TableCell>
                                 <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] group-hover/row:scale-150" : "text-white/40 group-hover/row:text-primary group-hover/row:scale-110")}>{scorer.rank}</TableCell>
                                 <TableCell className="py-2 relative z-10">
                                     <div className="flex items-center gap-3">
