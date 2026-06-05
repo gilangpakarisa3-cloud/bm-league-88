@@ -428,7 +428,7 @@ const TopScorerTable = memo(({
                 <Table className="min-w-full">
                     <TableHeader>
                         <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14 bg-black/40">
-                            <TableHead className="w-2 p-0"></TableHead>
+                            <TableHead className="w-3 p-0"></TableHead>
                             <TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead>
                             <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead>
                             <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead>
@@ -445,7 +445,7 @@ const TopScorerTable = memo(({
                                         : "hover:bg-primary/[0.15] hover:shadow-[inset_0_0_40px_rgba(204,253,1,0.1)]"
                                 )}>
                                     <TableCell className={cn(
-                                        "p-0 w-2 transition-all duration-500 relative", 
+                                        "p-0 w-3 transition-all duration-500 relative", 
                                         isPredator 
                                             ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)]' 
                                             : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]'

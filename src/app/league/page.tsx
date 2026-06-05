@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices, Binary } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices, Binary, Plus } from 'lucide-react';
 import Link from 'next/link';
 import {
   Dialog,
@@ -54,6 +54,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CoopDrawDialog } from '@/components/coop-draw-dialog';
+import { CoopManualPairingDialog } from '@/components/coop-manual-pairing-dialog';
 import { GroupDrawDialog } from '@/components/group-draw-dialog';
 import { TeamDraftDialog } from '@/components/team-draft-dialog';
 import { Separator } from '@/components/ui/separator';
@@ -79,6 +80,7 @@ export default function LeaguePage() {
   const [showCreateSeason, setShowCreateSeason] = useState(false);
   const [showRegisterPlayers, setShowRegisterPlayers] = useState(false);
   const [showDrawDialog, setShowDrawDialog] = useState(false);
+  const [showManualPairingDialog, setShowManualPairingDialog] = useState(false);
   const [showGroupDrawDialog, setShowGroupDrawDialog] = useState(false);
   const [showTeamDraftDialog, setShowTeamDraftDialog] = useState(false);
   const [activeLeagueTab, setActiveLeagueTab] = useState("group_a");
@@ -181,9 +183,9 @@ export default function LeaguePage() {
   const playersById = useMemo(() => {
     if (!allPlayers) return {};
     return allPlayers.reduce((acc, p) => {
-        acc[p.id] = p;
+        acc[p.id] = p as PlayerWithTeam;
         return acc;
-    }, {} as Record<string, WithId<Player>>);
+    }, {} as Record<string, PlayerWithTeam>);
   }, [allPlayers]);
 
   const sortedTable = useMemo(() => {
@@ -519,7 +521,11 @@ export default function LeaguePage() {
             played: 0, win: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0, hasPaid: false 
         });
     });
-    batch.commit().then(() => { toast({ title: 'Pasangan Disimpan!', description: `${pairs.length} tim Co-Op telah dibuat.` }); setShowDrawDialog(false); });
+    batch.commit().then(() => { 
+        toast({ title: 'Pasangan Disimpan!', description: `${pairs.length} tim Co-Op telah dibuat.` }); 
+        setShowDrawDialog(false); 
+        setShowManualPairingDialog(false);
+    });
   };
 
   const handleSaveGroups = useCallback(async (groups: { groupA: any[], groupB: any[] }) => {
@@ -728,7 +734,12 @@ export default function LeaguePage() {
                     <>
                         <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</span></Button>
                         <Button onClick={() => withAdminCheck(() => setShowTeamDraftDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"><span className="skew-x-[12deg] flex items-center"><Dices className="mr-2 h-4 w-4" />TEAM DRAFT</span></Button>
-                        {isSeasonCoop && <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</span></Button>}
+                        {isSeasonCoop && (
+                            <>
+                                <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</span></Button>
+                                <Button onClick={() => withAdminCheck(() => setShowManualPairingDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all bg-accent/10 text-accent hover:bg-accent/20"><span className="skew-x-[12deg] flex items-center"><Users className="mr-2 h-4 w-4" />PASANG MANUAL</span></Button>
+                            </>
+                        )}
                         {isHybrid && activeSeason.type !== 'Co-Op Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Group className="mr-2 h-4 w-4" />UNDI GRUP</span></Button>}
                         <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</span></Button>
                         <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant="default" className="flex-1 sm:flex-none h-12 px-8 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-black/20 shadow-xl shadow-primary/20 transition-all" disabled={!hasFixtures || (sortedTable || []).length < 2}><span className="skew-x-[12deg] flex items-center"><Play className="mr-2 h-4 w-4" />{t('start_season')}</span></Button>
@@ -958,6 +969,7 @@ export default function LeaguePage() {
       <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><DialogHeader><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('register_players')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription></DialogHeader><RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={individualPool || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} /></DialogContent></Dialog>
 
       <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={individualPool || []} allPlayers={allPlayers || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
+      <CoopManualPairingDialog open={showManualPairingDialog} onOpenChange={setShowManualPairingDialog} season={activeSeason} registeredPlayers={individualPool || []} allPlayersMap={playersById as Record<string, PlayerWithTeam>} onSavePairs={handleSavePairs} />
       <GroupDrawDialog open={showGroupDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={(activeSeason?.type === 'Co-Op Hybrid' ? coopLeagueTable : individualPool) || []} onSaveGroups={handleSaveGroups} />
       <TeamDraftDialog open={showTeamDraftDialog} onOpenChange={setShowTeamDraftDialog} season={activeSeason} registeredPlayers={participantEntries || []} allTeams={allTeams || []} onSaveAssignments={handleSaveTeamDraftResults} isAdmin={isAdmin} />
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
