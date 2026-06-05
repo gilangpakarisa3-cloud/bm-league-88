@@ -469,7 +469,7 @@ export default function LeaguePage() {
         batch.delete(doc(firestore, 'hallOfFame', deletingSeason.id));
         batch.delete(doc(firestore, `leagues/${LEAGUE_ID}/seasons`, deletingSeason.id));
         await batch.commit();
-        toast({ title: t('season_deleted_title'), description: t('deletion_failed_title'), ...{ description: t('season_deleted_desc', { seasonName: deletingSeason.name }) } });
+        toast({ title: t('season_deleted_title'), description: t('season_deleted_desc', { seasonName: deletingSeason.name }) });
     } catch (error) { toast({ variant: 'destructive', title: t('deletion_failed_title'), description: t('season_deleted_error') }); }
     setDeletingSeason(null);
   };

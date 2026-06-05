@@ -165,7 +165,7 @@ export default function PlayersPage() {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20">{t('unlock')}</Button>
+                    <Button onClick={handlePasswordCheck} className="w-full h-12 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20">{t('unlock')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

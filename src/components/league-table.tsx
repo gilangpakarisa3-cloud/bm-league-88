@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/table";
 import type { LeagueEntry, Season, WithId, Player, Team, Match, CoOpLeagueEntry } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
-import { Button } from "./ui/button";
-import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info, CheckCircle2, Flame, Binary } from "lucide-react";
+import { Button } from "./button";
+import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info, CheckCircle2, Flame, Binary, Target, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -329,62 +329,133 @@ const TopScorerTable = memo(({
 
     const topScorers = useMemo(() => {
         if (!tableData || tableData.length === 0) return [];
-        const scorers: { name: string, goals: number, teamId: string, teamName: string, id: string }[] = [];
+        const scorers: { name: string, goals: number, teamId: string, teamName: string, id: string, played: number }[] = [];
         
         tableData.forEach(entry => {
             if (seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid') {
                 const coop = entry as CoOpLeagueEntry;
-                scorers.push({ id: coop.player1Id, name: coop.player1Name, goals: coop.player1Goals || 0, teamId: coop.player1TeamId, teamName: coop.player1TeamName });
-                scorers.push({ id: coop.player2Id, name: coop.player2Name, goals: coop.player2Goals || 0, teamId: coop.player2TeamId, teamName: coop.player2TeamName });
+                scorers.push({ id: coop.player1Id, name: coop.player1Name, goals: coop.player1Goals || 0, teamId: coop.player1TeamId, teamName: coop.player1TeamName, played: coop.played });
+                scorers.push({ id: coop.player2Id, name: coop.player2Name, goals: coop.player2Goals || 0, teamId: coop.player2TeamId, teamName: coop.player2TeamName, played: coop.played });
             }
         });
 
         return scorers.sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).map((s, i) => ({ ...s, rank: i + 1 }));
     }, [tableData, seasonType]);
 
+    const predator = topScorers[0];
+    const pedofils = useMemo(() => topScorers.filter(s => s.goals === 0 && s.played > 0).sort((a,b) => b.played - a.played), [topScorers]);
+    const mainPedofil = pedofils[0];
+
     if (isLoading) return <LeagueTableSkeleton isCoop={true} />;
 
     return (
-        <div className="w-full overflow-x-auto scrollbar-ultra-sport">
-            <Table className="min-w-full">
-                <TableHeader>
-                    <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14 bg-black/40">
-                        <TableHead className="w-2 p-0"></TableHead>
-                        <TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead>
-                        <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead>
-                        <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {topScorers.map((scorer) => {
-                        const isPredator = scorer.rank === 1;
-                        return (
-                            <TableRow key={scorer.id} className={cn(
-                                "transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden cursor-pointer", 
-                                isPredator 
-                                    ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" 
-                                    : "hover:bg-primary/[0.15] hover:shadow-[inset_0_0_40px_rgba(204,253,1,0.1)]"
-                            )}>
-                                <TableCell className={cn(
-                                    "p-0 w-2 transition-all duration-500 relative", 
+        <div className="space-y-12">
+            {/* Spotlight Cards - Predator & Pedofil */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                {/* EL-PREDATOR CARD */}
+                {predator && (
+                    <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500">
+                         <div className="absolute inset-0 bg-[linear-gradient(rgba(250,204,21,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(250,204,21,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 -mr-16 -mt-16 rounded-full blur-3xl" />
+                         
+                         <div className="flex items-center justify-between mb-6 relative z-10">
+                            <Badge className="bg-yellow-400 text-black font-black italic text-[9px] px-3 h-6 tracking-widest -skew-x-[12deg] shadow-lg">EL-PREDATOR</Badge>
+                            <Target className="w-5 h-5 text-yellow-400/40 animate-pulse" />
+                         </div>
+
+                         <div className="flex items-center gap-5 relative z-10">
+                             <div className="relative">
+                                 <Avatar className="h-20 w-20 border-4 border-yellow-400/60 shadow-2xl group-hover/pred-card:scale-110 transition-transform duration-700">
+                                     <AvatarFallback className="bg-black/60"><User className="w-10 h-10 text-white/20"/></AvatarFallback>
+                                 </Avatar>
+                                 <div className="absolute -bottom-1 -right-1 bg-yellow-400 p-1.5 rounded-lg rotate-12 shadow-xl border-2 border-background"><Trophy className="w-4 h-4 text-black"/></div>
+                             </div>
+                             <div className="flex-1 overflow-hidden">
+                                 <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">{predator.name}</h4>
+                                 <p className="text-[10px] font-black text-yellow-400/60 uppercase tracking-widest">{predator.teamName}</p>
+                             </div>
+                             <div className="text-right">
+                                 <span className="text-5xl font-black italic text-yellow-400 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]">{predator.goals}</span>
+                                 <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1">TOTAL GOL</p>
+                             </div>
+                         </div>
+                    </Card>
+                )}
+
+                {/* EL-PEDOFIL CARD (Joke/Fierce Title for 0 Goals who have played) */}
+                {mainPedofil ? (
+                    <Card className="relative overflow-hidden border-2 border-red-500/30 bg-red-500/[0.02] rounded-3xl p-6 shadow-[0_0_50px_rgba(239,68,68,0.05)] group/ped-card hover:border-red-500 transition-all duration-500">
+                         <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                         
+                         <div className="flex items-center justify-between mb-6 relative z-10">
+                            <Badge className="bg-red-500 text-white font-black italic text-[9px] px-3 h-6 tracking-widest -skew-x-[12deg] shadow-lg">EL-PEDOFIL</Badge>
+                            <ShieldAlert className="w-5 h-5 text-red-500/30" />
+                         </div>
+
+                         <div className="flex items-center gap-5 relative z-10">
+                             <div className="relative opacity-60 grayscale group-hover/ped-card:grayscale-0 transition-all duration-700">
+                                 <Avatar className="h-20 w-20 border-4 border-red-500/20">
+                                     <AvatarFallback className="bg-black/60"><User className="w-10 h-10 text-white/10"/></AvatarFallback>
+                                 </Avatar>
+                                 <div className="absolute -bottom-1 -right-1 bg-red-500 p-1.5 rounded-lg -rotate-12 shadow-xl border-2 border-background"><Zap className="w-4 h-4 text-white"/></div>
+                             </div>
+                             <div className="flex-1 overflow-hidden">
+                                 <h4 className="text-2xl font-black text-white/80 uppercase italic tracking-tighter truncate pr-4">{mainPedofil.name}</h4>
+                                 <p className="text-[10px] font-black text-red-500/40 uppercase tracking-widest">{mainPedofil.teamName}</p>
+                             </div>
+                             <div className="text-right">
+                                 <span className="text-5xl font-black italic text-red-500 tabular-nums leading-none opacity-40">0</span>
+                                 <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL</p>
+                             </div>
+                         </div>
+                    </Card>
+                ) : (
+                    <Card className="relative overflow-hidden border-2 border-dashed border-white/5 bg-black/40 rounded-3xl p-6 flex items-center justify-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 italic">Signal Cleared • No Mandul Detected</p>
+                    </Card>
+                )}
+            </div>
+
+            {/* Main Ranking Table - Adaptive Width */}
+            <div className="max-w-4xl mx-auto w-full overflow-x-auto scrollbar-ultra-sport border-2 border-white/5 rounded-3xl bg-black/20 shadow-2xl">
+                <Table className="min-w-full">
+                    <TableHeader>
+                        <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14 bg-black/40">
+                            <TableHead className="w-2 p-0"></TableHead>
+                            <TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead>
+                            <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead>
+                            <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {topScorers.map((scorer) => {
+                            const isPredator = scorer.rank === 1;
+                            return (
+                                <TableRow key={scorer.id} className={cn(
+                                    "transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden cursor-pointer", 
                                     isPredator 
-                                        ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)] scale-y-110' 
-                                        : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]'
+                                        ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" 
+                                        : "hover:bg-primary/[0.15] hover:shadow-[inset_0_0_40px_rgba(204,253,1,0.1)]"
                                 )}>
-                                    {isPredator && (
-                                        <div className="absolute inset-0 z-0 pointer-events-none w-[2000px]">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-transparent to-transparent opacity-30" />
-                                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
-                                            <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50 group-hover/row:opacity-100 group-hover/row:h-2 transition-all duration-500" />
-                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] group-hover/row:opacity-[0.08] transition-opacity duration-700 pr-20">
-                                                <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">APEX PREDATOR</span>
+                                    <TableCell className={cn(
+                                        "p-0 w-2 transition-all duration-500 relative", 
+                                        isPredator 
+                                            ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)] scale-y-110' 
+                                            : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]'
+                                    )}>
+                                        {isPredator && (
+                                            <div className="absolute inset-0 z-0 pointer-events-none w-[2000px]">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-transparent to-transparent opacity-30" />
+                                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
+                                                <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50 group-hover/row:opacity-100 group-hover/row:h-2 transition-all duration-500" />
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] group-hover/row:opacity-[0.08] transition-opacity duration-700 pr-20">
+                                                    <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">APEX PREDATOR</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </TableCell>
-                                <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] group-hover/row:scale-150" : "text-white/40 group-hover/row:text-primary group-hover/row:scale-110")}>{scorer.rank}</TableCell>
-                                <TableCell className="py-2 relative z-10">
-                                    <div className="flex items-center gap-3">
+                                        )}
+                                    </TableCell>
+                                    <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] group-hover/row:scale-150" : "text-white/40 group-hover/row:text-primary group-hover/row:scale-110")}>{scorer.rank}</TableCell>
+                                    <TableCell className="py-2 relative z-10">
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-4">
                                                 <span className={cn("font-black tracking-tight uppercase italic pr-2 transition-all duration-500", isPredator ? "text-base sm:text-2xl text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.3)] group-hover/row:translate-x-2" : "text-[12px] sm:text-lg text-white group-hover/row:text-primary group-hover/row:translate-x-1")}>{scorer.name}</span>
@@ -400,14 +471,14 @@ const TopScorerTable = memo(({
                                             </div>
                                             <span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1 transition-colors duration-500", isPredator ? "text-yellow-400/60" : "text-white/30 group-hover/row:text-primary/60")}>{scorer.teamName}</span>
                                         </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums relative z-10 transition-all duration-500", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)] group-hover/row:scale-110" : "text-white/60 group-hover/row:text-primary group-hover/row:drop-shadow-[0_0_15px_rgba(204,253,1,0.4)]")}>{scorer.goals}</TableCell>
-                            </TableRow>
-                        )
-                    })}
-                </TableBody>
-            </Table>
+                                    </TableCell>
+                                    <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums relative z-10 transition-all duration-500", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)] group-hover/row:scale-110" : "text-white/60 group-hover/row:text-primary group-hover/row:drop-shadow-[0_0_15px_rgba(204,253,1,0.4)]")}>{scorer.goals}</TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 });
@@ -488,9 +559,9 @@ export function LeagueTable({
                 </TabsList>
 
                 <TabsContent value="standings" className="mt-0"><SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={true} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} /></TabsContent>
-                <TabsContent value="topskor" className="mt-0"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} /></TabsContent>
+                <TabsContent value="topskor" className="mt-0 py-10"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} /></TabsContent>
                 {isCoopHybrid && <TabsContent value="playoff" className="mt-0 "><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>}
-            </Tabs>
+             </Tabs>
         ) : (
             isHybrid ? (
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
