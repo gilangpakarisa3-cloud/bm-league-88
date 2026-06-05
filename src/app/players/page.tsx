@@ -110,7 +110,7 @@ export default function PlayersPage() {
                     disabled={!isPasswordLoaded}
                     className={cn(
                         "h-12 px-6 font-black tracking-widest text-xs uppercase transition-all duration-500 relative overflow-hidden group/admin",
-                        isAdmin ? "bg-primary text-black border-black shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "bg-primary/60 text-black border-primary/20 hover:bg-primary"
+                        isAdmin ? "bg-primary text-black border-primary shadow-[0_0_15px_rgba(204,253,1,0.15)]" : "bg-primary/60 text-black border-primary/20 hover:bg-primary"
                     )}
                 >
                     {/* Dynamic Scanning Animation Layer */}

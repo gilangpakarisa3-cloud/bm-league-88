@@ -321,7 +321,7 @@ export default function LeaguePage() {
         toast({ variant: 'destructive', title: t('incorrect_password') });
     }
     setPasswordPrompt({ open: false });
-    passwordInput('');
+    setPasswordInput('');
   };
 
   const withAdminCheck = (action: () => void) => {

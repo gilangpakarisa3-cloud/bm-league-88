@@ -47,7 +47,7 @@ export default function HallOfFamePage() {
         } else {
             toast({ variant: 'destructive', title: t('incorrect_password') });
         }
-        passwordInput('');
+        setPasswordInput('');
     };
 
     const handleDelete = () => {
