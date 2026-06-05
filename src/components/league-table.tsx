@@ -350,30 +350,43 @@ const TopScorerTable = memo(({
                 <TableHeader>
                     <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14 bg-black/40">
                         <TableHead className="w-1.5 p-0"></TableHead>
-                        <TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Rank</TableHead>
-                        <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Player</TableHead>
-                        <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Goals</TableHead>
+                        <TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead>
+                        <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead>
+                        <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {topScorers.map((scorer) => {
                         const isPredator = scorer.rank === 1 && scorer.goals > 0;
                         return (
-                            <TableRow key={scorer.id} className={cn("transition-all h-16 sm:h-20 border-b-white/5 relative group/row", isPredator ? "bg-yellow-400/[0.08] hover:bg-yellow-400/[0.15]" : "hover:bg-white/[0.03]")}>
+                            <TableRow key={scorer.id} className={cn(
+                                "transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden", 
+                                isPredator ? "bg-yellow-400/[0.08] hover:bg-yellow-400/[0.15]" : "hover:bg-white/[0.03]"
+                            )}>
+                                {isPredator && (
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.03] pr-10">
+                                        <span className="text-[40px] sm:text-[60px] font-black italic text-yellow-400 uppercase tracking-tighter">APEX PREDATOR</span>
+                                    </div>
+                                )}
                                 <TableCell className={cn("p-0 w-1.5 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]' : 'bg-transparent')} />
-                                <TableCell className={cn("text-center font-black text-base sm:text-xl italic transition-all duration-500", isPredator ? "text-yellow-400 scale-125" : "text-white/40")}>{scorer.rank}</TableCell>
-                                <TableCell className="py-2">
+                                <TableCell className={cn("text-center font-black text-base sm:text-xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_10px_rgba(250,204,21,0.4)]" : "text-white/40")}>{scorer.rank}</TableCell>
+                                <TableCell className="py-2 relative z-10">
                                     <div className="flex items-center gap-3">
                                         <div className="flex flex-col">
-                                            <div className="flex items-center gap-2">
-                                                <span className={cn("font-black tracking-tight uppercase italic pr-2", isPredator ? "text-sm sm:text-xl text-yellow-400" : "text-[12px] sm:text-lg text-white")}>{scorer.name}</span>
-                                                {isPredator && <Badge className="bg-yellow-400 text-black font-black text-[7px] px-2 h-4.5 italic animate-pulse">PREDATOR</Badge>}
+                                            <div className="flex items-center gap-3">
+                                                <span className={cn("font-black tracking-tight uppercase italic pr-2 transition-colors", isPredator ? "text-sm sm:text-xl text-yellow-400" : "text-[12px] sm:text-lg text-white")}>{scorer.name}</span>
+                                                {isPredator && (
+                                                    <div className="flex items-center bg-black border-2 border-yellow-400 rounded-none -skew-x-[15deg] px-3 py-1 shadow-[0_0_15px_rgba(250,204,21,0.5)] animate-pulse">
+                                                        <Flame className="w-3.5 h-3.5 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" />
+                                                        <span className="text-[10px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg]">PREDATOR</span>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <span className="text-[8px] sm:text-[11px] font-black text-white/30 uppercase tracking-widest">{scorer.teamName}</span>
+                                            <span className="text-[8px] sm:text-[11px] font-black text-white/30 uppercase tracking-widest mt-1">{scorer.teamName}</span>
                                         </div>
                                     </div>
                                 </TableCell>
-                                <TableCell className={cn("text-center font-black text-xl sm:text-4xl italic tabular-nums", isPredator ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" : "text-white/60")}>{scorer.goals}</TableCell>
+                                <TableCell className={cn("text-center font-black text-xl sm:text-5xl italic tabular-nums relative z-10", isPredator ? "text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]" : "text-white/60")}>{scorer.goals}</TableCell>
                             </TableRow>
                         )
                     })}
