@@ -65,10 +65,12 @@ export type CoOpLeagueEntry = {
   player1Name: string;
   player1TeamId: string;
   player1TeamName: string;
+  player1Goals: number;
   player2Id: string;
   player2Name: string;
   player2TeamId: string;
   player2TeamName: string;
+  player2Goals: number;
   played: number;
   win: number;
   loss: number;
@@ -92,6 +94,10 @@ export type Match = {
   player2Wins: number | null;
   player1Score: number | null;
   player2Score: number | null;
+  player1p1Goals?: number | null;
+  player1p2Goals?: number | null;
+  player2p1Goals?: number | null;
+  player2p2Goals?: number | null;
   matchDate: Timestamp;
   isCompleted: boolean;
   status?: MatchStatus;

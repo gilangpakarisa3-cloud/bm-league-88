@@ -288,7 +288,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {}, live: {} }, upcomingCount: 0, completedCount: 0, liveCount: 0 };
         const isCoop = activeSeason.type === 'Co-Op' || activeSeason.type === 'Co-Op Hybrid';
         const enrichedMatches = matches.map(match => {
-            let p1, p2, t1, t2, tid1, tid2;
+            let p1, p2, t1, t2, tid1, tid2, p1n1, p1n2, p2n1, p2n2;
             if (isCoop) {
                 const e1 = coopTableById[match.player1Id];
                 const e2 = coopTableById[match.player2Id];
@@ -298,6 +298,8 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                 tid2 = e2?.player1TeamId;
                 t1 = tid1 ? teamsById[tid1] : null;
                 t2 = tid2 ? teamsById[tid2] : null;
+                p1n1 = e1?.player1Name; p1n2 = e1?.player2Name;
+                p2n1 = e2?.player1Name; p2n2 = e2?.player2Name;
             } else {
                 const e1 = leagueTableByPlayerId[match.player1Id];
                 const e2 = leagueTableByPlayerId[match.player2Id];
@@ -309,7 +311,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                 t2 = tid2 ? teamsById[tid2] : null;
             }
             if (!p1 || !p2) return null;
-            return { ...match, player1: p1, player2: p2, team1: t1, team2: t2, teamId1: tid1, teamId2: tid2 };
+            return { ...match, player1: p1, player2: p2, team1: t1, team2: t2, teamId1: tid1, teamId2: tid2, p1n1, p1n2, p2n1, p2n2 };
         }).filter(Boolean) as any[];
 
         const filtered = enrichedMatches.filter(m => {
@@ -645,7 +647,6 @@ export default function FixturesPage() {
         const matchTimestamp = Timestamp.fromDate(new Date(values.date.setHours(h, m)));
         
         const isCompleted = values.status === 'Completed';
-        const isLive = values.status === 'Live';
 
         const matchUpdateData: any = {
             player1Score: values.player1Score,
@@ -655,15 +656,18 @@ export default function FixturesPage() {
             isCompleted: isCompleted,
             player1Wins: values.player1Wins !== undefined ? values.player1Wins : null,
             player2Wins: values.player2Wins !== undefined ? values.player2Wins : null,
+            player1p1Goals: values.player1p1Goals !== undefined ? values.player1p1Goals : null,
+            player1p2Goals: values.player1p2Goals !== undefined ? values.player1p2Goals : null,
+            player2p1Goals: values.player2p1Goals !== undefined ? values.player2p1Goals : null,
+            player2p2Goals: values.player2p2Goals !== undefined ? values.player2p2Goals : null,
         };
 
         if (isCompleted) {
-            // ONLY RUN TRANSACTION FOR COMPLETED MATCHES
             await runTransaction(firestore, async (transaction) => {
                 const seasonRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}`);
                 const sSnap = await transaction.get(seasonRef);
                 const sData = sSnap.data() as Season;
-                const isMatchBo3 = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid' || (orig.round && orig.round !== 'Group');
+                const isSeasonCoop = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid';
 
                 let winMatchRef = null;
                 let losMatchRef = null;
@@ -682,13 +686,13 @@ export default function FixturesPage() {
 
                 let p1EntryRef = null;
                 let p2EntryRef = null;
-                let e1Data: LeagueEntry | CoOpLeagueEntry | null = null;
-                let e2Data: LeagueEntry | CoOpLeagueEntry | null = null;
+                let e1Data: any = null;
+                let e2Data: any = null;
 
                 if (orig.round === 'Group' || !orig.round) {
-                    const tblName = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid' ? 'coopLeagueTable' : 'leagueTable';
+                    const tblName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
                     const tblCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
-                    if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
+                    if (isSeasonCoop) {
                         p1EntryRef = doc(tblCol, orig.player1Id);
                         p2EntryRef = doc(tblCol, orig.player2Id);
                     } else {
@@ -698,17 +702,11 @@ export default function FixturesPage() {
                         if (!snap2.empty) p2EntryRef = snap2.docs[0].ref;
                     }
                     
-                    if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data() as any;
-                    if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data() as any;
+                    if (p1EntryRef) e1Data = (await transaction.get(p1EntryRef)).data();
+                    if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data();
                 }
 
-                const getOutcome = (s1: number, s2: number) => {
-                    if (s1 > s2) return { p1: 'W', p2: 'L' };
-                    if (s1 < s2) return { p1: 'L', p2: 'W' };
-                    return { p1: 'D', p2: 'D' };
-                };
-
-                const updateStats = (pId: string, change: any) => {
+                const updateOverallStats = (pId: string, change: any) => {
                     if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                     transaction.update(doc(firestore, 'players', pId), {
                         overallPlayed: increment(change.played || 0),
@@ -721,31 +719,33 @@ export default function FixturesPage() {
                 };
 
                 if (orig.isCompleted) {
-                    const oldS1 = isMatchBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
-                    const oldS2 = isMatchBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
-                    const oldRes = getOutcome(oldS1, oldS2);
+                    const oldS1 = (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
+                    const oldS2 = (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
                     
-                    if ((sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') && e1Data && e2Data) {
-                        const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
-                        [d1.player1Id, d1.player2Id].forEach(id => updateStats(id, { played: -1, win: oldRes.p1 === 'W' ? -1 : 0, loss: oldRes.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) }));
-                        [d2.player1Id, d2.player2Id].forEach(id => updateStats(id, { played: -1, win: oldRes.p2 === 'W' ? -1 : 0, loss: oldRes.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) }));
+                    if (isSeasonCoop && e1Data && e2Data) {
+                        const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
+                        const res = oldS1 > oldS2 ? 'W' : 'L';
+                        [d1.player1Id, d1.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'W' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) }));
+                        [d2.player1Id, d2.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'L' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) }));
                     } else {
-                        updateStats(orig.player1Id, { played: -1, win: oldRes.p1 === 'W' ? -1 : 0, draw: oldRes.p1 === 'D' ? -1 : 0, loss: oldRes.p1 === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
-                        updateStats(orig.player2Id, { played: -1, win: oldRes.p2 === 'W' ? -1 : 0, draw: oldRes.p2 === 'D' ? -1 : 0, loss: oldRes.p2 === 'L' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
+                        const res = oldS1 > oldS2 ? 'W' : (oldS1 < oldS2 ? 'L' : 'D');
+                        updateOverallStats(orig.player1Id, { played: -1, win: res === 'W' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
+                        updateOverallStats(orig.player2Id, { played: -1, win: res === 'L' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) });
                     }
                 }
 
-                const newS1 = isMatchBo3 ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
-                const newS2 = isMatchBo3 ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
-                const newRes = getOutcome(newS1, newS2);
+                const newS1 = isSeasonCoop ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
+                const newS2 = isSeasonCoop ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
 
-                if ((sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') && e1Data && e2Data) {
-                    const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
-                    [d1.player1Id, d1.player2Id].forEach(id => updateStats(id, { played: 1, win: newRes.p1 === 'W' ? 1 : 0, loss: newRes.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 }));
-                    [d2.player1Id, d2.player2Id].forEach(id => updateStats(id, { played: 1, win: newRes.p2 === 'W' ? 1 : 0, loss: newRes.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 }));
+                if (isSeasonCoop && e1Data && e2Data) {
+                    const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
+                    const res = newS1 > newS2 ? 'W' : 'L';
+                    [d1.player1Id, d1.player2Id].forEach(id => updateOverallStats(id, { played: 1, win: res === 'W' ? 1 : 0, loss: res === 'L' ? 1 : 0, gf: values.player1Score, ga: values.player2Score }));
+                    [d2.player1Id, d2.player2Id].forEach(id => updateOverallStats(id, { played: 1, win: res === 'L' ? 1 : 0, loss: res === 'W' ? 1 : 0, gf: values.player2Score, ga: values.player1Score }));
                 } else {
-                    updateStats(orig.player1Id, { played: 1, win: newRes.p1 === 'W' ? 1 : 0, draw: newRes.p1 === 'D' ? 1 : 0, loss: newRes.p1 === 'L' ? 1 : 0, gf: values.player1Score || 0, ga: values.player2Score || 0 });
-                    updateStats(orig.player2Id, { played: 1, win: newRes.p2 === 'W' ? 1 : 0, draw: newRes.p2 === 'D' ? 1 : 0, loss: newRes.p2 === 'L' ? 1 : 0, gf: values.player2Score || 0, ga: values.player1Score || 0 });
+                    const res = newS1 > newS2 ? 'W' : (newS1 < newS2 ? 'L' : 'D');
+                    updateOverallStats(orig.player1Id, { played: 1, win: res === 'W' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'L' ? 1 : 0, gf: values.player1Score, ga: values.player2Score });
+                    updateOverallStats(orig.player2Id, { played: 1, win: res === 'L' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'W' ? 1 : 0, gf: values.player2Score, ga: values.player1Score });
                 }
 
                 if (winMatchRef) {
@@ -759,26 +759,30 @@ export default function FixturesPage() {
                 }
 
                 if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
-                    const e1 = { ...e1Data } as any; const e2 = { ...e2Data } as any;
+                    const e1 = { ...e1Data }; const e2 = { ...e2Data };
                     if (orig.isCompleted) {
                         e1.played--; e2.played--;
-                        if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
+                        if (isSeasonCoop) {
                             if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
-                            e1.goalsFor -= (orig.player1Score || 0); e1.goalsAgainst -= (orig.player2Score || 0);
-                            e2.goalsFor -= (orig.player2Score || 0); e2.goalsAgainst -= (orig.player1Score || 0);
+                            e1.goalsFor -= orig.player1Score; e1.goalsAgainst -= orig.player2Score;
+                            e2.goalsFor -= orig.player2Score; e2.goalsAgainst -= orig.player1Score;
+                            e1.player1Goals -= (orig.player1p1Goals || 0); e1.player2Goals -= (orig.player1p2Goals || 0);
+                            e2.player1Goals -= (orig.player2p1Goals || 0); e2.player2Goals -= (orig.player2p2Goals || 0);
                         } else {
-                            e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= mDoc.data().player1Score!;
                             if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
+                            e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
                         }
                     }
                     e1.played++; e2.played++;
-                    if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
+                    if (isSeasonCoop) {
                         if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
-                        e1.goalsFor += (values.player1Score || 0); e1.goalsAgainst += (values.player2Score || 0);
-                        e2.goalsFor += (values.player2Score || 0); e2.goalsAgainst += (values.player1Score || 0);
+                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score;
+                        e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
+                        e1.player1Goals += values.player1p1Goals; e1.player2Goals += values.player1p2Goals;
+                        e2.player1Goals += values.player2p1Goals; e2.player2Goals += values.player2p2Goals;
                     } else {
-                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                         if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
+                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                     }
                     e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                     transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
@@ -787,7 +791,6 @@ export default function FixturesPage() {
                 transaction.update(matchRef, matchUpdateData);
             });
         } else {
-            // FOR LIVE OR SCHEDULED, JUST UPDATE THE MATCH DOC
             await updateDoc(matchRef, matchUpdateData);
         }
 
@@ -815,7 +818,7 @@ export default function FixturesPage() {
         
         const mToRev = mDoc.data() as Match;
         const sData = sDoc.data() as Season;
-        const isMatchBo3 = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid' || (mToRev.round && mToRev.round !== 'Group');
+        const isSeasonCoop = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid';
 
         await runTransaction(firestore, async (transaction) => {
             let winMatchRef = null;
@@ -845,9 +848,9 @@ export default function FixturesPage() {
             let e2Data: any = null;
 
             if (mToRev.round === 'Group' || !mToRev.round) {
-                const tblName = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid' ? 'coopLeagueTable' : 'leagueTable';
+                const tblName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
                 const tblCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
-                if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
+                if (isSeasonCoop) {
                     p1EntryRef = doc(tblCol, mToRev.player1Id);
                     p2EntryRef = doc(tblCol, mToRev.player2Id);
                 } else {
@@ -861,7 +864,7 @@ export default function FixturesPage() {
                 if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data();
             }
 
-            const updateStats = (pId: string, change: any) => {
+            const updateOverallStats = (pId: string, change: any) => {
                 if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
                 transaction.update(doc(firestore, 'players', pId), {
                     overallPlayed: increment(change.played || 0),
@@ -873,29 +876,32 @@ export default function FixturesPage() {
                 });
             };
 
-            const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0);
-            const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0);
-            const res = (oldS1 > oldS2) ? { p1: 'W', p2: 'L' } : (oldS1 < oldS2 ? { p1: 'L', p2: 'W' } : { p1: 'D', p2: 'D' });
+            const oldS1 = isSeasonCoop ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0);
+            const oldS2 = isSeasonCoop ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
 
-            if ((sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') && e1Data && e2Data) {
-                const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
-                [d1.player1Id, d1.player2Id].forEach(id => updateStats(id, { played: -1, win: res.p1 === 'W' ? -1 : 0, loss: res.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) }));
-                [d2.player1Id, d2.player2Id].forEach(id => updateStats(id, { played: -1, win: res.p2 === 'W' ? -1 : 0, loss: res.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) }));
+            if (isSeasonCoop && e1Data && e2Data) {
+                const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
+                const res = oldS1 > oldS2 ? 'W' : 'L';
+                [d1.player1Id, d1.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'W' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) }));
+                [d2.player1Id, d2.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'L' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) }));
             } else {
-                updateStats(mToRev.player1Id, { played: -1, win: res.p1 === 'W' ? -1 : 0, draw: res.p1 === 'D' ? -1 : 0, loss: res.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
-                updateStats(mToRev.player2Id, { played: -1, win: res.p2 === 'W' ? -1 : 0, draw: res.p2 === 'D' ? -1 : 0, loss: res.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
+                const res = oldS1 > oldS2 ? 'W' : (oldS1 < oldS2 ? 'L' : 'D');
+                updateOverallStats(mToRev.player1Id, { played: -1, win: res === 'W' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
+                updateOverallStats(mToRev.player2Id, { played: -1, win: res === 'L' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
             }
 
             if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
                 const e1 = { ...e1Data }; const e2 = { ...e2Data };
                 e1.played--; e2.played--;
-                if (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') {
+                if (isSeasonCoop) {
                     if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
                     e1.goalsFor -= (mToRev.player1Score || 0); e1.goalsAgainst -= (mToRev.player2Score || 0);
                     e2.goalsFor -= (mToRev.player2Score || 0); e2.goalsAgainst -= (mToRev.player1Score || 0);
+                    e1.player1Goals -= (mToRev.player1p1Goals || 0); e1.player2Goals -= (mToRev.player1p2Goals || 0);
+                    e2.player1Goals -= (mToRev.player2p1Goals || 0); e2.player2Goals -= (mToRev.player2p2Goals || 0);
                 } else {
-                    e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
                     if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
+                    e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
                 }
                 e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
@@ -904,7 +910,7 @@ export default function FixturesPage() {
             if (winMatchRef) transaction.update(winMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].winner.slot}Id`]: 'TBD' });
             if (losMatchRef && PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser) transaction.update(losMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser!.slot}Id`]: 'TBD' });
 
-            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false, status: 'Scheduled' });
+            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, player1p1Goals: null, player1p2Goals: null, player2p1Goals: null, player2p2Goals: null, isCompleted: false, status: 'Scheduled' });
         });
 
         toast({ title: t('match_reverted_title') });
@@ -1055,8 +1061,18 @@ export default function FixturesPage() {
                             match={editingMatch} 
                             onSave={(v) => handleUpdateScore(editingMatch.id, v)} 
                             seasonType={activeSeason.type} 
-                            player1Info={{ name: editingMatch.player1.name, team: editingMatch.team1 }} 
-                            player2Info={{ name: editingMatch.player2.name, team: editingMatch.team2 }} 
+                            player1Info={{ 
+                                name: editingMatch.player1.name, 
+                                team: editingMatch.team1,
+                                p1Name: editingMatch.p1n1,
+                                p2Name: editingMatch.p1n2
+                            }} 
+                            player2Info={{ 
+                                name: editingMatch.player2.name, 
+                                team: editingMatch.team2,
+                                p1Name: editingMatch.p2n1,
+                                p2Name: editingMatch.p2n2
+                            }} 
                         />
                     )}
                 </ScrollArea>

@@ -8,10 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
+import type { LeagueEntry, Season, WithId, Player, Team, Match, CoOpLeagueEntry } from "@/lib/types";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info, CheckCircle2 } from "lucide-react";
+import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info, CheckCircle2, Flame, Binary } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -157,13 +157,13 @@ const SingleTable = memo(({
               <TableHead className="text-center font-black text-green-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
               {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
               <TableHead className="text-center font-black text-red-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
+              <TableHead className={cn("text-center font-black text-primary/60 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase", isCoop ? "" : "hidden lg:table-cell")}>{t('gd_short')}</TableHead>
               {!isCoop && (
                 <>
                     <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
                     <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
                 </>
               )}
-              <TableHead className="hidden lg:table-cell text-center font-black text-primary/60 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gd_short')}</TableHead>
               <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-40 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
               <TableHead className="text-center font-black text-primary w-12 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-[0.2em] uppercase">{t('actions')}</TableHead>}
@@ -264,15 +264,15 @@ const SingleTable = memo(({
                   <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-green-400 tabular-nums">{entry.win}</TableCell>
                   {!isCoop && <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400 tabular-nums">{entry.draw}</TableCell>}
                   <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400 tabular-nums">{entry.loss}</TableCell>
+                  <TableCell className={cn("text-center px-1 sm:px-2 text-xs sm:text-sm font-black tabular-nums transition-all duration-300", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"), !isCoop && "hidden lg:table-cell")}>
+                      {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
+                  </TableCell>
                   {!isCoop && (
                     <>
                         <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsFor}</TableCell>
                         <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsAgainst}</TableCell>
                     </>
                   )}
-                  <TableCell className={cn("hidden lg:table-cell text-center px-2 text-sm font-black tabular-nums", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))}>
-                      {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
-                  </TableCell>
                   <TableCell className="hidden xl:table-cell text-center px-2">
                       <div className="flex justify-center gap-1">
                           {playerForm.length > 0 ? playerForm.map((res, i) => (
@@ -316,6 +316,74 @@ const SingleTable = memo(({
 
 SingleTable.displayName = 'SingleTable';
 
+const TopScorerTable = memo(({ 
+    tableData, 
+    isLoading, 
+    seasonType 
+}: { 
+    tableData: any[], 
+    isLoading: boolean, 
+    seasonType?: Season['type'] 
+}) => {
+    const { t } = useTranslation();
+
+    const topScorers = useMemo(() => {
+        if (!tableData || tableData.length === 0) return [];
+        const scorers: { name: string, goals: number, teamId: string, teamName: string, id: string }[] = [];
+        
+        tableData.forEach(entry => {
+            if (seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid') {
+                const coop = entry as CoOpLeagueEntry;
+                scorers.push({ id: coop.player1Id, name: coop.player1Name, goals: coop.player1Goals || 0, teamId: coop.player1TeamId, teamName: coop.player1TeamName });
+                scorers.push({ id: coop.player2Id, name: coop.player2Name, goals: coop.player2Goals || 0, teamId: coop.player2TeamId, teamName: coop.player2TeamName });
+            }
+        });
+
+        return scorers.sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).map((s, i) => ({ ...s, rank: i + 1 }));
+    }, [tableData, seasonType]);
+
+    if (isLoading) return <LeagueTableSkeleton isCoop={true} />;
+
+    return (
+        <div className="w-full overflow-x-auto scrollbar-ultra-sport">
+            <Table className="min-w-full">
+                <TableHeader>
+                    <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14 bg-black/40">
+                        <TableHead className="w-1.5 p-0"></TableHead>
+                        <TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Rank</TableHead>
+                        <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Player</TableHead>
+                        <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Goals</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {topScorers.map((scorer) => {
+                        const isPredator = scorer.rank === 1 && scorer.goals > 0;
+                        return (
+                            <TableRow key={scorer.id} className={cn("transition-all h-16 sm:h-20 border-b-white/5 relative group/row", isPredator ? "bg-yellow-400/[0.08] hover:bg-yellow-400/[0.15]" : "hover:bg-white/[0.03]")}>
+                                <TableCell className={cn("p-0 w-1.5 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]' : 'bg-transparent')} />
+                                <TableCell className={cn("text-center font-black text-base sm:text-xl italic transition-all duration-500", isPredator ? "text-yellow-400 scale-125" : "text-white/40")}>{scorer.rank}</TableCell>
+                                <TableCell className="py-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2">
+                                                <span className={cn("font-black tracking-tight uppercase italic pr-2", isPredator ? "text-sm sm:text-xl text-yellow-400" : "text-[12px] sm:text-lg text-white")}>{scorer.name}</span>
+                                                {isPredator && <Badge className="bg-yellow-400 text-black font-black text-[7px] px-2 h-4.5 italic animate-pulse">PREDATOR</Badge>}
+                                            </div>
+                                            <span className="text-[8px] sm:text-[11px] font-black text-white/30 uppercase tracking-widest">{scorer.teamName}</span>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell className={cn("text-center font-black text-xl sm:text-4xl italic tabular-nums", isPredator ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" : "text-white/60")}>{scorer.goals}</TableCell>
+                            </TableRow>
+                        )
+                    })}
+                </TableBody>
+            </Table>
+        </div>
+    );
+});
+TopScorerTable.displayName = 'TopScorerTable';
+
 export function LeagueTable({ 
     tableData, 
     isLoading = false, 
@@ -343,48 +411,25 @@ export function LeagueTable({
         const team = teamsById[teamId];
         const logoUrl = resolveLogo(team?.logoUrl, teamId, entry.playerName);
 
-        return {
-            ...entry,
-            team: team,
-            logoUrl
-        };
+        return { ...entry, team: team, logoUrl };
     });
   }, [tableData, teamsById, playersById]);
 
   const isHybrid = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid';
   const isCoopHybrid = seasonType === 'Co-Op Hybrid';
+  const isCoopOnly = seasonType === 'Co-Op';
 
   const { groupA, groupB } = useMemo(() => {
     if (!isHybrid || isCoopHybrid) return { groupA: [], groupB: [] };
-    
-    const sortAndRank = (data: typeof enrichedTableData) => 
-        data.sort((a, b) => {
-            if (b.points !== a.points) return b.points - a.points;
-            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-            return a.playerName.localeCompare(b.playerName);
-        }).map((entry, index) => ({...entry, rank: index + 1}));
-
+    const sortAndRank = (data: typeof enrichedTableData) => data.sort((a, b) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0)).map((entry, index) => ({...entry, rank: index + 1}));
     const a = sortAndRank(enrichedTableData.filter(p => p.group === 'A'));
     const b = sortAndRank(enrichedTableData.filter(p => p.group === 'B'));
-    
     return { groupA: a, groupB: b };
   }, [enrichedTableData, isHybrid, isCoopHybrid]);
 
 
-  if (isLoading) {
-    return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid'} />;
-  }
-  
-  if (tableData.length === 0) {
-    return (
-      <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-card/40 p-10 sm:p-16 text-center backdrop-blur-md">
-        <LayoutGrid className="w-12 h-12 sm:w-16 sm:h-16 text-primary/10 mx-auto mb-4" />
-        <h2 className="text-xl sm:text-2xl font-black text-muted-foreground uppercase tracking-widest pr-4">{t('no_players_registered_title')}</h2>
-        <p className="text-[10px] sm:text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">{t('no_players_registered_desc')}</p>
-      </div>
-    );
-  }
+  if (isLoading) return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid'} />;
+  if (tableData.length === 0) return (<div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-card/40 p-10 sm:p-16 text-center backdrop-blur-md"><LayoutGrid className="w-12 h-12 sm:w-16 sm:h-16 text-primary/10 mx-auto mb-4" /><h2 className="text-xl sm:text-2xl font-black text-muted-foreground uppercase tracking-widest pr-4">{t('no_players_registered_title')}</h2><p className="text-[10px] sm:text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">{t('no_players_registered_desc')}</p></div>);
   
   const isSeasonCoop = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid';
 
@@ -392,177 +437,46 @@ export function LeagueTable({
     <div className="w-full overflow-hidden rounded-xl sm:rounded-[2.5rem] border-2 border-white/5 bg-card/60 backdrop-blur-3xl shadow-2xl">
         {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend />}
         
-        {isHybrid ? (
+        {isSeasonCoop ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                <TabsList className={cn(
-                    "grid w-full bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]",
-                    isCoopHybrid ? "grid-cols-2" : "grid-cols-3"
-                )}>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
-                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60 rounded-tl-sm" />
-                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60 rounded-tr-sm" />
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/20 blur-sm" />
+                <TabsList className={cn("grid w-full bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]", isCoopHybrid ? "grid-cols-3" : "grid-cols-2")}>
+                    <TabsTrigger value="standings" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden">
+                        <span className="relative z-10 flex items-center justify-center gap-3 pr-2"><Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />Klasemen</span>
+                        <div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" />
+                    </TabsTrigger>
 
-                    {!isCoopHybrid ? (
-                        <>
-                            <TabsTrigger 
-                                value="group_a" 
-                                className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
-                                )}
-                            >
-                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                                    <div className="relative">
-                                        <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                        <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
-                                    </div>
-                                    Grup A <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupA.length}]</span>
-                                </span>
-                                <div className={cn(
-                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
-                                )} />
-                            </TabsTrigger>
+                    <TabsTrigger value="topskor" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden">
+                        <span className="relative z-10 flex items-center justify-center gap-3 pr-2"><Flame className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />Top Skor</span>
+                        <div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-yellow-400 group-data-[state=active]/tab:shadow-[0_0_40px_rgba(250,204,21,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" />
+                    </TabsTrigger>
 
-                            <TabsTrigger 
-                                value="group_b" 
-                                className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
-                                )}
-                            >
-                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                                    <div className="relative">
-                                        <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                        <div className="absolute inset-0 bg-primary/40 blur-md opacity-0 group-data-[state=active]/tab:opacity-100 transition-opacity" />
-                                    </div>
-                                    Grup B <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{groupB.length}]</span>
-                                </span>
-                                <div className={cn(
-                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
-                                )} />
-                            </TabsTrigger>
-                        </>
-                    ) : (
-                        <TabsTrigger 
-                            value="standings" 
-                            className={cn(
-                                "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                                "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
-                            )}
-                        >
-                            <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                                <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />
-                                Klasemen
-                            </span>
-                            <div className={cn(
-                                "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                                "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                                "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
-                            )} />
+                    {isCoopHybrid && (
+                        <TabsTrigger value="playoff" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden">
+                            <span className="relative z-10 flex items-center justify-center gap-3 pr-2"><Swords className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />Playoff</span>
+                            <div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" />
                         </TabsTrigger>
                     )}
-
-                    <TabsTrigger 
-                        value="playoff" 
-                        className={cn(
-                            "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                            "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
-                        )}
-                    >
-                         <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                            <Swords className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />
-                            Playoff
-                        </span>
-                        <div className={cn(
-                            "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                            "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                            "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
-                        )} />
-                    </TabsTrigger>
                 </TabsList>
 
-                {isCoopHybrid ? (
-                    <TabsContent value="standings" className="mt-0">
-                        <SingleTable 
-                            tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))}
-                            isCoop={true}
-                            totalPlayers={enrichedTableData.length}
-                            onSelectPlayer={onSelectPlayer}
-                            seasonType={seasonType}
-                            isLoading={isLoading}
-                            onRemovePlayer={onRemovePlayer}
-                            seasonStatus={seasonStatus}
-                            isAdmin={isAdmin}
-                            defendingChampionId={defendingChampionId}
-                            matches={matches}
-                        />
-                    </TabsContent>
-                ) : (
-                    <>
-                        <TabsContent value="group_a" className="mt-0">
-                            <SingleTable 
-                                tableData={groupA} 
-                                totalPlayers={groupA.length}
-                                onSelectPlayer={onSelectPlayer}
-                                seasonType={seasonType}
-                                isLoading={isLoading}
-                                onRemovePlayer={onRemovePlayer}
-                                seasonStatus={seasonStatus}
-                                isAdmin={isAdmin}
-                                defendingChampionId={defendingChampionId}
-                                matches={matches}
-                                isCoop={isSeasonCoop}
-                             />
-                        </TabsContent>
-                        <TabsContent value="group_b" className="mt-0">
-                             <SingleTable 
-                                tableData={groupB}
-                                totalPlayers={groupB.length}
-                                onSelectPlayer={onSelectPlayer}
-                                seasonType={seasonType}
-                                isLoading={isLoading}
-                                 onRemovePlayer={onRemovePlayer}
-                                seasonStatus={seasonStatus}
-                                isAdmin={isAdmin}
-                                defendingChampionId={defendingChampionId}
-                                 matches={matches}
-                                 isCoop={isSeasonCoop}
-                             />
-                        </TabsContent>
-                    </>
-                )}
-
-                <TabsContent value="playoff" className="mt-0 ">
-                     <TournamentBracket 
-                        matches={matches}
-                        playersById={playersById}
-                        teamsById={teamsById}
-                        leagueTable={tableData}
-                        season={activeSeason}
-                        isAdmin={isAdmin}
-                        onRevertMatch={onRevertMatch}
-                     />
-                </TabsContent>
+                <TabsContent value="standings" className="mt-0"><SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={true} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} /></TabsContent>
+                <TabsContent value="topskor" className="mt-0"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} /></TabsContent>
+                {isCoopHybrid && <TabsContent value="playoff" className="mt-0 "><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>}
             </Tabs>
         ) : (
-             <SingleTable 
-                tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))}
-                isCoop={isSeasonCoop}
-                totalPlayers={enrichedTableData.length}
-                onSelectPlayer={onSelectPlayer}
-                seasonType={seasonType}
-                isLoading={isLoading}
-                 onRemovePlayer={onRemovePlayer}
-                seasonStatus={seasonStatus}
-                isAdmin={isAdmin}
-                defendingChampionId={defendingChampionId}
-                matches={matches}
-            />
+            isHybrid ? (
+                <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+                    <TabsList className="grid grid-cols-3 w-full bg-black/60 h-16 sm:h-20 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
+                        <TabsTrigger value="group_a" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden"><span className="relative z-10 flex items-center justify-center gap-3 pr-2">Grup A</span><div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" /></TabsTrigger>
+                        <TabsTrigger value="group_b" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden"><span className="relative z-10 flex items-center justify-center gap-3 pr-2">Grup B</span><div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" /></TabsTrigger>
+                        <TabsTrigger value="playoff" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden"><span className="relative z-10 flex items-center justify-center gap-3 pr-2">Playoff</span><div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" /></TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="group_a" className="mt-0"><SingleTable tableData={groupA} totalPlayers={groupA.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} /></TabsContent>
+                    <TabsContent value="group_b" className="mt-0"><SingleTable tableData={groupB} totalPlayers={groupB.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} /></TabsContent>
+                    <TabsContent value="playoff" className="mt-0"><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>
+                </Tabs>
+            ) : (
+                <SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={false} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} />
+            )
         )}
     </div>
   );

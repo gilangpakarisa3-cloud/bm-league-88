@@ -302,11 +302,11 @@ export default function LeaguePage() {
 
   useEffect(() => {
     if (activeSeason?.type === 'Co-Op Hybrid') {
-        if (activeLeagueTab !== 'standings' && activeLeagueTab !== 'playoff') {
+        if (activeLeagueTab !== 'standings' && activeLeagueTab !== 'playoff' && activeLeagueTab !== 'topskor') {
             setActiveLeagueTab('standings');
         }
     } else if (activeSeason?.type === 'Hybrid') {
-        if (activeLeagueTab === 'standings') {
+        if (activeLeagueTab === 'standings' || activeLeagueTab === 'topskor') {
             setActiveLeagueTab('group_a');
         }
     }
@@ -321,7 +321,7 @@ export default function LeaguePage() {
         toast({ variant: 'destructive', title: t('incorrect_password') });
     }
     setPasswordPrompt({ open: false });
-    setPasswordInput('');
+    passwordInput('');
   };
 
   const withAdminCheck = (action: () => void) => {
@@ -409,13 +409,8 @@ export default function LeaguePage() {
 
     if (activeSeason.type === 'Co-Op Hybrid') {
         if (sortedTable.length < 4) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Harus ada minimal 4 tim untuk memulai playoff.' }); return; }
-        
-        // UB Semi 1: 1 vs 4
         batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[0].id, player2Id: sortedTable[3].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 1000), round: 'UB-Semi', bracketId: 'playoff-m9' });
-        // UB Semi 2: 2 vs 3
         batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[1].id, player2Id: sortedTable[2].id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 2000), round: 'UB-Semi', bracketId: 'playoff-m10' });
-        
-        // LB R1 matches (m13, m14)
         if (sortedTable.length >= 6) {
           batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[4].id, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 3000), round: 'LB-Round 3', bracketId: 'playoff-m13' });
           batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: sortedTable[5].id, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 4000), round: 'LB-Round 3', bracketId: 'playoff-m14' });
@@ -423,26 +418,14 @@ export default function LeaguePage() {
           batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 3000), round: 'LB-Round 3', bracketId: 'playoff-m13' });
           batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + 4000), round: 'LB-Round 3', bracketId: 'playoff-m14' });
         }
-        
-        // Placeholders for remaining rounds
-        const placeholders = [
-          { round: 'UB-Final', bid: 'playoff-m15' },
-          { round: 'LB-Semifinal', bid: 'playoff-m16' },
-          { round: 'LB-Final', bid: 'playoff-m17' },
-          { round: 'Grand-Final', bid: 'playoff-m18' }
-        ];
+        const placeholders = [{ round: 'UB-Final', bid: 'playoff-m15' }, { round: 'LB-Semifinal', bid: 'playoff-m16' }, { round: 'LB-Final', bid: 'playoff-m17' }, { round: 'Grand-Final', bid: 'playoff-m18' }];
         placeholders.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: 'TBD', player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 5) * 1000), round: p.round as any, bracketId: p.bid }));
-
         batch.commit().then(() => toast({ title: 'Playoff Co-Op Dibuat!', description: 'Bagan Double Elimination (6 Tim) telah berhasil dibuat.' }));
         return;
     }
     
-    // Default Hybrid (Double Elimination 12-Team)
     if (groupA.length < 6 || groupB.length < 6) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Masing-masing grup harus memiliki setidaknya 6 tim.' }); return; }
-    const ubQuarterPairings = [
-      { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' },
-      { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' },
-    ];
+    const ubQuarterPairings = [{ p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' }, { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' }];
     ubQuarterPairings.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId || p.p1.id, player2Id: p.p2.playerId || p.p2.id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 1) * 1000), round: 'UB-Quarter', bracketId: p.bid }));
     const lbRound1Starters = [ { p1: groupA[4], bid: 'playoff-m5' }, { p1: groupB[4], bid: 'playoff-m6' }, { p1: groupA[5], bid: 'playoff-m7' }, { p1: groupB[5], bid: 'playoff-m8' } ];
     lbRound1Starters.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId || p.p1.id, player2Id: 'TBD', player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 5) * 1000), round: 'LB-Round 1', bracketId: p.bid }));
@@ -527,10 +510,12 @@ export default function LeaguePage() {
             player1Name: pair.player1.name, 
             player1TeamId: pair.teamId || '', 
             player1TeamName: pair.teamName || '', 
+            player1Goals: 0,
             player2Id: pair.player2.id, 
             player2Name: pair.player2.name, 
             player2TeamId: pair.teamId || '', 
             player2TeamName: pair.teamName || '', 
+            player2Goals: 0,
             played: 0, win: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0, hasPaid: false 
         });
     });
@@ -688,7 +673,7 @@ export default function LeaguePage() {
             const getOutcome = (s1: number, s2: number) => s1 > s2 ? { p1: 'W', p2: 'L' } : (s1 < s2 ? { p1: 'L', p2: 'W' } : { p1: 'D', p2: 'D' });
             const oldS1 = isMatchBo3 ? (mToRev.player1Wins ?? mToRev.player1Score ?? 0) : (mToRev.player1Score ?? 0); const oldS2 = isMatchBo3 ? (mToRev.player2Wins ?? mToRev.player2Score ?? 0) : (mToRev.player2Score ?? 0); const outcome = getOutcome(oldS1, oldS2);
             if (isSeasonCoop && e1Data && e2Data) {
-                const d1 = e1Data as unknown as CoOpLeagueEntry; const d2 = e2Data as unknown as CoOpLeagueEntry;
+                const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
                 updatePlayerStats(d1.player1Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                 updatePlayerStats(d1.player2Id, { played: -1, win: outcome.p1 === 'W' ? -1 : 0, draw: 0, loss: outcome.p1 === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                 updatePlayerStats(d2.player1Id, { played: -1, win: outcome.p2 === 'W' ? -1 : 0, draw: 0, loss: outcome.p2 === 'L' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
@@ -703,6 +688,8 @@ export default function LeaguePage() {
                     if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; } 
                     e1.goalsFor -= (mToRev.player1Score || 0); e1.goalsAgainst -= (mToRev.player2Score || 0);
                     e2.goalsFor -= (mToRev.player2Score || 0); e2.goalsAgainst -= (mToRev.player1Score || 0);
+                    e1.player1Goals -= (mToRev.player1p1Goals || 0); e1.player2Goals -= (mToRev.player1p2Goals || 0);
+                    e2.player1Goals -= (mToRev.player2p1Goals || 0); e2.player2Goals -= (mToRev.player2p2Goals || 0);
                     e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 }
                 else { e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!; if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; } e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst; }
@@ -710,7 +697,7 @@ export default function LeaguePage() {
             }
             if (winMatchRef) transaction.update(winMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].winner.slot}Id`]: 'TBD' });
             if (losMatchRef && PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser) transaction.update(losMatchRef, { [`player${PLAYOFF_SUCCESSOR_MAP[mToRev.bracketId!].loser!.slot}Id`]: 'TBD' });
-            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, isCompleted: false, status: 'Scheduled' });
+            transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, player1p1Goals: null, player1p2Goals: null, player2p1Goals: null, player2p2Goals: null, isCompleted: false, status: 'Scheduled' });
         });
         toast({ title: t('match_reverted_title') }); setRevertingMatch(null);
     } catch (e: any) { toast({ variant: 'destructive', title: "Error", description: e.message }); }
@@ -1045,8 +1032,7 @@ export default function LeaguePage() {
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
       <PlayerPerformanceDialog player={selectedPlayerForStats} matches={matches || []} allPlayers={allPlayers || []} allTeams={allTeams || []} coopLeagueTable={coopLeagueTable || []} singleLeagueTable={singleLeagueTable || []} activeSeason={activeSeason} totalPlayersInSeason={(isSeasonCoop ? coopLeagueTable?.length : singleLeagueTable?.length) || 0} open={!!selectedPlayerForStats} onOpenChange={() => setSelectedPlayerForStats(null)} isAdmin={isAdmin} defendingChampionId={defendingChampionId} />
       
-      <AlertDialog open={!!revertingMatch} onOpenChange={(open) => !open && setRevertingMatch(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-none"><AlertDialogHeader><div className="flex items-center gap-4 text-amber-500 mb-2"><Undo2 className="w-8 h-8" /><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('revert_match_confirm_title')}</AlertDialogTitle></div>{revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}</AlertDialogHeader><AlertDialogFooter className="gap-4 mt-6"><AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={!!revertingMatch} onOpenChange={(open) => !open && setRevertingMatch(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-none"><AlertDialogHeader><div className="flex items-center gap-4 text-amber-500 mb-2"><Undo2 className="w-8 h-8" /><AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('revert_match_confirm_title')}</AlertDialogTitle></div>{revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}</AlertDialogHeader><AlertDialogFooter className="gap-4 mt-6"><AlertDialogCancel onClick={() => setRevertingMatch(null)} className="font-black uppercase tracking-widest italic rounded-none h-12">{t('cancel')}</AlertDialogCancel><AlertDialogAction revertingMatch && handleRevertMatch(revertingMatch)} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-none h-12">{t('revert_match_action')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     </div>
   );
 }
-

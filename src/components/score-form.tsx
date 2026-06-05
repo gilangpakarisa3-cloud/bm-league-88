@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -16,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Match, Season, Team, WithId, MatchStatus } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2, Loader2, Radio, Swords } from "lucide-react";
+import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTriangle, CheckCircle2, Loader2, Radio, Swords, User } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -39,17 +38,24 @@ const coopFormSchema = z.object({
   player2Wins: z.coerce.number().min(0).max(2),
   player1Score: z.coerce.number().min(0).default(0),
   player2Score: z.coerce.number().min(0).default(0),
+  player1p1Goals: z.coerce.number().min(0).default(0),
+  player1p2Goals: z.coerce.number().min(0).default(0),
+  player2p1Goals: z.coerce.number().min(0).default(0),
+  player2p2Goals: z.coerce.number().min(0).default(0),
   time: z.string().min(1, { message: "Waktu wajib diisi" }),
   date: z.date({ required_error: "Tanggal wajib diisi" }),
   status: z.enum(['Scheduled', 'Live', 'Completed', 'Postponed']),
 }).refine(data => {
     if (data.status === 'Completed') {
-        return (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
-               (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
+        const p1TotalValid = data.player1p1Goals + data.player1p2Goals === data.player1Score;
+        const p2TotalValid = data.player2p1Goals + data.player2p2Goals === data.player2Score;
+        const winsValid = (data.player1Wins === 2 && (data.player2Wins === 0 || data.player2Wins === 1)) ||
+                           (data.player2Wins === 2 && (data.player1Wins === 0 || data.player1Wins === 1));
+        return p1TotalValid && p2TotalValid && winsValid;
     }
     return true;
 }, {
-    message: "Untuk status 'Selesai', salah satu tim harus memiliki tepat 2 kemenangan (Best of 3).",
+    message: "Validasi Gagal: Total gol individu harus sama dengan total gol tim, dan skor BO3 harus valid (2-0/2-1).",
     path: ["player1Wins"],
 });
 
@@ -67,11 +73,11 @@ interface ScoreFormProps {
   match: WithId<Match>;
   onSave: (data: ScoreFormValues) => Promise<void>;
   seasonType?: Season['type'];
-  player1Info: { name: string; team?: WithId<Team> | null };
-  player2Info: { name: string; team?: WithId<Team> | null };
+  player1Info: { name: string; team?: WithId<Team> | null; p1Name?: string; p2Name?: string };
+  player2Info: { name: string; team?: WithId<Team> | null; p1Name?: string; p2Name?: string };
 }
 
-const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Unit", disabled }: { value: number, onIncrement: () => void, onDecrement: () => void, label?: string, disabled?: boolean }) => (
+const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Unit", disabled, size = "default" }: { value: number, onIncrement: () => void, onDecrement: () => void, label?: string, disabled?: boolean, size?: "default" | "sm" }) => (
   <div className="flex flex-col items-center gap-2">
     <div className="flex items-center gap-2">
       <Button 
@@ -79,20 +85,25 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
         variant="outline" 
         size="icon" 
         className={cn(
-          "h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
+          "rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
+          size === "sm" ? "h-8 w-8" : "h-10 w-10",
           disabled && "opacity-20 pointer-events-none"
         )}
         onClick={onDecrement}
         disabled={disabled}
       >
-        <Minus className="h-5 w-5 text-primary" />
+        <Minus className={cn(size === "sm" ? "h-3 w-3" : "h-5 w-5", "text-primary")} />
       </Button>
       
       <div className={cn(
-        "relative overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl w-24 h-20 flex items-center justify-center shadow-inner transition-all",
+        "relative overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl flex items-center justify-center shadow-inner transition-all",
+        size === "sm" ? "w-16 h-12" : "w-24 h-20",
         disabled && "opacity-50 grayscale"
       )}>
-        <span className="text-4xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums">
+        <span className={cn(
+            "font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums",
+            size === "sm" ? "text-xl" : "text-4xl"
+        )}>
           {value}
         </span>
       </div>
@@ -102,16 +113,17 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
         variant="outline" 
         size="icon" 
         className={cn(
-          "h-10 w-10 rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
+          "rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
+          size === "sm" ? "h-8 w-8" : "h-10 w-10",
           disabled && "opacity-20 pointer-events-none"
         )}
         onClick={onIncrement}
         disabled={disabled}
       >
-        <Plus className="h-5 w-5 text-primary" />
+        <Plus className={cn(size === "sm" ? "h-3 w-3" : "h-5 w-5", "text-primary")} />
       </Button>
     </div>
-    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">{label}</p>
+    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic text-center max-w-[120px]">{label}</p>
   </div>
 ));
 ScoreControl.displayName = "ScoreControl";
@@ -120,7 +132,6 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Check if it should be BO3 based on season type OR knockout round
   const isBestOfThree = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid' || (match.round && match.round !== 'Group');
 
   const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
@@ -149,6 +160,10 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             player2Wins: match.player2Wins ?? 0,
             player1Score: match.player1Score ?? 0,
             player2Score: match.player2Score ?? 0,
+            player1p1Goals: match.player1p1Goals ?? 0,
+            player1p2Goals: match.player1p2Goals ?? 0,
+            player2p1Goals: match.player2p1Goals ?? 0,
+            player2p2Goals: match.player2p2Goals ?? 0,
             time: timeToUse,
             date: dateToUse,
             status: match.status || 'Scheduled',
@@ -224,7 +239,17 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
 
   const errors = form.formState.errors;
   const hasErrors = Object.keys(errors).length > 0;
-  const isBo3Incomplete = matchStatus === 'Completed' && isBestOfThree && p1Wins < 2 && p2Wins < 2;
+  
+  const p1p1Goals = isBestOfThree ? (form.watch('player1p1Goals' as any) || 0) : 0;
+  const p1p2Goals = isBestOfThree ? (form.watch('player1p2Goals' as any) || 0) : 0;
+  const p2p1Goals = isBestOfThree ? (form.watch('player2p1Goals' as any) || 0) : 0;
+  const p2p2Goals = isBestOfThree ? (form.watch('player2p2Goals' as any) || 0) : 0;
+
+  const p1SumMatch = isBestOfThree && (p1p1Goals + p1p2Goals === p1Score);
+  const p2SumMatch = isBestOfThree && (p2p1Goals + p2p2Goals === p2Score);
+  const isBo3Valid = isBestOfThree && (p1Wins === 2 || p2Wins === 2);
+
+  const isCompletedValidationFail = matchStatus === 'Completed' && isBestOfThree && (!p1SumMatch || !p2SumMatch || !isBo3Valid);
 
   const gameIdx = isBestOfThree ? (p1Wins + p2Wins + 1) : 1;
 
@@ -263,25 +288,19 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                         <p className="text-[8px] font-black text-red-500 uppercase tracking-widest italic">Broadcasting to LiveScore Dashboard</p>
                     </div>
-                    {isBestOfThree && (
-                        <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary text-[9px] font-black uppercase italic tracking-tighter px-4 h-6 animate-in zoom-in-95 duration-500">
-                           <Swords className="w-3 h-3 mr-2" /> UPDATING GAME {gameIdx} OF 3
-                        </Badge>
-                    )}
                 </div>
             )}
         </div>
 
         <div className="relative">
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center pointer-events-none">
-                <div className="relative group/vs">
-                    <div className="bg-[#0A192F] border-2 border-primary rounded-full w-14 h-14 flex items-center justify-center shadow-xl ring-4 ring-[#0A192F]">
-                        <span className="text-primary font-black text-xl tracking-tighter italic pr-0.5">VS</span>
-                    </div>
+            <div className="absolute left-1/2 top-1/4 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex items-center justify-center pointer-events-none">
+                <div className="bg-[#0A192F] border-2 border-primary rounded-full w-14 h-14 flex items-center justify-center shadow-xl ring-4 ring-[#0A192F]">
+                    <span className="text-primary font-black text-xl tracking-tighter italic pr-0.5">VS</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+              {/* Home Team */}
               <div className={cn(
                   "bg-gradient-to-br from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all",
                   isBestOfThree ? (p1Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p1Score > p2Score ? "border-primary shadow-lg" : "border-primary/10"),
@@ -295,11 +314,6 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         <AvatarImage src={player1Info.team?.logoUrl} className="object-cover" />
                         <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
                     </Avatar>
-                    {(isBestOfThree ? p1Wins >= 2 : p1Score > p2Score) && (
-                        <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg">
-                            <CheckCircle2 className="w-3 h-3 text-black" />
-                        </div>
-                    )}
                 </div>
 
                 <div className="space-y-1 relative z-10">
@@ -309,7 +323,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                   </Badge>
                 </div>
                 
-                <div className="w-full relative z-10 space-y-4">
+                <div className="w-full relative z-10 space-y-6">
                     {isBestOfThree && (
                         <div className="flex flex-col items-center gap-1">
                             <div className={cn(
@@ -318,19 +332,48 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                             )}>
                                 <span className={cn("text-3xl font-black italic tabular-nums", p1Wins >= 2 ? "text-primary" : "text-white/40")}>{p1Wins}</span>
                             </div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Series Wins</p>
                         </div>
                     )}
+                    
                     <ScoreControl 
                         value={p1Score} 
                         onIncrement={() => incrementValue('player1Score')} 
                         onDecrement={() => decrementValue('player1Score')} 
-                        label={isBestOfThree && matchStatus === 'Live' ? `Game ${gameIdx} Goals` : "Total goals"}
+                        label="Total Goals"
                         disabled={isSaving}
                     />
+
+                    {isBestOfThree && (
+                        <div className="pt-4 space-y-4 border-t border-white/5">
+                            <div className="flex flex-col items-center gap-1 opacity-60">
+                                <Activity className="w-3 h-3 text-primary" />
+                                <span className="text-[7px] font-black uppercase tracking-[0.3em] text-white/40">Individual Allocation</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4">
+                                <ScoreControl 
+                                    size="sm"
+                                    value={p1p1Goals} 
+                                    onIncrement={() => incrementValue('player1p1Goals')} 
+                                    onDecrement={() => decrementValue('player1p1Goals')} 
+                                    label={`Gol ${player1Info.p1Name || 'P1'}`}
+                                    disabled={isSaving}
+                                />
+                                <ScoreControl 
+                                    size="sm"
+                                    value={p1p2Goals} 
+                                    onIncrement={() => incrementValue('player1p2Goals')} 
+                                    onDecrement={() => decrementValue('player1p2Goals')} 
+                                    label={`Gol ${player1Info.p2Name || 'P2'}`}
+                                    disabled={isSaving}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
               </div>
 
+              {/* Away Team */}
               <div className={cn(
                   "bg-gradient-to-bl from-primary/[0.05] to-transparent border-2 rounded-2xl p-5 flex flex-col items-center gap-4 text-center relative overflow-hidden transition-all",
                   isBestOfThree ? (p2Wins >= 2 ? "border-primary shadow-lg" : "border-primary/10") : (p2Score > p1Score ? "border-primary shadow-lg" : "border-primary/10"),
@@ -344,11 +387,6 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         <AvatarImage src={player2Info.team?.logoUrl} className="object-cover" />
                         <AvatarFallback><Shield className="h-8 w-8 text-white/10" /></AvatarFallback>
                     </Avatar>
-                    {(isBestOfThree ? p2Wins >= 2 : p2Score > p1Score) && (
-                        <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg">
-                            <CheckCircle2 className="w-3 h-3 text-black" />
-                        </div>
-                    )}
                 </div>
 
                 <div className="space-y-1 relative z-10">
@@ -358,7 +396,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                   </Badge>
                 </div>
 
-                <div className="w-full relative z-10 space-y-4">
+                <div className="w-full relative z-10 space-y-6">
                     {isBestOfThree && (
                         <div className="flex flex-col items-center gap-1">
                             <div className={cn(
@@ -367,16 +405,44 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                             )}>
                                 <span className={cn("text-3xl font-black italic tabular-nums", p2Wins >= 2 ? "text-primary" : "text-white/40")}>{p2Wins}</span>
                             </div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Wins</p>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] italic">Series Wins</p>
                         </div>
                     )}
+                    
                     <ScoreControl 
                         value={p2Score} 
                         onIncrement={() => incrementValue('player2Score')} 
                         onDecrement={() => decrementValue('player2Score')} 
-                        label={isBestOfThree && matchStatus === 'Live' ? `Game ${gameIdx} Goals` : "Total goals"}
+                        label="Total Goals"
                         disabled={isSaving}
                     />
+
+                    {isBestOfThree && (
+                        <div className="pt-4 space-y-4 border-t border-white/5">
+                            <div className="flex flex-col items-center gap-1 opacity-60">
+                                <Activity className="w-3 h-3 text-primary" />
+                                <span className="text-[7px] font-black uppercase tracking-[0.3em] text-white/40">Individual Allocation</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4">
+                                <ScoreControl 
+                                    size="sm"
+                                    value={p2p1Goals} 
+                                    onIncrement={() => incrementValue('player2p1Goals')} 
+                                    onDecrement={() => decrementValue('player2p1Goals')} 
+                                    label={`Gol ${player2Info.p1Name || 'P1'}`}
+                                    disabled={isSaving}
+                                />
+                                <ScoreControl 
+                                    size="sm"
+                                    value={p2p2Goals} 
+                                    onIncrement={() => incrementValue('player2p2Goals')} 
+                                    onDecrement={() => decrementValue('player2p2Goals')} 
+                                    label={`Gol ${player2Info.p2Name || 'P2'}`}
+                                    disabled={isSaving}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -387,9 +453,8 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
             <div className="mb-4 flex items-center justify-between">
                <div className="flex items-center gap-2">
                    <Zap className="w-4 h-4 text-primary fill-primary" />
-                   <span className="font-black text-[10px] uppercase tracking-[0.2em] text-white/60">Tactical Game Log</span>
+                   <span className="font-black text-[10px] uppercase tracking-[0.2em] text-white/60">Tactical Game Log (BO3)</span>
                </div>
-               <Badge className="bg-primary text-black font-black px-3 h-5 text-[9px] tracking-tighter uppercase italic">Best of 3</Badge>
             </div>
             <CoopScoreChecklist
                player1Name={player1Info.name}
@@ -400,21 +465,23 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
           </div>
         )}
 
-        {(hasErrors || isBo3Incomplete) && (
+        {(hasErrors || isCompletedValidationFail) && (
             <div className="bg-red-500/10 border-2 border-red-500/30 p-4 rounded-xl flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                     <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">Protocol Violation Detected</p>
-                    <ul className="list-disc pl-4">
-                        {isBo3Incomplete && (
-                            <li className="text-[11px] font-bold text-white/80 leading-tight">
-                                Untuk status 'Selesai', salah satu tim harus mencapai minimal 2 kemenangan dalam format BO3.
-                            </li>
+                    <ul className="list-disc pl-4 space-y-1">
+                        {isBestOfThree && !isBo3Valid && matchStatus === 'Completed' && (
+                            <li className="text-[11px] font-bold text-white/80 leading-tight">Salah satu tim harus mencapai 2 kemenangan.</li>
+                        )}
+                        {isBestOfThree && !p1SumMatch && matchStatus === 'Completed' && (
+                            <li className="text-[11px] font-bold text-white/80 leading-tight">Total gol individu Tim Home tidak cocok dengan skor tim ({p1p1Goals} + {p1p2Goals} ≠ {p1Score}).</li>
+                        )}
+                        {isBestOfThree && !p2SumMatch && matchStatus === 'Completed' && (
+                            <li className="text-[11px] font-bold text-white/80 leading-tight">Total gol individu Tim Away tidak cocok dengan skor tim ({p2p1Goals} + {p2p2Goals} ≠ {p2Score}).</li>
                         )}
                         {Object.values(errors).map((error: any, i) => (
-                            <li key={i} className="text-[11px] font-bold text-white/80 leading-tight">
-                                {error.message || "Data input tidak valid."}
-                            </li>
+                            <li key={i} className="text-[11px] font-bold text-white/80 leading-tight">{error.message}</li>
                         ))}
                     </ul>
                 </div>
@@ -434,71 +501,47 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                       <Popover>
                         <PopoverTrigger asChild disabled={isSaving}>
                           <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-black h-12 border-white/10 bg-black/40 rounded-lg hover:border-primary/50 transition-all text-[10px] uppercase text-center",
-                                !field.value && "text-white/20"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value as Date, "eeee, d MMM yyyy", { locale: localeId })
-                              ) : (
-                                <span>Input Date</span>
-                              )}
+                            <Button variant={"outline"} className={cn("w-full pl-3 text-left font-black h-12 border-white/10 bg-black/40 rounded-lg text-[10px] uppercase text-center", !field.value && "text-white/20")}>
+                              {field.value ? format(field.value as Date, "eeee, d MMM yyyy", { locale: localeId }) : <span>Input Date</span>}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0 bg-[#0A192F] border-primary/30" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value as Date}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="rounded-xl"
-                          />
+                          <Calendar mode="single" selected={field.value as Date} onSelect={field.onChange} initialFocus className="rounded-xl" />
                         </PopoverContent>
                       </Popover>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
                  <FormField
                   control={form.control}
                   name="time"
-                  render={({ field }) => {
-                    return (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-[9px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-1.5">
-                          <Clock className="w-2.5 h-2.5" /> Kick-Off Time (24H)
-                        </FormLabel>
-                        <div className="flex items-center justify-center gap-2">
-                            <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)} disabled={isSaving}>
-                                <SelectTrigger className="h-12 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums w-full text-center">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#0A192F] border-primary/30">
-                                    {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                        <SelectItem key={v} value={v} className="font-black">{v}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <span className="text-primary font-black text-xl">:</span>
-                            <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)} disabled={isSaving}>
-                                <SelectTrigger className="h-12 font-black border-white/10 bg-black/40 rounded-lg focus:border-primary/50 text-base tabular-nums w-full text-center">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#0A192F] border-primary/30">
-                                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (
-                                        <SelectItem key={v} value={v} className="font-black">{v}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-[9px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-1.5">
+                        <Clock className="w-2.5 h-2.5" /> Kick-Off Time (24H)
+                      </FormLabel>
+                      <div className="flex items-center justify-center gap-2">
+                        <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)} disabled={isSaving}>
+                            <SelectTrigger className="h-12 font-black border-white/10 bg-black/40 rounded-lg text-base tabular-nums w-full text-center">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#0A192F] border-primary/30">
+                                {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black">{v}</SelectItem>))}
+                            </SelectContent>
+                        </Select>
+                        <span className="text-primary font-black text-xl">:</span>
+                        <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)} disabled={isSaving}>
+                            <SelectTrigger className="h-12 font-black border-white/10 bg-black/40 rounded-lg text-base tabular-nums w-full text-center">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#0A192F] border-primary/30">
+                                {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black">{v}</SelectItem>))}
+                            </SelectContent>
+                        </Select>
+                      </div>
+                    </FormItem>
+                  )}
                 />
             </div>
         </div>
@@ -509,19 +552,13 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
               disabled={isSaving} 
               className={cn(
                 "w-full h-14 text-lg font-black tracking-tighter gap-3 shadow-xl rounded-xl uppercase italic group/btn overflow-hidden relative z-10 transition-all",
-                isSaving ? "bg-primary/20 text-white/20" : "bg-primary text-black hover:bg-primary/90"
+                isSaving ? "bg-primary/20 text-white/20 cursor-wait" : "bg-primary text-black hover:bg-primary/90"
               )}
             >
               {isSaving ? (
-                <div className="flex items-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Synchronizing...
-                </div>
+                <div className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Synchronizing...</div>
               ) : (
-                <>
-                  <Save className="w-5 h-5 transition-transform group-hover/btn:scale-110" />
-                  {matchStatus === 'Live' ? "Sync Live Stats" : "Finalize Match Stats"}
-                </>
+                <><Save className="w-5 h-5 transition-transform group-hover/btn:scale-110" /> {matchStatus === 'Live' ? "Sync Live Stats" : "Finalize Match Stats"}</>
               )}
             </Button>
         </div>
@@ -529,4 +566,3 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
     </Form>
   );
 }
-

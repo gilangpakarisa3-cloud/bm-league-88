@@ -15,7 +15,7 @@ service cloud.firestore {
      * @description Memicu pembaruan deployment aturan keamanan.
      * System integrity: ACTIVE
      * Prototype mode: ENABLED
-     * Last Updated: GD_TRACKING_SYNC_COOP_V1
+     * Last Updated: GD_TRACKING_SYNC_COOP_V2
      */
   }
 }
