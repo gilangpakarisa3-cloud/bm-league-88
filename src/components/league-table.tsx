@@ -360,41 +360,44 @@ const TopScorerTable = memo(({
                         const isPredator = scorer.rank === 1 && scorer.goals > 0;
                         return (
                             <TableRow key={scorer.id} className={cn(
-                                "transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden", 
-                                isPredator ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.2] h-20 sm:h-24" : "hover:bg-white/[0.03]"
+                                "transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden cursor-pointer", 
+                                isPredator 
+                                    ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" 
+                                    : "hover:bg-primary/[0.15] hover:shadow-[inset_0_0_40px_rgba(204,253,1,0.1)]"
                             )}>
                                 {isPredator && (
                                     <div className="absolute inset-0 z-0">
                                         <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-transparent to-transparent opacity-30" />
                                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
-                                        <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50" />
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] pr-20">
+                                        <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50 group-hover/row:opacity-100 group-hover/row:h-2 transition-all duration-500" />
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] group-hover/row:opacity-[0.08] transition-opacity duration-700 pr-20">
                                             <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">APEX PREDATOR</span>
                                         </div>
                                     </div>
                                 )}
-                                <TableCell className={cn("p-0 w-1.5 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]' : 'bg-transparent')} />
-                                <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]" : "text-white/40")}>{scorer.rank}</TableCell>
+                                
+                                <TableCell className={cn("p-0 w-1.5 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)]' : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]')} />
+                                <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] group-hover/row:scale-150" : "text-white/40 group-hover/row:text-primary group-hover/row:scale-110")}>{scorer.rank}</TableCell>
                                 <TableCell className="py-2 relative z-10">
                                     <div className="flex items-center gap-3">
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-4">
-                                                <span className={cn("font-black tracking-tight uppercase italic pr-2 transition-colors", isPredator ? "text-base sm:text-2xl text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]" : "text-[12px] sm:text-lg text-white")}>{scorer.name}</span>
+                                                <span className={cn("font-black tracking-tight uppercase italic pr-2 transition-all duration-500", isPredator ? "text-base sm:text-2xl text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.3)] group-hover/row:translate-x-2" : "text-[12px] sm:text-lg text-white group-hover/row:text-primary group-hover/row:translate-x-1")}>{scorer.name}</span>
                                                 {isPredator && (
                                                     <div className="relative group/pred-badge">
                                                         <div className="absolute -inset-2 bg-yellow-400/20 blur-xl opacity-0 group-hover/pred-badge:opacity-100 transition-opacity animate-pulse" />
-                                                        <div className="relative flex items-center bg-black border-2 border-yellow-400 px-4 py-1.5 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)]">
+                                                        <div className="relative flex items-center bg-black border-2 border-yellow-400 px-4 py-1.5 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] group-hover/row:shadow-[6px_6px_0px_rgba(250,204,21,0.5)] transition-all">
                                                             <Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" />
                                                             <span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg] leading-none">PREDATOR</span>
                                                         </div>
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1", isPredator ? "text-yellow-400/60" : "text-white/30")}>{scorer.teamName}</span>
+                                            <span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1 transition-colors duration-500", isPredator ? "text-yellow-400/60" : "text-white/30 group-hover/row:text-primary/60")}>{scorer.teamName}</span>
                                         </div>
                                     </div>
                                 </TableCell>
-                                <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums relative z-10", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)]" : "text-white/60")}>{scorer.goals}</TableCell>
+                                <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums relative z-10 transition-all duration-500", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)] group-hover/row:scale-110" : "text-white/60 group-hover/row:text-primary group-hover/row:drop-shadow-[0_0_15px_rgba(204,253,1,0.4)]")}>{scorer.goals}</TableCell>
                             </TableRow>
                         )
                     })}
