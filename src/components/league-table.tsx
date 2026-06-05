@@ -9,8 +9,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { LeagueEntry, Season, WithId, Player, Team, Match, CoOpLeagueEntry } from "@/lib/types";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info, CheckCircle2, Flame, Binary, Target, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -81,7 +82,7 @@ const PlayoffQualificationLegend = () => {
             <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
+            <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 none">Lower Bracket</span>
             <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Peringkat 5 - 6</span>
           </div>
         </div>
@@ -351,7 +352,7 @@ const TopScorerTable = memo(({
     return (
         <div className="space-y-12">
             {/* Spotlight Cards - Predator & Pedofil */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto px-4">
                 {/* EL-PREDATOR CARD */}
                 {predator && (
                     <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500">
