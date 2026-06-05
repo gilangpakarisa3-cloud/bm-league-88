@@ -356,7 +356,14 @@ const TopScorerTable = memo(({
                 {/* EL-PREDATOR CARD */}
                 {predator && (
                     <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500">
+                         {/* HUD Pattern Overlay */}
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                         
+                         {/* Ghost Blazing Fire Icon */}
+                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-yellow-400 opacity-[0.07] pointer-events-none z-0">
+                            <Flame className="w-full h-full animate-pulse fill-current" />
+                         </div>
+
                          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 -mr-16 -mt-16 rounded-full blur-3xl" />
                          
                          <div className="flex items-center justify-between mb-6 relative z-10">
@@ -394,6 +401,11 @@ const TopScorerTable = memo(({
                     <Card className="relative overflow-hidden border-2 border-red-500/30 bg-red-500/[0.02] rounded-3xl p-6 shadow-[0_0_50px_rgba(239,68,68,0.05)] group/ped-card hover:border-red-500 transition-all duration-500">
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
                          
+                         {/* Ghost Warning Icon */}
+                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-red-500 opacity-[0.05] pointer-events-none z-0">
+                            <ShieldAlert className="w-full h-full animate-pulse" />
+                         </div>
+
                          <div className="flex items-center justify-between mb-6 relative z-10">
                             <Badge className="bg-red-500 text-white font-black italic text-[9px] px-3 h-6 tracking-widest -skew-x-[12deg] shadow-lg">EL-PEDOFIL</Badge>
                             <ShieldAlert className="w-5 h-5 text-red-500/30" />
