@@ -376,7 +376,12 @@ const TopScorerTable = memo(({
                                     </div>
                                 )}
                                 
-                                <TableCell className={cn("p-0 w-1.5 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)]' : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]')} />
+                                <TableCell className={cn(
+                                    "p-0 w-1.5 transition-all duration-500", 
+                                    isPredator 
+                                        ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)] scale-y-110' 
+                                        : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]'
+                                )} />
                                 <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] group-hover/row:scale-150" : "text-white/40 group-hover/row:text-primary group-hover/row:scale-110")}>{scorer.rank}</TableCell>
                                 <TableCell className="py-2 relative z-10">
                                     <div className="flex items-center gap-3">
