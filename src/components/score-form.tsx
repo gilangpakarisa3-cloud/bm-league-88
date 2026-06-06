@@ -19,7 +19,7 @@ import { CalendarIcon, Clock, Save, Shield, Plus, Minus, Zap, Activity, AlertTri
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
@@ -77,7 +77,7 @@ interface ScoreFormProps {
   player2Info: { name: string; team?: WithId<Team> | null; p1Name?: string; p2Name?: string };
 }
 
-const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Unit", disabled, size = "default" }: { value: number, onIncrement: () => void, onDecrement: () => void, label?: string, disabled?: boolean, size?: "default" | "sm" }) => (
+const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Unit", disabled, size = "default", readOnly = false }: { value: number, onIncrement: () => void, onDecrement: () => void, label?: string, disabled?: boolean, size?: "default" | "sm", readOnly?: boolean }) => (
   <div className="flex flex-col items-center gap-2">
     <div className="flex items-center gap-2">
       <Button 
@@ -87,10 +87,10 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
         className={cn(
           "rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
           size === "sm" ? "h-8 w-8" : "h-10 w-10",
-          disabled && "opacity-20 pointer-events-none"
+          (disabled || readOnly) && "opacity-20 pointer-events-none"
         )}
         onClick={onDecrement}
-        disabled={disabled}
+        disabled={disabled || readOnly}
       >
         <Minus className={cn(size === "sm" ? "h-3 w-3" : "h-5 w-5", "text-primary")} />
       </Button>
@@ -98,11 +98,13 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
       <div className={cn(
         "relative overflow-hidden bg-black/40 border-2 border-primary/20 rounded-xl flex items-center justify-center shadow-inner transition-all",
         size === "sm" ? "w-16 h-12" : "w-24 h-20",
-        disabled && "opacity-50 grayscale"
+        disabled && "opacity-50 grayscale",
+        readOnly && "border-white/10"
       )}>
         <span className={cn(
             "font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.6)] relative z-10 tabular-nums",
-            size === "sm" ? "text-xl" : "text-4xl"
+            size === "sm" ? "text-xl" : "text-4xl",
+            readOnly && "text-white/60"
         )}>
           {value}
         </span>
@@ -115,10 +117,10 @@ const ScoreControl = memo(({ value, onIncrement, onDecrement, label = "Score Uni
         className={cn(
           "rounded-full border-2 border-primary/30 bg-black/20 hover:bg-primary/20 hover:border-primary transition-all shadow-lg",
           size === "sm" ? "h-8 w-8" : "h-10 w-10",
-          disabled && "opacity-20 pointer-events-none"
+          (disabled || readOnly) && "opacity-20 pointer-events-none"
         )}
         onClick={onIncrement}
-        disabled={disabled}
+        disabled={disabled || readOnly}
       >
         <Plus className={cn(size === "sm" ? "h-3 w-3" : "h-5 w-5", "text-primary")} />
       </Button>
@@ -133,6 +135,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
   const [isSaving, setIsSaving] = useState(false);
 
   const isBestOfThree = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid' || (match.round && match.round !== 'Group');
+  const isCoopSession = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid';
 
   const [gameWinners, setGameWinners] = useState<(string | null)[]>(() => {
     const winners: (string | null)[] = [null, null, null];
@@ -182,6 +185,26 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
     resolver: zodResolver(formSchema),
     defaultValues: getInitialValues(match),
   });
+
+  // Sync Total Goals in Co-Op mode
+  useEffect(() => {
+    if (isCoopSession) {
+      const p1p1 = form.watch('player1p1Goals' as any) || 0;
+      const p1p2 = form.watch('player1p2Goals' as any) || 0;
+      const p2p1 = form.watch('player2p1Goals' as any) || 0;
+      const p2p2 = form.watch('player2p2Goals' as any) || 0;
+      
+      form.setValue('player1Score' as any, p1p1 + p1p2, { shouldValidate: true });
+      form.setValue('player2Score' as any, p2p1 + p2p2, { shouldValidate: true });
+    }
+  }, [
+    form.watch('player1p1Goals' as any), 
+    form.watch('player1p2Goals' as any), 
+    form.watch('player2p1Goals' as any), 
+    form.watch('player2p2Goals' as any), 
+    isCoopSession, 
+    form
+  ]);
 
   const handleSubmit = async (data: ScoreFormValues) => {
     if (isSaving) return;
@@ -340,11 +363,12 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         value={p1Score} 
                         onIncrement={() => incrementValue('player1Score')} 
                         onDecrement={() => decrementValue('player1Score')} 
-                        label="Total Goals"
+                        label={isCoopSession ? "Total (Auto-Sum)" : "Total Goals"}
                         disabled={isSaving}
+                        readOnly={isCoopSession}
                     />
 
-                    {isBestOfThree && (
+                    {isBestOfThree && isCoopSession && (
                         <div className="pt-4 space-y-4 border-t border-white/5">
                             <div className="flex flex-col items-center gap-1 opacity-60">
                                 <Activity className="w-3 h-3 text-primary" />
@@ -413,11 +437,12 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         value={p2Score} 
                         onIncrement={() => incrementValue('player2Score')} 
                         onDecrement={() => decrementValue('player2Score')} 
-                        label="Total Goals"
+                        label={isCoopSession ? "Total (Auto-Sum)" : "Total Goals"}
                         disabled={isSaving}
+                        readOnly={isCoopSession}
                     />
 
-                    {isBestOfThree && (
+                    {isBestOfThree && isCoopSession && (
                         <div className="pt-4 space-y-4 border-t border-white/5">
                             <div className="flex flex-col items-center gap-1 opacity-60">
                                 <Activity className="w-3 h-3 text-primary" />
@@ -474,10 +499,10 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info 
                         {isBestOfThree && !isBo3Valid && matchStatus === 'Completed' && (
                             <li className="text-[11px] font-bold text-white/80 leading-tight">Salah satu tim harus mencapai 2 kemenangan.</li>
                         )}
-                        {isBestOfThree && !p1SumMatch && matchStatus === 'Completed' && (
+                        {isBestOfThree && isCoopSession && !p1SumMatch && matchStatus === 'Completed' && (
                             <li className="text-[11px] font-bold text-white/80 leading-tight">Total gol individu Tim Home tidak cocok dengan skor tim ({p1p1Goals} + {p1p2Goals} ≠ {p1Score}).</li>
                         )}
-                        {isBestOfThree && !p2SumMatch && matchStatus === 'Completed' && (
+                        {isBestOfThree && isCoopSession && !p2SumMatch && matchStatus === 'Completed' && (
                             <li className="text-[11px] font-bold text-white/80 leading-tight">Total gol individu Tim Away tidak cocok dengan skor tim ({p2p1Goals} + {p2p2Goals} ≠ {p2Score}).</li>
                         )}
                         {Object.values(errors).map((error: any, i) => (
