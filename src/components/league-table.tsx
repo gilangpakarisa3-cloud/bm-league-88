@@ -337,6 +337,9 @@ const TopScorerTable = memo(({
                 const coop = entry as CoOpLeagueEntry;
                 scorers.push({ id: coop.player1Id, name: coop.player1Name, goals: coop.player1Goals || 0, teamId: coop.player1TeamId, teamName: coop.player1TeamName, played: coop.played });
                 scorers.push({ id: coop.player2Id, name: coop.player2Name, goals: coop.player2Goals || 0, teamId: coop.player2TeamId, teamName: coop.player2TeamName, played: coop.played });
+            } else {
+                const single = entry as LeagueEntry;
+                scorers.push({ id: single.playerId, name: single.playerName, goals: single.goalsFor || 0, teamId: single.teamId, teamName: single.teamName, played: single.played });
             }
         });
 
@@ -355,13 +358,18 @@ const TopScorerTable = memo(({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto px-4">
                 {/* EL-PREDATOR CARD */}
                 {predator && (
-                    <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500">
+                    <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500 animate-predator-glow">
                          {/* HUD Pattern Overlay */}
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
                          
                          {/* Ghost Blazing Fire Icon */}
                          <div className="absolute -bottom-10 -right-10 w-64 h-64 text-yellow-400 opacity-[0.07] pointer-events-none z-0">
                             <Flame className="w-full h-full animate-pulse fill-current" />
+                         </div>
+
+                         {/* Dynamic Internal Light Sweep */}
+                         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
+                             <div className="w-full h-1 bg-yellow-400 blur-[1px] absolute top-0 left-0 animate-scanning" />
                          </div>
 
                          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 -mr-16 -mt-16 rounded-full blur-3xl" />
@@ -374,22 +382,25 @@ const TopScorerTable = memo(({
                                     <span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg] leading-none">EL-PREDATOR</span>
                                 </div>
                             </div>
-                            <Target className="w-5 h-5 text-yellow-400/40 animate-pulse" />
+                            <div className="p-2 bg-yellow-400/10 rounded-full border border-yellow-400/20 animate-spin-slow">
+                                <Target className="w-5 h-5 text-yellow-400/60" />
+                            </div>
                          </div>
 
                          <div className="flex items-center gap-5 relative z-10">
                              <div className="relative">
+                                 <div className="absolute -inset-2 rounded-full border-2 border-dashed border-yellow-400/30 animate-spin-slow" />
                                  <Avatar className="h-20 w-20 border-4 border-yellow-400/60 shadow-2xl group-hover/pred-card:scale-110 transition-transform duration-700">
-                                     <AvatarFallback className="bg-black/60"><User className="w-10 h-10 text-white/20"/></AvatarFallback>
+                                     <AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/20"/></AvatarFallback>
                                  </Avatar>
-                                 <div className="absolute -bottom-1 -right-1 bg-yellow-400 p-1.5 rounded-lg rotate-12 shadow-xl border-2 border-background"><Trophy className="w-4 h-4 text-black"/></div>
+                                 <div className="absolute -bottom-1 -right-1 bg-yellow-400 p-1.5 rounded-lg rotate-12 shadow-xl border-2 border-background animate-bounce"><Trophy className="w-4 h-4 text-black"/></div>
                              </div>
                              <div className="flex-1 overflow-hidden">
                                  <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" suppressHydrationWarning>{predator.name}</h4>
                                  <p className="text-[10px] font-black text-yellow-400/60 uppercase tracking-widest" suppressHydrationWarning>{predator.teamName}</p>
                              </div>
                              <div className="text-right">
-                                 <span className="text-5xl font-black italic text-yellow-400 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" suppressHydrationWarning>{predator.goals}</span>
+                                 <span className="text-5xl font-black italic text-yellow-400 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] animate-pulse" suppressHydrationWarning>{predator.goals}</span>
                                  <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1">TOTAL GOL</p>
                              </div>
                          </div>
@@ -416,7 +427,7 @@ const TopScorerTable = memo(({
                                  <Avatar className="h-20 w-20 border-4 border-red-500/20">
                                      <AvatarFallback className="bg-black/60"><User className="w-10 h-10 text-white/10"/></AvatarFallback>
                                  </Avatar>
-                                 <div className="absolute -bottom-1 -right-1 bg-red-500 p-1.5 rounded-lg -rotate-12 shadow-xl border-2 border-background"><Zap className="w-4 h-4 text-white"/></div>
+                                 <div className="absolute -bottom-1 -right-1 bg-red-500 p-1.5 rounded-lg -rotate-12 shadow-xl border-2 border-background animate-pulse"><Zap className="w-4 h-4 text-white"/></div>
                              </div>
                              <div className="flex-1 overflow-hidden">
                                  <h4 className="text-2xl font-black text-white/80 uppercase italic tracking-tighter truncate pr-4" suppressHydrationWarning>{mainPedofil.name}</h4>
