@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip } from 'recharts';
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
@@ -44,19 +44,28 @@ const StatDisplay = ({ label, value, variant = "default" }: { label: string, val
   </div>
 );
 
-const IntelCard = ({ icon: Icon, label, value, variant = "default" }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
-  <div className={cn(
-      "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel",
-      variant === "primary" ? "bg-primary/10 border-primary/30 hover:border-primary/50" : 
-      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/30 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"
-  )}>
-      <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
-      <div className="flex items-center justify-center gap-1.5 relative z-10">
-          <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
-          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60">{label}</span>
-      </div>
-      <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
-  </div>
+const IntelCard = ({ icon: Icon, label, value, variant = "default", tooltip }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold", tooltip?: string }) => (
+    <Popover>
+        <PopoverTrigger asChild>
+            <div className={cn(
+                "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel cursor-help",
+                variant === "primary" ? "bg-primary/10 border-primary/30 hover:border-primary/50" : 
+                variant === "gold" ? "bg-yellow-500/10 border-yellow-500/30 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"
+            )}>
+                <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
+                <div className="flex items-center justify-center gap-1.5 relative z-10">
+                    <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60">{label}</span>
+                </div>
+                <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
+            </div>
+        </PopoverTrigger>
+        {tooltip && (
+            <PopoverContent className="w-56 text-center bg-black/90 border-primary/30 backdrop-blur-xl">
+                <p className="text-[10px] font-bold text-white/80">{tooltip}</p>
+            </PopoverContent>
+        )}
+    </Popover>
 );
 
 export function PlayerPerformanceDialog({ 
@@ -90,7 +99,8 @@ export function PlayerPerformanceDialog({
     const withOvr = players.map(p => {
         const poss = (p.overallPlayed || 0) * 3;
         const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-        return { ...p, ovrRating: poss > 0 ? (act / poss) * 100 : 0 };
+        const ovrRating = poss > 0 ? (act / poss) * 100 : 0;
+        return { ...p, ovrRating };
     });
     return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed).map((p, i) => ({ ...p, masterRank: i + 1 }));
   }, [playersById]);
@@ -146,10 +156,16 @@ export function PlayerPerformanceDialog({
           let opponent = null; let opponentTeam = null;
           if (isCoop) {
             const opponentEntry = coopTableById[opponentId];
-            if (opponentEntry) { opponent = { name: opponentEntry.teamName }; opponentTeam = teamsById[opponentEntry.player1TeamId] || null; }
+            if (opponentEntry) { 
+                opponent = { name: opponentEntry.teamName }; 
+                opponentTeam = teamsById[opponentEntry.player1TeamId] || null; 
+            } else if (opponentId === 'TBD') {
+                opponent = { name: 'TBD' };
+            }
           } else {
               const opponentEntry = singleTableByPlayerId[opponentId];
               if (opponentEntry) { opponent = { name: opponentEntry.playerName }; opponentTeam = teamsById[opponentEntry.teamId]; }
+              else if (opponentId === 'TBD') { opponent = { name: 'TBD' }; }
               else { const opponentPlayer = playersById[opponentId]; if (opponentPlayer) { opponent = { name: opponentPlayer.name }; opponentTeam = teamsById[opponentPlayer.teamId]; } }
           }
           return { ...m, isPlayer1, opponent, opponentTeam }
@@ -182,7 +198,25 @@ export function PlayerPerformanceDialog({
         return { match: index + 1, points: trendScore };
     })];
 
-    const masterInfo = masterPlayersRanked.find(p => p.id === playerIdToFilter);
+    // MASTER CAREER LOOKUP FIX
+    let p1Id = null; let p2Id = null;
+    if (isCoop) {
+        const cE = coopTableById[player.id];
+        if (cE) { p1Id = cE.player1Id; p2Id = cE.player2Id; }
+    } else {
+        p1Id = player.playerId;
+    }
+
+    const m1 = p1Id ? masterPlayersRanked.find(p => p.id === p1Id) : null;
+    const m2 = p2Id ? masterPlayersRanked.find(p => p.id === p2Id) : null;
+    
+    const masterInfoSummary = {
+        ovr: isCoop && m1 && m2 ? ((m1.ovrRating + m2.ovrRating) / 2).toFixed(0) : (m1?.ovrRating.toFixed(0) || '0'),
+        rank: isCoop && m1 && m2 ? Math.min(m1.masterRank, m2.masterRank) : (m1?.masterRank || '?'),
+        isCoop: isCoop,
+        p1Ovr: m1?.ovrRating.toFixed(0) || '0',
+        p2Ovr: m2?.ovrRating.toFixed(0) || '0'
+    };
 
     let pST = "Balance"; 
     let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; 
@@ -216,7 +250,7 @@ export function PlayerPerformanceDialog({
         ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
         : totalPlayersInSeason;
 
-    return { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, masterInfo }
+    return { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, masterInfoSummary }
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t, masterPlayersRanked]);
 
   const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
@@ -224,11 +258,11 @@ export function PlayerPerformanceDialog({
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfo } = performanceStats;
+  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfoSummary } = performanceStats;
   
   const isTopRank = player.rank === 1;
   const isBottomRank = player.rank >= groupSize - 2 && groupSize > 3;
-  const isDefendingChampion = player.playerId === defendingChampionId;
+  const isDefendingChampion = (player.playerId || player.id) === defendingChampionId;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -340,7 +374,7 @@ export function PlayerPerformanceDialog({
                             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5">
                                 <StatDisplay label="Main" value={stats.played} />
                                 <StatDisplay label="Win" value={stats.win} />
-                                {activeSeason?.type !== 'Co-Op' && <StatDisplay label="Draw" value={stats.draw} />}
+                                {activeSeason?.type !== 'Co-Op' && activeSeason?.type !== 'Co-Op Hybrid' && <StatDisplay label="Draw" value={stats.draw} />}
                                 <StatDisplay label="Loss" value={stats.loss} />
                                 <StatDisplay label="Points" value={player.points} variant="primary" />
                             </div>
@@ -349,17 +383,31 @@ export function PlayerPerformanceDialog({
                                 <div className="space-y-3 text-center">
                                     <p className="text-[8px] font-black text-primary/60 uppercase tracking-[0.3em] italic">Season Intel</p>
                                     <div className="grid gap-2.5">
-                                        <IntelCard icon={Percent} label="OVR Musim" value={`${winRate.toFixed(0)}%`} variant="primary" />
-                                        <IntelCard icon={Trophy} label="Rank Grup" value={`#${player.rank}`} />
+                                        <IntelCard icon={Percent} label="OVR Musim" value={`${winRate.toFixed(0)}%`} variant="primary" tooltip="Efektivitas raihan poin dalam musim aktif ini." />
+                                        <IntelCard icon={Trophy} label="Rank Grup" value={`#${player.rank}`} tooltip="Posisi saat ini dalam klasemen grup." />
                                     </div>
                                 </div>
                                 <div className="space-y-3 text-center">
                                     <p className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em] italic">Career Intel</p>
                                     <div className="grid gap-2.5">
-                                        <IntelCard icon={Flame} label="OVR Master" value={masterInfo?.ovrRating.toFixed(0) || '0'} variant="gold" />
-                                        <IntelCard icon={Star} label="Rank Global" value={`#${masterInfo?.masterRank || '?'}`} />
+                                        <IntelCard 
+                                            icon={Flame} 
+                                            label={masterInfoSummary.isCoop ? "OVR Avg" : "OVR Master"} 
+                                            value={masterInfoSummary.ovr} 
+                                            variant="gold" 
+                                            tooltip={masterInfoSummary.isCoop ? `Karir gabungan: P1 (${masterInfoSummary.p1Ovr}%) & P2 (${masterInfoSummary.p2Ovr}%)` : "Performa karir kumulatif dari seluruh pertandingan."}
+                                        />
+                                        <IntelCard 
+                                            icon={Star} 
+                                            label="Rank Global" 
+                                            value={`#${masterInfoSummary.rank}`} 
+                                            tooltip={masterInfoSummary.isCoop ? "Peringkat karir terbaik di antara kedua pemain." : "Peringkat elit berdasarkan OVR karir global."}
+                                        />
                                     </div>
                                 </div>
+                            </div>
+                            <div className="pt-2">
+                                <p className="text-[7px] font-bold text-white/20 uppercase tracking-widest text-center border-t border-white/5 pt-4">Laga CO-OP berkontribusi penuh pada OVR Karir individu.</p>
                             </div>
                         </CardContent>
                     </Card>
