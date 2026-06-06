@@ -98,7 +98,7 @@ export function PlayerPerformanceDialog({
   const performanceStats = useMemo(() => {
     if (!player || !activeSeason) return null;
 
-    const isCoop = (activeSeason.type || 'Single') === 'Co-Op';
+    const isCoop = activeSeason.type === 'Co-Op' || activeSeason.type === 'Co-Op Hybrid';
     const playerIdToFilter = isCoop ? player.id : player.playerId;
 
     const coopTableById = (coopLeagueTable || []).reduce((acc, entry) => { acc[entry.id] = entry; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>);
@@ -280,7 +280,10 @@ export function PlayerPerformanceDialog({
                       <DialogTitle className="text-4xl font-black tracking-tighter uppercase italic text-white text-center drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none mb-2" suppressHydrationWarning>{player.playerName}</DialogTitle>
                       
                       <div className="flex items-center justify-center gap-3 font-black text-white/60 uppercase tracking-widest text-[11px] text-center bg-white/5 px-4 py-1.5 rounded-xl border border-white/5">
-                          <Avatar className="h-5 w-5 opacity-80 border border-white/10"><AvatarImage src={playerTeamDetails?.logoUrl} className="object-cover" referrerPolicy="no-referrer" /><AvatarFallback><Shield/></AvatarFallback></Avatar>
+                          <Avatar className="h-5 w-5 opacity-80 border border-white/10">
+                              <AvatarImage src={playerTeamDetails?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                              <AvatarFallback><Shield/></AvatarFallback>
+                          </Avatar>
                           <span className="text-center" suppressHydrationWarning>{player.teamName || 'Independent'}</span>
                       </div>
 
@@ -403,7 +406,7 @@ export function PlayerPerformanceDialog({
                                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black border-2 shadow-inner transition-transform group-hover/match:scale-110 duration-500", 
                                             match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
                                             match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                                            "bg-yellow-500/20 text-yellow-400 border-yellow-500/30")}>
+                                            "bg-yellow-500/20 text-yellow-400 border-yellow-500/50")}>
                                             {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
                                         </div>
                                         <div className="text-left space-y-0.5">
