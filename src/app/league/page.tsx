@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -558,7 +559,7 @@ export default function LeaguePage() {
     if (!firestore || !activeSeasonId) return;
     const batch = writeBatch(firestore);
     const targetColName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
-    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/targetColName`);
+    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${targetColName}`);
     
     assignments.forEach(a => {
         const entryRef = doc(targetCol, a.entryId);

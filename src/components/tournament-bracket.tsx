@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useRef, useEffect, useCallback, memo } from 'react';
@@ -624,5 +625,3 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </div>
   );
 }
-
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, Tooltip as ChartTooltip } from 'recharts';

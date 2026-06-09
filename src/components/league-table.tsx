@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -59,8 +60,8 @@ const PlayoffQualificationLegend = () => {
     <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 p-6 sm:p-10 bg-black/60 border-b-4 border-yellow-400/30 backdrop-blur-3xl relative overflow-hidden group/legend shrink-0">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(250,204,21,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(250,204,21,0.02)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
-      <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-yellow-400/20 rounded-tl-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
-      <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-yellow-400/20 rounded-br-sm pointer-events-none group-hover/legend:border-yellow-400 transition-colors duration-500" />
+      <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-yellow-400/20 rounded-tl-sm pointer-events-none group-legend:border-yellow-400 transition-colors duration-500" />
+      <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-yellow-400/20 rounded-br-sm pointer-events-none group-legend:border-yellow-400 transition-colors duration-500" />
 
       <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-20 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
         <div className="flex items-center gap-4 group/item">
@@ -159,8 +160,8 @@ const SingleTable = memo(({
               <TableHead className="text-center font-black text-yellow-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>
               <TableHead className="text-center font-black text-red-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
               <TableHead className={cn("text-center font-black text-primary/60 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase")}>{t('gd_short')}</TableHead>
-              <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
-              <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
+              <TableHead className="hidden md:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
               <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-40 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
               <TableHead className="text-center font-black text-primary w-12 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-[0.2em] uppercase">{t('actions')}</TableHead>}
@@ -204,8 +205,8 @@ const SingleTable = memo(({
                   <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400 tabular-nums" suppressHydrationWarning>{entry.draw}</TableCell>
                   <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400 tabular-nums" suppressHydrationWarning>{entry.loss}</TableCell>
                   <TableCell className={cn("text-center px-1 sm:px-2 text-xs sm:text-sm font-black tabular-nums transition-all duration-300", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))} suppressHydrationWarning>{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
-                  <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums" suppressHydrationWarning>{entry.goalsFor}</TableCell>
-                  <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums" suppressHydrationWarning>{entry.goalsAgainst}</TableCell>
+                  <TableCell className="hidden md:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums" suppressHydrationWarning>{entry.goalsFor}</TableCell>
+                  <TableCell className="hidden md:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums" suppressHydrationWarning>{entry.goalsAgainst}</TableCell>
                   <TableCell className="hidden xl:table-cell text-center px-2">
                       <div className="flex justify-center gap-1">
                           {playerForm.length > 0 ? playerForm.map((res, i) => (
