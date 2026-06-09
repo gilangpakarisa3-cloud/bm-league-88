@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef, useEffect, useCallback, memo } from 'react';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,9 +15,6 @@ import {
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip } from 'recharts';
-import { ChartContainer, ChartConfig } from '@/components/ui/chart';
-import { useTranslation } from '@/hooks/use-translation';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
@@ -142,7 +139,7 @@ const MatchCard = ({ bid, label, bracketData, projections, handleCardClick, team
           )} onClick={() => handleCardClick(m)}>
               {isBattleReady && (
                   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                      <div className="w-full h-1 bg-primary/20 blur-[2px] animate-scanning" />
+                      <div className="w-full h-1 bg-primary/20 blur-[1px] animate-scanning" />
                   </div>
               )}
               <div className={cn(
@@ -241,7 +238,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const rankedTable = useMemo(() => {
     if (!leagueTable || leagueTable.length === 0) return [];
-    const sortFn = (a: any, b: any) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0) || a.playerName.localeCompare(b.playerName);
+    
+    const sortFn = (a: any, b: any) => {
+        const nameA = a.playerName || a.teamName || "";
+        const nameB = b.playerName || b.teamName || "";
+        return (
+            b.points - a.points || 
+            (b.goalDifference || 0) - (a.goalDifference || 0) || 
+            (b.goalsFor || 0) - (a.goalsFor || 0) || 
+            nameA.localeCompare(nameB)
+        );
+    };
+
     if (season?.type === 'Hybrid' || season?.type === 'Co-Op Hybrid') {
       const gA = [...leagueTable].filter(p => p.group === 'A').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
       const gB = [...leagueTable].filter(p => p.group === 'B').sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
@@ -490,7 +498,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         </div>
                     </div>
                     <div className="scale-[1.5] sm:scale-[2.2] transform transition-all duration-1000 py-20 sm:py-32 relative z-10 hover:scale-[1.6] sm:hover:scale-[2.3]">
-                        <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-0 group-hover/final:opacity-40 transition-opacity" />
+                        <div className="absolute -inset-10 bg-primary/10 rounded-3xl blur-3xl opacity-40 group-hover/final:opacity-40 transition-opacity" />
                         <MatchCard bid="playoff-m18" label="THE ULTIMATE BATTLE" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} />
                     </div>
                 </div>
