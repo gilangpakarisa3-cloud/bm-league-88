@@ -133,7 +133,7 @@ const SingleTable = memo(({
                 .reverse()
                 .map(m => {
                     const isPlayer1 = m.player1Id === playerId;
-                    const isBo3 = isCoop || (m.round && m.round !== 'Group');
+                    const isBo3 = isCoop ? (m.round && m.round !== 'Group') : (m.round && m.round !== 'Group');
                     const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
                     const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
                     const playerResult = isPlayer1 ? s1 : s2;
@@ -156,15 +156,11 @@ const SingleTable = memo(({
               <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] min-w-[140px] sm:min-w-[180px] uppercase">{t('player')}</TableHead>
               <TableHead className="text-center font-black text-primary w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('played_short')}</TableHead>
               <TableHead className="text-center font-black text-green-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="text-center font-black text-yellow-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>}
+              <TableHead className="text-center font-black text-yellow-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('d_short')}</TableHead>
               <TableHead className="text-center font-black text-red-400 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('l_short')}</TableHead>
-              <TableHead className={cn("text-center font-black text-primary/60 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase", isCoop ? "" : "hidden lg:table-cell")}>{t('gd_short')}</TableHead>
-              {!isCoop && (
-                <>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
-                    <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
-                </>
-              )}
+              <TableHead className={cn("text-center font-black text-primary/60 w-10 sm:w-20 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase")}>{t('gd_short')}</TableHead>
+              <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('gf_short')}</TableHead>
+              <TableHead className="hidden lg:table-cell text-center font-black text-white/40 w-20 text-[10px] tracking-[0.2em] uppercase">{t('ga_short')}</TableHead>
               <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-40 text-[10px] tracking-[0.2em] uppercase">Form</TableHead>
               <TableHead className="text-center font-black text-primary w-12 sm:w-24 text-[8px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] uppercase">{t('pts_short')}</TableHead>
               {canRemovePlayer && <TableHead className="hidden sm:table-cell text-right font-black text-accent w-16 text-[10px] tracking-[0.2em] uppercase">{t('actions')}</TableHead>}
@@ -175,135 +171,52 @@ const SingleTable = memo(({
               const currentType = seasonType || 'Single';
               const isPlayoffHybrid = currentType === 'Hybrid' || currentType === 'Co-Op Hybrid';
               const playerForm = playerFormsMap[entry.playerId || entry.id] || [];
-              
               const isFirst = entry.rank === 1;
               const isUpperBracketZone = isPlayoffHybrid && entry.rank >= 1 && entry.rank <= 4;
               const isLowerBracketZone = isPlayoffHybrid && (entry.rank === 5 || entry.rank === 6);
               const isRelegationZone = (currentType === 'Single' && totalPlayers > 3 && entry.rank >= totalPlayers - 2) || (isPlayoffHybrid && entry.rank > 6);
-              
               const isUnbeaten = entry.played > 0 && entry.loss === 0;
               const isDefendingChampion = entry.playerId === defendingChampionId;
 
               return (
-                <TableRow 
-                  key={entry.id}
-                  className={cn(
-                    "transition-all h-16 sm:h-20 border-b-white/5 relative group/row",
-                    isFirst ? "bg-primary/[0.08] hover:bg-primary/[0.15]" :
-                    isUpperBracketZone ? "bg-green-500/[0.05] hover:bg-green-500/[0.1]" :
-                    isLowerBracketZone ? "bg-yellow-500/[0.05] hover:bg-yellow-500/[0.1]" :
-                    isRelegationZone ? "bg-red-500/[0.05] hover:bg-red-500/[0.1]" : "hover:bg-white/[0.03]"
-                  )}
-                >
-                  <TableCell className={cn("p-0 w-1.5 transition-all duration-500", 
-                    isFirst ? 'bg-primary shadow-[0_0_20px_rgba(204,253,1,0.8)]' :
-                    isUpperBracketZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' :
-                    isLowerBracketZone ? 'bg-yellow-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]' :
-                    isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent'
-                  )}>
-                  </TableCell>
-                  <TableCell className={cn(
-                    "text-center font-black text-base sm:text-xl px-1 italic transition-all duration-500",
-                    isFirst ? "text-primary scale-125 drop-shadow-[0_0_15px_rgba(204,253,1,0.7)]" : 
-                    isUpperBracketZone ? "text-green-400" :
-                    isLowerBracketZone ? "text-yellow-400" :
-                    isRelegationZone ? "text-red-500" : "text-white/40"
-                    )}>
-                    {entry.rank}
-                  </TableCell>
+                <TableRow key={entry.id} className={cn("transition-all h-16 sm:h-20 border-b-white/5 relative group/row", isFirst ? "bg-primary/[0.08] hover:bg-primary/[0.15]" : isUpperBracketZone ? "bg-green-500/[0.05] hover:bg-green-500/[0.1]" : isLowerBracketZone ? "bg-yellow-500/[0.05] hover:bg-yellow-500/[0.1]" : isRelegationZone ? "bg-red-500/[0.05] hover:bg-red-500/[0.1]" : "hover:bg-white/[0.03]")}>
+                  <TableCell className={cn("p-0 w-1.5 transition-all duration-500", isFirst ? 'bg-primary shadow-[0_0_20px_rgba(204,253,1,0.8)]' : isUpperBracketZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : isLowerBracketZone ? 'bg-yellow-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]' : isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent')} />
+                  <TableCell className={cn("text-center font-black text-base sm:text-xl px-1 italic transition-all duration-500", isFirst ? "text-primary scale-125 drop-shadow-[0_0_15px_rgba(204,253,1,0.7)]" : isUpperBracketZone ? "text-green-400" : isLowerBracketZone ? "text-yellow-400" : isRelegationZone ? "text-red-500" : "text-white/40")}>{entry.rank}</TableCell>
                   <TableCell className="relative overflow-visible py-2 sm:py-3">
-                    <div 
-                      className="flex items-center gap-2 sm:gap-4 cursor-pointer group/node"
-                      onClick={() => onSelectPlayer(entry)}
-                    >
+                    <div className="flex items-center gap-2 sm:gap-4 cursor-pointer group/node" onClick={() => onSelectPlayer(entry)}>
                        <div className="relative shrink-0">
-                          <div className={cn(
-                              "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity duration-500",
-                              isFirst ? "bg-primary/20 opacity-100" : "group-hover/node:bg-primary/10 group-hover/node:opacity-100"
-                          )} />
-                          <Avatar className={cn(
-                              "h-10 w-10 sm:h-14 sm:w-14 border-2 transition-all duration-500 shadow-xl relative z-10",
-                              isFirst ? "border-primary scale-110" : "border-white/10 group-hover/node:border-primary group-hover/node:scale-105"
-                          )}>
+                          <div className={cn("absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity duration-500", isFirst ? "bg-primary/20 opacity-100" : "group-hover/node:bg-primary/10 group-hover/node:opacity-100")} />
+                          <Avatar className={cn("h-10 w-10 sm:h-14 sm:w-14 border-2 transition-all duration-500 shadow-xl relative z-10", isFirst ? "border-primary scale-110" : "border-white/10 group-hover/node:border-primary group-hover/node:scale-105")}>
                             <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
                             <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-5 h-5 sm:w-7 sm:h-7 text-white/30"/></AvatarFallback>
                           </Avatar>
-                          {isFirst && (
-                             <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 shadow-lg border-2 border-background z-20 animate-bounce">
-                                <Trophy className="w-3 h-3 text-black" />
-                             </div>
-                          )}
                        </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center translate-y-[-1px]">
                         <div className="flex items-center gap-2">
-                           <span className={cn(
-                               "font-black tracking-tight transition-colors truncate uppercase italic pr-2", 
-                               isFirst ? "text-sm sm:text-xl text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-[12px] sm:text-lg text-white group-hover/node:text-primary"
-                            )}>
-                                {entry.playerName}
-                            </span>
-                            <div className="flex items-center gap-1 shrink-0">
-                                {isUnbeaten && (
-                                    <Badge variant="outline" className="border-yellow-400/50 bg-yellow-400/10 text-yellow-300 px-1.5 py-0 h-4 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
-                                        UB
-                                    </Badge>
-                                )}
-                                {isDefendingChampion && (
-                                    <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-400 px-1.5 py-0 h-4 sm:h-5 font-black text-[6px] sm:text-[8px] uppercase">
-                                        CH
-                                    </Badge>
-                                )}
-                            </div>
+                           <span className={cn("font-black tracking-tight transition-colors truncate uppercase italic pr-2", isFirst ? "text-sm sm:text-xl text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-[12px] sm:text-lg text-white group-hover/node:text-primary")} suppressHydrationWarning>{entry.playerName}</span>
                         </div>
-                        <div className="text-[8px] sm:text-[11px] font-black text-white/30 uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate pr-4 group-hover/node:text-white/50 transition-colors">
-                            {entry.team?.name || entry.teamName || 'Athlete Protocol'}
-                        </div>
+                        <div className="text-[8px] sm:text-[11px] font-black text-white/30 uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate pr-4 group-hover/node:text-white/50 transition-colors" suppressHydrationWarning>{entry.team?.name || entry.teamName || 'Athlete Protocol'}</div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-white/80 tabular-nums">{entry.played}</TableCell>
-                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-green-400 tabular-nums">{entry.win}</TableCell>
-                  {!isCoop && <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400 tabular-nums">{entry.draw}</TableCell>}
-                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400 tabular-nums">{entry.loss}</TableCell>
-                  <TableCell className={cn("text-center px-1 sm:px-2 text-xs sm:text-sm font-black tabular-nums transition-all duration-300", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"), !isCoop && "hidden lg:table-cell")}>
-                      {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
-                  </TableCell>
-                  {!isCoop && (
-                    <>
-                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsFor}</TableCell>
-                        <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums">{entry.goalsAgainst}</TableCell>
-                    </>
-                  )}
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-white/80 tabular-nums" suppressHydrationWarning>{entry.played}</TableCell>
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-green-400 tabular-nums" suppressHydrationWarning>{entry.win}</TableCell>
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-yellow-400 tabular-nums" suppressHydrationWarning>{entry.draw}</TableCell>
+                  <TableCell className="text-center px-1 sm:px-2 text-xs sm:text-sm font-black text-red-400 tabular-nums" suppressHydrationWarning>{entry.loss}</TableCell>
+                  <TableCell className={cn("text-center px-1 sm:px-2 text-xs sm:text-sm font-black tabular-nums transition-all duration-300", entry.goalDifference > 0 ? "text-primary/60" : (entry.goalDifference < 0 ? "text-red-400/60" : "text-white/20"))} suppressHydrationWarning>{entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}</TableCell>
+                  <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums" suppressHydrationWarning>{entry.goalsFor}</TableCell>
+                  <TableCell className="hidden lg:table-cell text-center px-2 text-sm font-bold text-white/30 tabular-nums" suppressHydrationWarning>{entry.goalsAgainst}</TableCell>
                   <TableCell className="hidden xl:table-cell text-center px-2">
                       <div className="flex justify-center gap-1">
                           {playerForm.length > 0 ? playerForm.map((res, i) => (
-                              <div key={i} className={cn(
-                                  "w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black border transition-transform hover:scale-110",
-                                  res === 'W' ? "bg-green-500/20 text-green-400 border-green-500/50" : 
-                                  res === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                                  "bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
-                              )}>{res === 'W' ? 'M' : res === 'L' ? 'K' : 'S'}</div>
+                              <div key={i} className={cn("w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black border transition-transform hover:scale-110", res === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : res === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/50")}>{res === 'W' ? 'M' : res === 'L' ? 'K' : 'S'}</div>
                           )) : <span className="text-[8px] font-bold text-white/10 uppercase tracking-tighter italic">No Data</span>}
                       </div>
                   </TableCell>
-                  <TableCell className={cn(
-                      "text-center font-black text-xl sm:text-3xl px-1 sm:px-2 italic transition-all duration-500 tabular-nums", 
-                      isFirst ? "text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.6)]" : "text-primary"
-                    )}>
-                    {entry.points}
-                  </TableCell>
+                  <TableCell className={cn("text-center font-black text-xl sm:text-3xl px-1 sm:px-2 italic transition-all duration-500 tabular-nums", isFirst ? "text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.6)]" : "text-primary")} suppressHydrationWarning>{entry.points}</TableCell>
                   {canRemovePlayer && (
                     <TableCell className="hidden sm:table-cell text-right px-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5 rounded-xl"
-                        onClick={() => onRemovePlayer?.(entry)}
-                        title={`${t('remove')} ${entry.playerName}`}
-                      >
-                        <Trash2 className="h-4.5 w-4.5" />
-                        <span className="sr-only">{t('remove_player')}</span>
-                      </Button>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-red-500/10 hover:text-red-500 transition-colors border border-white/5 rounded-xl" onClick={() => onRemovePlayer?.(entry)} title={`${t('remove')} ${entry.playerName}`}><Trash2 className="h-4.5 w-4.5" /></Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -354,155 +267,60 @@ const TopScorerTable = memo(({
 
     return (
         <div className="space-y-12">
-            {/* Spotlight Cards - Predator & Pedofil */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto px-4">
-                {/* EL-PREDATOR CARD */}
                 {predator && (
                     <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500 animate-predator-glow">
-                         {/* HUD Pattern Overlay */}
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                         
-                         {/* Ghost Blazing Fire Icon */}
-                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-yellow-400 opacity-[0.07] pointer-events-none z-0">
-                            <Flame className="w-full h-full animate-pulse fill-current" />
-                         </div>
-
-                         {/* Dynamic Internal Light Sweep */}
-                         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
-                             <div className="w-full h-1 bg-yellow-400 blur-[1px] absolute top-0 left-0 animate-scanning" />
-                         </div>
-
-                         <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 -mr-16 -mt-16 rounded-full blur-3xl" />
-                         
+                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-yellow-400 opacity-[0.07] pointer-events-none z-0"><Flame className="w-full h-full animate-pulse fill-current" /></div>
+                         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10"><div className="w-full h-1 bg-yellow-400 blur-[1px] absolute top-0 left-0 animate-scanning" /></div>
                          <div className="flex items-center justify-between mb-6 relative z-10">
                             <div className="relative group/pred-badge">
                                 <div className="absolute -inset-2 bg-yellow-400/20 blur-xl opacity-0 group-hover/pred-badge:opacity-100 transition-opacity animate-pulse" />
-                                <div className="relative flex items-center bg-black border-2 border-yellow-400 px-4 py-1.5 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] transition-all">
-                                    <Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" />
-                                    <span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg] leading-none">EL-PREDATOR</span>
-                                </div>
+                                <div className="relative flex items-center bg-black border-2 border-yellow-400 px-4 py-1.5 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] transition-all"><Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" /><span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg] leading-none">EL-PREDATOR</span></div>
                             </div>
-                            <div className="p-2 bg-yellow-400/10 rounded-full border border-yellow-400/20 animate-spin-slow">
-                                <Target className="w-5 h-5 text-yellow-400/60" />
-                            </div>
+                            <Target className="w-5 h-5 text-yellow-400/60" />
                          </div>
-
                          <div className="flex items-center gap-5 relative z-10">
-                             <div className="relative">
-                                 <div className="absolute -inset-2 rounded-full border-2 border-dashed border-yellow-400/30 animate-spin-slow" />
-                                 <Avatar className="h-20 w-20 border-4 border-yellow-400/60 shadow-2xl group-hover/pred-card:scale-110 transition-transform duration-700">
-                                     <AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/20"/></AvatarFallback>
-                                 </Avatar>
-                                 <div className="absolute -bottom-1 -right-1 bg-yellow-400 p-1.5 rounded-lg rotate-12 shadow-xl border-2 border-background animate-bounce"><Trophy className="w-4 h-4 text-black"/></div>
-                             </div>
+                             <Avatar className="h-20 w-20 border-4 border-yellow-400/60 shadow-2xl group-hover/pred-card:scale-110 transition-transform duration-700"><AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/20"/></AvatarFallback></Avatar>
                              <div className="flex-1 overflow-hidden">
                                  <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" suppressHydrationWarning>{predator.name}</h4>
                                  <p className="text-[10px] font-black text-yellow-400/60 uppercase tracking-widest" suppressHydrationWarning>{predator.teamName}</p>
                              </div>
-                             <div className="text-right">
-                                 <span className="text-5xl font-black italic text-yellow-400 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] animate-pulse" suppressHydrationWarning>{predator.goals}</span>
-                                 <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1">TOTAL GOL</p>
-                             </div>
+                             <div className="text-right"><span className="text-5xl font-black italic text-yellow-400 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] animate-pulse" suppressHydrationWarning>{predator.goals}</span><p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1">TOTAL GOL</p></div>
                          </div>
                     </Card>
                 )}
-
-                {/* EL-PEDOFIL CARD */}
                 {mainPedofil ? (
                     <Card className="relative overflow-hidden border-2 border-red-500/30 bg-red-500/[0.02] rounded-3xl p-6 shadow-[0_0_50px_rgba(239,68,68,0.05)] group/ped-card hover:border-red-500 transition-all duration-500">
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                         
-                         {/* Ghost Warning Icon */}
-                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-red-500 opacity-[0.05] pointer-events-none z-0">
-                            <ShieldAlert className="w-full h-full animate-pulse" />
-                         </div>
-
-                         <div className="flex items-center justify-between mb-6 relative z-10">
-                            <Badge className="bg-red-500 text-white font-black italic text-[9px] px-3 h-6 tracking-widest -skew-x-[12deg] shadow-lg">EL-PEDOFIL</Badge>
-                            <ShieldAlert className="w-5 h-5 text-red-500/30" />
-                         </div>
-
+                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-red-500 opacity-[0.05] pointer-events-none z-0"><ShieldAlert className="w-full h-full animate-pulse" /></div>
+                         <div className="flex items-center justify-between mb-6 relative z-10"><Badge className="bg-red-500 text-white font-black italic text-[9px] px-3 h-6 tracking-widest -skew-x-[12deg] shadow-lg">EL-PEDOFIL</Badge><ShieldAlert className="w-5 h-5 text-red-500/30" /></div>
                          <div className="flex items-center gap-5 relative z-10">
-                             <div className="relative opacity-60 grayscale group-hover/ped-card:grayscale-0 transition-all duration-700">
-                                 <Avatar className="h-20 w-20 border-4 border-red-500/20">
-                                     <AvatarFallback className="bg-black/60"><User className="w-10 h-10 text-white/10"/></AvatarFallback>
-                                 </Avatar>
-                                 <div className="absolute -bottom-1 -right-1 bg-red-500 p-1.5 rounded-lg -rotate-12 shadow-xl border-2 border-background animate-pulse"><Zap className="w-4 h-4 text-white"/></div>
-                             </div>
+                             <Avatar className="h-20 w-20 border-4 border-red-500/20 grayscale group-hover/ped-card:grayscale-0 transition-all"><AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/10"/></AvatarFallback></Avatar>
                              <div className="flex-1 overflow-hidden">
                                  <h4 className="text-2xl font-black text-white/80 uppercase italic tracking-tighter truncate pr-4" suppressHydrationWarning>{mainPedofil.name}</h4>
                                  <p className="text-[10px] font-black text-red-500/40 uppercase tracking-widest" suppressHydrationWarning>{mainPedofil.teamName}</p>
                              </div>
-                             <div className="text-right">
-                                 <span className="text-5xl font-black italic text-red-500 tabular-nums leading-none opacity-40">0</span>
-                                 <p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL</p>
-                             </div>
+                             <div className="text-right"><span className="text-5xl font-black italic text-red-500 tabular-nums leading-none opacity-40">0</span><p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL</p></div>
                          </div>
                     </Card>
                 ) : (
-                    <Card className="relative overflow-hidden border-2 border-dashed border-white/5 bg-black/40 rounded-3xl p-6 flex items-center justify-center">
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 italic">Signal Cleared • No Mandul Detected</p>
-                    </Card>
+                    <Card className="relative overflow-hidden border-2 border-dashed border-white/5 bg-black/40 rounded-3xl p-6 flex items-center justify-center"><p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 italic">Signal Cleared • No Mandul Detected</p></Card>
                 )}
             </div>
 
-            {/* Main Ranking Table - Adaptive Width */}
             <div className="max-w-4xl mx-auto w-full overflow-x-auto scrollbar-ultra-sport border-2 border-white/5 rounded-3xl bg-black/20 shadow-2xl">
                 <Table className="min-w-full">
-                    <TableHeader>
-                        <TableRow className="hover:bg-transparent border-b-primary/30 border-t-0 h-12 sm:h-14 bg-black/40">
-                            <TableHead className="w-3 p-0"></TableHead>
-                            <TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead>
-                            <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead>
-                            <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead>
-                        </TableRow>
-                    </TableHeader>
+                    <TableHeader><TableRow className="hover:bg-transparent border-b-primary/30 h-12 sm:h-14 bg-black/40"><TableHead className="w-3 p-0"></TableHead><TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead><TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead><TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead></TableRow></TableHeader>
                     <TableBody>
                         {topScorers.map((scorer) => {
                             const isPredator = scorer.rank === 1;
                             return (
-                                <TableRow key={scorer.id} className={cn(
-                                    "transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden cursor-pointer", 
-                                    isPredator 
-                                        ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" 
-                                        : "hover:bg-primary/[0.15] hover:shadow-[inset_0_0_40px_rgba(204,253,1,0.1)]"
-                                )}>
-                                    <TableCell className={cn(
-                                        "p-0 w-3 transition-all duration-500 relative", 
-                                        isPredator 
-                                            ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)]' 
-                                            : 'bg-transparent group-hover/row:bg-primary group-hover/row:shadow-[0_0_20px_rgba(204,253,1,0.6)]'
-                                    )}>
-                                        {isPredator && (
-                                            <div className="absolute inset-0 z-0 pointer-events-none w-[800px]">
-                                                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-transparent to-transparent opacity-30" />
-                                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
-                                                <div className="w-full h-1 bg-yellow-400/40 blur-[2px] absolute top-0 left-0 animate-scanning opacity-50 group-hover/row:opacity-100 group-hover/row:h-2 transition-all duration-500" />
-                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.05] group-hover/row:opacity-[0.08] transition-opacity duration-700 pr-20">
-                                                    <span className="text-[50px] sm:text-[90px] font-black italic text-yellow-400 uppercase tracking-tighter leading-none">PREDATOR</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500 relative z-10", isPredator ? "text-yellow-400 scale-125 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] group-hover/row:scale-150" : "text-white/40 group-hover/row:text-primary group-hover/row:scale-110")}>{scorer.rank}</TableCell>
-                                    <TableCell className="py-2 relative z-10">
-                                        <div className="flex flex-col">
-                                            <div className="flex items-center gap-4">
-                                                <span className={cn("font-black tracking-tight uppercase italic pr-2 transition-all duration-500", isPredator ? "text-base sm:text-2xl text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.3)] group-hover/row:translate-x-2" : "text-[12px] sm:text-lg text-white group-hover/row:text-primary group-hover/row:translate-x-1")} suppressHydrationWarning>{scorer.name}</span>
-                                                {isPredator && (
-                                                    <div className="relative group/pred-badge">
-                                                        <div className="absolute -inset-2 bg-yellow-400/20 blur-xl opacity-0 group-hover/pred-badge:opacity-100 transition-opacity animate-pulse" />
-                                                        <div className="relative flex items-center bg-black border-2 border-yellow-400 px-4 py-1.5 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] group-hover/row:shadow-[6px_6px_0px_rgba(250,204,21,0.5)] transition-all">
-                                                            <Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" />
-                                                            <span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg] leading-none">PREDATOR</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1 transition-colors duration-500", isPredator ? "text-yellow-400/60" : "text-white/30 group-hover/row:text-primary/60")} suppressHydrationWarning>{scorer.teamName}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums relative z-10 transition-all duration-500", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)] group-hover/row:scale-110" : "text-white/60 group-hover/row:text-primary group-hover/row:drop-shadow-[0_0_15px_rgba(204,253,1,0.4)]")} suppressHydrationWarning>{scorer.goals}</TableCell>
+                                <TableRow key={scorer.id} className={cn("transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden", isPredator ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" : "hover:bg-primary/[0.15]")}>
+                                    <TableCell className={cn("p-0 w-3 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)]' : 'bg-transparent group-hover/row:bg-primary')} />
+                                    <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500", isPredator ? "text-yellow-400 scale-125" : "text-white/40 group-hover/row:text-primary")}>{scorer.rank}</TableCell>
+                                    <TableCell className="py-2"><div className="flex flex-col"><span className={cn("font-black tracking-tight uppercase italic pr-2 transition-all", isPredator ? "text-base sm:text-2xl text-yellow-400" : "text-[12px] sm:text-lg text-white group-hover/row:text-primary")} suppressHydrationWarning>{scorer.name}</span><span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1", isPredator ? "text-yellow-400/60" : "text-white/30")} suppressHydrationWarning>{scorer.teamName}</span></div></TableCell>
+                                    <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums transition-all", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)]" : "text-white/60 group-hover/row:text-primary")} suppressHydrationWarning>{scorer.goals}</TableCell>
                                 </TableRow>
                             )
                         })}
@@ -540,20 +358,18 @@ export function LeagueTable({
         const teamId = entry.teamId || player?.teamId || '';
         const team = teamsById[teamId];
         const logoUrl = resolveLogo(team?.logoUrl, teamId, entry.playerName);
-
         return { ...entry, team: team, logoUrl };
     });
   }, [tableData, teamsById, playersById]);
 
   const isHybrid = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid';
   const isCoopHybrid = seasonType === 'Co-Op Hybrid';
-  const isCoopOnly = seasonType === 'Co-Op';
 
   const { groupA, groupB } = useMemo(() => {
     if (!isHybrid || isCoopHybrid) return { groupA: [], groupB: [] };
-    const sortAndRank = (data: typeof enrichedTableData) => data.sort((a, b) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0)).map((entry, index) => ({...entry, rank: index + 1}));
-    const a = sortAndRank(enrichedTableData.filter(p => p.group === 'A'));
-    const b = sortAndRank(enrichedTableData.filter(p => p.group === 'B'));
+    const sortFn = (a: any, b: any) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0) || (b.win || 0) - (a.win || 0);
+    const a = [...enrichedTableData].filter(p => p.group === 'A').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
+    const b = [...enrichedTableData].filter(p => p.group === 'B').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
     return { groupA: a, groupB: b };
   }, [enrichedTableData, isHybrid, isCoopHybrid]);
 
@@ -574,12 +390,10 @@ export function LeagueTable({
                         <span className="relative z-10 flex items-center justify-center gap-3 pr-2"><Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />Klasemen</span>
                         <div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" />
                     </TabsTrigger>
-
                     <TabsTrigger value="topskor" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden">
                         <span className="relative z-10 flex items-center justify-center gap-3 pr-2"><Flame className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />Top Skor</span>
                         <div className="absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0 group-data-[state=active]/tab:bg-yellow-400 group-data-[state=active]/tab:shadow-[0_0_40px_rgba(250,204,21,0.5)] border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20" />
                     </TabsTrigger>
-
                     {isCoopHybrid && (
                         <TabsTrigger value="playoff" className="relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all group/tab overflow-hidden">
                             <span className="relative z-10 flex items-center justify-center gap-3 pr-2"><Swords className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100" />Playoff</span>
@@ -587,10 +401,9 @@ export function LeagueTable({
                         </TabsTrigger>
                     )}
                 </TabsList>
-
                 <TabsContent value="standings" className="mt-0"><SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={true} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} /></TabsContent>
                 <TabsContent value="topskor" className="mt-0 py-10"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} /></TabsContent>
-                {isCoopHybrid && <TabsContent value="playoff" className="mt-0 "><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>}
+                {isCoopHybrid && <TabsContent value="playoff" className="mt-0"><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>}
              </Tabs>
         ) : (
             isHybrid ? (
@@ -625,7 +438,7 @@ function LeagueTableSkeleton({ isCoop }: { isCoop: boolean }) {
               <TableHead>{t('player')}</TableHead>
               <TableHead className="text-center">{t('played')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center">{t('w_short')}</TableHead>
-              {!isCoop && <TableHead className="hidden sm:table-cell text-center">{t('d_short')}</TableHead>}
+              <TableHead className="hidden sm:table-cell text-center">{t('d_short')}</TableHead>
               <TableHead className="hidden sm:table-cell text-center">{t('l_short')}</TableHead>
               <TableHead className="text-center font-bold">{t('pts')}</TableHead>
             </TableRow>
@@ -635,18 +448,10 @@ function LeagueTableSkeleton({ isCoop }: { isCoop: boolean }) {
               <TableRow key={i} className="h-20">
                 <TableCell className="w-2 p-0"></TableCell>
                 <TableCell><Skeleton className="h-8 w-8 mx-auto rounded-md" /></TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                </TableCell>
+                <TableCell><div className="flex items-center gap-4"><Skeleton className="h-12 w-12 rounded-full" /><div className="space-y-2"><Skeleton className="h-5 w-32" /><Skeleton className="h-3 w-24" /></div></div></TableCell>
                 <TableCell><Skeleton className="h-6 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-8 mx-auto" /></TableCell>
-                {!isCoop && <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-8 mx-auto" /></TableCell>}
+                <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-8 mx-auto" /></TableCell>
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-8 mx-auto" /></TableCell>
                 <TableCell><Skeleton className="h-8 w-12 mx-auto" /></TableCell>
               </TableRow>

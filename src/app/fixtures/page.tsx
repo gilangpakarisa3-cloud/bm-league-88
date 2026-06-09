@@ -47,10 +47,8 @@ import { PLAYOFF_SUCCESSOR_MAP } from '@/lib/constants';
 import { resolveLogo } from '@/lib/logo-utils';
 
 
-// For simplicity, we'll work with a single, hardcoded league.
 const LEAGUE_ID = 'main-league';
 
-// Standard Round Priority for Sorting (Early to Late)
 const ROUND_ORDER: Record<string, number> = {
     'Group': 1,
     'UB-Quarter': 2,
@@ -75,7 +73,8 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
 }) {
     const { t } = useTranslation();
     const displayDate = format(match.matchDate.toDate(), 'd MMM, HH:mm', { locale: localeId });
-    const isMatchBo3 = activeSeason?.type === 'Co-Op' || activeSeason?.type === 'Co-Op Hybrid' || (match.round && match.round !== 'Group');
+    const isSeasonCoop = activeSeason?.type === 'Co-Op' || activeSeason?.type === 'Co-Op Hybrid';
+    const isMatchBo3 = isSeasonCoop ? (match.round && match.round !== 'Group') : (match.round && match.round !== 'Group');
     
     const isEditDisabled = 
         activeSeason?.status !== 'In Progress' || 
@@ -157,7 +156,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
 
     return (
         <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
-            {/* Minimalist Ghost Text */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.02] pr-10">
                 <span className="text-[100px] sm:text-[160px] font-black italic text-white uppercase tracking-tighter transition-all duration-1000 group-hover:scale-105">
                     {match.isCompleted ? 'FINISHED' : match.status === 'Live' ? 'LIVE NOW' : 'BATTLE'}
@@ -165,8 +163,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
             </div>
 
             <div className="relative z-10 grid grid-cols-[1fr_80px_1fr] sm:grid-cols-[1fr_140px_1fr] items-center gap-2 sm:gap-6 p-4 sm:p-8">
-                
-                {/* Home Player (Left) */}
                 <div className="w-full flex items-center gap-2">
                     {isAdmin && match.status === 'Live' && (
                         <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
@@ -177,7 +173,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                     <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.teamId1 || match.player1Id} alignment="right" isWinner={isW1} wins={isMatchBo3 ? wins1 : undefined} />
                 </div>
                 
-                {/* Unified Score Module (Center) */}
                 <div className="flex flex-col items-center justify-center relative">
                     {hasValidScore ? (
                         <div className="relative group/score flex flex-col items-center gap-2">
@@ -214,7 +209,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                     )}
                 </div>
                 
-                {/* Away Player (Right) */}
                 <div className="w-full flex items-center gap-2">
                     <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.teamId2 || match.player2Id} alignment="left" isWinner={isW2} wins={isMatchBo3 ? wins2 : undefined} />
                     {isAdmin && match.status === 'Live' && (
@@ -226,7 +220,6 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                 </div>
             </div>
 
-            {/* Sub-Footer Meta Bar (Mobile Optimized) */}
             <div className="flex items-center justify-between px-4 sm:px-10 py-2 sm:py-3 bg-black/40 border-t border-white/5 relative z-10">
                 <div className="flex items-center gap-3">
                     <Calendar className="w-3 h-3 text-white/20" />
@@ -668,6 +661,8 @@ export default function FixturesPage() {
                 const sSnap = await transaction.get(seasonRef);
                 const sData = sSnap.data() as Season;
                 const isSeasonCoop = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid';
+                const isGroupMatch = orig.round === 'Group' || !orig.round;
+                const isFootballStyleCoop = isSeasonCoop && isGroupMatch;
 
                 let winMatchRef = null;
                 let losMatchRef = null;
@@ -689,7 +684,7 @@ export default function FixturesPage() {
                 let e1Data: any = null;
                 let e2Data: any = null;
 
-                if (orig.round === 'Group' || !orig.round) {
+                if (isGroupMatch) {
                     const tblName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
                     const tblCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
                     if (isSeasonCoop) {
@@ -719,14 +714,21 @@ export default function FixturesPage() {
                 };
 
                 if (orig.isCompleted) {
-                    const oldS1 = (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
-                    const oldS2 = (sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid') ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
+                    const oldBo3 = isSeasonCoop && !isGroupMatch;
+                    const oldS1 = oldBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
+                    const oldS2 = oldBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
                     
                     if (isSeasonCoop && e1Data && e2Data) {
                         const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
-                        const res = oldS1 > oldS2 ? 'W' : 'L';
-                        [d1.player1Id, d1.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'W' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) }));
-                        [d2.player1Id, d2.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'L' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(orig.player2Score || 0), ga: -(orig.player1Score || 0) }));
+                        const res = oldS1 > oldS2 ? 'W' : (oldS1 < oldS2 ? 'L' : 'D');
+                        [d1.player1Id, d1.player2Id].forEach(id => {
+                            const playerGoals = id === d1.player1Id ? (orig.player1p1Goals || 0) : (orig.player1p2Goals || 0);
+                            updateOverallStats(id, { played: -1, win: res === 'W' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -playerGoals, ga: -(orig.player2Score || 0) });
+                        });
+                        [d2.player1Id, d2.player2Id].forEach(id => {
+                            const playerGoals = id === d2.player1Id ? (orig.player2p1Goals || 0) : (orig.player2p2Goals || 0);
+                            updateOverallStats(id, { played: -1, win: res === 'L' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -playerGoals, ga: -(orig.player1Score || 0) });
+                        });
                     } else {
                         const res = oldS1 > oldS2 ? 'W' : (oldS1 < oldS2 ? 'L' : 'D');
                         updateOverallStats(orig.player1Id, { played: -1, win: res === 'W' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(orig.player1Score || 0), ga: -(orig.player2Score || 0) });
@@ -734,14 +736,21 @@ export default function FixturesPage() {
                     }
                 }
 
-                const newS1 = isSeasonCoop ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
-                const newS2 = isSeasonCoop ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
+                const newBo3 = isSeasonCoop && !isGroupMatch;
+                const newS1 = newBo3 ? (values.player1Wins ?? 0) : (values.player1Score ?? 0);
+                const newS2 = newBo3 ? (values.player2Wins ?? 0) : (values.player2Score ?? 0);
 
                 if (isSeasonCoop && e1Data && e2Data) {
                     const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
-                    const res = newS1 > newS2 ? 'W' : 'L';
-                    [d1.player1Id, d1.player2Id].forEach(id => updateOverallStats(id, { played: 1, win: res === 'W' ? 1 : 0, loss: res === 'L' ? 1 : 0, gf: values.player1Score, ga: values.player2Score }));
-                    [d2.player1Id, d2.player2Id].forEach(id => updateOverallStats(id, { played: 1, win: res === 'L' ? 1 : 0, loss: res === 'W' ? 1 : 0, gf: values.player2Score, ga: values.player1Score }));
+                    const res = newS1 > newS2 ? 'W' : (newS1 < newS2 ? 'L' : 'D');
+                    [d1.player1Id, d1.player2Id].forEach(id => {
+                        const playerGoals = id === d1.player1Id ? (values.player1p1Goals || 0) : (values.player1p2Goals || 0);
+                        updateOverallStats(id, { played: 1, win: res === 'W' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'L' ? 1 : 0, gf: playerGoals, ga: values.player2Score });
+                    });
+                    [d2.player1Id, d2.player2Id].forEach(id => {
+                        const playerGoals = id === d2.player1Id ? (values.player2p1Goals || 0) : (values.player2p2Goals || 0);
+                        updateOverallStats(id, { played: 1, win: res === 'L' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'W' ? 1 : 0, gf: playerGoals, ga: values.player1Score });
+                    });
                 } else {
                     const res = newS1 > newS2 ? 'W' : (newS1 < newS2 ? 'L' : 'D');
                     updateOverallStats(orig.player1Id, { played: 1, win: res === 'W' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'L' ? 1 : 0, gf: values.player1Score, ga: values.player2Score });
@@ -761,28 +770,29 @@ export default function FixturesPage() {
                 if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
                     const e1 = { ...e1Data }; const e2 = { ...e2Data };
                     if (orig.isCompleted) {
+                        const oldBo3 = isSeasonCoop && !isGroupMatch;
+                        const os1 = oldBo3 ? (orig.player1Wins ?? 0) : (orig.player1Score ?? 0);
+                        const os2 = oldBo3 ? (orig.player2Wins ?? 0) : (orig.player2Score ?? 0);
                         e1.played--; e2.played--;
+                        if (os1 > os2) { e1.win--; e1.points -= 3; e2.loss--; }
+                        else if (os1 < os2) { e2.win--; e2.points -= 3; e1.loss--; }
+                        else { e1.draw--; e1.points -= 1; e2.draw--; e2.points -= 1; }
+                        e1.goalsFor -= (orig.player1Score || 0); e1.goalsAgainst -= (orig.player2Score || 0);
+                        e2.goalsFor -= (orig.player2Score || 0); e2.goalsAgainst -= (orig.player1Score || 0);
                         if (isSeasonCoop) {
-                            if ((orig.player1Wins ?? 0) > (orig.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
-                            e1.goalsFor -= orig.player1Score; e1.goalsAgainst -= orig.player2Score;
-                            e2.goalsFor -= orig.player2Score; e2.goalsAgainst -= orig.player1Score;
                             e1.player1Goals -= (orig.player1p1Goals || 0); e1.player2Goals -= (orig.player1p2Goals || 0);
                             e2.player1Goals -= (orig.player2p1Goals || 0); e2.player2Goals -= (orig.player2p2Goals || 0);
-                        } else {
-                            if (orig.player1Score! > orig.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (orig.player2Score! > orig.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
-                            e1.goalsFor -= orig.player1Score!; e1.goalsAgainst -= orig.player2Score!; e2.goalsFor -= orig.player2Score!; e2.goalsAgainst -= orig.player1Score!;
                         }
                     }
                     e1.played++; e2.played++;
+                    if (newS1 > newS2) { e1.win++; e1.points += 3; e2.loss++; }
+                    else if (newS1 < newS2) { e2.win++; e2.points += 3; e1.loss++; }
+                    else { e1.draw++; e1.points += 1; e2.draw++; e2.points += 1; }
+                    e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score;
+                    e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                     if (isSeasonCoop) {
-                        if (values.player1Wins > values.player2Wins) { e1.win++; e1.points += 3; e2.loss++; } else { e2.win++; e2.points += 3; e1.loss++; }
-                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score;
-                        e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                         e1.player1Goals += values.player1p1Goals; e1.player2Goals += values.player1p2Goals;
                         e2.player1Goals += values.player2p1Goals; e2.player2Goals += values.player2p2Goals;
-                    } else {
-                        if (values.player1Score > values.player2Score) { e1.win++; e1.points += 3; e2.loss++; } else if (values.player2Score > values.player1Score) { e2.win++; e2.points += 3; e1.loss++; } else { e1.draw++; e1.points++; e2.draw++; e2.points++; }
-                        e1.goalsFor += values.player1Score; e1.goalsAgainst += values.player2Score; e2.goalsFor += values.player2Score; e2.goalsAgainst += values.player1Score;
                     }
                     e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                     transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
@@ -819,6 +829,7 @@ export default function FixturesPage() {
         const mToRev = mDoc.data() as Match;
         const sData = sDoc.data() as Season;
         const isSeasonCoop = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid';
+        const isGroupMatch = mToRev.round === 'Group' || !mToRev.round;
 
         await runTransaction(firestore, async (transaction) => {
             let winMatchRef = null;
@@ -847,7 +858,7 @@ export default function FixturesPage() {
             let e1Data: any = null;
             let e2Data: any = null;
 
-            if (mToRev.round === 'Group' || !mToRev.round) {
+            if (isGroupMatch) {
                 const tblName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
                 const tblCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tblName}`);
                 if (isSeasonCoop) {
@@ -876,16 +887,23 @@ export default function FixturesPage() {
                 });
             };
 
-            const oldS1 = isSeasonCoop ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0);
-            const oldS2 = isSeasonCoop ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
+            const oldBo3 = isSeasonCoop && !isGroupMatch;
+            const os1 = oldBo3 ? (mToRev.player1Wins ?? 0) : (mToRev.player1Score ?? 0);
+            const os2 = oldBo3 ? (mToRev.player2Wins ?? 0) : (mToRev.player2Score ?? 0);
 
             if (isSeasonCoop && e1Data && e2Data) {
                 const d1 = e1Data as CoOpLeagueEntry; const d2 = e2Data as CoOpLeagueEntry;
-                const res = oldS1 > oldS2 ? 'W' : 'L';
-                [d1.player1Id, d1.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'W' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) }));
-                [d2.player1Id, d2.player2Id].forEach(id => updateOverallStats(id, { played: -1, win: res === 'L' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) }));
+                const res = os1 > os2 ? 'W' : (os1 < os2 ? 'L' : 'D');
+                [d1.player1Id, d1.player2Id].forEach(id => {
+                    const playerGoals = id === d1.player1Id ? (mToRev.player1p1Goals || 0) : (mToRev.player1p2Goals || 0);
+                    updateOverallStats(id, { played: -1, win: res === 'W' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -playerGoals, ga: -(mToRev.player2Score || 0) });
+                });
+                [d2.player1Id, d2.player2Id].forEach(id => {
+                    const playerGoals = id === d2.player1Id ? (mToRev.player2p1Goals || 0) : (mToRev.player2p2Goals || 0);
+                    updateOverallStats(id, { played: -1, win: res === 'L' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -playerGoals, ga: -(mToRev.player1Score || 0) });
+                });
             } else {
-                const res = oldS1 > oldS2 ? 'W' : (oldS1 < oldS2 ? 'L' : 'D');
+                const res = os1 > os2 ? 'W' : (os1 < os2 ? 'L' : 'D');
                 updateOverallStats(mToRev.player1Id, { played: -1, win: res === 'W' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                 updateOverallStats(mToRev.player2Id, { played: -1, win: res === 'L' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
             }
@@ -893,15 +911,15 @@ export default function FixturesPage() {
             if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
                 const e1 = { ...e1Data }; const e2 = { ...e2Data };
                 e1.played--; e2.played--;
+                const res = os1 > os2 ? 'W' : (os1 < os2 ? 'L' : 'D');
+                if (res === 'W') { e1.win--; e1.points -= 3; e2.loss--; }
+                else if (res === 'L') { e2.win--; e2.points -= 3; e1.loss--; }
+                else { e1.draw--; e1.points -= 1; e2.draw--; e2.points -= 1; }
+                e1.goalsFor -= (mToRev.player1Score || 0); e1.goalsAgainst -= (mToRev.player2Score || 0);
+                e2.goalsFor -= (mToRev.player2Score || 0); e2.goalsAgainst -= (mToRev.player1Score || 0);
                 if (isSeasonCoop) {
-                    if ((mToRev.player1Wins ?? 0) > (mToRev.player2Wins ?? 0)) { e1.win--; e1.points -= 3; e2.loss--; } else { e2.win--; e2.points -= 3; e1.loss--; }
-                    e1.goalsFor -= (mToRev.player1Score || 0); e1.goalsAgainst -= (mToRev.player2Score || 0);
-                    e2.goalsFor -= (mToRev.player2Score || 0); e2.goalsAgainst -= (mToRev.player1Score || 0);
                     e1.player1Goals -= (mToRev.player1p1Goals || 0); e1.player2Goals -= (mToRev.player1p2Goals || 0);
                     e2.player1Goals -= (mToRev.player2p1Goals || 0); e2.player2Goals -= (mToRev.player2p2Goals || 0);
-                } else {
-                    if (mToRev.player1Score! > mToRev.player2Score!) { e1.win--; e1.points -= 3; e2.loss--; } else if (mToRev.player2Score! > mToRev.player1Score!) { e2.win--; e2.points -= 3; e1.loss--; } else { e1.draw--; e1.points--; e2.draw--; e2.points--; }
-                    e1.goalsFor -= mToRev.player1Score!; e1.goalsAgainst -= mToRev.player2Score!; e2.goalsFor -= mToRev.player2Score!; e2.goalsAgainst -= mToRev.player1Score!;
                 }
                 e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);

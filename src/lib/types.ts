@@ -73,6 +73,7 @@ export type CoOpLeagueEntry = {
   player2Goals: number;
   played: number;
   win: number;
+  draw: number;
   loss: number;
   goalsFor: number;
   goalsAgainst: number;

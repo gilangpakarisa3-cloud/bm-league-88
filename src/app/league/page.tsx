@@ -230,14 +230,21 @@ export default function LeaguePage() {
 
     const sortFn = (a: any, b: any) => {
         if (b.points !== a.points) return b.points - a.points;
-        if (isSeasonCoop && b.win !== a.win) return b.win - a.win;
         if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
         if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-        return a.playerName.localeCompare(b.playerName);
+        if (b.win !== a.win) return b.win - a.win;
+        const nameA = a.playerName || a.teamName || "";
+        const nameB = b.playerName || b.teamName || "";
+        return nameA.localeCompare(nameB);
     };
 
     if (activeSeason?.status === 'Not Started') {
-        return [...enrichedTable].sort((a, b) => a.playerName.localeCompare(b.playerName)).map((entry, index) => ({...entry, rank: index + 1}));
+        const sorted = [...enrichedTable].sort((a, b) => {
+            const nameA = a.playerName || a.teamName || "";
+            const nameB = b.playerName || b.teamName || "";
+            return nameA.localeCompare(nameB);
+        });
+        return sorted.map((entry, index) => ({...entry, rank: index + 1}));
     }
     
     return [...enrichedTable].sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
@@ -247,21 +254,24 @@ export default function LeaguePage() {
   const isHybrid = activeSeason?.type === 'Hybrid' || activeSeason?.type === 'Co-Op Hybrid';
 
   const { groupA, groupB } = useMemo(() => {
-    if (!isHybrid || activeSeason?.type === 'Co-Op Hybrid') return { groupA: [], groupB: [] };
+    if (!isHybrid) return { groupA: [], groupB: [] };
     
     const sortAndRank = (data: typeof sortedTable) => 
         data.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points;
             if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
             if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-            return a.playerName.localeCompare(b.playerName);
+            if (b.win !== a.win) return b.win - a.win;
+            const nameA = a.playerName || a.teamName || "";
+            const nameB = b.playerName || b.teamName || "";
+            return nameA.localeCompare(nameB);
         }).map((entry, index) => ({...entry, rank: index + 1}));
 
     const a = sortAndRank(sortedTable.filter(p => p.group === 'A'));
     const b = sortAndRank(sortedTable.filter(p => p.group === 'B'));
     
     return { groupA: a, groupB: b };
-  }, [sortedTable, isHybrid, activeSeason]);
+  }, [sortedTable, isHybrid]);
 
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
   
@@ -354,10 +364,15 @@ export default function LeaguePage() {
         const group = tableToUse;
         const now = Date.now();
         let matchCounter = 0;
+        const meetings = activeSeason.hybridGroupMeetings || 1;
         for (let i = 0; i < group.length; i++) {
             for (let j = i + 1; j < group.length; j++) {
                 const id1 = group[i].id; const id2 = group[j].id;
-                batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: id1, player2Id: id2, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
+                for (let k = 0; k < meetings; k++) {
+                    let p1Id = k === 0 ? id1 : id2; let p2Id = k === 0 ? id2 : id1;
+                    if (meetings === 1 && Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
+                    batch.set(doc(matchesCollectionRef), { seasonId: activeSeasonId, player1Id: p1Id, player2Id: p2Id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000), round: 'Group' });
+                }
             }
         }
     } else if (seasonType === 'Hybrid') {
@@ -518,7 +533,7 @@ export default function LeaguePage() {
             player2TeamId: pair.teamId || '', 
             player2TeamName: pair.teamName || '', 
             player2Goals: 0,
-            played: 0, win: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0, hasPaid: false 
+            played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0, hasPaid: false 
         });
     });
     batch.commit().then(() => { 
@@ -543,7 +558,7 @@ export default function LeaguePage() {
     if (!firestore || !activeSeasonId) return;
     const batch = writeBatch(firestore);
     const targetColName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
-    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${targetColName}`);
+    const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/targetColName`);
     
     assignments.forEach(a => {
         const entryRef = doc(targetCol, a.entryId);
@@ -580,8 +595,9 @@ export default function LeaguePage() {
     if (isHybrid) {
         const finalMatch = matches?.find(m => m.round === 'Grand-Final' && m.isCompleted);
         if (finalMatch) {
-            const s1 = finalMatch.player1Wins !== null ? finalMatch.player1Wins : (finalMatch.player1Score ?? 0);
-            const s2 = finalMatch.player2Wins !== null ? finalMatch.player2Wins : (finalMatch.player2Score ?? 0);
+            const isBo3 = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid' || (finalMatch.round && finalMatch.round !== 'Group');
+            const s1 = isBo3 ? (finalMatch.player1Wins ?? 0) : (finalMatch.player1Score ?? 0);
+            const s2 = isBo3 ? (finalMatch.player2Wins ?? 0) : (finalMatch.player2Score ?? 0);
             const wId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
             const wEntry = sortedTable.find(p => (p.playerId || p.id) === wId);
             if (wEntry) winner = wEntry;
@@ -592,7 +608,7 @@ export default function LeaguePage() {
     let totP = 0, totW = 0, totD = 0, totL = 0, totGF = 0, totGA = 0;
     playerMatches.forEach(m => {
         totP++; const isP1 = m.player1Id === wIdToFilter;
-        const isBo3 = isSeasonCoop || (m.round && m.round !== 'Group');
+        const isBo3 = isSeasonCoop ? (m.round && m.round !== 'Group') : (m.round && m.round !== 'Group');
         const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
         const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
         const pRes = isP1 ? s1 : s2; const oRes = isP1 ? s2 : s1;
