@@ -23,6 +23,7 @@ import { Calendar } from './ui/calendar';
 import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/use-translation';
 import {
   Select,
   SelectContent,
@@ -715,3 +716,5 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     </div>
   );
 }
+
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, Tooltip as ChartTooltip } from 'recharts';
