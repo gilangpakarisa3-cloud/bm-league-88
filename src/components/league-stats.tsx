@@ -53,21 +53,21 @@ const StatCard = ({
             
             {/* SOLID SPORT HEADER */}
             <div className={cn(
-                "relative py-4 px-6 sm:px-8 flex items-center justify-between overflow-hidden shrink-0",
+                "relative py-2 px-6 sm:px-8 flex items-center justify-between overflow-hidden shrink-0",
                 variant === "destructive" ? "bg-red-500 text-white" : "bg-primary text-black"
             )}>
                 {/* Slanted Decoration */}
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
                 
                 <div className="flex items-center gap-3 relative z-10">
-                    <div className="bg-black/20 p-2 rounded-lg border border-black/10">
-                        <Icon className="h-5 w-5" />
+                    <div className="bg-black/20 p-1.5 rounded-lg border border-black/10">
+                        <Icon className="h-4 w-4" />
                     </div>
                     <h3 className="text-sm sm:text-base font-black tracking-[0.1em] uppercase italic leading-none pr-2">{title}</h3>
                 </div>
                 
                 <div className="flex items-center gap-2 relative z-10 opacity-60">
-                    <Scan className="w-3.5 h-3.5" />
+                    <Scan className="w-3 h-3" />
                     <span className="text-[8px] font-black uppercase tracking-widest hidden xs:block">Live Intel</span>
                 </div>
             </div>

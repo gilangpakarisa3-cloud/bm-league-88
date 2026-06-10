@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -828,11 +827,11 @@ export default function LeaguePage() {
                             <Card className="group relative overflow-hidden transition-all duration-700 border-0 bg-transparent rounded-[2.5rem] p-[2px] hover:scale-[1.01] hover:shadow-[0_0_60px_rgba(250,204,21,0.2)]">
                                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-transparent pointer-events-none" />
                                 <div className="relative h-full bg-card/90 backdrop-blur-3xl rounded-[calc(2.5rem-2px)] overflow-hidden flex flex-col">
-                                    <div className="relative py-5 px-8 flex items-center justify-between overflow-hidden shrink-0 bg-yellow-400 text-black">
+                                    <div className="relative py-2.5 px-8 flex items-center justify-between overflow-hidden shrink-0 bg-yellow-400 text-black">
                                         <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
                                         <div className="flex items-center gap-3 relative z-10">
-                                            <div className="bg-black/20 p-2 rounded-lg border border-black/10 shadow-lg">
-                                                <Wallet className="h-5 w-5" />
+                                            <div className="bg-black/20 p-1.5 rounded-lg border border-black/10 shadow-lg">
+                                                <Wallet className="h-4 w-4" />
                                             </div>
                                             <h3 className="text-sm sm:text-base font-black tracking-[0.1em] uppercase italic leading-none pr-2">Financial Hub</h3>
                                         </div>
