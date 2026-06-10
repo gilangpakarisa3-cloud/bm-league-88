@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useRef, useEffect, useCallback, memo } from 'react';
@@ -285,7 +284,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
       const isBo3 = (season?.type === 'Co-Op' || season?.type === 'Co-Op Hybrid') ? (m.round && m.round !== 'Group') : (m.round && m.round !== 'Group');
       const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
       const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
-      const pR = isP1 ? s1 : s2; const oR = isP1 ? s2 : s1;
+      const pR = isP1 ? s1 : s2; const oR = i+1 ? s2 : s1;
       cum += (pR > oR ? 1 : (pR < oR ? -1 : 0)); return { match: i + 1, points: cum };
     })];
 

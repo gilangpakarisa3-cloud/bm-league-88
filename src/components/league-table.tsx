@@ -323,8 +323,8 @@ const TopScorerTable = memo(({
                                 </Avatar>
                              </div>
                              
-                             <div className="flex-1 overflow-hidden">
-                                 <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" suppressHydrationWarning>{predator.name}</h4>
+                             <div className="flex-1 min-w-0">
+                                 <h4 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{predator.name}</h4>
                                  <div className="flex items-center gap-2 mt-1">
                                     <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
                                     <p className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate" suppressHydrationWarning>{predator.teamName}</p>
@@ -391,8 +391,8 @@ const TopScorerTable = memo(({
                                 </Avatar>
                              </div>
                              
-                             <div className="flex-1 overflow-hidden">
-                                 <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" suppressHydrationWarning>{mainPedofil.name}</h4>
+                             <div className="flex-1 min-w-0">
+                                 <h4 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{mainPedofil.name}</h4>
                                  <div className="flex items-center gap-2 mt-1">
                                     <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
                                     <p className="text-[10px] font-black text-red-500/80 uppercase tracking-widest truncate" suppressHydrationWarning>{mainPedofil.teamName}</p>
