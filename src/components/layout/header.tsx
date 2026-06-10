@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -64,7 +63,7 @@ export function Header() {
                     key={link.href} 
                     href={link.href}
                     className={cn(
-                      "relative flex-1 flex flex-col items-center justify-center text-[7px] sm:text-[11px] font-black uppercase tracking-tighter sm:tracking-[0.2em] italic transition-all duration-500 whitespace-nowrap group/link overflow-hidden h-full",
+                      "relative flex-1 flex flex-col items-center justify-center text-[10px] sm:text-[15px] font-black uppercase tracking-tighter sm:tracking-[0.1em] italic transition-all duration-500 whitespace-nowrap group/link overflow-hidden h-full",
                       isActive ? "text-black" : "text-white/30 hover:text-primary"
                     )}
                   >
@@ -88,12 +87,12 @@ export function Header() {
                     
                     <div className="relative z-10 flex flex-col items-center gap-0.5">
                       {isActive && (
-                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[5px] font-black text-black/40 tracking-[0.4em] animate-pulse">
+                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[6px] font-black text-black/40 tracking-[0.4em] animate-pulse">
                             ACTIVE_LINK
                          </span>
                       )}
                       <span className="relative flex items-center gap-1 sm:gap-2 px-1">
-                        {isActive && <Activity className="w-2 h-2 animate-pulse hidden md:block" />}
+                        {isActive && <Activity className="w-2.5 h-2.5 animate-pulse hidden md:block" />}
                         {link.label}
                       </span>
                       {!isActive && (
@@ -120,7 +119,7 @@ export function Header() {
               <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-14 sm:w-14 rounded-none -skew-x-[15deg] bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all shadow-xl group/lang relative overflow-hidden">
                 <div className="skew-x-[15deg] flex flex-col items-center">
                     <Languages className="h-4 w-4 sm:h-6 sm:w-6" />
-                    <span className="text-[5px] font-black mt-1 opacity-20 group-hover/lang:opacity-100 uppercase tracking-widest">SYS_LNG</span>
+                    <span className="text-[6px] font-black mt-1 opacity-20 group-hover/lang:opacity-100 uppercase tracking-widest">SYS_LNG</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -148,7 +147,7 @@ export function Header() {
             <Link href="/settings">
               <div className="skew-x-[15deg] flex flex-col items-center">
                 <Settings className={cn("h-4 w-4 sm:h-6 sm:w-6", pathname === '/settings' ? "animate-spin-slow" : "group-hover/settings:rotate-90 transition-transform duration-700")} />
-                <span className={cn("text-[5px] font-black mt-1 uppercase tracking-widest", pathname === '/settings' ? "opacity-60" : "opacity-20")}>CFG_HUB</span>
+                <span className={cn("text-[6px] font-black mt-1 uppercase tracking-widest", pathname === '/settings' ? "opacity-60" : "opacity-20")}>CFG_HUB</span>
               </div>
             </Link>
           </Button>
