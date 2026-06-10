@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -133,7 +134,8 @@ export function PlayerPerformanceDialog({
             else { const opponentPlayer = playersById[opponentId]; if(opponentPlayer){ opponent = { name: opponentPlayer.name }; opponentTeam = teamsById[opponentPlayer.teamId]; } }
         }
 
-        const isBo3 = isCoop || (m.round && m.round !== 'Group');
+        // CORRECTED BO3 DETECTION: Only Bo3 if it's not a group match and has wins data
+        const isBo3 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group';
         const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
         const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
         const playerResult = isPlayer1 ? s1 : s2;
@@ -266,7 +268,7 @@ export function PlayerPerformanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_100px_rgba(204,253,1,0.15)]">
+      <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
         <ScrollArea className="max-h-[90vh]">
             <div className="p-6 relative">
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
@@ -371,10 +373,10 @@ export function PlayerPerformanceDialog({
                                 <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] text-center" suppressHydrationWarning>UNIT LOG: {stats.played} / {totalMatchesCount} ENAGEMENTS FINALIZED</p>
                             </div>
 
-                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5">
+                            <div className="grid grid-cols-5 gap-2.5">
                                 <StatDisplay label="Main" value={stats.played} />
                                 <StatDisplay label="Win" value={stats.win} />
-                                {activeSeason?.type !== 'Co-Op' && activeSeason?.type !== 'Co-Op Hybrid' && <StatDisplay label="Draw" value={stats.draw} />}
+                                <StatDisplay label="Draw" value={stats.draw} />
                                 <StatDisplay label="Loss" value={stats.loss} />
                                 <StatDisplay label="Points" value={player.points} variant="primary" />
                             </div>
@@ -405,9 +407,6 @@ export function PlayerPerformanceDialog({
                                         />
                                     </div>
                                 </div>
-                            </div>
-                            <div className="pt-2">
-                                <p className="text-[7px] font-bold text-white/20 uppercase tracking-widest text-center border-t border-white/5 pt-4">Laga CO-OP berkontribusi penuh pada OVR Karir individu.</p>
                             </div>
                         </CardContent>
                     </Card>
