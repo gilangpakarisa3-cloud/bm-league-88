@@ -82,7 +82,7 @@ const PlayoffQualificationLegend = () => {
             <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 none">Lower Bracket</span>
+            <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
             <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Peringkat 5 - 6</span>
           </div>
         </div>
@@ -468,7 +468,7 @@ export function LeagueTable({
     const a = [...enrichedTableData].filter(p => p.group === 'A').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
     const b = [...enrichedTableData].filter(p => p.group === 'B').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
     return { groupA: a, groupB: b };
-  }, [enrichedTableData, i-sh-brid, isCoopHybrid]);
+  }, [enrichedTableData, isHybrid, isCoopHybrid]);
 
 
   if (isLoading) return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid'} />;
