@@ -133,7 +133,7 @@ const SingleTable = memo(({
                 .reverse()
                 .map(m => {
                     const isPlayer1 = m.player1Id === playerId;
-                    const isBo3 = isCoop ? (m.round && m.round !== 'Group') : (m.round && m.round !== 'Group');
+                    const isBo3 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group';
                     const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
                     const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
                     const playerResult = isPlayer1 ? s1 : s2;
@@ -144,7 +144,7 @@ const SingleTable = memo(({
                 });
         });
         return forms;
-    }, [matches, tableData, isCoop]);
+    }, [matches, tableData]);
 
     return (
          <div className="w-full overflow-x-auto scrollbar-ultra-sport">
@@ -175,9 +175,7 @@ const SingleTable = memo(({
               const isUpperBracketZone = isPlayoffHybrid && entry.rank >= 1 && entry.rank <= 4;
               const isLowerBracketZone = isPlayoffHybrid && (entry.rank === 5 || entry.rank === 6);
               const isRelegationZone = (currentType === 'Single' && totalPlayers > 3 && entry.rank >= totalPlayers - 2) || (isPlayoffHybrid && entry.rank > 6);
-              const isUnbeaten = entry.played > 0 && entry.loss === 0;
-              const isDefendingChampion = entry.playerId === defendingChampionId;
-
+              
               return (
                 <TableRow key={entry.id} className={cn("transition-all h-16 sm:h-20 border-b-white/5 relative group/row", isFirst ? "bg-primary/[0.08] hover:bg-primary/[0.15]" : isUpperBracketZone ? "bg-green-500/[0.05] hover:bg-green-500/[0.1]" : isLowerBracketZone ? "bg-yellow-500/[0.05] hover:bg-yellow-500/[0.1]" : isRelegationZone ? "bg-red-500/[0.05] hover:bg-red-500/[0.1]" : "hover:bg-white/[0.03]")}>
                   <TableCell className={cn("p-0 w-1.5 transition-all duration-500", isFirst ? 'bg-primary shadow-[0_0_20px_rgba(204,253,1,0.8)]' : isUpperBracketZone ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : isLowerBracketZone ? 'bg-yellow-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]' : isRelegationZone ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-transparent')} />
@@ -284,20 +282,13 @@ const TopScorerTable = memo(({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto px-4">
                 {predator && (
                     <Card className="relative overflow-hidden border-4 border-primary bg-primary/[0.03] rounded-3xl p-6 shadow-[0_0_80px_rgba(204,253,1,0.2)] group/pred-card hover:border-white transition-all duration-500 animate-in fade-in zoom-in-95">
-                         {/* HUD Grid Background */}
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:25px_25px] pointer-events-none" />
-                         
-                         {/* Scanning Line */}
                          <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-30">
                              <div className="w-full h-2 bg-primary blur-[2px] absolute top-0 left-0 animate-scanning" />
                          </div>
-
-                         {/* Background Icon */}
                          <div className="absolute -bottom-10 -right-10 w-72 h-72 text-primary opacity-[0.08] pointer-events-none z-0">
                             <Flame className="w-full h-full animate-float fill-current" />
                          </div>
-
-                         {/* Header Section */}
                          <div className="flex flex-col items-center justify-center mb-8 relative z-20">
                             <div className="relative group/badge">
                                 <div className="absolute -inset-6 bg-primary/20 blur-3xl opacity-0 group-hover/badge:opacity-100 transition-opacity animate-pulse" />
@@ -313,7 +304,6 @@ const TopScorerTable = memo(({
                                 </div>
                             </div>
                          </div>
-
                          <div className="flex items-center gap-6 relative z-20">
                              <div className="relative">
                                 <div className="absolute -inset-1 bg-primary rounded-full blur opacity-20 group-hover/pred-card:opacity-60 transition-opacity" />
@@ -322,7 +312,6 @@ const TopScorerTable = memo(({
                                     <AvatarFallback className="bg-black/40"><User className="w-12 h-12 text-white/20"/></AvatarFallback>
                                 </Avatar>
                              </div>
-                             
                              <div className="flex-1 min-w-0">
                                  <h4 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{predator.name}</h4>
                                  <div className="flex items-center gap-2 mt-1">
@@ -330,7 +319,6 @@ const TopScorerTable = memo(({
                                     <p className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate" suppressHydrationWarning>{predator.teamName}</p>
                                  </div>
                              </div>
-
                              <div className="text-right flex flex-col items-end">
                                  <div className="relative">
                                     <span className="text-6xl sm:text-7xl font-black italic text-primary tabular-nums leading-none drop-shadow-[0_0_30px_rgba(204,253,1,0.6)]" suppressHydrationWarning>{predator.goals}</span>
@@ -339,8 +327,6 @@ const TopScorerTable = memo(({
                                  <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em] mt-2 text-right" suppressHydrationWarning>TOTAL GOALS AGGREGATE</p>
                              </div>
                          </div>
-                         
-                         {/* Bottom HUD Bar */}
                          <div className="mt-8 flex items-center justify-between border-t border-primary/30 pt-4">
                             <div className="flex items-center gap-2">
                                 <Zap className="w-4 h-4 text-primary fill-primary animate-pulse" />
@@ -352,20 +338,13 @@ const TopScorerTable = memo(({
                 )}
                 {mainPedofil ? (
                     <Card className="relative overflow-hidden border-4 border-red-600 bg-red-950/20 rounded-3xl p-6 shadow-[0_0_80px_rgba(220,38,38,0.2)] group/ped-card hover:border-red-500 transition-all duration-300 animate-in fade-in zoom-in-95">
-                         {/* HUD Hazard Stripes Background */}
                          <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[repeating-linear-gradient(45deg,#ff0000,#ff0000_10px,#000_10px,#000_20px)]" />
-                         
-                         {/* Scanning Line */}
                          <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-30">
                              <div className="w-full h-2 bg-red-500 blur-[2px] absolute top-0 left-0 animate-scanning" />
                          </div>
-
-                         {/* Background Icon */}
                          <div className="absolute -bottom-10 -right-10 w-72 h-72 text-red-600 opacity-[0.1] pointer-events-none z-0">
                             <ShieldAlert className="w-full h-full animate-pulse" />
                          </div>
-
-                         {/* Header Section */}
                          <div className="flex flex-col items-center justify-center mb-8 relative z-20">
                             <div className="relative group/warning">
                                 <div className="absolute -inset-4 bg-red-600/30 blur-2xl animate-pulse rounded-full" />
@@ -381,7 +360,6 @@ const TopScorerTable = memo(({
                                 </div>
                             </div>
                          </div>
-
                          <div className="flex items-center gap-6 relative z-20">
                              <div className="relative">
                                 <div className="absolute -inset-1 bg-red-600 rounded-full blur opacity-20 group-hover/ped-card:opacity-60 transition-opacity" />
@@ -390,7 +368,6 @@ const TopScorerTable = memo(({
                                     <AvatarFallback className="bg-black/40"><User className="w-12 h-12 text-white/20"/></AvatarFallback>
                                 </Avatar>
                              </div>
-                             
                              <div className="flex-1 min-w-0">
                                  <h4 className="text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{mainPedofil.name}</h4>
                                  <div className="flex items-center gap-2 mt-1">
@@ -398,17 +375,14 @@ const TopScorerTable = memo(({
                                     <p className="text-[10px] font-black text-red-500/80 uppercase tracking-widest truncate" suppressHydrationWarning>{mainPedofil.teamName}</p>
                                  </div>
                              </div>
-
                              <div className="text-right flex flex-col items-end">
                                  <div className="relative">
                                     <span className="text-6xl sm:text-7xl font-black italic text-red-600 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(220,38,38,0.5)]">0</span>
                                     <div className="absolute top-0 right-0 h-full w-full bg-gradient-to-t from-red-600/20 to-transparent pointer-events-none" />
                                  </div>
-                                 <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em] mt-2 text-right" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL DETECTED</p>
+                                 <p className="text-[10px] sm:text-xs font-black text-red-500 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL DETECTED</p>
                              </div>
                          </div>
-                         
-                         {/* Bottom HUD Bar */}
                          <div className="mt-8 flex items-center justify-between border-t border-red-600/30 pt-4">
                             <div className="flex items-center gap-2">
                                 <ShieldAlert className="w-4 h-4 text-red-600 animate-pulse" />
