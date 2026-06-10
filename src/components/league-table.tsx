@@ -324,7 +324,7 @@ const TopScorerTable = memo(({
                                     <span className="text-6xl sm:text-7xl font-black italic text-primary tabular-nums leading-none drop-shadow-[0_0_30px_rgba(204,253,1,0.6)]" suppressHydrationWarning>{predator.goals}</span>
                                     <div className="absolute top-0 right-0 h-full w-full bg-gradient-to-t from-primary/20 to-transparent pointer-events-none" />
                                  </div>
-                                 <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em] mt-2 text-right" suppressHydrationWarning>TOTAL GOALS AGGREGATE</p>
+                                 <p className="text-[10px] sm:text-xs font-black text-primary/80 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" suppressHydrationWarning>TOTAL GOALS AGGREGATE</p>
                              </div>
                          </div>
                          <div className="mt-8 flex items-center justify-between border-t border-primary/30 pt-4">
@@ -468,7 +468,7 @@ export function LeagueTable({
     const a = [...enrichedTableData].filter(p => p.group === 'A').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
     const b = [...enrichedTableData].filter(p => p.group === 'B').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
     return { groupA: a, groupB: b };
-  }, [enrichedTableData, isHybrid, isCoopHybrid]);
+  }, [enrichedTableData, i-sh-brid, isCoopHybrid]);
 
 
   if (isLoading) return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid'} />;
