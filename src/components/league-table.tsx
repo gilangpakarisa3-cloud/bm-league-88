@@ -432,7 +432,17 @@ const TopScorerTable = memo(({
                                 <TableRow key={scorer.id} className={cn("transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden", isPredator ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" : "hover:bg-primary/[0.15]")}>
                                     <TableCell className={cn("p-0 w-3 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)]' : 'bg-transparent group-hover/row:bg-primary')} />
                                     <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500", isPredator ? "text-yellow-400 scale-125" : "text-white/40 group-hover/row:text-primary")}>{scorer.rank}</TableCell>
-                                    <TableCell className="py-2"><div className="flex flex-col"><span className={cn("font-black tracking-tight uppercase italic pr-2 transition-all", isPredator ? "text-base sm:text-2xl text-yellow-400" : "text-[12px] sm:text-lg text-white group-hover/row:text-primary")} suppressHydrationWarning>{scorer.name}</span><span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1", isPredator ? "text-yellow-400/60" : "text-white/30")} suppressHydrationWarning>{scorer.teamName}</span></div></TableCell>
+                                    <TableCell className="py-2 relative overflow-hidden">
+                                        {isPredator && (
+                                            <span className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-5xl sm:text-8xl font-black text-yellow-400/[0.04] uppercase italic tracking-tighter pointer-events-none select-none z-0 whitespace-nowrap">
+                                                PREDATOR
+                                            </span>
+                                        )}
+                                        <div className="flex flex-col relative z-10">
+                                            <span className={cn("font-black tracking-tight uppercase italic pr-2 transition-all", isPredator ? "text-base sm:text-2xl text-yellow-400" : "text-[12px] sm:text-lg text-white group-hover/row:text-primary")} suppressHydrationWarning>{scorer.name}</span>
+                                            <span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1", isPredator ? "text-yellow-400/60" : "text-white/30")} suppressHydrationWarning>{scorer.teamName}</span>
+                                        </div>
+                                    </TableCell>
                                     <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums transition-all", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)]" : "text-white/60 group-hover/row:text-primary")} suppressHydrationWarning>{scorer.goals}</TableCell>
                                 </TableRow>
                             )
