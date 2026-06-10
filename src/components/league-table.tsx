@@ -273,12 +273,14 @@ const TopScorerTable = memo(({
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
                          <div className="absolute -bottom-10 -right-10 w-64 h-64 text-yellow-400 opacity-[0.07] pointer-events-none z-0"><Flame className="w-full h-full animate-pulse fill-current" /></div>
                          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10"><div className="w-full h-1 bg-yellow-400 blur-[1px] absolute top-0 left-0 animate-scanning" /></div>
-                         <div className="flex items-center justify-between mb-6 relative z-10">
+                         <div className="flex items-center justify-center mb-6 relative z-10">
                             <div className="relative group/pred-badge">
                                 <div className="absolute -inset-2 bg-yellow-400/20 blur-xl opacity-0 group-hover/pred-badge:opacity-100 transition-opacity animate-pulse" />
-                                <div className="relative flex items-center bg-black border-2 border-yellow-400 px-4 py-1.5 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] transition-all"><Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" /><span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-tighter skew-x-[15deg] leading-none">PREDATOR</span></div>
+                                <div className="relative flex items-center bg-black border-2 border-yellow-400 px-6 py-2 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] transition-all">
+                                    <Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" />
+                                    <span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-widest skew-x-[15deg] leading-none">PREDATOR</span>
+                                </div>
                             </div>
-                            <Target className="w-5 h-5 text-yellow-400/60" />
                          </div>
                          <div className="flex items-center gap-5 relative z-10">
                              <Avatar className="h-20 w-20 border-4 border-yellow-400/60 shadow-2xl group-hover/pred-card:scale-110 transition-transform duration-700"><AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/20"/></AvatarFallback></Avatar>
@@ -294,7 +296,11 @@ const TopScorerTable = memo(({
                     <Card className="relative overflow-hidden border-2 border-red-500/30 bg-red-500/[0.02] rounded-3xl p-6 shadow-[0_0_50px_rgba(239,68,68,0.05)] group/ped-card hover:border-red-500 transition-all duration-500">
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
                          <div className="absolute -bottom-10 -right-10 w-64 h-64 text-red-500 opacity-[0.05] pointer-events-none z-0"><ShieldAlert className="w-full h-full animate-pulse" /></div>
-                         <div className="flex items-center justify-between mb-6 relative z-10"><Badge className="bg-red-500 text-white font-black italic text-[9px] px-3 h-6 tracking-widest -skew-x-[12deg] shadow-lg">PEDOFIL</Badge><ShieldAlert className="w-5 h-5 text-red-500/30" /></div>
+                         <div className="flex items-center justify-center mb-6 relative z-10">
+                            <Badge className="bg-red-500 text-white font-black italic text-[11px] px-6 h-8 tracking-[0.2em] -skew-x-[12deg] shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+                                PEDOFIL
+                            </Badge>
+                         </div>
                          <div className="flex items-center gap-5 relative z-10">
                              <Avatar className="h-20 w-20 border-4 border-red-500/20 grayscale group-hover/ped-card:grayscale-0 transition-all"><AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/10"/></AvatarFallback></Avatar>
                              <div className="flex-1 overflow-hidden">
