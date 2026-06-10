@@ -233,31 +233,45 @@ SingleTable.displayName = 'SingleTable';
 const TopScorerTable = memo(({ 
     tableData, 
     isLoading, 
-    seasonType 
+    seasonType,
+    teamsById
 }: { 
     tableData: any[], 
     isLoading: boolean, 
-    seasonType?: Season['type'] 
+    seasonType?: Season['type'],
+    teamsById: Record<string, WithId<Team>>
 }) => {
     const { t } = useTranslation();
 
     const topScorers = useMemo(() => {
         if (!tableData || tableData.length === 0) return [];
-        const scorers: { name: string, goals: number, teamId: string, teamName: string, id: string, played: number }[] = [];
+        const scorers: { name: string, goals: number, teamId: string, teamName: string, id: string, played: number, logoUrl: string }[] = [];
         
         tableData.forEach(entry => {
             if (seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid') {
                 const coop = entry as CoOpLeagueEntry;
-                scorers.push({ id: coop.player1Id, name: coop.player1Name, goals: coop.player1Goals || 0, teamId: coop.player1TeamId, teamName: coop.player1TeamName, played: coop.played });
-                scorers.push({ id: coop.player2Id, name: coop.player2Name, goals: coop.player2Goals || 0, teamId: coop.player2TeamId, teamName: coop.player2TeamName, played: coop.played });
+                const t1 = teamsById[coop.player1TeamId];
+                scorers.push({ 
+                    id: coop.player1Id, name: coop.player1Name, goals: coop.player1Goals || 0, teamId: coop.player1TeamId, teamName: coop.player1TeamName, played: coop.played,
+                    logoUrl: resolveLogo(t1?.logoUrl, coop.player1Id, coop.player1Name)
+                });
+                const t2 = teamsById[coop.player2TeamId];
+                scorers.push({ 
+                    id: coop.player2Id, name: coop.player2Name, goals: coop.player2Goals || 0, teamId: coop.player2TeamId, teamName: coop.player2TeamName, played: coop.played,
+                    logoUrl: resolveLogo(t2?.logoUrl, coop.player2Id, coop.player2Name)
+                });
             } else {
                 const single = entry as LeagueEntry;
-                scorers.push({ id: single.playerId, name: single.playerName, goals: single.goalsFor || 0, teamId: single.teamId, teamName: single.teamName, played: single.played });
+                const t = teamsById[single.teamId];
+                scorers.push({ 
+                    id: single.playerId, name: single.playerName, goals: single.goalsFor || 0, teamId: single.teamId, teamName: single.teamName, played: single.played,
+                    logoUrl: resolveLogo(t?.logoUrl, single.playerId, single.playerName)
+                });
             }
         });
 
         return scorers.sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).map((s, i) => ({ ...s, rank: i + 1 }));
-    }, [tableData, seasonType]);
+    }, [tableData, seasonType, teamsById]);
 
     const predator = topScorers[0];
     const pedofils = useMemo(() => topScorers.filter(s => s.goals === 0 && s.played > 0).sort((a,b) => b.played - a.played), [topScorers]);
@@ -267,47 +281,140 @@ const TopScorerTable = memo(({
 
     return (
         <div className="space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto px-4">
                 {predator && (
-                    <Card className="relative overflow-hidden border-2 border-yellow-400/40 bg-yellow-400/[0.03] rounded-3xl p-6 shadow-[0_0_50px_rgba(250,204,21,0.1)] group/pred-card hover:border-yellow-400 transition-all duration-500 animate-predator-glow">
-                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-yellow-400 opacity-[0.07] pointer-events-none z-0"><Flame className="w-full h-full animate-pulse fill-current" /></div>
-                         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10"><div className="w-full h-1 bg-yellow-400 blur-[1px] absolute top-0 left-0 animate-scanning" /></div>
-                         <div className="flex items-center justify-center mb-6 relative z-10">
-                            <div className="relative group/pred-badge">
-                                <div className="absolute -inset-2 bg-yellow-400/20 blur-xl opacity-0 group-hover/pred-badge:opacity-100 transition-opacity animate-pulse" />
-                                <div className="relative flex items-center bg-black border-2 border-yellow-400 px-6 py-2 -skew-x-[15deg] shadow-[4px_4px_0px_rgba(250,204,21,0.3)] transition-all">
-                                    <Flame className="w-4 h-4 text-yellow-400 mr-2 skew-x-[15deg] fill-yellow-400" />
-                                    <span className="text-[11px] font-black text-yellow-400 uppercase italic tracking-widest skew-x-[15deg] leading-none">PREDATOR</span>
+                    <Card className="relative overflow-hidden border-4 border-primary bg-primary/[0.03] rounded-3xl p-6 shadow-[0_0_80px_rgba(204,253,1,0.2)] group/pred-card hover:border-white transition-all duration-500 animate-in fade-in zoom-in-95">
+                         {/* HUD Grid Background */}
+                         <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:25px_25px] pointer-events-none" />
+                         
+                         {/* Scanning Line */}
+                         <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-30">
+                             <div className="w-full h-2 bg-primary blur-[2px] absolute top-0 left-0 animate-scanning" />
+                         </div>
+
+                         {/* Background Icon */}
+                         <div className="absolute -bottom-10 -right-10 w-72 h-72 text-primary opacity-[0.08] pointer-events-none z-0">
+                            <Flame className="w-full h-full animate-float fill-current" />
+                         </div>
+
+                         {/* Header Section */}
+                         <div className="flex flex-col items-center justify-center mb-8 relative z-20">
+                            <div className="relative group/badge">
+                                <div className="absolute -inset-6 bg-primary/20 blur-3xl opacity-0 group-hover/badge:opacity-100 transition-opacity animate-pulse" />
+                                <div className="relative flex flex-col items-center">
+                                    <Badge className="bg-primary text-black font-black italic text-sm sm:text-base px-10 h-10 tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(204,253,1,0.2)] border-r-4 border-black mb-2 rounded-none">
+                                        PREDATOR
+                                    </Badge>
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1 w-12 bg-primary" />
+                                        <span className="text-[7px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">MAXIMUM_THREAT_DETECTED</span>
+                                        <div className="h-1 w-12 bg-primary" />
+                                    </div>
                                 </div>
                             </div>
                          </div>
-                         <div className="flex items-center gap-5 relative z-10">
-                             <Avatar className="h-20 w-20 border-4 border-yellow-400/60 shadow-2xl group-hover/pred-card:scale-110 transition-transform duration-700"><AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/20"/></AvatarFallback></Avatar>
-                             <div className="flex-1 overflow-hidden">
-                                 <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" suppressHydrationWarning>{predator.name}</h4>
-                                 <p className="text-[10px] font-black text-yellow-400/60 uppercase tracking-widest" suppressHydrationWarning>{predator.teamName}</p>
+
+                         <div className="flex items-center gap-6 relative z-20">
+                             <div className="relative">
+                                <div className="absolute -inset-1 bg-primary rounded-full blur opacity-20 group-hover/pred-card:opacity-60 transition-opacity" />
+                                <Avatar className="h-24 w-24 border-4 border-primary shadow-2xl group-hover/pred-card:scale-105 transition-all duration-500">
+                                    <AvatarImage src={predator.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                    <AvatarFallback className="bg-black/40"><User className="w-12 h-12 text-white/20"/></AvatarFallback>
+                                </Avatar>
                              </div>
-                             <div className="text-right"><span className="text-5xl font-black italic text-yellow-400 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] animate-pulse" suppressHydrationWarning>{predator.goals}</span><p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1">TOTAL GOL</p></div>
+                             
+                             <div className="flex-1 overflow-hidden">
+                                 <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" suppressHydrationWarning>{predator.name}</h4>
+                                 <div className="flex items-center gap-2 mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                                    <p className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate" suppressHydrationWarning>{predator.teamName}</p>
+                                 </div>
+                             </div>
+
+                             <div className="text-right flex flex-col items-end">
+                                 <div className="relative">
+                                    <span className="text-6xl sm:text-7xl font-black italic text-primary tabular-nums leading-none drop-shadow-[0_0_30px_rgba(204,253,1,0.6)]" suppressHydrationWarning>{predator.goals}</span>
+                                    <div className="absolute top-0 right-0 h-full w-full bg-gradient-to-t from-primary/20 to-transparent pointer-events-none" />
+                                 </div>
+                                 <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em] mt-2 text-right" suppressHydrationWarning>TOTAL GOALS AGGREGATE</p>
+                             </div>
+                         </div>
+                         
+                         {/* Bottom HUD Bar */}
+                         <div className="mt-8 flex items-center justify-between border-t border-primary/30 pt-4">
+                            <div className="flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-primary fill-primary animate-pulse" />
+                                <span className="text-[8px] font-black text-primary/60 uppercase">TARGET_ACQUIRED_LOCKED</span>
+                            </div>
+                            <span className="text-[8px] font-black text-primary/40">SYSTEM_AUTH_ID: 888-88-8</span>
                          </div>
                     </Card>
                 )}
                 {mainPedofil ? (
-                    <Card className="relative overflow-hidden border-2 border-red-500/30 bg-red-500/[0.02] rounded-3xl p-6 shadow-[0_0_50px_rgba(239,68,68,0.05)] group/ped-card hover:border-red-500 transition-all duration-500">
-                         <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                         <div className="absolute -bottom-10 -right-10 w-64 h-64 text-red-500 opacity-[0.05] pointer-events-none z-0"><ShieldAlert className="w-full h-full animate-pulse" /></div>
-                         <div className="flex items-center justify-center mb-6 relative z-10">
-                            <Badge className="bg-red-500 text-white font-black italic text-[11px] px-6 h-8 tracking-[0.2em] -skew-x-[12deg] shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-                                PEDOFIL
-                            </Badge>
+                    <Card className="relative overflow-hidden border-4 border-red-600 bg-red-950/20 rounded-3xl p-6 shadow-[0_0_80px_rgba(220,38,38,0.2)] group/ped-card hover:border-red-500 transition-all duration-300 animate-in fade-in zoom-in-95">
+                         {/* HUD Hazard Stripes Background */}
+                         <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[repeating-linear-gradient(45deg,#ff0000,#ff0000_10px,#000_10px,#000_20px)]" />
+                         
+                         {/* Scanning Line */}
+                         <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-30">
+                             <div className="w-full h-2 bg-red-500 blur-[2px] absolute top-0 left-0 animate-scanning" />
                          </div>
-                         <div className="flex items-center gap-5 relative z-10">
-                             <Avatar className="h-20 w-20 border-4 border-red-500/20 grayscale group-hover/ped-card:grayscale-0 transition-all"><AvatarFallback className="bg-black/40"><User className="w-10 h-10 text-white/10"/></AvatarFallback></Avatar>
-                             <div className="flex-1 overflow-hidden">
-                                 <h4 className="text-2xl font-black text-white/80 uppercase italic tracking-tighter truncate pr-4" suppressHydrationWarning>{mainPedofil.name}</h4>
-                                 <p className="text-[10px] font-black text-red-500/40 uppercase tracking-widest" suppressHydrationWarning>{mainPedofil.teamName}</p>
+
+                         {/* Background Icon */}
+                         <div className="absolute -bottom-10 -right-10 w-72 h-72 text-red-600 opacity-[0.1] pointer-events-none z-0">
+                            <ShieldAlert className="w-full h-full animate-pulse" />
+                         </div>
+
+                         {/* Header Section */}
+                         <div className="flex flex-col items-center justify-center mb-8 relative z-20">
+                            <div className="relative group/warning">
+                                <div className="absolute -inset-4 bg-red-600/30 blur-2xl animate-pulse rounded-full" />
+                                <div className="relative flex flex-col items-center">
+                                    <Badge className="bg-red-600 text-white font-black italic text-sm sm:text-base px-10 h-10 tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(0,0,0,0.4)] border-r-4 border-black mb-2 rounded-none">
+                                        PEDOFIL
+                                    </Badge>
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1 w-12 bg-red-600" />
+                                        <span className="text-[7px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">CRITICAL_FAILURE</span>
+                                        <div className="h-1 w-12 bg-red-600" />
+                                    </div>
+                                </div>
+                            </div>
+                         </div>
+
+                         <div className="flex items-center gap-6 relative z-20">
+                             <div className="relative">
+                                <div className="absolute -inset-1 bg-red-600 rounded-full blur opacity-20 group-hover/ped-card:opacity-60 transition-opacity" />
+                                <Avatar className="h-24 w-24 border-4 border-red-600 shadow-2xl group-hover/ped-card:scale-105 transition-all duration-500">
+                                    <AvatarImage src={mainPedofil.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                    <AvatarFallback className="bg-black/40"><User className="w-12 h-12 text-white/20"/></AvatarFallback>
+                                </Avatar>
                              </div>
-                             <div className="text-right"><span className="text-5xl font-black italic text-red-500 tabular-nums leading-none opacity-40">0</span><p className="text-[7px] font-black text-white/20 uppercase tracking-[0.3em] mt-1" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL</p></div>
+                             
+                             <div className="flex-1 overflow-hidden">
+                                 <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter truncate pr-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" suppressHydrationWarning>{mainPedofil.name}</h4>
+                                 <div className="flex items-center gap-2 mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
+                                    <p className="text-[10px] font-black text-red-500/80 uppercase tracking-widest truncate" suppressHydrationWarning>{mainPedofil.teamName}</p>
+                                 </div>
+                             </div>
+
+                             <div className="text-right flex flex-col items-end">
+                                 <div className="relative">
+                                    <span className="text-6xl sm:text-7xl font-black italic text-red-600 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(220,38,38,0.5)]">0</span>
+                                    <div className="absolute top-0 right-0 h-full w-full bg-gradient-to-t from-red-600/20 to-transparent pointer-events-none" />
+                                 </div>
+                                 <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em] mt-2 text-right" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL DETECTED</p>
+                             </div>
+                         </div>
+                         
+                         {/* Bottom HUD Bar */}
+                         <div className="mt-8 flex items-center justify-between border-t border-red-600/30 pt-4">
+                            <div className="flex items-center gap-2">
+                                <ShieldAlert className="w-4 h-4 text-red-600 animate-pulse" />
+                                <span className="text-[8px] font-black text-red-500/60 uppercase">SIGNAL_LOST_PROTOCOL</span>
+                            </div>
+                            <span className="text-[8px] font-black text-red-500/40">SYSTEM_ALERT_ID: 000-00-0</span>
                          </div>
                     </Card>
                 ) : (
@@ -408,7 +515,7 @@ export function LeagueTable({
                     )}
                 </TabsList>
                 <TabsContent value="standings" className="mt-0"><SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={true} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} /></TabsContent>
-                <TabsContent value="topskor" className="mt-0 py-10"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} /></TabsContent>
+                <TabsContent value="topskor" className="mt-0 py-10"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} teamsById={teamsById} /></TabsContent>
                 {isCoopHybrid && <TabsContent value="playoff" className="mt-0"><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>}
              </Tabs>
         ) : (
