@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
@@ -86,7 +87,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
         
         return (
             <div className={cn(
-                "flex items-center gap-3 sm:gap-5 transition-all duration-500 w-full overflow-hidden", 
+                "flex items-center gap-3 sm:gap-6 transition-all duration-500 w-full overflow-hidden", 
                 alignment === 'right' ? "flex-row-reverse text-right" : "flex-row text-left"
             )}>
                 <div className="relative shrink-0">
@@ -96,7 +97,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                     )} />
                     
                     <Avatar className={cn(
-                        "h-10 w-10 sm:h-14 sm:w-14 border-2 transition-all duration-700 shadow-xl relative z-10",
+                        "h-12 w-12 sm:h-16 sm:w-16 border-2 transition-all duration-700 shadow-xl relative z-10",
                         isWinner ? "border-primary scale-110" : "border-white/10"
                     )}>
                         <AvatarImage 
@@ -106,14 +107,14 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                             className="object-cover" 
                             referrerPolicy="no-referrer" 
                         />
-                        <AvatarFallback className="bg-black/40 font-black text-[6px] leading-tight text-center px-0.5">
+                        <AvatarFallback className="bg-black/40 font-black text-[8px] leading-tight text-center px-0.5">
                             LOGO NULL
                         </AvatarFallback>
                     </Avatar>
 
                     {isMatchBo3 && wins !== undefined && (
                         <div className={cn(
-                            "absolute -bottom-1 flex items-center justify-center w-5 h-5 rounded-full border-2 border-background font-black text-[8px] z-20 shadow-lg",
+                            "absolute -bottom-1 flex items-center justify-center w-6 h-6 rounded-full border-2 border-background font-black text-[10px] z-20 shadow-lg",
                             alignment === 'right' ? "-right-1 bg-primary text-black" : "-left-1 bg-primary text-black"
                         )}>
                             {wins || 0}
@@ -122,19 +123,19 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                     
                     {isWinner && (
                         <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1 z-20 shadow-lg border-2 border-background animate-bounce">
-                            <Zap className="w-2 h-2 sm:w-3 sm:h-3 text-black fill-black" />
+                            <Zap className="w-3 h-3 text-black fill-black" />
                         </div>
                     )}
                 </div>
 
                 <div className="flex flex-col min-w-0 flex-1">
                     <span className={cn(
-                        "text-xs sm:text-lg font-black tracking-tight uppercase italic truncate transition-colors duration-500 pr-2", 
+                        "text-xs sm:text-xl font-black tracking-tighter uppercase italic truncate transition-colors duration-500 pr-2 leading-none", 
                         isWinner ? "text-primary" : "text-white/90"
                     )}>
                         {name}
                     </span>
-                    <span className="text-[7px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest truncate pr-2">
+                    <span className="text-[7px] sm:text-[11px] font-bold text-white/30 uppercase tracking-[0.2em] truncate pr-2 mt-1">
                         {team?.name || 'Athlete Protocol'}
                     </span>
                 </div>
@@ -154,19 +155,20 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
     const gameIdx = isMatchBo3 ? (wins1 + wins2 + 1) : 1;
 
     return (
-        <div className="group relative overflow-hidden transition-all duration-500 border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.02] pr-10">
-                <span className="text-[100px] sm:text-[160px] font-black italic text-white uppercase tracking-tighter transition-all duration-1000 group-hover:scale-105">
+        <div className="group relative overflow-hidden transition-all duration-500 border-b-2 border-white/5 last:border-0 hover:bg-primary/[0.02]">
+            {/* AGGRESSIVE BACKGROUND GHOST TEXT */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.03] pr-10">
+                <span className="text-[120px] sm:text-[220px] font-black italic text-white uppercase tracking-tighter transition-all duration-1000 group-hover:scale-110 group-hover:opacity-[0.05]">
                     {match.isCompleted ? 'FINISHED' : match.status === 'Live' ? 'LIVE NOW' : 'BATTLE'}
                 </span>
             </div>
 
-            <div className="relative z-10 grid grid-cols-[1fr_80px_1fr] sm:grid-cols-[1fr_140px_1fr] items-center gap-2 sm:gap-6 p-4 sm:p-8">
-                <div className="w-full flex items-center gap-2">
+            <div className="relative z-10 grid grid-cols-[1fr_90px_1fr] sm:grid-cols-[1fr_160px_1fr] items-center gap-2 sm:gap-10 p-5 sm:p-10">
+                <div className="w-full flex items-center gap-3">
                     {isAdmin && match.status === 'Live' && (
-                        <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
-                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', 1)}><Plus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
-                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
+                        <div className="flex flex-col gap-1.5 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
+                            <Button size="icon" variant="outline" className="h-7 w-7 sm:h-9 sm:w-9 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', 1)}><Plus className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="outline" className="h-7 w-7 sm:h-9 sm:w-9 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-4 w-4" /></Button>
                         </div>
                     )}
                     <PlayerInfo name={match.player1?.name || 'TBD'} team={match.team1} teamId={match.teamId1 || match.player1Id} alignment="right" isWinner={isW1} wins={isMatchBo3 ? wins1 : undefined} />
@@ -174,24 +176,27 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                 
                 <div className="flex flex-col items-center justify-center relative">
                     {hasValidScore ? (
-                        <div className="relative group/score flex flex-col items-center gap-2">
+                        <div className="relative group/score flex flex-col items-center gap-3">
+                            {/* ULTRA AGGRESSIVE SCORE BOX (COCKPIT STYLE) */}
                             <div className={cn(
-                                "bg-[#0A192F] border-2 px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-xl shadow-2xl relative z-10 flex items-center gap-3 sm:gap-5 ring-4 ring-black/40",
-                                match.status === 'Live' ? "border-red-500/50 animate-pulse" : "border-white/10"
+                                "bg-[#0A192F] border-b-4 px-4 sm:px-8 py-2 sm:py-4 rounded-none shadow-2xl relative z-10 flex items-center gap-4 sm:gap-8 -skew-x-[12deg] transition-all duration-500",
+                                match.status === 'Live' ? "border-red-500 animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.3)]" : "border-primary shadow-[0_0_40px_rgba(204,253,1,0.15)] group-hover/score:scale-105"
                             )}>
-                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW1 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : match.status === 'Live' ? "text-white" : "text-white/30")}>
+                                <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
+                                <span className={cn("text-3xl sm:text-6xl font-black italic tabular-nums leading-none skew-x-[12deg] transition-colors duration-500", isW1 ? "text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]" : match.status === 'Live' ? "text-white" : "text-white/40")}>
                                     {score1}
                                 </span>
-                                <div className="w-px h-5 sm:h-8 bg-white/10" />
-                                <span className={cn("text-2xl sm:text-4xl font-black italic tabular-nums leading-none", isW2 ? "text-primary drop-shadow-[0_0_10px_rgba(204,253,1,0.5)]" : match.status === 'Live' ? "text-white" : "text-white/30")}>
+                                <div className="w-px h-8 sm:h-12 bg-white/10 skew-x-[12deg]" />
+                                <span className={cn("text-3xl sm:text-6xl font-black italic tabular-nums leading-none skew-x-[12deg] transition-colors duration-500", isW2 ? "text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]" : match.status === 'Live' ? "text-white" : "text-white/40")}>
                                     {score2}
                                 </span>
                             </div>
+                            
                             {match.status === 'Live' && (
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
-                                    <Badge className="bg-red-500 text-white font-black text-[7px] h-4 px-2 uppercase shadow-lg">LIVE</Badge>
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+                                    <Badge className="bg-red-500 text-white font-black text-[8px] sm:text-[10px] h-5 px-3 uppercase shadow-xl tracking-widest border-r-4 border-black/20">LIVE</Badge>
                                     {isMatchBo3 && (
-                                        <Badge variant="outline" className="mt-1 bg-primary/10 border-primary/30 text-primary text-[6px] h-3 px-1.5 font-black italic">
+                                        <Badge variant="outline" className="mt-1.5 bg-primary/10 border-primary/30 text-primary text-[7px] h-4 px-2 font-black italic">
                                             GAME {gameIdx}
                                         </Badge>
                                     )}
@@ -199,59 +204,66 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                             )}
                         </div>
                     ) : (
-                        <div className="relative flex flex-col items-center">
-                            <div className="bg-primary/10 border-2 border-primary/20 px-3 sm:px-5 py-1 sm:py-1.5 rounded-full backdrop-blur-md shadow-lg group-hover:border-primary transition-all">
-                                <span className="text-[10px] sm:text-xs font-black tracking-widest text-primary uppercase italic">VS</span>
+                        <div className="relative flex flex-col items-center group/vs-container">
+                            <div className="bg-primary px-5 sm:px-8 py-1.5 sm:py-2.5 relative overflow-hidden -skew-x-[20deg] shadow-[0_10px_30px_rgba(204,253,1,0.3)] border-r-4 border-black/20">
+                                <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                                <span className="text-sm sm:text-xl font-black tracking-[0.3em] text-black uppercase italic relative z-10 skew-x-[20deg] pr-1">VS</span>
                             </div>
-                            {isMatchBo3 && <Badge variant="outline" className="mt-2 text-[6px] sm:text-[8px] border-primary/20 text-primary/60 font-black uppercase tracking-widest bg-black/40">BO3 SERIES</Badge>}
+                            {isMatchBo3 && <Badge variant="outline" className="mt-3 text-[7px] sm:text-[9px] border-primary/30 text-primary/60 font-black uppercase tracking-[0.3em] bg-black/40 px-3 h-5">BO3 SERIES</Badge>}
                         </div>
                     )}
                 </div>
                 
-                <div className="w-full flex items-center gap-2">
+                <div className="w-full flex items-center gap-3">
                     <PlayerInfo name={match.player2?.name || 'TBD'} team={match.team2} teamId={match.teamId2 || match.player2Id} alignment="left" isWinner={isW2} wins={isMatchBo3 ? wins2 : undefined} />
                     {isAdmin && match.status === 'Live' && (
-                        <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-right-2 duration-500">
-                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', 1)}><Plus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
-                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', -1)}><Minus className="h-3 w-3 sm:h-4 sm:w-4" /></Button>
+                        <div className="flex flex-col gap-1.5 shrink-0 animate-in fade-in slide-in-from-right-2 duration-500">
+                            <Button size="icon" variant="outline" className="h-7 w-7 sm:h-9 sm:w-9 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', 1)}><Plus className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="outline" className="h-7 w-7 sm:h-9 sm:w-9 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', -1)}><Minus className="h-4 w-4" /></Button>
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="flex items-center justify-between px-4 sm:px-10 py-2 sm:py-3 bg-black/40 border-t border-white/5 relative z-10">
-                <div className="flex items-center gap-3">
-                    <Calendar className="w-3 h-3 text-white/20" />
-                    <span className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase italic tracking-widest" suppressHydrationWarning>{displayDate}</span>
+            <div className="flex items-center justify-between px-6 sm:px-12 py-3 sm:py-4 bg-black/60 border-t border-white/5 relative z-10">
+                <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-2.5">
+                        <Calendar className="w-3.5 h-3.5 text-primary/40" />
+                        <span className="text-[9px] sm:text-[11px] font-black text-white/40 uppercase italic tracking-[0.2em]" suppressHydrationWarning>{displayDate}</span>
+                    </div>
                     {match.round && match.round !== 'Group' && (
-                        <Badge className="bg-primary/10 border-primary/20 text-primary text-[7px] h-4 font-black px-1.5">{match.round}</Badge>
+                        <Badge className="bg-primary text-black border-none text-[8px] sm:text-[10px] h-6 font-black px-4 italic -skew-x-[12deg] border-r-4 border-black/20 shadow-lg">
+                            <span className="skew-x-[12deg]">{match.round}</span>
+                        </Badge>
                     )}
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     <Button 
                         variant="ghost" 
-                        size="sm" 
                         className={cn(
-                            "h-7 sm:h-9 px-3 sm:px-5 text-[8px] sm:text-[10px] font-black uppercase tracking-widest border transition-all",
+                            "h-9 sm:h-12 px-5 sm:px-10 text-[9px] sm:text-[12px] font-black uppercase tracking-[0.2em] border-2 -skew-x-[15deg] transition-all rounded-none",
                             hasValidScore 
-                                ? "text-white/40 border-white/5 hover:border-primary/30 hover:text-primary" 
-                                : "text-primary border-primary/30 hover:bg-primary hover:text-black"
+                                ? "text-white/40 border-white/5 hover:border-primary/40 hover:text-primary hover:bg-primary/5" 
+                                : "text-black bg-primary border-primary shadow-[0_0_25px_rgba(204,253,1,0.2)] hover:scale-105"
                         )}
                         onClick={() => onEditMatch(match)}
                         disabled={isEditDisabled}
                     >
-                        {match.isCompleted ? 'ANALYSIS' : 'UPDATE SCORE'}
+                        <span className="skew-x-[15deg] flex items-center gap-2">
+                            {match.isCompleted ? <Binary className="w-4 h-4"/> : <Activity className="w-4 h-4"/>}
+                            {match.isCompleted ? 'ANALYSIS' : 'UPDATE SCORE'}
+                        </span>
                     </Button>
                     
                     {isAdmin && match.isCompleted && (
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-7 w-7 sm:h-9 sm:w-9 text-amber-500/60 hover:text-amber-400 border border-amber-500/10 hover:border-amber-500/30 rounded-lg transition-all" 
+                            className="h-9 w-9 sm:h-12 sm:w-12 text-amber-500/60 hover:text-amber-400 border-2 border-amber-500/10 hover:border-amber-500/40 rounded-none -skew-x-[15deg] transition-all" 
                             onClick={() => onRevertMatch(match)}
                         >
-                            <Undo2 className="h-3.5 w-3.5" />
+                            <Undo2 className="h-4 w-4 skew-x-[15deg]" />
                         </Button>
                     )}
                 </div>
@@ -370,197 +382,227 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
     };
 
     if (isLoadingMatches) return (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <Zap className="w-12 h-12 text-primary animate-pulse" />
-            <p className="text-sm font-black tracking-[0.3em] text-primary/60 uppercase italic">{t('loading_fixtures')}</p>
+        <div className="flex flex-col items-center justify-center py-24 gap-6">
+            <div className="relative">
+                <div className="absolute -inset-8 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+                <Zap className="w-16 h-16 text-primary animate-spin" />
+            </div>
+            <p className="text-xs font-black tracking-[0.5em] text-primary/60 uppercase italic animate-pulse">Syncing Tactical Data Hub...</p>
         </div>
     );
 
     if (!matches || matches.length === 0) return (
-        <div className="border-4 border-dashed border-white/5 rounded-3xl p-16 text-center bg-card/20 backdrop-blur-md animate-in fade-in zoom-in-95 duration-700">
-            <Swords className="w-20 h-20 text-white/5 mx-auto mb-6" />
-            <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic pr-2">{t('no_fixtures_generated_title')}</h2>
-            <p className="text-white/40 mt-3 max-w-sm mx-auto font-bold uppercase text-[10px] tracking-widest">{t('no_fixtures_generated_desc')}</p>
+        <div className="border-4 border-dashed border-white/5 rounded-none p-20 text-center bg-black/20 backdrop-blur-md animate-in fade-in zoom-in-95 duration-700 max-w-4xl mx-auto">
+            <Swords className="w-24 h-24 text-white/5 mx-auto mb-8" />
+            <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic pr-4">{t('no_fixtures_generated_title')}</h2>
+            <p className="text-white/40 mt-4 max-w-sm mx-auto font-bold uppercase text-[11px] tracking-[0.3em] leading-relaxed">{t('no_fixtures_generated_desc')}</p>
         </div>
     );
     
     return (
-        <div className="space-y-10">
-            <div className="relative max-w-2xl mx-auto group/search">
-                <div className="absolute -inset-4 bg-primary/5 rounded-none -skew-x-[12deg] blur-3xl opacity-0 group-hover/search:opacity-100 transition-opacity duration-1000" />
-                <div className="relative flex items-center bg-black/60 border-b-4 border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.6)] backdrop-blur-3xl overflow-hidden -skew-x-[12deg] transition-all duration-500 group-hover/search:border-primary/30">
+        <div className="space-y-12">
+            {/* ULTRA AGGRESSIVE SEARCH HUB */}
+            <div className="relative max-w-3xl mx-auto group/search">
+                <div className="absolute -inset-6 bg-primary/5 rounded-none -skew-x-[15deg] blur-3xl opacity-0 group-hover/search:opacity-100 transition-opacity duration-1000" />
+                <div className="relative flex items-center bg-black/80 border-b-4 border-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.8)] backdrop-blur-3xl overflow-hidden -skew-x-[20deg] transition-all duration-500 group-hover/search:border-primary/50 group-hover/search:scale-[1.02]">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
-                        <div className="w-full h-[2px] bg-primary/20 blur-[1px] absolute top-0 left-0 animate-scanning" />
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                        <div className="w-full h-[3px] bg-primary/40 blur-[2px] absolute top-0 left-0 animate-scanning" />
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:25px_25px]" />
                     </div>
-                    <div className="h-14 w-14 sm:h-16 sm:w-16 bg-primary flex items-center justify-center shrink-0 shadow-2xl border-r-4 border-black/20 relative z-10">
+                    <div className="h-16 w-16 sm:h-20 sm:w-20 bg-primary flex items-center justify-center shrink-0 shadow-2xl border-r-4 border-black/20 relative z-10">
                         <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                        <Search className="h-6 w-6 sm:h-7 sm:w-7 text-black skew-x-[12deg]" />
+                        <Search className="h-7 w-7 sm:h-9 sm:w-9 text-black skew-x-[20deg]" />
                     </div>
                     <Input 
                         type="text" 
-                        placeholder="Search Battle / Team..." 
-                        className="flex-1 h-14 sm:h-16 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg sm:text-2xl font-black italic tracking-tight uppercase placeholder:text-white/10 transition-all relative z-10 skew-x-[12deg] pl-6 pr-8 text-white" 
+                        placeholder="SEARCH BATTLE NODE / UNIT..." 
+                        className="flex-1 h-16 sm:h-20 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-xl sm:text-3xl font-black italic tracking-tighter uppercase placeholder:text-white/10 transition-all relative z-10 skew-x-[20deg] pl-8 pr-10 text-white" 
                         value={searchTerm} 
                         onChange={(e) => setSearchTerm(e.target.value)} 
                     />
-                    <div className="hidden sm:flex items-center gap-2 pr-6 skew-x-[12deg] opacity-20 group-hover/search:opacity-40 transition-opacity">
-                        <Scan className="w-4 h-4 text-primary" />
-                        <span className="text-[8px] font-black text-primary uppercase tracking-widest">QUERY_LINK</span>
+                    <div className="hidden sm:flex flex-col items-end gap-1 pr-10 skew-x-[20deg] opacity-20 group-hover/search:opacity-40 transition-opacity">
+                        <div className="flex items-center gap-2">
+                            <Scan className="w-4 h-4 text-primary" />
+                            <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">UPLINK_READY</span>
+                        </div>
+                        <span className="text-[7px] font-black text-white uppercase">ID_NODE: 88-X-9</span>
                     </div>
                 </div>
             </div>
 
             {(upcomingCount === 0 && completedCount === 0 && liveCount === 0 && searchTerm) ? (
-                <div className="text-center py-20 opacity-20 flex flex-col items-center gap-4">
-                    <Activity className="w-12 h-12" />
-                    <h2 className="text-xl font-black uppercase italic tracking-widest">{t('no_matches_found')}</h2>
+                <div className="text-center py-24 opacity-20 flex flex-col items-center gap-6">
+                    <div className="relative">
+                        <Activity className="w-16 h-16" />
+                        <div className="absolute -inset-4 border-2 border-dashed border-white/20 rounded-full animate-spin-slow" />
+                    </div>
+                    <h2 className="text-2xl font-black uppercase italic tracking-[0.4em]">{t('no_matches_found')}</h2>
                 </div>
             ) : (
                 <Tabs defaultValue={liveCount > 0 ? "live" : "upcoming"} className="w-full">
-                    <div className="flex justify-center mb-10">
-                        <TabsList className="grid grid-cols-3 w-full max-w-2xl h-16 sm:h-20 bg-black/60 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
+                    <div className="flex justify-center mb-16">
+                        <TabsList className="grid grid-cols-3 w-full max-w-3xl h-20 sm:h-24 bg-black/80 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-3xl rounded-none shadow-[0_20px_80px_rgba(0,0,0,0.7)]">
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:15px_15px] pointer-events-none opacity-40" />
+                            
                             <TabsTrigger 
                                 value="live" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                    "relative h-full font-black uppercase tracking-[0.15em] text-[11px] sm:text-[16px] italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/20 data-[state=inactive]:hover:text-white/60"
                                 )}
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                                    <Radio className={cn("w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100", liveCount > 0 && "animate-pulse text-red-500")} />
-                                    LIVE <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{liveCount}]</span>
+                                <span className="relative z-10 flex flex-col items-center justify-center gap-1">
+                                    <div className="flex items-center gap-3">
+                                        <Radio className={cn("w-4 h-4 sm:w-5 sm:h-5", liveCount > 0 && "animate-pulse text-red-500")} />
+                                        LIVE <span className="text-[14px] sm:text-[18px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-2 rounded-lg" suppressHydrationWarning>[{liveCount}]</span>
+                                    </div>
+                                    <span className="text-[6px] sm:text-[8px] tracking-[0.4em] opacity-40">REAL_TIME_NODE</span>
                                 </span>
                                 <div className={cn(
-                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                    "absolute inset-0 -skew-x-[20deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_60px_rgba(204,253,1,0.5)]",
+                                    "border-r-8 border-white/20 group-data-[state=active]/tab:border-black/30"
                                 )} />
                             </TabsTrigger>
 
                             <TabsTrigger 
                                 value="upcoming" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                    "relative h-full font-black uppercase tracking-[0.15em] text-[11px] sm:text-[16px] italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/20 data-[state=inactive]:hover:text-white/60"
                                 )}
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                                    <Scan className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                    Antrian <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{upcomingCount}]</span>
+                                <span className="relative z-10 flex flex-col items-center justify-center gap-1">
+                                    <div className="flex items-center gap-3">
+                                        <Scan className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        QUEUE <span className="text-[14px] sm:text-[18px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-2 rounded-lg" suppressHydrationWarning>[{upcomingCount}]</span>
+                                    </div>
+                                    <span className="text-[6px] sm:text-[8px] tracking-[0.4em] opacity-40">TRANSMISSION_QUE</span>
                                 </span>
                                 <div className={cn(
-                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                    "absolute inset-0 -skew-x-[20deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_60px_rgba(204,253,1,0.5)]",
+                                    "border-r-8 border-white/20 group-data-[state=active]/tab:border-black/30"
                                 )} />
                             </TabsTrigger>
 
                             <TabsTrigger 
                                 value="completed" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                                    "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
+                                    "relative h-full font-black uppercase tracking-[0.15em] text-[11px] sm:text-[16px] italic transition-all duration-700 group/tab overflow-hidden",
+                                    "data-[state=active]:text-black data-[state=inactive]:text-white/20 data-[state=inactive]:hover:text-white/60"
                                 )}
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-3 pr-2">
-                                    <CheckCircle2 className="w-4 h-4 opacity-40 group-data-[state=active]/tab:opacity-100 group-data-[state=active]/tab:animate-pulse" />
-                                    Selesai <span className="text-[12px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-1.5 rounded" suppressHydrationWarning>[{completedCount}]</span>
+                                <span className="relative z-10 flex flex-col items-center justify-center gap-1">
+                                    <div className="flex items-center gap-3">
+                                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        HISTORY <span className="text-[14px] sm:text-[18px] opacity-40 group-data-[state=active]/tab:opacity-100 font-bold bg-black/20 px-2 rounded-lg" suppressHydrationWarning>[{completedCount}]</span>
+                                    </div>
+                                    <span className="text-[6px] sm:text-[8px] tracking-[0.4em] opacity-40">ARCHIVE_MANIFEST</span>
                                 </span>
                                 <div className={cn(
-                                    "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                                    "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
+                                    "absolute inset-0 -skew-x-[20deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
+                                    "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_60px_rgba(204,253,1,0.5)]",
+                                    "border-r-8 border-white/20 group-data-[state=active]/tab:border-black/30"
                                 )} />
                             </TabsTrigger>
                         </TabsList>
                     </div>
 
                     <TabsContent value="live" className="mt-0 focus-visible:ring-0 outline-none">
-                        <div className="space-y-12">
+                        <div className="space-y-16">
                             {Object.entries(groupedMatches.live).map(([rd, rms]) => (
-                                <section key={`live-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex items-center gap-6 mb-6">
-                                        <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-red-500/30 to-transparent rounded-full" />
-                                        <div className="flex flex-col items-center">
-                                            <h3 className="text-base sm:text-lg font-black tracking-[0.2em] text-white uppercase italic pr-2">{roundNames[rd] || rd}</h3>
-                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-red-500/30 text-red-500 py-0 h-5 mt-1 animate-pulse">LIVE BROADCAST</Badge>
+                                <section key={`live-${rd}`} className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                                    <div className="flex flex-col items-center mb-8 gap-3">
+                                        <div className="flex items-center gap-6 w-full max-w-4xl px-4">
+                                            <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-red-500/40 to-red-500 rounded-none shadow-[0_0_15px_rgba(239,68,68,0.4)]" />
+                                            <div className="flex flex-col items-center shrink-0">
+                                                <h3 className="text-xl sm:text-3xl font-black tracking-widest text-white uppercase italic drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] pr-4">{roundNames[rd] || rd}</h3>
+                                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-[0.4em] border-red-500/30 text-red-500 py-1 h-6 mt-2 animate-pulse bg-red-500/5 px-6">BROADCAST_ACTIVE</Badge>
+                                            </div>
+                                            <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-red-500/40 to-red-500 rounded-none shadow-[0_0_15px_rgba(239,68,68,0.4)]" />
                                         </div>
-                                        <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-red-500/30 to-transparent rounded-full" />
                                     </div>
-                                    <Card className="overflow-hidden border-2 border-red-500/20 bg-red-500/[0.02] backdrop-blur-xl shadow-[0_0_50px_rgba(239,68,68,0.1)] rounded-[2.5rem]">
-                                        <CardContent className="p-0">
+                                    <div className="border-y-4 border-red-500/20 bg-black/40 backdrop-blur-3xl relative overflow-hidden shadow-2xl">
+                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-40" />
+                                        <div className="relative z-10">
                                             {rms.map(m => (
                                                 <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} onQuickUpdate={onQuickUpdate} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
-                                        </CardContent>
-                                    </Card>
+                                        </div>
+                                    </div>
                                 </section>
                             ))}
                             {liveCount === 0 && (
-                                <div className="text-center py-24 opacity-10 flex flex-col items-center gap-4">
-                                    <Radio className="w-16 h-16" />
-                                    <p className="text-sm font-black uppercase tracking-[0.4em] italic">No Matches Currently Live</p>
+                                <div className="text-center py-32 opacity-10 flex flex-col items-center gap-6">
+                                    <Radio className="w-20 h-20" />
+                                    <p className="text-lg font-black uppercase tracking-[0.6em] italic">SIGNAL_LOST: NO_LIVE_BROADCAST</p>
                                 </div>
                             )}
                         </div>
                     </TabsContent>
 
                     <TabsContent value="upcoming" className="mt-0 focus-visible:ring-0 outline-none">
-                        <div className="space-y-12">
+                        <div className="space-y-16">
                             {Object.entries(groupedMatches.upcoming).map(([rd, rms]) => (
-                                <section key={`upcoming-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex items-center gap-6 mb-6">
-                                        <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full" />
-                                        <div className="flex flex-col items-center">
-                                            <h3 className="text-base sm:text-lg font-black tracking-[0.2em] text-white uppercase italic pr-2">{roundNames[rd] || rd}</h3>
-                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-primary/30 text-primary py-0 h-5 mt-1">Live Queue</Badge>
+                                <section key={`upcoming-${rd}`} className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                                    <div className="flex flex-col items-center mb-8 gap-3">
+                                        <div className="flex items-center gap-6 w-full max-w-4xl px-4">
+                                            <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-primary/40 to-primary rounded-none shadow-[0_0_15px_rgba(204,253,1,0.4)]" />
+                                            <div className="flex flex-col items-center shrink-0">
+                                                <h3 className="text-xl sm:text-3xl font-black tracking-widest text-white uppercase italic pr-4">{roundNames[rd] || rd}</h3>
+                                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-[0.4em] border-primary/30 text-primary py-1 h-6 mt-2 bg-primary/5 px-6">QUEUE_MANIFEST</Badge>
+                                            </div>
+                                            <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-primary/40 to-primary rounded-none shadow-[0_0_15px_rgba(204,253,1,0.4)]" />
                                         </div>
-                                        <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-primary/30 to-transparent rounded-full" />
                                     </div>
-                                    <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
-                                        <CardContent className="p-0">
+                                    <div className="border-y-4 border-white/5 bg-black/40 backdrop-blur-3xl relative overflow-hidden shadow-2xl">
+                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
+                                        <div className="relative z-10">
                                             {rms.map(m => (
                                                 <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} onQuickUpdate={onQuickUpdate} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
-                                        </CardContent>
-                                    </Card>
+                                        </div>
+                                    </div>
                                 </section>
                             ))}
                             {upcomingCount === 0 && (
-                                <div className="text-center py-24 opacity-10 flex flex-col items-center gap-4">
-                                    <Trophy className="w-16 h-16" />
-                                    <p className="text-sm font-black uppercase tracking-[0.4em] italic">{t('no_matches_in_category')}</p>
+                                <div className="text-center py-32 opacity-10 flex flex-col items-center gap-6">
+                                    <Trophy className="w-20 h-20" />
+                                    <p className="text-lg font-black uppercase tracking-[0.6em] italic">PROTOCOL_COMPLETE: NO_PENDING_UNITS</p>
                                 </div>
                             )}
                         </div>
                     </TabsContent>
 
                     <TabsContent value="completed" className="mt-0 focus-visible:ring-0 outline-none">
-                        <div className="space-y-12">
+                        <div className="space-y-16">
                             {Object.entries(groupedMatches.completed).map(([rd, rms]) => (
-                                <section key={`completed-${rd}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex items-center gap-6 mb-6">
-                                        <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-full" />
-                                        <div className="flex flex-col items-center">
-                                            <h3 className="text-base sm:text-lg font-black tracking-[0.2em] text-white/60 uppercase italic pr-2">{roundNames[rd] || rd}</h3>
-                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-white/10 text-white/30 py-0 h-5 mt-1">History Log</Badge>
+                                <section key={`completed-${rd}`} className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                                    <div className="flex flex-col items-center mb-8 gap-3">
+                                        <div className="flex items-center gap-6 w-full max-w-4xl px-4">
+                                            <div className="h-1.5 flex-1 bg-gradient-to-r from-transparent via-white/20 to-white/60 rounded-none" />
+                                            <div className="flex flex-col items-center shrink-0">
+                                                <h3 className="text-xl sm:text-3xl font-black tracking-widest text-white/60 uppercase italic pr-4">{roundNames[rd] || rd}</h3>
+                                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-[0.4em] border-white/10 text-white/30 py-1 h-6 mt-2 px-6">LOGS_ARCHIVE</Badge>
+                                            </div>
+                                            <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-white/20 to-white/60 rounded-none" />
                                         </div>
-                                        <div className="h-1.5 flex-1 bg-gradient-to-l from-transparent via-white/10 to-transparent rounded-full" />
                                     </div>
-                                    <Card className="overflow-hidden border-2 border-white/5 bg-card/40 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
-                                        <CardContent className="p-0">
+                                    <div className="border-y-4 border-white/5 bg-black/40 backdrop-blur-3xl relative overflow-hidden shadow-2xl">
+                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
+                                        <div className="relative z-10">
                                             {rms.map(m => (
                                                 <MatchRow key={m.id} match={m} onEditMatch={onEditMatch} onRevertMatch={onRevertMatch} onQuickUpdate={onQuickUpdate} isAdmin={isAdmin} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
                                             ))}
-                                        </CardContent>
-                                    </Card>
+                                        </div>
+                                    </div>
                                 </section>
                             ))}
                             {completedCount === 0 && (
-                                <div className="text-center py-24 opacity-10 flex flex-col items-center gap-4">
-                                    <Zap className="w-16 h-16" />
-                                    <p className="text-sm font-black uppercase tracking-[0.4em] italic">{t('no_matches_in_category')}</p>
+                                <div className="text-center py-32 opacity-10 flex flex-col items-center gap-6">
+                                    <Zap className="w-20 h-20" />
+                                    <p className="text-lg font-black uppercase tracking-[0.6em] italic">EMPTY_ARCHIVE: NO_MATCH_RECORDS</p>
                                 </div>
                             )}
                         </div>
@@ -661,7 +703,6 @@ export default function FixturesPage() {
                 const sData = sSnap.data() as Season;
                 const isSeasonCoop = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid';
                 const isGroupMatch = orig.round === 'Group' || !orig.round;
-                const isFootballStyleCoop = isSeasonCoop && isGroupMatch;
 
                 let winMatchRef = null;
                 let losMatchRef = null;
@@ -1006,25 +1047,26 @@ export default function FixturesPage() {
           <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0"><LiveClock /></div>
         </div>
 
+        {/* ULTRA AGGRESSIVE CONTROLS HUB */}
         <div className={cn(
-            "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",
-            isAdmin ? "w-full" : "w-fit mx-auto"
+            "relative bg-black/80 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_30px_100px_rgba(0,0,0,0.8)] backdrop-blur-3xl transition-all duration-500 overflow-hidden",
+            isAdmin ? "w-full" : "w-fit mx-auto rounded-none"
         )}>
             <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary/40 pointer-events-none" />
             <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-primary/40 pointer-events-none" />
 
             <div className="flex items-center gap-2 w-full sm:w-auto relative group/select">
-                <div className="p-3 bg-primary/10 text-primary hidden xs:block shadow-lg -skew-x-[12deg] border-r-2 border-primary/30">
-                    <Scan className="w-4 h-4 skew-x-[12deg]" />
+                <div className="p-3 bg-primary/10 text-primary hidden xs:block shadow-lg -skew-x-[20deg] border-r-2 border-primary/30">
+                    <Scan className="w-4 h-4 skew-x-[20deg]" />
                 </div>
                 <Select value={activeSeasonId || ''} onValueChange={activeSeasonId => setActiveSeasonId(activeSeasonId)} disabled={isLoadingSeasons}>
-                    <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] h-12 bg-white/5 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-none -skew-x-[12deg] focus:border-primary/50 transition-all px-8">
-                        <div className="skew-x-[12deg] flex items-center justify-center w-full">
+                    <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] h-14 bg-white/5 border-white/10 font-black uppercase italic tracking-tighter text-sm rounded-none -skew-x-[20deg] focus:border-primary/50 transition-all px-10">
+                        <div className="skew-x-[20deg] flex items-center justify-center w-full">
                             <SelectValue placeholder={t('select_a_season')} />
                         </div>
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0A192F] border-primary/30 rounded-none overflow-hidden">
-                        {seasons?.map(s => (<SelectItem key={s.id} value={s.id} className="font-black uppercase italic text-xs focus:bg-primary focus:text-black py-3">{s.name}</SelectItem>))}
+                    <SelectContent className="bg-[#0A192F] border-2 border-primary/30 rounded-none overflow-hidden backdrop-blur-3xl">
+                        {seasons?.map(s => (<SelectItem key={s.id} value={s.id} className="font-black uppercase italic text-xs focus:bg-primary focus:text-black py-4 px-8 border-b border-white/5 last:border-0">{s.name}</SelectItem>))}
                     </SelectContent>
                 </Select>
             </div>
@@ -1033,22 +1075,22 @@ export default function FixturesPage() {
                 <Button 
                     onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)} 
                     className={cn(
-                        "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
+                        "h-14 px-10 font-black text-[11px] uppercase tracking-[0.2em] italic rounded-none -skew-x-[20deg] border-r-8 transition-all duration-500 relative overflow-hidden group/admin", 
                         isAdmin 
-                            ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" 
-                            : "bg-primary text-black border-primary/20 hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.2)]"
+                            ? "bg-primary text-black border-black shadow-[0_0_40px_rgba(204,253,1,0.5)]" 
+                            : "bg-white/5 text-white/40 border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
                     )}
                     disabled={!isPasswordLoaded}
                 >
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <div className={cn(
-                            "w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500",
-                            isAdmin ? "animate-scanning opacity-20" : "opacity-0"
+                            "w-full h-[3px] bg-current absolute top-0 left-0 transition-opacity duration-500",
+                            isAdmin ? "animate-scanning opacity-30" : "opacity-0"
                         )} />
                     </div>
 
-                    <div className="skew-x-[12deg] flex items-center relative z-10 text-black">
-                        {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+                    <div className="skew-x-[20deg] flex items-center relative z-10">
+                        {isAdmin ? <Unlock className="mr-3 h-5 w-5" /> : <Lock className="mr-3 h-5 w-5" />}
                         {isAdmin ? t('lock_admin_mode') : t('unlock_admin')}
                     </div>
                 </Button>
@@ -1056,29 +1098,30 @@ export default function FixturesPage() {
         </div>
 
         {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-32 gap-6 opacity-50">
+            <div className="flex flex-col items-center justify-center py-40 gap-8">
                 <div className="relative">
-                    <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" />
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin relative z-10" />
+                    <div className="absolute -inset-12 bg-primary/10 rounded-full border-4 border-primary/20 animate-ping" />
+                    <div className="w-20 h-20 border-8 border-primary border-t-transparent rounded-full animate-spin relative z-10 shadow-[0_0_40px_rgba(204,253,1,0.3)]" />
                 </div>
-                <p className="font-black tracking-[0.4em] text-xs uppercase italic text-primary animate-pulse">{t('loading_fixtures')}</p>
+                <p className="font-black tracking-[0.6em] text-sm uppercase italic text-primary animate-pulse">UPLINKING_TACTICAL_HUB</p>
             </div>
         ) : (
             <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} onQuickUpdate={handleQuickUpdate} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
         )}
 
         <Dialog open={!!editingMatch} onOpenChange={(open) => !open && !isProcessing && setEditingMatch(null)}>
-            <DialogContent className={cn("max-w-xl border-primary border-4 p-0 overflow-hidden bg-background/95 rounded-3xl shadow-2xl max-h-[90vh] flex flex-col transition-all", isProcessing && "opacity-80 scale-95 pointer-events-none")}>
-                <DialogHeader className="p-6 border-b border-white/5 bg-black/20 shrink-0">
-                    <div className="flex items-center gap-3 text-primary mb-1">
-                        {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6" />}
-                        <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">
+            <DialogContent className={cn("max-w-xl border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-none shadow-[0_0_200px_rgba(204,253,1,0.2)] max-h-[90vh] flex flex-col transition-all", isProcessing && "opacity-80 scale-95 pointer-events-none")}>
+                <DialogHeader className="p-8 border-b-4 border-black/20 bg-primary text-black shrink-0 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-1/3 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                    <div className="flex items-center gap-4 relative z-10">
+                        {isProcessing ? <Loader2 className="w-8 h-8 animate-spin" /> : <Zap className="w-8 h-8 fill-black" />}
+                        <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-6 leading-none">
                             {isProcessing ? "Menyinkronkan..." : "Update Match Engagement"}
                         </DialogTitle>
                     </div>
-                    {editingMatch && (<DialogDescription className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
+                    {editingMatch && (<DialogDescription className="text-[10px] font-black text-black/60 uppercase tracking-[0.3em] mt-3 relative z-10 italic border-t border-black/10 pt-2">{t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}</DialogDescription>)}
                 </DialogHeader>
-                <ScrollArea className="flex-1 p-6 overflow-y-auto">
+                <ScrollArea className="flex-1 p-8 overflow-y-auto">
                     {editingMatch && activeSeason && (
                         <ScoreForm 
                             match={editingMatch} 
@@ -1099,45 +1142,70 @@ export default function FixturesPage() {
                         />
                     )}
                 </ScrollArea>
-                <DialogFooter className="p-4 bg-black/20 border-t border-white/5 shrink-0">
-                    <Button variant="ghost" onClick={() => setEditingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-widest italic text-[10px] text-white/70 hover:bg-white/10 hover:text-white border border-white/10">{t('cancel')}</Button>
+                <DialogFooter className="p-6 bg-black/40 border-t-2 border-white/10 shrink-0">
+                    <Button variant="ghost" onClick={() => setEditingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-[0.3em] italic text-[11px] text-white/40 hover:text-primary transition-all h-12 px-8 -skew-x-[15deg] rounded-none border-2 border-white/5">
+                        <span className="skew-x-[15deg]">{t('cancel')}</span>
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
 
         <AlertDialog open={!!revertingMatch} onOpenChange={(open) => !open && !isProcessing && setRevertingMatch(null)}>
-            <AlertDialogContent className="border-amber-500 border-4 bg-background/95 backdrop-blur-2xl rounded-3xl">
+            <AlertDialogContent className="border-amber-500 border-8 bg-[#0A192F]/95 backdrop-blur-3xl rounded-none shadow-[0_0_100px_rgba(245,158,11,0.2)]">
                 <AlertDialogHeader>
-                    <div className="flex items-center gap-4 text-amber-500 mb-2">
-                        {isProcessing ? <Loader2 className="w-8 h-8 animate-spin" /> : <Undo2 className="w-8 h-8" />}
-                        <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic pr-4">{t('revert_match_confirm_title')}</AlertDialogTitle>
+                    <div className="flex items-center gap-5 text-amber-500 mb-4">
+                        <div className="p-4 bg-amber-500/10 rounded-none border-2 border-amber-500/40 -skew-x-[12deg]">
+                            {isProcessing ? <Loader2 className="w-10 h-10 animate-spin skew-x-[12deg]" /> : <Undo2 className="w-10 h-10 skew-x-[12deg]" />}
+                        </div>
+                        <div className="text-left">
+                            <AlertDialogTitle className="text-3xl font-black tracking-tighter uppercase italic pr-4 leading-none">{t('revert_match_confirm_title')}</AlertDialogTitle>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500/60 mt-2">Protocol: Reset_Node_State</p>
+                        </div>
                     </div>
-                    {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/40 uppercase tracking-widest">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}
+                    {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/60 uppercase tracking-[0.1em] border-l-4 border-amber-500/30 pl-6 py-2 leading-relaxed text-left">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}
                 </AlertDialogHeader>
-                <AlertDialogFooter className="gap-4 mt-6">
-                    <AlertDialogCancel onClick={() => setRevertingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-widest italic rounded-xl h-12">{t('cancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} disabled={isProcessing} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-widest italic rounded-xl h-12">{t('revert_match_action')}</AlertDialogAction>
+                <AlertDialogFooter className="gap-4 mt-10">
+                    <AlertDialogCancel onClick={() => setRevertingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-[0.2em] italic rounded-none h-14 border-2 border-white/10 bg-white/5 text-white/40 hover:text-white transition-all">
+                        {t('cancel')}
+                    </AlertDialogCancel>
+                    <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} disabled={isProcessing} className="bg-amber-500 text-black hover:bg-amber-600 font-black uppercase tracking-[0.2em] italic rounded-none h-14 border-r-8 border-black/20 shadow-xl shadow-amber-500/20">
+                        {t('revert_match_action')}
+                    </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
 
         <Dialog open={passwordPromptOpen} onOpenChange={passwordPromptOpen => setPasswordPromptOpen(passwordPromptOpen)}>
-            <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-4 bg-[#0A192F]/95 backdrop-blur-2xl rounded-none shadow-[0_0_50px_rgba(204,253,1,0.2)]">
-                <DialogHeader>
-                    <div className="flex items-center gap-4 text-primary mb-2">
-                        <KeyRound className="w-8 h-8" />
-                        <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle>
+            <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-8 bg-[#0A192F]/95 backdrop-blur-3xl rounded-none shadow-[0_0_150px_rgba(204,253,1,0.2)]">
+                <DialogHeader className="space-y-4">
+                    <div className="flex items-center gap-5 text-primary">
+                        <div className="p-4 bg-primary/10 rounded-none border-2 border-primary/40 -skew-x-[12deg]">
+                            <KeyRound className="w-10 h-10 skew-x-[12deg]" />
+                        </div>
+                        <div className="text-left">
+                            <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic pr-4 leading-none">{t('admin_auth')}</DialogTitle>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 mt-1">Status: Restricted_Access</p>
+                        </div>
                     </div>
-                    <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription>
+                    <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[10px] leading-relaxed text-left border-l-2 border-white/10 pl-4">{t('admin_auth_desc')}</DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4 sm:py-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="password-input" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-primary/60">{t('password')}</Label>
-                        <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-12 sm:h-14 bg-white/5 border-white/10 rounded-none focus:border-primary/50 text-lg font-black" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
+                <div className="grid gap-8 py-10">
+                    <div className="space-y-3">
+                        <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/60 ml-1 italic">ENCRYPTED_KEY_TRANSMISSION</Label>
+                        <div className="relative group/input">
+                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_15px_rgba(204,253,1,0.8)] z-20" />
+                            <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-16 bg-black/60 border-white/10 rounded-none focus:border-primary/50 text-2xl font-black tracking-[0.3em] text-primary pl-8" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20 text-black">{t('unlock')}</Button>
+                    <Button onClick={handlePasswordCheck} className="w-full h-16 font-black tracking-[0.3em] text-lg sm:text-xl uppercase italic rounded-none shadow-2xl shadow-primary/30 text-black border-r-8 border-black/20 group/unlock relative overflow-hidden">
+                        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/unlock:translate-x-[100%] transition-transform duration-700" />
+                        <span className="relative z-10 flex items-center justify-center gap-4">
+                            <Scan className="w-6 h-6" />
+                            {t('unlock')}
+                        </span>
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
