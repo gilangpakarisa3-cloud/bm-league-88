@@ -24,9 +24,9 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
-import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, getDocs, getDoc, where, runTransaction, Timestamp, orderBy, increment, updateDoc } from 'firebase/firestore';
-import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry, MatchStatus } from '@/lib/types';
+import type { Season, Player, WithId, Match, Team, LeagueEntry, CoOpLeagueEntry } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -40,7 +40,6 @@ import { useSharedPassword } from '@/context/password-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PLAYOFF_SUCCESSOR_MAP } from '@/lib/constants';
@@ -921,7 +920,7 @@ export default function FixturesPage() {
                     e1.player1Goals -= (mToRev.player1p1Goals || 0); e1.player2Goals -= (mToRev.player1p2Goals || 0);
                     e2.player1Goals -= (mToRev.player2p1Goals || 0); e2.player2Goals -= (mToRev.player2p2Goals || 0);
                 }
-                e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalsAgainst;
+                e1.goalDifference = e1.goalsFor - e1.goalsAgainst; e2.goalDifference = e2.goalsFor - e2.goalDifference;
                 transaction.set(p1EntryRef, e1); transaction.set(p2EntryRef, e2);
             }
 
