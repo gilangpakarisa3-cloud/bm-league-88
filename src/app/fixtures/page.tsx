@@ -950,55 +950,61 @@ export default function FixturesPage() {
 
        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10 sm:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-stretch mb-6 sm:mb-10 gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
-             <div className="flex flex-col justify-center space-y-2 flex-1 w-full py-6 sm:py-8 px-8 sm:px-12 relative group/header overflow-hidden bg-black/40 backdrop-blur-3xl border-2 border-white/5 rounded-[2.5rem] shadow-2xl transition-all duration-500 hover:border-primary/20">
-                <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
-                <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-white/5 rounded-tr-[2.5rem] pointer-events-none group-hover/header:border-primary/20 transition-colors duration-500" />
-                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-white/5 rounded-br-[2.5rem] pointer-events-none opacity-20" />
-                
-                <div className="relative z-10 space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="h-px w-8 sm:w-12 bg-primary/40" />
-                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary/60 italic">Signal Transmission • Active</span>
+          <div className="flex flex-col justify-center space-y-4 flex-1 w-full py-8 sm:py-10 px-8 sm:px-12 relative group/header overflow-hidden bg-black/60 backdrop-blur-3xl border-b-4 border-primary/20 rounded-none shadow-[0_20px_80px_rgba(0,0,0,0.8)] transition-all duration-500">
+            {/* HUD Elements */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
+                <div className="w-full h-[2px] bg-primary blur-[1px] absolute top-0 left-0 animate-scanning" />
+            </div>
+            
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
+            
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(204,253,1,0.8)]" />
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] text-primary italic">Live System Uplink</span>
                     </div>
                     
-                    <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none">
+                    <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] leading-none">
                         {t('fixtures_page_title').split(' ')[0]} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">{t('fixtures_page_title').split(' ').slice(1).join(' ')}</span>
                     </h1>
                 </div>
 
                 {activeSeason && (
-                  <div className="space-y-2 relative z-10 pt-2">
-                    <div className="flex items-center gap-3">
-                        <p className="text-lg sm:text-3xl font-black text-white tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
-                        <Badge className="relative overflow-hidden bg-primary text-black border-none font-black tracking-widest text-[9px] sm:text-[10px] h-6 px-4 uppercase italic shadow-[0_0_20px_rgba(204,253,1,0.4)] flex items-center justify-center rounded-none -skew-x-[12deg] border-r-4 border-black/20">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
-                            <span className="relative z-10 skew-x-[12deg]">{activeSeason.status}</span>
+                    <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                        <Badge className="bg-primary text-black border-none font-black tracking-[0.2em] text-[10px] sm:text-xs h-8 px-6 uppercase italic shadow-[0_0_30px_rgba(204,253,1,0.3)] rounded-none -skew-x-[20deg] border-r-4 border-black/20">
+                            <span className="skew-x-[20deg]">{activeSeason.status}</span>
                         </Badge>
                     </div>
-                  </div>
                 )}
+            </div>
 
-                {matches && matches.length > 0 && (
-                    <div className="max-w-md pt-4 space-y-2 relative z-10">
-                        <div className="flex justify-between items-end mb-1">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-primary/60 flex items-center gap-2">
-                                <Activity className="w-3 h-3 animate-pulse" /> Season Progress
-                            </span>
-                            <span className="text-xs font-black text-primary italic" suppressHydrationWarning>[{progressPercentage.toFixed(0)}%]</span>
+            {activeSeason && (
+                <div className="relative z-10 pt-4 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <p className="text-xl sm:text-4xl font-black text-white/90 tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
+                    
+                    {matches && matches.length > 0 && (
+                        <div className="w-full sm:w-[350px] space-y-2.5">
+                            <div className="flex justify-between items-end">
+                                <div className="flex items-center gap-2">
+                                    <Activity className="w-3.5 h-3.5 text-primary animate-pulse" />
+                                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Engagement Progress</span>
+                                </div>
+                                <span className="text-xs font-black text-primary italic" suppressHydrationWarning>[{progressPercentage.toFixed(0)}%]</span>
+                            </div>
+                            <div className="relative h-1.5 w-full bg-white/5 overflow-hidden border border-white/5">
+                                <div className="absolute left-0 top-0 h-full bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)] transition-all duration-1000 ease-out" style={{ width: `${progressPercentage}%` }} />
+                            </div>
+                            <p className="text-[8px] font-black tracking-[0.4em] uppercase text-white/20 italic text-right">
+                                {completedMatchesForDisplay} / {totalMatchesForDisplay} UNITS ANALYZED
+                            </p>
                         </div>
-                        <div className="relative h-2 sm:h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                            <div 
-                                className="absolute left-0 top-0 h-full bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)] transition-all duration-1000 ease-out" 
-                                style={{ width: `${progressPercentage}%` }}
-                            />
-                        </div>
-                        <p className="text-[9px] sm:text-[10px] font-black tracking-[0.2em] uppercase text-white/20 italic">
-                            {completedMatchesForDisplay} / {totalMatchesForDisplay} Engagements Finalized
-                        </p>
-                    </div>
-                )}
-             </div>
-            <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0"><LiveClock /></div>
+                    )}
+                </div>
+            )}
+          </div>
+          <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0"><LiveClock /></div>
         </div>
 
         <div className={cn(
