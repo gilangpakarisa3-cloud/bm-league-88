@@ -97,14 +97,24 @@ export default function SettingsPage() {
                         seasonIdToNameKeyMap[d.id] = normalize(data.teamName);
                         coopPairToNamesMap[d.id] = { p1: p1NK, p2: p2NK };
 
-                        [p1NK, p2NK].forEach(nk => {
-                            if (currentPlayerMap[nk]) {
-                                const s = currentPlayerMap[nk].stats;
-                                s.overallPlayed += (data.played || 0);
-                                s.overallWin += (data.win || 0);
-                                s.overallLoss += (data.loss || 0);
-                            }
-                        });
+                        if (currentPlayerMap[p1NK]) {
+                            const s = currentPlayerMap[p1NK].stats;
+                            s.overallPlayed += (data.played || 0);
+                            s.overallWin += (data.win || 0);
+                            s.overallDraw += (data.draw || 0);
+                            s.overallLoss += (data.loss || 0);
+                            s.overallGoalsFor += (data.player1Goals || 0);
+                            s.overallGoalsAgainst += (data.goalsAgainst || 0);
+                        }
+                        if (currentPlayerMap[p2NK]) {
+                            const s = currentPlayerMap[p2NK].stats;
+                            s.overallPlayed += (data.played || 0);
+                            s.overallWin += (data.win || 0);
+                            s.overallDraw += (data.draw || 0);
+                            s.overallLoss += (data.loss || 0);
+                            s.overallGoalsFor += (data.player2Goals || 0);
+                            s.overallGoalsAgainst += (data.goalsAgainst || 0);
+                        }
                     });
                 } else {
                     const tableSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/leagueTable`));
@@ -132,16 +142,14 @@ export default function SettingsPage() {
                 matchesSnap.docs.forEach(mDoc => {
                     const m = mDoc.data() as Match;
                     if (!m.isCompleted) return;
-                    // RECAP KNOCKOUT MATCHES
+                    // RECAP KNOCKOUT MATCHES (Group stage results are handled by table processing above)
                     if (m.round === 'Group' || !m.round) return;
 
                     const isMatchBo3 = isCoop || (m.round && m.round !== 'Group');
                     const s1 = isMatchBo3 ? (m.player1Wins ?? m.player1Score ?? 0) : (m.player1Score ?? 0);
                     const s2 = isMatchBo3 ? (m.player2Wins ?? m.player2Score ?? 0) : (m.player2Score ?? 0);
                     
-                    const gf1 = Number(m.player1Score) || 0;
                     const ga1 = Number(m.player2Score) || 0;
-                    const gf2 = Number(m.player2Score) || 0;
                     const ga2 = Number(m.player1Score) || 0;
 
                     const res1 = s1 > s2 ? 'W' : (s1 < s2 ? 'L' : 'D');
@@ -163,18 +171,20 @@ export default function SettingsPage() {
                         const pair1 = coopPairToNamesMap[m.player1Id];
                         const pair2 = coopPairToNamesMap[m.player2Id];
                         if (pair1) { 
-                            // In Co-Op, goals from matches are usually tim-based in legacy matches
-                            // but we try to apply them to both for career purposes
-                            applyToPlayer(pair1.p1, res1, gf1, ga1); 
-                            applyToPlayer(pair1.p2, res1, gf1, ga1); 
+                            const g1 = Number(m.player1p1Goals ?? m.player1Score ?? 0);
+                            const g2 = Number(m.player1p2Goals ?? m.player1Score ?? 0);
+                            applyToPlayer(pair1.p1, res1, g1, ga1); 
+                            applyToPlayer(pair1.p2, res1, g2, ga1); 
                         }
                         if (pair2) { 
-                            applyToPlayer(pair2.p1, res2, gf2, ga2); 
-                            applyToPlayer(pair2.p2, res2, gf2, ga2); 
+                            const g1 = Number(m.player2p1Goals ?? m.player2Score ?? 0);
+                            const g2 = Number(m.player2p2Goals ?? m.player2Score ?? 0);
+                            applyToPlayer(pair2.p1, res2, g1, ga2); 
+                            applyToPlayer(pair2.p2, res2, g2, ga2); 
                         }
                     } else {
-                        applyToPlayer(seasonIdToNameKeyMap[m.player1Id], res1, gf1, ga1);
-                        applyToPlayer(seasonIdToNameKeyMap[m.player2Id], res2, gf2, ga2);
+                        applyToPlayer(seasonIdToNameKeyMap[m.player1Id], res1, Number(m.player1Score) || 0, ga1);
+                        applyToPlayer(seasonIdToNameKeyMap[m.player2Id], res2, Number(m.player2Score) || 0, ga2);
                     }
                 });
             }
@@ -187,7 +197,7 @@ export default function SettingsPage() {
             
             toast({ 
                 title: 'Rekap Selesai!', 
-                description: 'Sinkronisasi berhasil mencakup seluruh format Single, Co-Op, dan Hybrid.' 
+                description: 'Sinkronisasi berhasil mencakup seluruh format Single, Co-Op, dan Hybrid termasuk data gol individu.' 
             });
 
         } catch (error: any) {
@@ -275,7 +285,7 @@ export default function SettingsPage() {
                                     <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0 mt-1" />
                                     <div className="space-y-1 relative z-10">
                                         <p className="text-[10px] font-black text-amber-200 uppercase tracking-widest">Format Agnostic Engine</p>
-                                        <p className="text-[11px] font-bold text-amber-200/60 leading-relaxed italic">Mendukung sinkronisasi penuh dari data Single, Co-Op, dan Hybrid. Mencocokkan unit berdasarkan Identitas Nama Terverifikasi.</p>
+                                        <p className="text-[11px] font-bold text-amber-200/60 leading-relaxed italic">Mendukung sinkronisasi penuh dari data Single, Co-Op, dan Hybrid termasuk data gol individu dari seluruh fase kompetisi.</p>
                                     </div>
                                 </div>
                                 <Button 
@@ -286,7 +296,7 @@ export default function SettingsPage() {
                                 >
                                     <span className="skew-x-[12deg] flex items-center justify-center gap-3">
                                         {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5" />}
-                                        {isSyncing ? "CALIBRATING DATA..." : "REKAP SELURUH FORMAT (V2.4)"}
+                                        {isSyncing ? "CALIBRATING DATA..." : "REKAP SELURUH FORMAT (V2.5)"}
                                     </span>
                                 </Button>
                             </CardContent>
