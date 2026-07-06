@@ -81,7 +81,7 @@ const PlayoffQualificationLegend = () => {
             <div className="w-6 h-6 bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] border-r-4 border-black/20 -skew-x-[15deg] transition-transform group-hover/item:scale-110" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 leading-none">Lower Bracket</span>
+            <span className="text-sm sm:text-base font-black uppercase italic text-yellow-400 none">Lower Bracket</span>
             <span className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1.5">Peringkat 5 - 6</span>
           </div>
         </div>
@@ -277,8 +277,19 @@ const TopScorerTable = memo(({
     }, [tableData, seasonType, teamsById]);
 
     const predator = useMemo(() => topScorers.find(s => s.goals > 0), [topScorers]);
-    const pedofils = useMemo(() => topScorers.filter(s => s.goals === 0 && s.played > 0).sort((a,b) => b.played - a.played), [topScorers]);
-    const mainPedofil = pedofils[0];
+    
+    // NEW LOGIC: Always define a Pedofil if someone has played.
+    // Lowest goals with most games played tie-breaker.
+    const mainPedofil = useMemo(() => {
+        const activeScorers = topScorers.filter(s => s.played > 0);
+        if (activeScorers.length === 0) return null;
+
+        const minGoals = Math.min(...activeScorers.map(s => s.goals));
+        const worstScorers = activeScorers.filter(s => s.goals === minGoals);
+        
+        // Sort by played descending (most games with few goals = worst efficiency)
+        return worstScorers.sort((a, b) => b.played - a.played)[0];
+    }, [topScorers]);
 
     if (isLoading) return <LeagueTableSkeleton isCoop={true} />;
 
@@ -366,7 +377,9 @@ const TopScorerTable = memo(({
                                     </Badge>
                                     <div className="flex items-center gap-2">
                                         <div className="h-1 w-12 bg-red-600" />
-                                        <span className="text-[7px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">CRITICAL_SIGNAL_LOSS</span>
+                                        <span className="text-[7px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">
+                                          {mainPedofil.goals === 0 ? 'CRITICAL_SIGNAL_LOSS' : 'MINIMUM_UNIT_OUTPUT'}
+                                        </span>
                                         <div className="h-1 w-12 bg-red-600" />
                                     </div>
                                 </div>
@@ -389,10 +402,12 @@ const TopScorerTable = memo(({
                              </div>
                              <div className="text-right flex flex-col items-end">
                                  <div className="relative">
-                                    <span className="text-6xl sm:text-7xl font-black italic text-red-600 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(220,38,38,0.5)]">0</span>
+                                    <span className="text-6xl sm:text-7xl font-black italic text-red-600 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(220,38,38,0.5)]" suppressHydrationWarning>{mainPedofil.goals}</span>
                                     <div className="absolute top-0 right-0 h-full w-full bg-gradient-to-t from-red-600/20 to-transparent pointer-events-none" />
                                  </div>
-                                 <p className="text-[10px] sm:text-xs font-black text-red-500 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" suppressHydrationWarning>{mainPedofil.played} LAGA MANDUL DETECTED</p>
+                                 <p className="text-[10px] sm:text-xs font-black text-red-500 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" suppressHydrationWarning>
+                                   {mainPedofil.goals === 0 ? `${mainPedofil.played} LAGA MANDUL DETECTED` : `${mainPedofil.played} LAGA EFISIENSI RENDAH`}
+                                 </p>
                              </div>
                          </div>
                          <div className="mt-8 flex items-center justify-between border-t border-red-600/30 pt-4">
@@ -411,11 +426,10 @@ const TopScorerTable = memo(({
                                 <CheckCircle2 className="w-10 h-10 text-primary animate-pulse" />
                             </div>
                             <div className="space-y-1 text-center">
-                                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-primary/60 italic">SYSTEM_SAFE: NO_MANDUL_DETECTED</p>
-                                <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em]">ALL ACTIVE UNITS HAVE RECORDED GOALS</p>
+                                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-primary/60 italic">SYSTEM_SAFE: NO_DATA_DETECTED</p>
+                                <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em]">AWAITING UNIT MATCH ENGAGEMENTS</p>
                             </div>
                         </div>
-                        {/* Decorative Signal Corner */}
                         <div className="absolute bottom-4 right-6 flex items-center gap-1.5 opacity-20">
                             <Radio className="w-3 h-3 text-primary" />
                             <span className="text-[7px] font-black text-white uppercase">SIGNAL_CLEARED</span>
