@@ -278,8 +278,6 @@ const TopScorerTable = memo(({
 
     const predator = useMemo(() => topScorers.find(s => s.goals > 0), [topScorers]);
     
-    // NEW LOGIC: Always define a Pedofil if someone has played.
-    // Lowest goals with most games played tie-breaker.
     const mainPedofil = useMemo(() => {
         const activeScorers = topScorers.filter(s => s.played > 0);
         if (activeScorers.length === 0) return null;
@@ -287,7 +285,6 @@ const TopScorerTable = memo(({
         const minGoals = Math.min(...activeScorers.map(s => s.goals));
         const worstScorers = activeScorers.filter(s => s.goals === minGoals);
         
-        // Sort by played descending (most games with few goals = worst efficiency)
         return worstScorers.sort((a, b) => b.played - a.played)[0];
     }, [topScorers]);
 
@@ -295,7 +292,6 @@ const TopScorerTable = memo(({
 
     return (
         <div className="space-y-12">
-            {/* AGGRESSIVE HIGHLIGHT CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto px-4">
                 {predator ? (
                     <Card className="relative overflow-hidden border-4 border-primary bg-primary/[0.03] rounded-[2rem] p-6 sm:p-8 shadow-[0_0_80px_rgba(204,253,1,0.2)] group/pred-card hover:border-white transition-all duration-500 animate-in fade-in zoom-in-95">
@@ -378,7 +374,7 @@ const TopScorerTable = memo(({
                                     <div className="flex items-center gap-2">
                                         <div className="h-1 w-12 bg-red-600" />
                                         <span className="text-[7px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">
-                                          {mainPedofil.goals === 0 ? 'CRITICAL_SIGNAL_LOSS' : 'MINIMUM_UNIT_OUTPUT'}
+                                          {mainPedofil.goals === 0 ? 'MANDUL DETECTED' : 'LOWEST OUTPUT DETECTED'}
                                         </span>
                                         <div className="h-1 w-12 bg-red-600" />
                                     </div>
@@ -438,7 +434,6 @@ const TopScorerTable = memo(({
                 )}
             </div>
 
-            {/* FULL TOP SCORER LIST */}
             <div className="max-w-4xl mx-auto w-full overflow-hidden border-2 border-white/5 rounded-[2.5rem] bg-black/20 shadow-2xl relative">
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
                 
@@ -471,7 +466,7 @@ const TopScorerTable = memo(({
                                         )}>{scorer.rank}</TableCell>
                                         <TableCell className="py-2 relative overflow-hidden">
                                             {isRank1 && hasGoals && (
-                                                <span className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-5xl sm:text-[10rem] font-black text-primary/[0.03] uppercase italic tracking-tighter pointer-events-none select-none z-0 whitespace-nowrap">
+                                                <span className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-4xl sm:text-7xl font-black text-primary/[0.03] uppercase italic tracking-tighter pointer-events-none select-none z-0 whitespace-nowrap">
                                                     PREDATOR
                                                 </span>
                                             )}
@@ -554,7 +549,7 @@ export function LeagueTable({
 
 
   if (isLoading) return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid'} />;
-  if (tableData.length === 0) return (<div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-card/40 p-10 sm:p-16 text-center backdrop-blur-md"><LayoutGrid className="w-12 h-12 sm:w-16 sm:h-16 text-primary/10 mx-auto mb-4" /><h2 className="text-xl sm:text-2xl font-black text-muted-foreground uppercase tracking-widest pr-4">{t('no_players_registered_title')}</h2><p className="text-[10px] sm:text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">{t('no_players_registered_desc')}</p></div>);
+  if (tableData.length === 0) return (<div className="w-full overflow-hidden rounded-xl sm:rounded-[2.5rem] border-2 border-dashed border-primary/20 bg-card/40 p-10 sm:p-16 text-center backdrop-blur-md"><LayoutGrid className="w-12 h-12 sm:w-16 sm:h-16 text-primary/10 mx-auto mb-4" /><h2 className="text-xl sm:text-2xl font-black text-muted-foreground uppercase tracking-widest pr-4">{t('no_players_registered_title')}</h2><p className="text-[10px] sm:text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">{t('no_players_registered_desc')}</p></div>);
   
   const isSeasonCoop = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid';
 
