@@ -12,7 +12,7 @@ import type { LeagueEntry, Season, WithId, Player, Team, Match, CoOpLeagueEntry 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info, CheckCircle2, Flame, Binary, Target, ShieldAlert } from "lucide-react";
+import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Scan, Activity, Zap, Shield, Info, CheckCircle2, Flame, Binary, Target, ShieldAlert, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -267,7 +267,6 @@ const TopScorerTable = memo(({
             }
         });
 
-        // Ensure unique scorers (in case of data duplicates) and sort
         const uniqueScorers = scorers.reduce((acc, current) => {
             const x = acc.find(item => item.id === current.id);
             if (!x) return acc.concat([current]);
@@ -405,9 +404,22 @@ const TopScorerTable = memo(({
                          </div>
                     </Card>
                 ) : (
-                    <Card className="relative overflow-hidden border-2 border-dashed border-white/5 bg-black/40 rounded-[2rem] p-8 flex flex-col items-center justify-center">
-                        <CheckCircle2 className="w-12 h-12 text-primary/20 mb-4" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 italic text-center">Signal Cleared • No Mandul Detected</p>
+                    <Card className="relative overflow-hidden border-4 border-primary/20 bg-black/40 rounded-[2rem] p-8 flex flex-col items-center justify-center transition-all duration-700 hover:border-primary/40">
+                        <div className="absolute inset-0 bg-primary/[0.02] pointer-events-none" />
+                        <div className="flex flex-col items-center gap-4 relative z-10">
+                            <div className="p-4 bg-primary/10 rounded-full border-2 border-primary/20 shadow-[0_0_30px_rgba(204,253,1,0.1)]">
+                                <CheckCircle2 className="w-10 h-10 text-primary animate-pulse" />
+                            </div>
+                            <div className="space-y-1 text-center">
+                                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-primary/60 italic">SYSTEM_SAFE: NO_MANDUL_DETECTED</p>
+                                <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em]">ALL ACTIVE UNITS HAVE RECORDED GOALS</p>
+                            </div>
+                        </div>
+                        {/* Decorative Signal Corner */}
+                        <div className="absolute bottom-4 right-6 flex items-center gap-1.5 opacity-20">
+                            <Radio className="w-3 h-3 text-primary" />
+                            <span className="text-[7px] font-black text-white uppercase">SIGNAL_CLEARED</span>
+                        </div>
                     </Card>
                 )}
             </div>
