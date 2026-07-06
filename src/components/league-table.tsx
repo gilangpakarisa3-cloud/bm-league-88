@@ -466,7 +466,7 @@ const TopScorerTable = memo(({
                                         )}>{scorer.rank}</TableCell>
                                         <TableCell className="py-2 relative overflow-hidden">
                                             {isRank1 && hasGoals && (
-                                                <span className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-4xl sm:text-7xl font-black text-primary/[0.03] uppercase italic tracking-tighter pointer-events-none select-none z-0 whitespace-nowrap">
+                                                <span className="absolute left-[20%] top-1/2 -translate-y-1/2 text-4xl sm:text-7xl font-black text-primary/[0.03] uppercase italic tracking-tighter pointer-events-none select-none z-0 whitespace-nowrap">
                                                     PREDATOR
                                                 </span>
                                             )}
