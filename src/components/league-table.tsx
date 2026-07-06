@@ -19,7 +19,6 @@ import { useTranslation } from "@/hooks/use-translation";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useMemo, memo } from "react";
-import { TournamentBracket } from "./tournament-bracket";
 import { resolveLogo } from "@/lib/logo-utils";
 
 interface LeagueTableProps {
@@ -268,10 +267,17 @@ const TopScorerTable = memo(({
             }
         });
 
-        return scorers.sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).map((s, i) => ({ ...s, rank: i + 1 }));
+        // Ensure unique scorers (in case of data duplicates) and sort
+        const uniqueScorers = scorers.reduce((acc, current) => {
+            const x = acc.find(item => item.id === current.id);
+            if (!x) return acc.concat([current]);
+            return acc;
+        }, [] as typeof scorers);
+
+        return uniqueScorers.sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).map((s, i) => ({ ...s, rank: i + 1 }));
     }, [tableData, seasonType, teamsById]);
 
-    const predator = topScorers[0];
+    const predator = useMemo(() => topScorers.find(s => s.goals > 0), [topScorers]);
     const pedofils = useMemo(() => topScorers.filter(s => s.goals === 0 && s.played > 0).sort((a,b) => b.played - a.played), [topScorers]);
     const mainPedofil = pedofils[0];
 
@@ -279,9 +285,10 @@ const TopScorerTable = memo(({
 
     return (
         <div className="space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto px-4">
-                {predator && (
-                    <Card className="relative overflow-hidden border-4 border-primary bg-primary/[0.03] rounded-3xl p-6 shadow-[0_0_80px_rgba(204,253,1,0.2)] group/pred-card hover:border-white transition-all duration-500 animate-in fade-in zoom-in-95">
+            {/* AGGRESSIVE HIGHLIGHT CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto px-4">
+                {predator ? (
+                    <Card className="relative overflow-hidden border-4 border-primary bg-primary/[0.03] rounded-[2rem] p-6 sm:p-8 shadow-[0_0_80px_rgba(204,253,1,0.2)] group/pred-card hover:border-white transition-all duration-500 animate-in fade-in zoom-in-95">
                          <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:25px_25px] pointer-events-none" />
                          <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-30">
                              <div className="w-full h-2 bg-primary blur-[2px] absolute top-0 left-0 animate-scanning" />
@@ -293,7 +300,7 @@ const TopScorerTable = memo(({
                             <div className="relative group/badge">
                                 <div className="absolute -inset-6 bg-primary/20 blur-3xl opacity-0 group-hover/badge:opacity-100 transition-opacity animate-pulse" />
                                 <div className="relative flex flex-col items-center">
-                                    <Badge className="bg-primary text-black font-black italic text-sm sm:text-base px-10 h-10 tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(204,253,1,0.2)] border-r-4 border-black mb-2 rounded-none">
+                                    <Badge className="bg-primary text-black font-black italic text-sm sm:text-lg px-12 h-10 tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(204,253,1,0.2)] border-r-4 border-black mb-3 rounded-none">
                                         PREDATOR
                                     </Badge>
                                     <div className="flex items-center gap-2">
@@ -324,7 +331,7 @@ const TopScorerTable = memo(({
                                     <span className="text-6xl sm:text-7xl font-black italic text-primary tabular-nums leading-none drop-shadow-[0_0_30px_rgba(204,253,1,0.6)]" suppressHydrationWarning>{predator.goals}</span>
                                     <div className="absolute top-0 right-0 h-full w-full bg-gradient-to-t from-primary/20 to-transparent pointer-events-none" />
                                  </div>
-                                 <p className="text-[10px] sm:text-xs font-black text-primary/80 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" suppressHydrationWarning>TOTAL GOALS AGGREGATE</p>
+                                 <p className="text-[10px] sm:text-xs font-black text-primary/80 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]">UNIT GOALS AGGREGATE</p>
                              </div>
                          </div>
                          <div className="mt-8 flex items-center justify-between border-t border-primary/30 pt-4">
@@ -335,9 +342,15 @@ const TopScorerTable = memo(({
                             <span className="text-[8px] font-black text-primary/40">SYSTEM_AUTH_ID: 888-88-8</span>
                          </div>
                     </Card>
+                ) : (
+                    <Card className="relative overflow-hidden border-2 border-dashed border-white/5 bg-black/40 rounded-[2rem] p-8 flex flex-col items-center justify-center opacity-30">
+                        <Activity className="w-12 h-12 mb-4" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] italic text-center">AWAITING FIRST PREDATOR DATA</p>
+                    </Card>
                 )}
+
                 {mainPedofil ? (
-                    <Card className="relative overflow-hidden border-4 border-red-600 bg-red-950/20 rounded-3xl p-6 shadow-[0_0_80px_rgba(220,38,38,0.2)] group/ped-card hover:border-red-500 transition-all duration-300 animate-in fade-in zoom-in-95">
+                    <Card className="relative overflow-hidden border-4 border-red-600 bg-red-950/20 rounded-[2rem] p-6 sm:p-8 shadow-[0_0_80px_rgba(220,38,38,0.2)] group/ped-card hover:border-red-500 transition-all duration-300 animate-in fade-in zoom-in-95">
                          <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[repeating-linear-gradient(45deg,#ff0000,#ff0000_10px,#000_10px,#000_20px)]" />
                          <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-30">
                              <div className="w-full h-2 bg-red-500 blur-[2px] absolute top-0 left-0 animate-scanning" />
@@ -349,12 +362,12 @@ const TopScorerTable = memo(({
                             <div className="relative group/warning">
                                 <div className="absolute -inset-4 bg-red-600/30 blur-2xl animate-pulse rounded-full" />
                                 <div className="relative flex flex-col items-center">
-                                    <Badge className="bg-red-600 text-white font-black italic text-sm sm:text-base px-10 h-10 tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(0,0,0,0.4)] border-r-4 border-black mb-2 rounded-none">
+                                    <Badge className="bg-red-600 text-white font-black italic text-sm sm:text-lg px-12 h-10 tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(0,0,0,0.4)] border-r-4 border-black mb-3 rounded-none">
                                         PEDOFIL
                                     </Badge>
                                     <div className="flex items-center gap-2">
                                         <div className="h-1 w-12 bg-red-600" />
-                                        <span className="text-[7px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">CRITICAL_FAILURE</span>
+                                        <span className="text-[7px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">CRITICAL_SIGNAL_LOSS</span>
                                         <div className="h-1 w-12 bg-red-600" />
                                     </div>
                                 </div>
@@ -392,37 +405,80 @@ const TopScorerTable = memo(({
                          </div>
                     </Card>
                 ) : (
-                    <Card className="relative overflow-hidden border-2 border-dashed border-white/5 bg-black/40 rounded-3xl p-6 flex items-center justify-center"><p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 italic">Signal Cleared • No Mandul Detected</p></Card>
+                    <Card className="relative overflow-hidden border-2 border-dashed border-white/5 bg-black/40 rounded-[2rem] p-8 flex flex-col items-center justify-center">
+                        <CheckCircle2 className="w-12 h-12 text-primary/20 mb-4" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 italic text-center">Signal Cleared • No Mandul Detected</p>
+                    </Card>
                 )}
             </div>
 
-            <div className="max-w-4xl mx-auto w-full overflow-x-auto scrollbar-ultra-sport border-2 border-white/5 rounded-3xl bg-black/20 shadow-2xl">
-                <Table className="min-w-full">
-                    <TableHeader><TableRow className="hover:bg-transparent border-b-primary/30 h-12 sm:h-14 bg-black/40"><TableHead className="w-3 p-0"></TableHead><TableHead className="w-8 sm:w-16 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead><TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead><TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead></TableRow></TableHeader>
-                    <TableBody>
-                        {topScorers.map((scorer) => {
-                            const isPredator = scorer.rank === 1;
-                            return (
-                                <TableRow key={scorer.id} className={cn("transition-all h-16 sm:h-20 border-b-white/5 relative group/row overflow-hidden", isPredator ? "bg-yellow-400/[0.12] hover:bg-yellow-400/[0.3] h-20 sm:h-24 shadow-[inset_0_0_50px_rgba(250,204,21,0.15)]" : "hover:bg-primary/[0.15]")}>
-                                    <TableCell className={cn("p-0 w-3 transition-all duration-500", isPredator ? 'bg-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)]' : 'bg-transparent group-hover/row:bg-primary')} />
-                                    <TableCell className={cn("text-center font-black text-base sm:text-2xl italic transition-all duration-500", isPredator ? "text-yellow-400 scale-125" : "text-white/40 group-hover/row:text-primary")}>{scorer.rank}</TableCell>
-                                    <TableCell className="py-2 relative overflow-hidden">
-                                        {isPredator && (
-                                            <span className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-5xl sm:text-8xl font-black text-yellow-400/[0.04] uppercase italic tracking-tighter pointer-events-none select-none z-0 whitespace-nowrap">
-                                                PREDATOR
-                                            </span>
-                                        )}
-                                        <div className="flex flex-col relative z-10">
-                                            <span className={cn("font-black tracking-tight uppercase italic pr-2 transition-all", isPredator ? "text-base sm:text-2xl text-yellow-400" : "text-[12px] sm:text-lg text-white group-hover/row:text-primary")} suppressHydrationWarning>{scorer.name}</span>
-                                            <span className={cn("text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1", isPredator ? "text-yellow-400/60" : "text-white/30")} suppressHydrationWarning>{scorer.teamName}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className={cn("text-center font-black text-xl sm:text-6xl italic tabular-nums transition-all", isPredator ? "text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.7)]" : "text-white/60 group-hover/row:text-primary")} suppressHydrationWarning>{scorer.goals}</TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
+            {/* FULL TOP SCORER LIST */}
+            <div className="max-w-4xl mx-auto w-full overflow-hidden border-2 border-white/5 rounded-[2.5rem] bg-black/20 shadow-2xl relative">
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
+                
+                <div className="overflow-x-auto scrollbar-ultra-sport">
+                    <Table className="min-w-full">
+                        <TableHeader>
+                            <TableRow className="hover:bg-transparent border-b-primary/30 h-14 bg-black/40">
+                                <TableHead className="w-3 p-0"></TableHead>
+                                <TableHead className="w-12 sm:w-20 text-center font-black text-primary uppercase text-[8px] sm:text-[10px] tracking-[0.2em]">Pos</TableHead>
+                                <TableHead className="text-left font-black text-primary text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Pemain</TableHead>
+                                <TableHead className="text-center font-black text-primary w-24 sm:w-40 text-[8px] sm:text-[10px] tracking-[0.2em] uppercase">Total Gol</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {topScorers.map((scorer) => {
+                                const isRank1 = scorer.rank === 1;
+                                const hasGoals = scorer.goals > 0;
+                                return (
+                                    <TableRow key={scorer.id} className={cn(
+                                        "transition-all h-16 sm:h-24 border-b-white/5 relative group/row overflow-hidden", 
+                                        isRank1 && hasGoals ? "bg-primary/[0.12] hover:bg-primary/[0.2] shadow-[inset_0_0_50px_rgba(204,253,1,0.15)]" : "hover:bg-white/[0.05]"
+                                    )}>
+                                        <TableCell className={cn(
+                                            "p-0 w-3 transition-all duration-500", 
+                                            isRank1 && hasGoals ? 'bg-primary shadow-[0_0_30px_rgba(204,253,1,0.9)]' : 'bg-transparent group-hover/row:bg-primary/40'
+                                        )} />
+                                        <TableCell className={cn(
+                                            "text-center font-black text-xl sm:text-3xl italic transition-all duration-500", 
+                                            isRank1 && hasGoals ? "text-primary scale-125 drop-shadow-[0_0_15px_rgba(204,253,1,0.4)]" : "text-white/20 group-hover/row:text-white/40"
+                                        )}>{scorer.rank}</TableCell>
+                                        <TableCell className="py-2 relative overflow-hidden">
+                                            {isRank1 && hasGoals && (
+                                                <span className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-5xl sm:text-[10rem] font-black text-primary/[0.03] uppercase italic tracking-tighter pointer-events-none select-none z-0 whitespace-nowrap">
+                                                    PREDATOR
+                                                </span>
+                                            )}
+                                            <div className="flex items-center gap-4 relative z-10">
+                                                <Avatar className={cn(
+                                                    "h-10 w-10 sm:h-14 sm:w-14 border-2 transition-all duration-500 shadow-lg",
+                                                    isRank1 && hasGoals ? "border-primary scale-110" : "border-white/10 group-hover/row:border-primary/40"
+                                                )}>
+                                                    <AvatarImage src={scorer.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
+                                                    <AvatarFallback className="bg-black/40"><User className="w-8 h-8 text-white/10"/></AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col">
+                                                    <span className={cn(
+                                                        "font-black tracking-tight uppercase italic pr-2 transition-all", 
+                                                        isRank1 && hasGoals ? "text-lg sm:text-3xl text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" : "text-sm sm:text-xl text-white/80 group-hover/row:text-white"
+                                                    )} suppressHydrationWarning>{scorer.name}</span>
+                                                    <span className={cn(
+                                                        "text-[8px] sm:text-[11px] font-black uppercase tracking-widest mt-1", 
+                                                        isRank1 && hasGoals ? "text-primary/60" : "text-white/20 group-hover/row:text-white/40"
+                                                    )} suppressHydrationWarning>{scorer.teamName}</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className={cn(
+                                            "text-center font-black text-2xl sm:text-7xl italic tabular-nums transition-all", 
+                                            isRank1 && hasGoals ? "text-primary drop-shadow-[0_0_30px_rgba(204,253,1,0.7)]" : (hasGoals ? "text-white/60 group-hover/row:text-primary" : "text-white/10 group-hover/row:text-white/20")
+                                        )} suppressHydrationWarning>{scorer.goals}</TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
         </div>
     );
@@ -500,7 +556,7 @@ export function LeagueTable({
                 </TabsList>
                 <TabsContent value="standings" className="mt-0"><SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={true} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} /></TabsContent>
                 <TabsContent value="topskor" className="mt-0 py-10"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} teamsById={teamsById} /></TabsContent>
-                {isCoopHybrid && <TabsContent value="playoff" className="mt-0"><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>}
+                {isCoopHybrid && <TabsContent value="playoff" className="mt-0"><div className="p-10 text-center text-white/20 font-black uppercase italic tracking-widest">PROYEKSI BAGAN PLAYOFF SEDANG DISINKRONKAN...</div></TabsContent>}
              </Tabs>
         ) : (
             isHybrid ? (
@@ -512,7 +568,7 @@ export function LeagueTable({
                     </TabsList>
                     <TabsContent value="group_a" className="mt-0"><SingleTable tableData={groupA} totalPlayers={groupA.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} /></TabsContent>
                     <TabsContent value="group_b" className="mt-0"><SingleTable tableData={groupB} totalPlayers={groupB.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} /></TabsContent>
-                    <TabsContent value="playoff" className="mt-0"><TournamentBracket matches={matches} playersById={playersById} teamsById={teamsById} leagueTable={tableData} season={activeSeason} isAdmin={isAdmin} onRevertMatch={onRevertMatch} /></TabsContent>
+                    <TabsContent value="playoff" className="mt-0"><div className="p-10 text-center text-white/20 font-black uppercase italic tracking-widest">PROYEKSI BAGAN PLAYOFF SEDANG DISINKRONKAN...</div></TabsContent>
                 </Tabs>
             ) : (
                 <SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={false} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} />
