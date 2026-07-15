@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSharedPassword } from '@/context/password-context';
@@ -42,7 +41,7 @@ export function DeactivatedGuard({ children }: { children: React.ReactNode }) {
           <div className="space-y-6">
             <h1 className="text-4xl sm:text-7xl font-black text-white uppercase italic tracking-tighter leading-none pr-4 drop-shadow-[0_0_30px_rgba(220,38,38,0.5)]">
               LIGA DI HENTIKAN <br />
-              <span className="text-red-600">SAMPAI WAKTU YANNG DI TENTUKAN</span>
+              <span className="text-red-600">SAMPAI WAKTU YANG TIDAK DI TENTUKAN. SAMPAI JUMPA</span>
             </h1>
             <div className="flex items-center justify-center gap-4 opacity-30">
                 <div className="h-px w-20 bg-gradient-to-r from-transparent to-white" />
