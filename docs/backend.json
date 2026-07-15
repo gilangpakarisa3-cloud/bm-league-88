@@ -1,219 +1,430 @@
+
 {
   "entities": {
     "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user's profile within the app, linking to their associated team. This entity stores application-specific user data, separate from authentication details.",
+      "description": "Represents a user profile in the application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
+          "description": "Unique identifier for the user profile."
         },
         "username": {
           "type": "string",
-          "description": "The public username chosen by the user for display in rankings and other UI elements."
+          "description": "The username of the user."
         },
-        "teamId": {
+        "email": {
           "type": "string",
-          "description": "Reference to the Team the user is associated with. (Relationship: Team 1:N UserProfile)"
+          "description": "The email address of the user.",
+          "format": "email"
         }
       },
       "required": [
         "id",
-        "username",
-        "teamId"
+        "username"
       ]
     },
     "Team": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Team",
       "type": "object",
-      "description": "Represents a football team participating in leagues and cup tournaments within the app.",
+      "description": "Represents a football team.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Team entity."
-        },
         "name": {
           "type": "string",
-          "description": "The official name of the football team."
+          "description": "The name of the team."
         },
         "logoUrl": {
           "type": "string",
-          "description": "URL to the team's logo image.",
+          "description": "URL for the team's logo image.",
           "format": "uri"
+        },
+        "tier": {
+          "type": "number",
+          "description": "The power level of the team (1-5).",
+          "enum": [1, 2, 3, 4, 5],
+          "default": 3
         }
       },
       "required": [
-        "id",
         "name"
+      ]
+    },
+    "Player": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Player",
+      "type": "object",
+      "description": "Represents a player in the league, including their overall career stats.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the player."
+        },
+        "teamId": {
+          "type": "string",
+          "description": "Reference to the Team the player is associated with."
+        },
+        "teamName": {
+          "type": "string",
+          "description": "Denormalized name of the team for easier display."
+        },
+        "overallPlayed": {
+          "type": "number",
+          "description": "Total matches played across all seasons."
+        },
+        "overallWin": {
+          "type": "number",
+          "description": "Total matches won across all seasons."
+        },
+        "overallDraw": {
+          "type": "number",
+          "description": "Total matches drawn across all seasons."
+        },
+        "overallLoss": {
+          "type": "number",
+          "description": "Total matches lost across all seasons."
+        },
+        "overallGoalsFor": {
+          "type": "number",
+          "description": "Total goals scored by the player across all seasons."
+        },
+        "overallGoalsAgainst": {
+          "type": "number",
+          "description": "Total goals conceded by the player across all seasons."
+        }
+      },
+      "required": [
+        "name",
+        "overallPlayed",
+        "overallWin",
+        "overallDraw",
+        "overallLoss",
+        "overallGoalsFor",
+        "overallGoalsAgainst"
       ]
     },
     "League": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "League",
       "type": "object",
-      "description": "Represents a league tournament, including its participating teams and schedule.",
+      "description": "Represents a league competition.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the League entity."
-        },
         "name": {
           "type": "string",
-          "description": "The name of the league tournament."
-        },
-        "startDate": {
-          "type": "string",
-          "description": "The start date and time of the league tournament.",
-          "format": "date-time"
-        },
-        "endDate": {
-          "type": "string",
-          "description": "The end date and time of the league tournament.",
-          "format": "date-time"
-        },
-        "teamIds": {
-          "type": "array",
-          "description": "References to Teams participating in this league. (Relationship: League N:N Team)",
-          "items": {
-            "type": "string"
-          }
+          "description": "The name of the league."
         }
       },
       "required": [
-        "id",
-        "name",
-        "startDate",
-        "endDate",
-        "teamIds"
+        "name"
       ]
     },
-    "Cup": {
+    "Season": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Cup",
+      "title": "Season",
       "type": "object",
-      "description": "Represents a cup tournament, including its participating teams, schedule, and current stage.",
+      "description": "Represents a season within a league or cup.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Cup entity."
-        },
         "name": {
           "type": "string",
-          "description": "The name of the cup tournament."
+          "description": "The name of the season (e.g., '2024/25 Season')."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the season.",
+          "enum": [
+            "Not Started",
+            "In Progress",
+            "Completed"
+          ]
+        },
+        "type": {
+            "type": "string",
+            "description": "The format of the league for this season.",
+            "enum": ["Single", "Co-Op", "Hybrid", "Co-Op Hybrid"],
+            "default": "Single"
+        },
+        "hybridGroupMeetings": {
+          "type": "number",
+          "description": "Number of meetings for the group stage in a Hybrid season (1 for single match, 2 for home & away).",
+          "enum": [1, 2],
+          "default": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the season was created."
         },
         "startDate": {
-          "type": "string",
-          "description": "The start date and time of the cup tournament.",
-          "format": "date-time"
+            "type": "string",
+            "format": "date-time",
+            "description": "The start date of the season."
         },
         "endDate": {
-          "type": "string",
-          "description": "The end date and time of the cup tournament.",
-          "format": "date-time"
+            "type": "string",
+            "format": "date-time",
+            "description": "The end date of the season."
         },
-        "teamIds": {
-          "type": "array",
-          "description": "References to Teams participating in this cup. (Relationship: Cup N:N Team)",
-          "items": {
-            "type": "string"
-          }
+        "registrationFee": {
+          "type": "number",
+          "description": "The registration fee for this season."
         },
-        "currentRound": {
-          "type": "string",
-          "description": "Describes the current stage or round of the cup tournament (e.g., 'Group Stage', 'Quarter-Finals', 'Semi-Finals', 'Final')."
+        "sponsorshipAmount": {
+          "type": "number",
+          "description": "The sponsorship amount for this season."
         }
       },
       "required": [
-        "id",
         "name",
-        "startDate",
-        "endDate",
-        "teamIds",
-        "currentRound"
+        "status",
+        "createdAt"
       ]
     },
     "Match": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Match",
       "type": "object",
-      "description": "Represents a single match played between two teams, associated with either a league or a cup.",
+      "description": "Represents a match between two players. For Single mode, it's a standard game. For Co-Op, it's a best-of-3 series.",
       "properties": {
-        "id": {
+        "seasonId": {
           "type": "string",
-          "description": "Unique identifier for the Match entity."
+          "description": "Reference to the Season this match belongs to."
         },
-        "leagueId": {
+        "player1Id": {
           "type": "string",
-          "description": "Reference to the League if this match is part of a league tournament. Either leagueId or cupId must be present. (Relationship: League 1:N Match)"
+          "description": "Reference to the first player or co-op team in the match."
         },
-        "cupId": {
+        "player2Id": {
           "type": "string",
-          "description": "Reference to the Cup if this match is part of a cup tournament. Either leagueId or cupId must be present. (Relationship: Cup 1:N Match)"
+          "description": "Reference to the second player or co-op team in the match."
         },
-        "homeTeamId": {
-          "type": "string",
-          "description": "Reference to the Team playing as the home team. (Relationship: Team N:1 Match)"
+        "player1Wins": {
+          "type": ["number", "null"],
+          "description": "The number of games won by the first player/team (Co-Op mode)."
         },
-        "awayTeamId": {
-          "type": "string",
-          "description": "Reference to the Team playing as the away team. (Relationship: Team N:1 Match)"
+        "player2Wins": {
+          "type": ["number", "null"],
+          "description": "The number of games won by the second player/team (Co-Op mode)."
+        },
+        "player1Score": {
+          "type": ["number", "null"],
+          "description": "The score of the first player (Single mode)."
+        },
+        "player2Score": {
+          "type": ["number", "null"],
+          "description": "The score of the second player (Single mode)."
         },
         "matchDate": {
           "type": "string",
-          "description": "The date and time when the match is scheduled or was played.",
+          "description": "The date of the match.",
           "format": "date-time"
         },
-        "homeScore": {
-          "type": "number",
-          "description": "The number of goals or points scored by the home team. Can be null if the match is not yet completed."
+        "isCompleted": {
+          "type": "boolean",
+          "description": "Flag indicating if the match has been played."
         },
-        "awayScore": {
-          "type": "number",
-          "description": "The number of goals or points scored by the away team. Can be null if the match is not yet completed."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the match (e.g., 'scheduled', 'completed', 'postponed', 'cancelled')."
-        },
-        "winnerTeamId": {
-          "type": "string",
-          "description": "Reference to the Team that won the match. Null if the match was a draw or not yet completed. (Relationship: Team N:1 Match)"
+        "round": {
+            "type": "string",
+            "description": "The stage of the match in a hybrid season.",
+            "enum": ["Group", "UB-Quarter", "UB-Semi", "UB-Final", "LB-Round 1", "LB-Round 2", "LB-Round 3", "LB-Round 4", "LB-Round 5", "LB-Final", "Grand-Final"]
         }
       },
       "required": [
-        "id",
-        "homeTeamId",
-        "awayTeamId",
+        "seasonId",
+        "player1Id",
+        "player2Id",
         "matchDate",
-        "status"
+        "isCompleted"
       ]
+    },
+    "LeagueEntry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LeagueEntry",
+      "type": "object",
+      "description": "Represents a player's entry in a league table for a season.",
+      "properties": {
+        "playerId": {
+          "type": "string"
+        },
+        "teamId": {
+          "type": "string"
+        },
+        "playerName": {
+          "type": "string"
+        },
+        "teamName": {
+          "type": "string"
+        },
+        "played": {
+          "type": "number"
+        },
+        "win": {
+          "type": "number"
+        },
+        "draw": {
+          "type": "number"
+        },
+        "loss": {
+          "type": "number"
+        },
+        "goalsFor": {
+          "type": "number"
+        },
+        "goalsAgainst": {
+          "type": "number"
+        },
+        "goalDifference": {
+          "type": "number"
+        },
+        "points": {
+          "type": "number"
+        },
+        "hasPaid": {
+          "type": "boolean",
+          "description": "Indicates if the player has paid the registration fee for the season."
+        },
+        "group": {
+          "type": "string",
+          "enum": ["A", "B"],
+          "description": "The group the player belongs to in a hybrid season."
+        }
+      }
+    },
+    "CoOpLeagueEntry": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "CoOpLeagueEntry",
+        "type": "object",
+        "description": "Represents a paired team's entry in a Co-Op league table.",
+        "properties": {
+            "teamName": {"type": "string"},
+            "player1Id": {"type": "string"},
+            "player1Name": {"type": "string"},
+            "player1TeamId": {"type": "string"},
+            "player1TeamName": {"type": "string"},
+            "player2Id": {"type": "string"},
+            "player2Name": {"type": "string"},
+            "player2TeamId": {"type": "string"},
+            "player2TeamName": {"type": "string"},
+            "player1Goals": {"type": "number"},
+            "player2Goals": {"type": "number"},
+            "played": {"type": "number"},
+            "win": {"type": "number"},
+            "loss": {"type": "number"},
+            "points": {"type": "number"}
+        },
+        "required": ["teamName", "player1Id", "player1Name", "player2Id", "player2Name", "played", "win", "loss", "points"]
+    },
+    "Notice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notice",
+      "type": "object",
+      "description": "Represents the editable content on the homepage notice board.",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of strings, where each string is a rule."
+        },
+        "schedule": {
+          "type": "string",
+          "description": "A string containing the schedule information."
+        }
+      },
+      "required": [
+        "rules",
+        "schedule"
+      ]
+    },
+    "SeasonRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SeasonRecord",
+      "type": "object",
+      "description": "A record of a completed season for the Hall of Fame.",
+      "properties": {
+        "seasonId": { "type": "string" },
+        "seasonName": { "type": "string" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "winnerPlayerId": { "type": "string" },
+        "winnerPlayerName": { "type": "string" },
+        "winnerTeamName": { "type": "string" },
+        "winnerPhotoUrl": { "type": "string", "format": "uri" },
+        "winnerStats": {
+          "type": "object",
+          "properties": {
+            "points": { "type": "number" },
+            "win": { "type": "number" },
+            "draw": { "type": "number" },
+            "loss": { "type": "number" },
+            "goalsFor": { "type": "number" },
+            "goalsAgainst": { "type": "number" },
+            "goalDifference": { "type": "number" }
+          }
+        },
+        "funStats": {
+          "type": "object",
+          "properties": {
+            "bestAttacker": {
+              "type": ["object", "null"],
+              "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            },
+            "worstDefender": {
+               "type": ["object", "null"],
+               "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            },
+            "mostWins": {
+              "type": ["object", "null"],
+              "properties": {
+                "playerName": { "type": "string" },
+                "value": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+      "required": ["seasonId", "seasonName", "completedAt", "winnerPlayerId", "winnerPlayerName", "winnerTeamName", "winnerStats", "funStats"]
+    },
+    "AdminConfig": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "AdminConfig",
+        "type": "object",
+        "description": "Stores global application configuration like the admin password and operation mode.",
+        "properties": {
+            "password": {
+                "type": "string",
+                "description": "The admin password for the application."
+            },
+            "isDeactivated": {
+                "type": "boolean",
+                "description": "Whether the entire website is deactivated for the public."
+            }
+        },
+        "required": ["password"]
     }
   },
   "auth": {
     "providers": [
-      "password",
       "anonymous"
     ]
   },
   "firestore": {
     "structure": [
       {
-        "path": "/userProfiles/{userProfileId}",
+        "path": "/users/{userId}",
         "definition": {
           "entityName": "UserProfile",
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores individual user profile data. Each document's ID (`userProfileId`) MUST match the Firebase Authentication UID of the owning user, enabling direct, authorization-independent access control. This collection implicitly manages user ownership.",
-          "params": [
-            {
-              "name": "userProfileId",
-              "description": "The unique identifier of the user profile, which directly corresponds to the Firebase Authentication UID of the user."
-            }
-          ]
+          "description": "Stores user profile information."
         }
       },
       {
@@ -223,13 +434,17 @@
           "schema": {
             "$ref": "#/backend/entities/Team"
           },
-          "description": "Contains information about football teams. This collection is publicly readable and managed by administrators.",
-          "params": [
-            {
-              "name": "teamId",
-              "description": "The unique identifier for a specific team."
-            }
-          ]
+          "description": "Stores all team information."
+        }
+      },
+      {
+        "path": "/players/{playerId}",
+        "definition": {
+          "entityName": "Player",
+          "schema": {
+            "$ref": "#/backend/entities/Player"
+          },
+          "description": "Stores all player information, including their overall career stats."
         }
       },
       {
@@ -239,64 +454,79 @@
           "schema": {
             "$ref": "#/backend/entities/League"
           },
-          "description": "Contains data for league tournaments, including participating teams and schedule. This collection is publicly readable and managed by administrators.",
-          "params": [
-            {
-              "name": "leagueId",
-              "description": "The unique identifier for a specific league tournament."
-            }
-          ]
+          "description": "Stores information about different leagues."
         }
       },
       {
-        "path": "/cups/{cupId}",
+        "path": "/leagues/{leagueId}/seasons/{seasonId}",
         "definition": {
-          "entityName": "Cup",
+          "entityName": "Season",
           "schema": {
-            "$ref": "#/backend/entities/Cup"
+            "$ref": "#/backend/entities/Season"
           },
-          "description": "Contains data for cup tournaments, including participating teams, schedule, and current stage. This collection is publicly readable and managed by administrators.",
-          "params": [
-            {
-              "name": "cupId",
-              "description": "The unique identifier for a specific cup tournament."
-            }
-          ]
+          "description": "Stores season information for a specific league."
         }
       },
       {
-        "path": "/matches/{matchId}",
+        "path": "/leagues/{leagueId}/seasons/{seasonId}/matches/{matchId}",
         "definition": {
           "entityName": "Match",
           "schema": {
             "$ref": "#/backend/entities/Match"
           },
-          "description": "Contains data for individual matches, linking to either a league or a cup. This collection is top-level to support global queries and uniform security (public read, admin write), ensuring authorization independence from parent tournaments. Includes denormalized 'leagueId' or 'cupId' for efficient filtering.",
-          "params": [
-            {
-              "name": "matchId",
-              "description": "The unique identifier for a specific match."
-            }
-          ]
+          "description": "Stores all matches for a given season of a league."
         }
       },
       {
-        "path": "/admins/{adminId}",
+        "path": "/leagues/{leagueId}/seasons/{seasonId}/leagueTable/{leagueEntryId}",
         "definition": {
-          "entityName": "admin",
+          "entityName": "LeagueEntry",
           "schema": {
-            "$ref": "#/backend/entities/UserProfile"
+            "$ref": "#/backend/entities/LeagueEntry"
           },
-          "description": "A collection used for Database Access Control (DBAC). The mere existence of a document where `adminId` matches `request.auth.uid` grants global administrative privileges for managing game data (teams, leagues, cups, matches). Documents can be empty or contain minimal role-related data.",
-          "params": [
-            {
-              "name": "adminId",
-              "description": "The unique identifier of a user who has administrative privileges, matching their Firebase Authentication UID."
-            }
-          ]
+          "description": "Stores the league table for a given season of a league."
+        }
+      },
+       {
+        "path": "/leagues/{leagueId}/seasons/{seasonId}/coopLeagueTable/{coopLeagueEntryId}",
+        "definition": {
+          "entityName": "CoOpLeagueEntry",
+          "schema": {
+            "$ref": "#/backend/entities/CoOpLeagueEntry"
+          },
+          "description": "Stores the league table for a Co-Op season."
+        }
+      },
+       {
+        "path": "/notices/main",
+        "definition": {
+          "entityName": "Notice",
+          "schema": {
+            "$ref": "#/backend/entities/Notice"
+          },
+          "description": "Stores the content for the homepage notice board. This is a singleton document."
+        }
+      },
+      {
+        "path": "/hallOfFame/{recordId}",
+        "definition": {
+          "entityName": "SeasonRecord",
+          "schema": {
+            "$ref": "#/backend/entities/SeasonRecord"
+          },
+          "description": "Stores a summary of a completed season for the Hall of Fame."
+        }
+      },
+      {
+        "path": "/appConfig/admin",
+        "definition": {
+          "entityName": "AdminConfig",
+          "schema": {
+            "$ref": "#/backend/entities/AdminConfig"
+          },
+          "description": "Stores the admin configuration including password and operation status."
         }
       }
-    ],
-    "reasoning": "The recommended Firestore structure prioritizes security, scalability, and debuggability by adhering to the core design principles, especially Authorization Independence and Structural Segregation.\n\n1.  **Authorization Independence (Denormalization Strategy):**\n    *   **User Profiles:** User profiles are stored in `/userProfiles/{userProfileId}` where `userProfileId` is designed to be the Firebase Authentication `uid`. This ensures that access rules for a user's profile (`read` and `write`) can be determined solely by comparing `request.auth.uid` to the document ID, without needing any `get()` operations to check a parent document or user roles. The `UserProfile.id` field is also set to this `uid` for self-contained validation.\n    *   **Global Admin Roles:** Administrative write access to the `teams`, `leagues`, `cups`, and `matches` collections is controlled by an `/admins/{adminId}` collection. The presence of a document in this collection (where `adminId` is `request.auth.uid`) grants admin privileges. This is an existence check, which is highly efficient and authorization-independent, avoiding complex `get()` calls in rules.\n    *   **Public Data:** All `teams`, `leagues`, `cups`, and `matches` are publicly readable. Their write access is restricted to global admins. This design means that access to a `Match` document, for example, does *not* depend on looking up its parent `League` or `Cup` document. The `leagueId` and `cupId` fields within the `Match` document are for data relationships and querying, not for authorization, thus preserving independence.\n\n2.  **Structural Segregation (Homogeneous Security Posture):**\n    *   **`/userProfiles/{userProfileId}`:** This collection is segregated for private user data, where each user has exclusive `read/write` access to their own profile.\n    *   **`/teams/{teamId}`:** Contains public team information, managed by administrators.\n    *   **`/leagues/{leagueId}`:** Contains public league information, managed by administrators.\n    *   **`/cups/{cupId}`:** Contains public cup tournament information, managed by administrators.\n    *   **`/matches/{matchId}`:** Contains public match data. By placing matches in a top-level collection, we avoid mixing security postures that would arise if they were subcollections of both `leagues` and `cups` (e.g., if league-specific permissions existed). This also simplifies queries across all matches or for matches belonging to a specific league/cup.\n    *   **`/admins/{adminId}`:** This dedicated collection strictly defines who has administrative privileges, separating role data from application data.\n\n3.  **Query Ability and Performance (QAPs - Rules are not Filters):**\n    *   The structure supports efficient `list` operations (QAPs) because each collection has a uniform security posture:\n        *   **User Profiles:** A user can only `list` or `get` their *own* profile. The rule `request.auth.uid == userProfileId` ensures no unauthorized profiles are returned without complex filtering.\n        *   **Teams, Leagues, Cups, Matches:** These collections are entirely publicly readable. Therefore, a `list` operation on any of these collections will return all documents without needing any server-side filtering by security rules. This makes client-side queries like `db.collection('matches').where('leagueId', '==', leagueId)` highly efficient, as the rule `allow read: if true;` for public data means no documents are "
+    ]
   }
 }

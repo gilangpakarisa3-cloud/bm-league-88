@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PasswordManager } from '@/components/password-manager';
 import { useTranslation } from '@/hooks/use-translation';
-import { KeyRound, RefreshCw, Loader2, AlertTriangle, Database, Scan, Binary, Zap, ShieldCheck } from 'lucide-react';
+import { KeyRound, RefreshCw, Loader2, AlertTriangle, Database, Scan, Binary, Zap, ShieldCheck, Power, Activity } from 'lucide-react';
 import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import type { Season, Match, Player, CoOpLeagueEntry, LeagueEntry } from '@/lib/types';
@@ -14,6 +15,7 @@ import { useSharedPassword } from '@/context/password-context';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
 
@@ -23,19 +25,23 @@ export default function SettingsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const { t } = useTranslation();
-    const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
+    const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded, isDeactivated, updateDeactivationStatus } = useSharedPassword();
 
     const [showPasswordManager, setShowPasswordManager] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
     
     const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
     const [passwordInput, setPasswordInput] = useState('');
+    const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
     const handlePasswordCheck = () => {
         if (passwordInput === ADMIN_PASSWORD) {
             setPasswordPromptOpen(false);
             setPasswordInput('');
-            handleSyncCareerStats();
+            if (pendingAction) {
+                pendingAction();
+                setPendingAction(null);
+            }
         } else {
             toast({ variant: 'destructive', title: t('incorrect_password') });
         }
@@ -51,7 +57,6 @@ export default function SettingsPage() {
             
             const normalize = (name: string) => name.toLowerCase().replace(/\s|\./g, '').trim();
             
-            // Name Aliases Mapping
             const NAME_ALIASES: Record<string, string> = {
                 'agusm': 'aguii'
             };
@@ -77,7 +82,6 @@ export default function SettingsPage() {
             for (const seasonDoc of seasonsSnap.docs) {
                 const sId = seasonDoc.id;
                 const sData = seasonDoc.data() as Season;
-                // SUPPORT ALL CO-OP VARIANTS
                 const isCoop = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid';
 
                 const seasonIdToNameKeyMap: Record<string, string> = {};
@@ -142,7 +146,6 @@ export default function SettingsPage() {
                 matchesSnap.docs.forEach(mDoc => {
                     const m = mDoc.data() as Match;
                     if (!m.isCompleted) return;
-                    // RECAP KNOCKOUT MATCHES (Group stage results are handled by table processing above)
                     if (m.round === 'Group' || !m.round) return;
 
                     const isMatchBo3 = isCoop || (m.round && m.round !== 'Group');
@@ -240,6 +243,41 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    {/* WEBSITE OPERATIONAL STATUS CARD */}
+                    <div className="flex flex-col group/card relative">
+                        <div className="bg-red-600 px-6 py-2.5 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
+                            <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
+                            <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
+                                <Power className="w-4 h-4 text-white" />
+                                <h2 className="text-xs font-black uppercase italic tracking-widest text-white leading-none pr-2">System Operations</h2>
+                            </div>
+                            <Activity className="w-4 h-4 text-white/40 relative z-10 skew-x-[12deg]" />
+                        </div>
+                        <Card className="border-2 border-red-600/20 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-red-600/40 transition-all duration-500 relative z-10">
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(220,38,38,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(220,38,38,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                            <CardContent className="p-8 space-y-6">
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/5">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">WEBSITE_VISIBILITY_STATE</p>
+                                        <p className="text-sm font-bold text-white/90">Status: <span className={isDeactivated ? "text-red-500" : "text-primary"}>{isDeactivated ? "DEACTIVATED" : "ACTIVE"}</span></p>
+                                    </div>
+                                    <Switch 
+                                        checked={!isDeactivated} 
+                                        onCheckedChange={(checked) => {
+                                            setPendingAction(() => () => updateDeactivationStatus(!checked));
+                                            setPasswordPromptOpen(true);
+                                        }} 
+                                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-red-600 scale-125 transition-all"
+                                    />
+                                </div>
+                                <div className="flex items-start gap-3 opacity-40">
+                                    <Scan className="w-4 h-4 mt-0.5" />
+                                    <p className="text-[10px] font-bold text-white leading-relaxed">Saat dinonaktifkan, publik hanya akan melihat pesan pemeliharaan. Admin tetap dapat mengakses halaman pengaturan ini.</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     {/* ADMIN SECURITY CARD */}
                     <div className="flex flex-col group/card relative">
                         <div className="bg-primary px-6 py-2.5 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
@@ -289,7 +327,10 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                                 <Button 
-                                    onClick={() => setPasswordPromptOpen(true)} 
+                                    onClick={() => {
+                                        setPendingAction(() => () => handleSyncCareerStats());
+                                        setPasswordPromptOpen(true);
+                                    }} 
                                     disabled={isSyncing || !isPasswordLoaded} 
                                     variant="outline"
                                     className="w-full h-16 font-black uppercase italic tracking-widest text-[10px] border-amber-500/30 text-amber-500 hover:bg-amber-500/10 rounded-none -skew-x-[12deg] border-r-8 transition-all"

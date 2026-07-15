@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type WithId<T> = T & { id: string };
@@ -134,3 +135,8 @@ export type SeasonRecord = {
         mostWins: { playerName: string; value: number } | null;
     };
 }
+
+export type AdminConfig = {
+    password?: string;
+    isDeactivated?: boolean;
+};

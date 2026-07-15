@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Header } from '@/components/layout/header';
@@ -8,6 +9,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { VantaBackground } from '@/components/vanta-background';
 import { LanguageProvider } from '@/context/language-context';
 import { PasswordProvider } from '@/context/password-context';
+import { DeactivatedGuard } from '@/components/layout/deactivated-guard';
 
 
 export const metadata: Metadata = {
@@ -31,15 +33,17 @@ export default function RootLayout({
         <LanguageProvider>
           <FirebaseClientProvider>
             <PasswordProvider>
-              <VantaBackground />
-              <div className="relative flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1 z-10">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-              <Toaster />
+              <DeactivatedGuard>
+                <VantaBackground />
+                <div className="relative flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1 z-10">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+                <Toaster />
+              </DeactivatedGuard>
             </PasswordProvider>
           </FirebaseClientProvider>
         </LanguageProvider>
