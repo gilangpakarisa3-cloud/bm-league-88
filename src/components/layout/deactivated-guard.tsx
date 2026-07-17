@@ -2,9 +2,10 @@
 
 import { useSharedPassword } from '@/context/password-context';
 import { usePathname } from 'next/navigation';
-import { ShieldAlert, Zap, Flame, Scan } from 'lucide-react';
+import { ShieldAlert, Zap, Flame, Scan, KeyRound, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export function DeactivatedGuard({ children }: { children: React.ReactNode }) {
   const { isDeactivated, isLoaded } = useSharedPassword();
@@ -50,16 +51,25 @@ export function DeactivatedGuard({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="pt-10 flex flex-col items-center gap-6">
+          <div className="pt-10 flex flex-col items-center gap-8">
               <div className="flex items-center gap-3">
                   <Zap className="w-5 h-5 text-red-600 fill-red-600 animate-pulse" />
                   <p className="text-[11px] font-black text-white/40 uppercase tracking-[0.3em] italic">Station Broadcast Status: OFFLINE</p>
               </div>
               
-              {/* Minimal Admin Access Link */}
-              <Link href="/settings" className="text-[8px] font-black text-white/10 hover:text-white/40 transition-colors uppercase tracking-widest mt-8">
-                ADMIN_SECURE_OVERRIDE_AUTH
-              </Link>
+              {/* Prominent Admin Override Button */}
+              <div className="space-y-4">
+                  <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Authorized Personnel Only</p>
+                  <Button asChild variant="outline" className="h-14 px-10 border-red-600/30 bg-red-600/5 text-red-600 hover:bg-red-600 hover:text-white font-black uppercase italic tracking-widest text-[10px] -skew-x-[15deg] transition-all group/btn">
+                    <Link href="/settings" className="flex items-center gap-3">
+                        <span className="skew-x-[15deg] flex items-center gap-3">
+                            <KeyRound className="w-4 h-4" />
+                            ADMIN ACCESS OVERRIDE
+                            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                        </span>
+                    </Link>
+                  </Button>
+              </div>
           </div>
         </div>
       </div>
