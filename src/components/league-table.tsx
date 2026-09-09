@@ -20,6 +20,7 @@ import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useMemo, memo } from "react";
 import { resolveLogo } from "@/lib/logo-utils";
+import { TournamentBracket } from "./tournament-bracket";
 
 interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>, logoUrl?: string })[];
@@ -577,7 +578,20 @@ export function LeagueTable({
                 </TabsList>
                 <TabsContent value="standings" className="mt-0"><SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={true} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} /></TabsContent>
                 <TabsContent value="topskor" className="mt-0 py-10"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} teamsById={teamsById} /></TabsContent>
-                {isCoopHybrid && <TabsContent value="playoff" className="mt-0"><div className="p-10 text-center text-white/20 font-black uppercase italic tracking-widest">PROYEKSI BAGAN PLAYOFF SEDANG DISINKRONKAN...</div></TabsContent>}
+                {isCoopHybrid && (
+                    <TabsContent value="playoff" className="mt-0 p-4 sm:p-8">
+                        <TournamentBracket 
+                            matches={matches || []}
+                            playersById={playersById}
+                            teamsById={teamsById}
+                            leagueTable={tableData}
+                            season={activeSeason || null}
+                            isAdmin={isAdmin}
+                            defendingChampionId={defendingChampionId}
+                            onRevertMatch={onRevertMatch}
+                        />
+                    </TabsContent>
+                )}
              </Tabs>
         ) : (
             isHybrid ? (
@@ -589,7 +603,18 @@ export function LeagueTable({
                     </TabsList>
                     <TabsContent value="group_a" className="mt-0"><SingleTable tableData={groupA} totalPlayers={groupA.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} /></TabsContent>
                     <TabsContent value="group_b" className="mt-0"><SingleTable tableData={groupB} totalPlayers={groupB.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} /></TabsContent>
-                    <TabsContent value="playoff" className="mt-0"><div className="p-10 text-center text-white/20 font-black uppercase italic tracking-widest">PROYEKSI BAGAN PLAYOFF SEDANG DISINKRONKAN...</div></TabsContent>
+                    <TabsContent value="playoff" className="mt-0 p-4 sm:p-8">
+                        <TournamentBracket 
+                            matches={matches || []}
+                            playersById={playersById}
+                            teamsById={teamsById}
+                            leagueTable={tableData}
+                            season={activeSeason || null}
+                            isAdmin={isAdmin}
+                            defendingChampionId={defendingChampionId}
+                            onRevertMatch={onRevertMatch}
+                        />
+                    </TabsContent>
                 </Tabs>
             ) : (
                 <SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={false} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} />
