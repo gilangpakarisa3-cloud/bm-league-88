@@ -5,7 +5,8 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices, Binary, Plus } from 'lucide-react';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices, Binary, Plus, Check, Search, X, AlertTriangle } from 'lucide-react';
+import { getSeasonTheme } from '@/lib/season-theme';
 import Link from 'next/link';
 import {
   Dialog,
@@ -97,6 +98,9 @@ export default function LeaguePage() {
   const [showFinishSeasonConfirm, setShowFinishSeasonConfirm] = useState(false);
   const [showFinishGroupStageConfirm, setShowFinishGroupStageConfirm] = useState(false);
   const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
+  const [showStartSeasonConfirm, setShowStartSeasonConfirm] = useState(false);
+  const [financialFilter, setFinancialFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
+  const [financialSearch, setFinancialSearch] = useState('');
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareText, setShareText] = useState('');
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({ from: undefined, to: undefined });
@@ -251,10 +255,10 @@ export default function LeaguePage() {
 
   }, [singleLeagueTable, coopLeagueTable, activeSeason, playersById, teamsById, isSeasonCoop]);
 
-  const isHybrid = activeSeason?.type === 'Hybrid' || activeSeason?.type === 'Co-Op Hybrid';
+  const isHybrid = activeSeason?.type === 'Hybrid' || activeSeason?.type === 'Co-Op Hybrid' || activeSeason?.type === 'Single Hybrid';
 
   const { groupA, groupB } = useMemo(() => {
-    if (!isHybrid) return { groupA: [], groupB: [] };
+    if (!isHybrid || activeSeason?.type === 'Single Hybrid' || activeSeason?.type === 'Co-Op Hybrid') return { groupA: [], groupB: [] };
     
     const sortAndRank = (data: typeof sortedTable) => 
         data.sort((a, b) => {
@@ -313,7 +317,7 @@ export default function LeaguePage() {
   }, [seasons, activeSeasonId]);
 
   useEffect(() => {
-    if (activeSeason?.type === 'Co-Op Hybrid') {
+    if (activeSeason?.type === 'Co-Op Hybrid' || activeSeason?.type === 'Single Hybrid') {
         if (activeLeagueTab !== 'standings' && activeLeagueTab !== 'playoff' && activeLeagueTab !== 'topskor') {
             setActiveLeagueTab('standings');
         }
@@ -358,9 +362,33 @@ export default function LeaguePage() {
     existingMatchesSnap.forEach(doc => batch.delete(doc.ref));
     
     const seasonType = activeSeason.type || 'Single';
-    const isHybridMode = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid';
+    const isHybridMode = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid' || seasonType === 'Single Hybrid';
     
-    if (seasonType === 'Co-Op Hybrid') {
+    if (seasonType === 'Single Hybrid') {
+        // Single Hybrid: 1 Klasemen tunggal, setiap peserta bertanding tepat 1 kali (round-robin 1x main)
+        const now = Date.now();
+        let matchCounter = 0;
+        for (let i = 0; i < tableToUse.length; i++) {
+            for (let j = i + 1; j < tableToUse.length; j++) {
+                let p1Id = (tableToUse[i] as WithId<LeagueEntry>).playerId;
+                let p2Id = (tableToUse[j] as WithId<LeagueEntry>).playerId;
+                if (Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
+                batch.set(doc(matchesCollectionRef), {
+                    seasonId: activeSeasonId,
+                    player1Id: p1Id,
+                    player2Id: p2Id,
+                    player1Score: null,
+                    player2Score: null,
+                    player1Wins: null,
+                    player2Wins: null,
+                    isCompleted: false,
+                    status: 'Scheduled',
+                    matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
+                    round: 'Group'
+                });
+            }
+        }
+    } else if (seasonType === 'Co-Op Hybrid') {
         const group = tableToUse;
         const now = Date.now();
         let matchCounter = 0;
@@ -423,6 +451,69 @@ export default function LeaguePage() {
     if (!existingKnockoutSnap.empty) { toast({ variant: 'destructive', title: 'Babak Gugur Sudah Ada', description: 'Jadwal playoff sudah ada.' }); return; }
     const batch = writeBatch(firestore);
     const now = Date.now();
+
+    if (activeSeason.type === 'Single Hybrid') {
+        if (sortedTable.length < 8) {
+            toast({ variant: 'destructive', title: 'Peserta Kurang', description: 'Format Single Hybrid memerlukan minimal 8 peserta untuk babak Playoff.' });
+            return;
+        }
+        // 8 besar melaju ke Playoff Single Elimination (Kalah = Gugur, Best of 3):
+        // Match 1: Rank 1 vs Rank 8
+        // Match 2: Rank 4 vs Rank 5
+        // Match 3: Rank 2 vs Rank 7
+        // Match 4: Rank 3 vs Rank 6
+        const qfPairings = [
+            { p1: sortedTable[0], p2: sortedTable[7], bid: 'playoff-m1' },
+            { p1: sortedTable[3], p2: sortedTable[4], bid: 'playoff-m2' },
+            { p1: sortedTable[1], p2: sortedTable[6], bid: 'playoff-m3' },
+            { p1: sortedTable[2], p2: sortedTable[5], bid: 'playoff-m4' }
+        ];
+        qfPairings.forEach((p, i) => {
+            batch.set(doc(matchesColRef), {
+                seasonId: activeSeasonId,
+                player1Id: p.p1.playerId || p.p1.id,
+                player2Id: p.p2.playerId || p.p2.id,
+                player1Score: null,
+                player2Score: null,
+                player1Wins: null,
+                player2Wins: null,
+                isCompleted: false,
+                status: 'Scheduled',
+                matchDate: Timestamp.fromMillis(now + (i + 1) * 1000),
+                round: 'Quarterfinal',
+                bracketId: p.bid
+            });
+        });
+
+        // Placeholders untuk Semifinal (2 laga) dan Grand Final (1 laga):
+        // Semifinal 1 (pemenang QF 1 vs QF 2): playoff-sf1
+        // Semifinal 2 (pemenang QF 3 vs QF 4): playoff-sf2
+        // Grand Final (pemenang SF 1 vs SF 2): playoff-final
+        const placeholders = [
+            { round: 'Semifinal', bid: 'playoff-sf1' },
+            { round: 'Semifinal', bid: 'playoff-sf2' },
+            { round: 'Grand-Final', bid: 'playoff-final' }
+        ];
+        placeholders.forEach((p, i) => {
+            batch.set(doc(matchesColRef), {
+                seasonId: activeSeasonId,
+                player1Id: 'TBD',
+                player2Id: 'TBD',
+                player1Score: null,
+                player2Score: null,
+                player1Wins: null,
+                player2Wins: null,
+                isCompleted: false,
+                status: 'Scheduled',
+                matchDate: Timestamp.fromMillis(now + (i + 5) * 1000),
+                round: p.round as any,
+                bracketId: p.bid
+            });
+        });
+
+        batch.commit().then(() => toast({ title: 'Playoff 8 Besar Dibuat!', description: '8 peringkat teratas klasemen telah masuk ke bagan Knockout Single Elimination (Best of 3).' }));
+        return;
+    }
 
     if (activeSeason.type === 'Co-Op Hybrid') {
         if (sortedTable.length < 4) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Harus ada minimal 4 tim untuk memulai playoff.' }); return; }
@@ -595,7 +686,7 @@ export default function LeaguePage() {
     if (isHybrid) {
         const finalMatch = matches?.find(m => m.round === 'Grand-Final' && m.isCompleted);
         if (finalMatch) {
-            const isBo3 = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid' || (finalMatch.round && finalMatch.round !== 'Group');
+            const isBo3 = activeSeason.type === 'Co-Op' || activeSeason.type === 'Co-Op Hybrid' || (finalMatch.round && finalMatch.round !== 'Group');
             const s1 = isBo3 ? (finalMatch.player1Wins ?? 0) : (finalMatch.player1Score ?? 0);
             const s2 = isBo3 ? (finalMatch.player2Wins ?? 0) : (finalMatch.player2Score ?? 0);
             const wId = s1 > s2 ? finalMatch.player1Id : finalMatch.player2Id;
@@ -658,157 +749,532 @@ export default function LeaguePage() {
   }, [matches]);
 
   const isLoadingTableFinal = isLoadingTable || isLoadingMatches || isLoadingPlayers || isLoadingTeams || !isPasswordLoaded;
+  const theme = useMemo(() => getSeasonTheme(activeSeason), [activeSeason]);
 
   return (
     <div className="w-full">
       <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row justify-between items-stretch gap-4 sm:gap-10 min-h-[140px] sm:min-h-[190px]">
-          <div className="flex flex-col justify-center space-y-4 flex-1 w-full py-8 sm:py-10 px-8 sm:px-12 relative group/header overflow-hidden bg-black/60 backdrop-blur-3xl border-b-4 border-primary/20 rounded-none shadow-[0_20px_80px_rgba(0,0,0,0.8)] transition-all duration-500">
-            {/* HUD Elements */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
-            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
-                <div className="w-full h-[2px] bg-primary blur-[1px] absolute top-0 left-0 animate-scanning" />
-            </div>
-            
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
-            
+        <div className="flex flex-col lg:flex-row justify-between items-stretch gap-6">
+          <div 
+            className="flex flex-col justify-between flex-1 w-full py-8 sm:py-10 px-6 sm:px-10 relative overflow-hidden bg-[#0a0d14] backdrop-blur-3xl rounded-[2rem] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+          >
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(204,253,1,0.8)]" />
-                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] text-primary italic">Live System Uplink</span>
+                <div className="space-y-3">
+                    {/* Top Telemetry Strip */}
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <div 
+                          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full backdrop-blur-md border"
+                          style={{ backgroundColor: `${theme.primaryHex}15`, borderColor: `${theme.primaryHex}40` }}
+                        >
+                            <div 
+                              className="w-2 h-2 rounded-full animate-pulse" 
+                              style={{ backgroundColor: theme.primaryHex }}
+                            />
+                            <span 
+                              className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] italic"
+                              style={{ color: theme.primaryHex }}
+                            >
+                              Live System Uplink
+                            </span>
+                        </div>
+                        
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-sm">
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] font-mono text-white/60">
+                              {theme.sysTag} • {theme.editionName}
+                            </span>
+                        </div>
                     </div>
                     
-                    <h1 className="font-headline text-4xl sm:text-8xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] leading-none">
-                        {t('league_standings_page_title').split(' ')[0]} <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">{t('league_standings_page_title').split(' ').slice(1).join(' ')}</span>
-                    </h1>
+                    {/* Ultra Futuristic & Ultra Sport Dual-Tone Headline */}
+                    <div className="relative">
+                      <h1 className="font-headline text-4xl sm:text-7xl lg:text-8xl font-black tracking-tight uppercase italic leading-[0.95] flex flex-wrap items-baseline gap-x-3 sm:gap-x-6">
+                          <span className="inline-block pr-6 sm:pr-10 pb-1 headline-white-gradient">
+                              {t('league_standings_page_title').split(' ')[0]}
+                          </span>
+                          <span 
+                            className="inline-block pr-4 sm:pr-6 pb-1"
+                            style={{ 
+                              color: theme.primaryHex,
+                            }}
+                          >
+                              {t('league_standings_page_title').split(' ').slice(1).join(' ')}
+                          </span>
+                      </h1>
+                      {/* Aerodynamic Speed Conduit Line */}
+                      <div 
+                        className="h-[2px] w-36 sm:w-56 mt-2 rounded-full" 
+                        style={{ 
+                          background: `linear-gradient(to right, ${theme.primaryHex}, ${theme.secondaryHex}, transparent)`, 
+                          boxShadow: `0 0 14px ${theme.glowRgba}` 
+                        }} 
+                      />
+                    </div>
                 </div>
 
                 {activeSeason && (
-                    <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
-                        <Badge className="bg-primary text-black border-none font-black tracking-[0.2em] text-[10px] sm:text-xs h-8 px-6 uppercase italic shadow-[0_0_30px_rgba(204,253,1,0.3)] rounded-none -skew-x-[20deg] border-r-4 border-black/20">
-                            <span className="skew-x-[20deg]">{activeSeason.status}</span>
+                    <div className="flex flex-col items-start sm:items-end gap-2.5 shrink-0">
+                        <Badge 
+                          className="font-black tracking-[0.2em] text-[10px] sm:text-xs h-8 px-5 uppercase italic rounded-full backdrop-blur-md flex items-center gap-2 border shadow-lg"
+                          style={{ 
+                            backgroundColor: `${theme.primaryHex}20`, 
+                            color: theme.primaryHex, 
+                            borderColor: `${theme.primaryHex}50`,
+                            boxShadow: `0 0 20px ${theme.glowRgba}`
+                          }}
+                        >
+                            <span 
+                              className="w-1.5 h-1.5 rounded-full animate-ping" 
+                              style={{ backgroundColor: theme.primaryHex }}
+                            />
+                            {activeSeason.status}
                         </Badge>
-                        <div className="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-lg border border-white/5">
-                            <CalendarIcon className="w-3.5 h-3.5 text-primary/60" />
-                            {formattedDateRange && <p className="text-[10px] sm:text-xs font-black text-white/60 uppercase tracking-[0.2em] italic">{formattedDateRange}</p>}
+                        <div className="flex items-center gap-2 bg-white/[0.04] px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-sm shadow-inner">
+                            <CalendarIcon className="w-3.5 h-3.5" style={{ color: theme.primaryHex }} />
+                            {formattedDateRange && <p className="text-[10px] sm:text-xs font-black text-white/70 uppercase tracking-widest italic">{formattedDateRange}</p>}
                         </div>
                     </div>
                 )}
             </div>
 
             {activeSeason && (
-                <div className="relative z-10 pt-4 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    <p className="text-xl sm:text-4xl font-black text-white/90 tracking-tight uppercase italic pr-4">{activeSeason.name}</p>
+                <div className="relative z-10 pt-6 mt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-3 bg-white/[0.03] border border-white/10 px-4 py-2 rounded-2xl backdrop-blur-sm">
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full shrink-0" 
+                          style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 10px ${theme.glowRgba}` }}
+                        />
+                        <p className="text-lg sm:text-2xl lg:text-3xl font-black text-white tracking-tight uppercase italic pr-2 drop-shadow-md">
+                          {activeSeason.name}
+                        </p>
+                    </div>
                     
                     {matches && matches.length > 0 && (
-                        <div className="w-full sm:w-[350px] space-y-2.5">
-                            <div className="flex justify-between items-end">
+                        <div className="w-full sm:w-[360px] space-y-2 bg-white/[0.02] border border-white/10 p-3.5 rounded-2xl backdrop-blur-sm">
+                            <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2">
-                                    <Activity className="w-3.5 h-3.5 text-primary animate-pulse" />
-                                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Tournament Progress Matrix</span>
+                                    <Activity className="w-3.5 h-3.5 animate-pulse" style={{ color: theme.primaryHex }} />
+                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/50">Progress Matrix</span>
                                 </div>
-                                <span className="text-xs font-black text-primary italic" suppressHydrationWarning>[{seasonProgress.toFixed(0)}%]</span>
+                                <span className="text-xs font-black italic" style={{ color: theme.primaryHex }} suppressHydrationWarning>
+                                  [{seasonProgress.toFixed(0)}%]
+                                </span>
                             </div>
-                            <div className="relative h-1.5 w-full bg-white/5 overflow-hidden border border-white/5">
-                                <div className="absolute left-0 top-0 h-full bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)] transition-all duration-1000 ease-out" style={{ width: `${seasonProgress}%` }} />
+                            <div className="relative h-2 w-full bg-white/5 overflow-hidden rounded-full border border-white/5">
+                                <div 
+                                  className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out" 
+                                  style={{ 
+                                    width: `${seasonProgress}%`,
+                                    background: `linear-gradient(to right, ${theme.secondaryHex}, ${theme.primaryHex})`,
+                                    boxShadow: `0 0 15px ${theme.glowRgba}`
+                                  }} 
+                                />
                             </div>
-                            <p className="text-[8px] font-black tracking-[0.4em] uppercase text-white/20 italic text-right">
-                                LOG: {completedMatchesCount} / {matches.length} UNITS SYNCED
+                            <p className="text-[8px] font-black tracking-[0.3em] uppercase text-white/30 italic text-right">
+                                {completedMatchesCount} / {matches.length} PERTANDINGAN SELESAI
                             </p>
                         </div>
                     )}
                 </div>
             )}
           </div>
-          <div className="w-full md:w-auto flex items-center justify-center md:justify-end shrink-0">
-            <LiveClock />
+          
+          <div className="w-full lg:w-[420px] flex items-stretch shrink-0">
+            <LiveClock className="h-full" theme={theme} />
           </div>
         </div>
 
         <LiveScoreTicker activeSeasonId={activeSeasonId} teamsById={teamsById} playersById={playersById} isAdmin={isAdmin} />
 
-        <div className={cn(
-            "relative bg-black/60 border-b-4 border-white/10 p-2 sm:p-3 flex flex-wrap items-center gap-4 shadow-[0_10px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 overflow-hidden",
-            isAdmin ? "w-full" : "w-fit mx-auto rounded-none sm:rounded-none"
-        )}>
-          <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary/40 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-primary/40 pointer-events-none" />
+        {/* ============================================================ */}
+        {/* ULTRA SPORT & ULTRA FUTURISTIC COCKPIT COMMAND DECK          */}
+        {/* ============================================================ */}
+        <div 
+          className={cn(
+            "relative w-full rounded-3xl p-3.5 sm:p-5 transition-all duration-500",
+            "bg-gradient-to-b from-[#0C111D]/95 via-[#070A12]/98 to-[#030508]/95",
+            "border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-3xl",
+            "group/command-deck",
+            isAdmin ? "w-full" : "w-full max-w-5xl mx-auto"
+          )}
+          style={{
+            borderColor: `${theme.primaryHex}25`
+          }}
+        >
+          {/* Top Edge High-Voltage Laser Tracer */}
+          <div 
+            className="absolute top-0 left-8 right-8 h-[2px] opacity-80 pointer-events-none" 
+            style={{ 
+              background: `linear-gradient(to right, transparent, ${theme.primaryHex}, transparent)`, 
+              boxShadow: `0 0 20px ${theme.glowRgba}` 
+            }}
+          />
 
-          <div className="flex items-center gap-2 w-full sm:w-auto relative group/select">
-            <div className="p-3 bg-primary/10 text-primary hidden xs:block shadow-lg -skew-x-[12deg] border-r-2 border-primary/30">
-                <Scan className="w-4 h-4 skew-x-[12deg]" />
-            </div>
-            <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
-                <SelectTrigger className="w-full sm:w-fit sm:min-w-[320px] h-12 bg-white/5 border-white/10 font-black uppercase italic tracking-tight text-xs rounded-none -skew-x-[12deg] focus:border-primary/50 transition-all px-8">
-                    <div className="skew-x-[12deg] flex items-center justify-center w-full">
-                        <SelectValue placeholder={t('select_a_season')} />
-                    </div>
-                </SelectTrigger>
-                <SelectContent className="bg-[#0A192F] border-primary/30 rounded-none overflow-hidden">
-                    {seasons?.map(season => <SelectItem key={season.id} value={season.id} className="font-black uppercase italic text-xs focus:bg-primary focus:text-black py-3">{season.name}</SelectItem>)}
-                </SelectContent>
-            </Select>
-            {isAdmin && (
-              <div className="flex gap-1 ml-1">
-                <Button onClick={() => withAdminCheck(handleOpenCreateDialog)} size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] bg-primary/10 text-primary border-primary/30 border-r-2 hover:bg-primary hover:text-black transition-all shadow-lg"><PlusCircle className="h-5 w-5 skew-x-[12deg]" /></Button>
-                <Button onClick={() => withAdminCheck(handleOpenEditDialog)} variant="outline" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] border-white/10 border-r-2 hover:border-primary/50 transition-all" disabled={!activeSeason || activeSeason.status !== 'Not Started'}><Pencil className="h-5 w-5 skew-x-[12deg]" /></Button>
-                <Button onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} variant="destructive" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] transition-all" disabled={!activeSeason}><Trash2 className="h-5 w-5 skew-x-[12deg]" /></Button>
+          {/* Ambient Background Glow on Hover */}
+          <div 
+            className="absolute -inset-1 rounded-[2.2rem] blur-2xl opacity-0 group-hover/command-deck:opacity-100 transition-opacity pointer-events-none" 
+            style={{ 
+              background: `linear-gradient(to right, ${theme.primaryHex}0D, transparent, ${theme.secondaryHex}0D)` 
+            }}
+          />
+
+          {/* ------------------------------------------------------------ */}
+          {/* TIER 1: COCKPIT CORE NAV & SECURITY DECK                     */}
+          {/* ------------------------------------------------------------ */}
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+            
+            {/* Zone A: Unified Season Telemetry Capsule (Fixed width & no overlap) */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 min-w-0 max-w-full">
+              <div 
+                className="flex items-center gap-2 bg-black/60 border rounded-2xl p-1.5 transition-all w-full sm:w-auto shadow-inner min-w-0"
+                style={{ borderColor: `${theme.primaryHex}33` }}
+              >
+                {/* Scanner Icon with Telemetry Pulse */}
+                <div 
+                  className="p-2 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: `${theme.primaryHex}20`, color: theme.primaryHex }}
+                >
+                  <Scan className="w-4 h-4 animate-pulse" />
+                </div>
+
+                {/* Season Dropdown with clean width and truncation */}
+                <Select value={activeSeasonId || ''} onValueChange={setActiveSeasonId} disabled={isLoadingSeasons}>
+                  <SelectTrigger className="w-full sm:w-auto sm:min-w-[260px] max-w-full sm:max-w-[580px] lg:max-w-[700px] h-10 bg-transparent border-0 font-black uppercase italic tracking-tight text-xs text-white focus:ring-0 px-2.5 pr-8 whitespace-nowrap min-w-0">
+                    <SelectValue placeholder={t('select_a_season')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#070B14]/98 border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl">
+                    {seasons?.map(season => (
+                      <SelectItem key={season.id} value={season.id} className="font-black uppercase italic text-xs text-white/90 focus:bg-white/10 focus:text-white py-2.5 px-3 rounded-xl cursor-pointer">
+                        {season.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Status Indicator Chip inside capsule */}
+                {activeSeason && (
+                  <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/5 shrink-0 ml-auto">
+                    <div className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      activeSeason.status === 'In Progress' ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" :
+                      activeSeason.status === 'Completed' ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" : "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+                    )} />
+                    <span className="text-[9px] font-black uppercase tracking-wider font-mono text-white/70">
+                      {activeSeason.status === 'In Progress' ? 'ACTIVE' :
+                       activeSeason.status === 'Completed' ? 'DONE' : 'STANDBY'}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Season Management Micro-Dock (Integrated right beside capsule) */}
+              {isAdmin && (
+                <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 p-1 rounded-2xl shadow-inner shrink-0">
+                  <Button 
+                    onClick={() => withAdminCheck(handleOpenCreateDialog)} 
+                    size="icon" 
+                    className="h-10 w-10 rounded-xl transition-all shadow-md" 
+                    style={{ backgroundColor: `${theme.primaryHex}20`, color: theme.primaryHex, borderColor: `${theme.primaryHex}40` }}
+                    title="Tambah Musim Baru"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={() => withAdminCheck(handleOpenEditDialog)} 
+                    variant="outline" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/30 hover:bg-white/[0.08] transition-all text-white/80 disabled:opacity-30" 
+                    disabled={!activeSeason || activeSeason.status !== 'Not Started'} 
+                    title="Edit Musim"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={() => activeSeason && withAdminCheck(() => setDeletingSeason(activeSeason))} 
+                    variant="destructive" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all disabled:opacity-30" 
+                    disabled={!activeSeason} 
+                    title="Hapus Musim"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Zone B: Security & System Utility Pod */}
+            <div className="flex items-center justify-between sm:justify-end gap-2 w-full lg:w-auto">
+              
+              {/* Admin Key Switcher */}
+              <Button 
+                onClick={() => {
+                  if (isAdmin) {
+                    setIsAdmin(false);
+                    toast({ title: "ADMIN MODE LOCKED", description: "Otorisasi administratif telah dikunci kembali." });
+                  } else {
+                    setPasswordPrompt({ open: true, action: () => setIsAdmin(true) });
+                  }
+                }} 
+                className={cn(
+                  "h-11 px-5 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-lg font-headline italic border", 
+                  isAdmin 
+                    ? "text-black shadow-lg hover:brightness-110" 
+                    : "hover:brightness-125"
+                )}
+                style={isAdmin ? {
+                  backgroundColor: theme.primaryHex,
+                  color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
+                  borderColor: theme.primaryHex,
+                  boxShadow: `0 0 25px ${theme.glowRgba}`
+                } : {
+                  backgroundColor: `${theme.primaryHex}15`,
+                  color: theme.primaryHex,
+                  borderColor: `${theme.primaryHex}44`
+                }}
+              >
+                {isAdmin ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                <span>{isAdmin ? t('lock_admin') : t('unlock_admin')}</span>
+              </Button>
+
+              {/* Utility Sub-Dock (Share & Trophy) */}
+              <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 p-1 rounded-2xl shadow-inner shrink-0">
+                <Button 
+                  onClick={handleShareParticipants} 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-primary/15 hover:text-primary hover:border-primary/40 transition-all text-white/70 disabled:opacity-30" 
+                  disabled={!sortedTable || sortedTable.length === 0} 
+                  title={t('share_participants')}
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button 
+                  asChild 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-yellow-500/20 hover:text-yellow-400 hover:border-yellow-500/40 transition-all text-white/70" 
+                  title={t('view_champion')}
+                >
+                  <Link href={`/league/winner?seasonId=${activeSeasonId}`}>
+                    <Trophy className="h-4 w-4 text-yellow-400" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
           </div>
 
+          {/* ------------------------------------------------------------ */}
+          {/* TIER 2: TACTICAL MISSION RUNWAY (When Admin is Active)       */}
+          {/* ------------------------------------------------------------ */}
           {isAdmin && activeSeason && (
-            <div className="flex flex-wrap items-center gap-1 w-full sm:w-auto">
-                {activeSeason.status === 'Not Started' && (
+            <div className="mt-4 pt-3.5 border-t border-white/10 relative z-10">
+              
+              {/* Telemetry Runway Micro-Header */}
+              <div className="flex items-center justify-between mb-2.5 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40 font-mono">
+                    TACTICAL_MISSION_CONTROLS // STEP_SEQUENCER
+                  </span>
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-primary/70 font-mono text-[9px]">
+                  {activeSeason.type ? activeSeason.type.toUpperCase() : 'STANDARD'} LEAGUE FORMAT
+                </span>
+              </div>
+
+              {/* Tournament Action Pipeline */}
+              {activeSeason.status === 'Not Started' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  
+                  {/* Step 01: Daftarkan Pemain */}
+                  <Button 
+                    onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} 
+                    variant="outline" 
+                    className="h-13 py-2 px-3.5 rounded-2xl bg-[#09101C] border border-cyan-500/30 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all flex items-center justify-between group/action text-left shadow-sm hover:shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0 group-hover/action:scale-110 transition-transform shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+                        <UserPlus className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-[8px] font-black uppercase tracking-wider text-cyan-400/70 font-mono">STEP 01 // ROSTER</div>
+                        <div className="text-[11px] font-black uppercase tracking-tight text-white font-headline italic">{t('register_players')}</div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-black text-white/30 group-hover/action:text-cyan-400 transition-colors font-mono">
+                      [01]
+                    </div>
+                  </Button>
+
+                  {/* Step 02: Team Draft */}
+                  <Button 
+                    onClick={() => withAdminCheck(() => setShowTeamDraftDialog(true))} 
+                    disabled={(participantEntries?.length ?? 0) < 2} 
+                    variant="outline" 
+                    className="h-13 py-2 px-3.5 rounded-2xl bg-[#140E05] border border-amber-500/35 hover:border-amber-400 hover:bg-amber-500/15 transition-all flex items-center justify-between group/action text-left shadow-[0_0_20px_rgba(245,158,11,0.12)] hover:shadow-[0_0_25px_rgba(245,158,11,0.25)] disabled:opacity-40"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0 group-hover/action:scale-110 transition-transform shadow-[0_0_12px_rgba(245,158,11,0.3)]">
+                        <Dices className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-[8px] font-black uppercase tracking-wider text-amber-400/80 font-mono">STEP 02 // DRAFT</div>
+                        <div className="text-[11px] font-black uppercase tracking-tight text-amber-300 font-headline italic">TEAM DRAFT</div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-black text-amber-500/50 group-hover/action:text-amber-400 transition-colors font-mono">
+                      [02]
+                    </div>
+                  </Button>
+
+                  {/* Step 03: Buat Jadwal */}
+                  <Button 
+                    onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} 
+                    disabled={(participantEntries?.length ?? 0) < 2} 
+                    variant="outline" 
+                    className="h-13 py-2 px-3.5 rounded-2xl bg-[#0F0C1C] border border-indigo-500/30 hover:border-indigo-400 hover:bg-indigo-500/10 transition-all flex items-center justify-between group/action text-left shadow-sm hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] disabled:opacity-40"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0 group-hover/action:scale-110 transition-transform shadow-[0_0_10px_rgba(99,102,241,0.3)]">
+                        <RefreshCw className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-[8px] font-black uppercase tracking-wider text-indigo-400/70 font-mono">STEP 03 // MATCHES</div>
+                        <div className="text-[11px] font-black uppercase tracking-tight text-white font-headline italic truncate max-w-[130px]">
+                          {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-black text-white/30 group-hover/action:text-indigo-400 transition-colors font-mono">
+                      [03]
+                    </div>
+                  </Button>
+
+                  {/* Step 04: Mulai Musim (Apex Launch Button) */}
+                  <Button 
+                    onClick={() => withAdminCheck(() => setShowStartSeasonConfirm(true))} 
+                    className="h-13 py-2 px-4 rounded-2xl bg-primary text-black hover:bg-primary/90 shadow-[0_0_35px_rgba(204,253,1,0.45)] hover:shadow-[0_0_45px_rgba(204,253,1,0.65)] transition-all flex items-center justify-between group/action text-left border border-primary/50 disabled:opacity-40 disabled:hover:shadow-none" 
+                    disabled={!hasFixtures || (sortedTable || []).length < 2}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-black text-primary flex items-center justify-center shrink-0 group-hover/action:scale-110 transition-transform shadow-md">
+                        <Play className="h-4 w-4 fill-primary" />
+                      </div>
+                      <div>
+                        <div className="text-[8px] font-black uppercase tracking-wider text-black/70 font-mono">APEX STEP // LAUNCH</div>
+                        <div className="text-[11px] font-black uppercase tracking-tight text-black font-headline italic">{t('start_season')}</div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-black text-black/60 group-hover/action:translate-x-0.5 transition-transform font-mono">
+                      [GO ▶]
+                    </div>
+                  </Button>
+
+                </div>
+              )}
+
+              {/* Special Controls: Co-op & Hybrid (if applicable) */}
+              {activeSeason.status === 'Not Started' && (isSeasonCoop || activeSeason.type === 'Hybrid') && (
+                <div className="flex flex-wrap items-center gap-2 mt-2.5 pt-2.5 border-t border-white/5">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-white/40 font-mono mr-1">
+                    FORMAT_EXTENSIONS:
+                  </span>
+                  {isSeasonCoop && (
                     <>
-                        <Button onClick={() => withAdminCheck(() => setShowRegisterPlayers(true))} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><UserPlus className="mr-2 h-4 w-4" />{t('register_players')}</span></Button>
-                        <Button onClick={() => withAdminCheck(() => setShowTeamDraftDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"><span className="skew-x-[12deg] flex items-center"><Dices className="mr-2 h-4 w-4" />TEAM DRAFT</span></Button>
-                        {isSeasonCoop && (
-                            <>
-                                <Button onClick={() => withAdminCheck(() => setShowDrawDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Shuffle className="mr-2 h-4 w-4" />UNDI PASANGAN</span></Button>
-                                <Button onClick={() => withAdminCheck(() => setShowManualPairingDialog(true))} disabled={(individualPool?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all bg-accent/10 text-accent hover:bg-accent/20"><span className="skew-x-[12deg] flex items-center"><Users className="mr-2 h-4 w-4" />PASANG MANUAL</span></Button>
-                            </>
-                        )}
-                        {isHybrid && activeSeason.type !== 'Co-Op Hybrid' && <Button onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><Group className="mr-2 h-4 w-4" />UNDI GRUP</span></Button>}
-                        <Button onClick={() => withAdminCheck(() => setShowGenerateConfirm(true))} disabled={(participantEntries?.length ?? 0) < 2} variant="outline" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest border-white/10 -skew-x-[12deg] border-r-2 hover:border-primary/50 rounded-none transition-all"><span className="skew-x-[12deg] flex items-center"><RefreshCw className="mr-2 h-4 w-4" />{hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}</span></Button>
-                        <Button onClick={() => withAdminCheck(() => handleUpdateSeasonStatus('In Progress'))} variant="default" className="flex-1 sm:flex-none h-12 px-8 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-black/20 shadow-xl shadow-primary/20 transition-all" disabled={!hasFixtures || (sortedTable || []).length < 2}><span className="skew-x-[12deg] flex items-center"><Play className="mr-2 h-4 w-4" />{t('start_season')}</span></Button>
+                      <Button 
+                        onClick={() => withAdminCheck(() => setShowDrawDialog(true))} 
+                        disabled={(individualPool?.length ?? 0) < 2} 
+                        variant="outline" 
+                        className="h-9 px-3.5 font-black text-[10px] uppercase tracking-wider rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 transition-all flex items-center gap-1.5"
+                      >
+                        <Shuffle className="h-3.5 w-3.5 text-blue-400" />
+                        UNDI PASANGAN
+                      </Button>
+                      <Button 
+                        onClick={() => withAdminCheck(() => setShowManualPairingDialog(true))} 
+                        disabled={(individualPool?.length ?? 0) < 2} 
+                        variant="outline" 
+                        className="h-9 px-3.5 font-black text-[10px] uppercase tracking-wider rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 transition-all flex items-center gap-1.5"
+                      >
+                        <Users className="h-3.5 w-3.5 text-cyan-400" />
+                        PASANG MANUAL
+                      </Button>
                     </>
-                )}
-                {activeSeason.status === 'In Progress' && (
-                    <>
-                        {isHybrid && groupStageMatches.length > 0 && !hasPlayoffs && (
-                            <Button onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGeneratePlayoffs) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} variant={areGroupStageMatchesComplete ? "default" : "outline"} className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] border-r-2 border-white/10 transition-all"><span className="skew-x-[12deg] flex items-center"><Swords className="mr-2 h-4 w-4" />START PLAYOFF</span></Button>
-                        )}
-                        <Button onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} variant="destructive" className="flex-1 sm:flex-none h-12 px-6 font-black text-[10px] uppercase tracking-widest rounded-none -skew-x-[12deg] transition-all"><span className="skew-x-[12deg] flex items-center"><Flag className="mr-2 h-4 w-4" />{t('finish_season')}</span></Button>
-                    </>
-                )}
+                  )}
+                  {activeSeason.type === 'Hybrid' && (
+                    <Button 
+                      onClick={() => withAdminCheck(() => setShowGroupDrawDialog(true))} 
+                      disabled={(participantEntries?.length ?? 0) < 2} 
+                      variant="outline" 
+                      className="h-9 px-3.5 font-black text-[10px] uppercase tracking-wider rounded-xl bg-white/[0.03] border border-white/10 hover:border-primary/40 transition-all flex items-center gap-1.5 text-white/80"
+                    >
+                      <Group className="h-3.5 w-3.5 text-primary" />
+                      UNDI GRUP
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Tournament Action Pipeline: In Progress */}
+              {activeSeason.status === 'In Progress' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {isHybrid && groupStageMatches.length > 0 && !hasPlayoffs && (
+                    <Button 
+                      onClick={() => areGroupStageMatchesComplete ? withAdminCheck(handleGeneratePlayoffs) : withAdminCheck(() => setShowFinishGroupStageConfirm(true))} 
+                      className="h-13 px-5 font-black text-[11px] uppercase tracking-wider rounded-2xl bg-gradient-to-r from-amber-400 via-primary to-amber-300 text-black shadow-[0_0_35px_rgba(245,158,11,0.4)] hover:brightness-110 transition-all flex items-center justify-between group/playoff font-headline italic"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-black text-amber-400 flex items-center justify-center shrink-0">
+                          <Swords className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="text-[8px] font-black uppercase tracking-wider text-black/70 font-mono">KNOCKOUT PHASE</div>
+                          <div className="text-xs font-black uppercase tracking-tight">START PLAYOFF ROUND</div>
+                        </div>
+                      </div>
+                      <div className="text-[10px] font-black text-black/70 font-mono">[PLAYOFF ▶]</div>
+                    </Button>
+                  )}
+                  <Button 
+                    onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))} 
+                    variant="destructive" 
+                    className="h-13 px-5 font-black text-[11px] uppercase tracking-wider rounded-2xl bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all flex items-center justify-between group/finish font-headline italic shadow-sm hover:shadow-[0_0_25px_rgba(239,68,68,0.3)]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-red-500/20 text-red-400 group-hover/finish:bg-white group-hover/finish:text-red-500 flex items-center justify-center shrink-0 transition-colors">
+                        <Flag className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-[8px] font-black uppercase tracking-wider text-red-400/80 group-hover/finish:text-white/80 font-mono">SEASON FINALE</div>
+                        <div className="text-xs font-black uppercase tracking-tight">{t('finish_season')}</div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-black text-red-400/70 group-hover/finish:text-white font-mono">[FINISH 🏁]</div>
+                  </Button>
+                </div>
+              )}
+
             </div>
           )}
 
-          <div className={cn("flex items-center gap-1", isAdmin ? "ml-auto" : "w-full justify-center sm:w-auto")}>
-            <Button 
-                onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPrompt({ open: true, action: () => setIsAdmin(true) })} 
-                className={cn(
-                    "h-12 px-8 font-black text-[10px] uppercase tracking-widest italic rounded-none -skew-x-[12deg] border-r-4 transition-all duration-500 relative overflow-hidden group/admin", 
-                    isAdmin ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.4)]" : "bg-primary text-black border-primary/20 hover:bg-primary shadow-[0_0_20px_rgba(204,253,1,0.2)]"
-                )}
-            >
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className={cn("w-full h-[2px] bg-current absolute top-0 left-0 transition-opacity duration-500", isAdmin ? "animate-scanning opacity-20" : "opacity-0")} />
-                </div>
-                <div className="skew-x-[12deg] flex items-center relative z-10 text-black">
-                    {isAdmin ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
-                    {isAdmin ? t('lock_admin') : t('unlock_admin')}
-                </div>
-            </Button>
-            <Button onClick={handleShareParticipants} variant="ghost" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] bg-white/5 border-r-2 border-white/10 hover:bg-primary/10 hover:text-primary transition-all" disabled={!sortedTable || sortedTable.length === 0} title={t('share_participants')}><Share2 className="h-5 w-5 skew-x-[12deg]" /></Button>
-            <Button asChild variant="ghost" size="icon" className="h-12 w-12 rounded-none -skew-x-[12deg] bg-white/5 border-r-2 border-white/10 hover:bg-yellow-500/10 hover:text-yellow-400 transition-all" title={t('view_champion')}><Link href={`/league/winner?seasonId=${activeSeasonId}`}><Trophy className="h-5 w-5 skew-x-[12deg]" /></Link></Button>
-          </div>
         </div>
       </div>
 
-      <div className={cn("mx-auto px-2 sm:px-4 pb-8 transition-all duration-1000 ease-in-out mt-6", (isHybrid && activeLeagueTab === 'playoff') ? "max-w-[98vw] sm:max-w-[95vw]" : "max-w-[92rem]")}>
+      <div className={cn(
+        "mx-auto px-2 sm:px-4 pb-8 transition-all duration-700 ease-in-out mt-6", 
+        activeLeagueTab === 'playoff' 
+          ? "w-full max-w-[100vw] xl:max-w-[98vw] 2xl:max-w-[96vw] px-1 sm:px-3 xl:px-6" 
+          : (!sortedTable || sortedTable.length === 0)
+            ? "max-w-xl"
+            : sortedTable.length <= 4
+              ? "max-w-3xl"
+              : sortedTable.length <= 8
+                ? "max-w-4xl"
+                : sortedTable.length <= 12
+                  ? "max-w-5xl"
+                  : "max-w-6xl"
+      )}>
         <div className="space-y-8 sm:space-y-12">
             <div className="w-full">
                 <LeagueTable 
@@ -838,136 +1304,232 @@ export default function LeaguePage() {
                     <div className="lg:col-span-8"><LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} /></div>
                     <div className="lg:col-span-4">
                         {activeSeason?.registrationFee && (participantEntries || []).length > 0 && (
-                            <Card className="group relative overflow-hidden transition-all duration-700 border-0 bg-transparent rounded-[2.5rem] p-[2px] hover:scale-[1.01] hover:shadow-[0_0_60px_rgba(250,204,21,0.2)]">
-                                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-transparent pointer-events-none" />
-                                <div className="relative h-full bg-card/90 backdrop-blur-3xl rounded-[calc(2.5rem-2px)] overflow-hidden flex flex-col">
-                                    <div className="relative py-2.5 px-8 flex items-center justify-between overflow-hidden shrink-0 bg-yellow-400 text-black">
-                                        <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                                        <div className="flex items-center gap-3 relative z-10">
-                                            <div className="bg-black/20 p-1.5 rounded-lg border border-black/10 shadow-lg">
-                                                <Wallet className="h-4 w-4" />
-                                            </div>
-                                            <h3 className="text-sm sm:text-base font-black tracking-[0.1em] uppercase italic leading-none pr-2">Financial Hub</h3>
+                            <Card className="group relative overflow-hidden transition-all duration-700 border-2 border-yellow-500/30 bg-gradient-to-b from-[#0D111A]/98 via-[#070A12]/98 to-[#030508]/98 backdrop-blur-3xl rounded-[2.5rem] p-0 hover:border-yellow-400/60 shadow-[0_20px_60px_rgba(0,0,0,0.8)] hover:shadow-[0_0_80px_rgba(250,204,21,0.2)]">
+                                
+                                {/* Top Edge Metallic Gold Tracer */}
+                                <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-80 shadow-[0_0_20px_rgba(250,204,21,0.9)] pointer-events-none" />
+
+                                {/* Solid Cyber Header */}
+                                <div className="py-3 px-6 sm:px-7 flex items-center justify-between overflow-hidden shrink-0 bg-gradient-to-r from-yellow-400 via-yellow-300 to-amber-400 text-black shadow-md">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="bg-black/20 p-1.5 rounded-xl border border-black/15 shadow-inner">
+                                            <Wallet className="h-4 w-4" />
                                         </div>
-                                        <div className="flex items-center gap-2 relative z-10 opacity-60">
-                                            <Scan className="w-3.5 h-3.5" />
-                                            <span className="text-[8px] font-black uppercase tracking-widest hidden xs:block">Cash Flow Intel</span>
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-black tracking-tight uppercase italic leading-none font-headline">Financial Hub</h3>
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-black/70 font-mono">TREASURY_ESCROW // PROTOCOL</span>
                                         </div>
                                     </div>
-                                    <div className="flex-1 p-6 sm:p-8 space-y-6 relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                                        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-yellow-400/20 opacity-40 pointer-events-none rounded-tl-2xl" />
-                                        <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-yellow-400/20 opacity-20 pointer-events-none rounded-br-xl" />
-                                        <span className="absolute bottom-4 left-8 text-8xl font-black text-yellow-400/[0.03] uppercase tracking-tighter italic pointer-events-none leading-none select-none pr-10">FUNDS</span>
-                                        <div className="bg-black/60 border-2 border-yellow-400/20 p-6 rounded-3xl text-center space-y-2 relative overflow-hidden group/pool shadow-inner">
-                                            <div className="absolute inset-0 bg-yellow-400/[0.02] pointer-events-none" />
-                                            <div className="flex items-center justify-center gap-2 mb-1">
-                                                <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400 animate-pulse" />
-                                                <p className="text-[9px] font-black text-white/40 tracking-[0.2em] uppercase italic">Prize Matrix Accumulated</p>
-                                            </div>
-                                            <p className="text-3xl sm:text-4xl font-black text-yellow-400 italic drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] tabular-nums leading-none mb-4" suppressHydrationWarning>
-                                                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
-                                            </p>
-                                            <div className="flex flex-wrap items-center justify-center gap-2 pt-2 border-t border-white/5">
-                                                <Badge variant="outline" className="text-[8px] font-black border-yellow-400/30 text-yellow-400 bg-yellow-400/5 uppercase py-1 px-3">Reg: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}</Badge>
-                                                {sponsorshipPool > 0 && (
-                                                    <Badge variant="outline" className="text-[8px] font-black border-amber-500/30 text-amber-500 bg-amber-500/5 uppercase py-1 px-3">Spon: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}</Badge>
-                                                )}
-                                            </div>
-                                            <div className="mt-6 space-y-2.5">
-                                                <div className="flex justify-between items-end px-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <Activity className="w-3 h-3 text-yellow-400 animate-pulse" />
-                                                        <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Payment Quota</p>
-                                                    </div>
-                                                    <span className="text-[10px] font-black text-yellow-400 italic" suppressHydrationWarning>
-                                                        {participantEntries?.filter(p => p.hasPaid).length} / {participantEntries?.length} UNITS
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-black/15 border border-black/10 text-[8px] font-black font-mono uppercase">
+                                        <Scan className="w-3 h-3 animate-pulse" />
+                                        <span>LIVE INTEL</span>
+                                    </div>
+                                </div>
+
+                                <div className="p-5 sm:p-7 space-y-5 relative overflow-hidden">
+                                    {/* Giant Accumulated Prize Matrix */}
+                                    <div className="bg-black/60 border border-yellow-400/25 p-5 rounded-3xl text-center space-y-3 relative overflow-hidden shadow-inner group/pool">
+                                        <div className="absolute -inset-1 bg-yellow-400/5 rounded-3xl blur-xl opacity-50 pointer-events-none" />
+                                        
+                                        <div className="flex items-center justify-center gap-1.5 text-yellow-400/80">
+                                            <Zap className="w-3.5 h-3.5 fill-yellow-400 animate-pulse" />
+                                            <p className="text-[9px] font-black tracking-[0.25em] uppercase font-mono">PRIZE_MATRIX_ACCUMULATED</p>
+                                        </div>
+
+                                        <p className="text-3xl sm:text-4xl font-black text-yellow-400 italic font-headline drop-shadow-[0_0_25px_rgba(250,204,21,0.6)] tabular-nums leading-none" suppressHydrationWarning>
+                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(prizePool)}
+                                        </p>
+
+                                        {/* Breakdown Chips */}
+                                        <div className="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-white/5 font-mono">
+                                            <span className="text-[9px] font-black px-2.5 py-1 rounded-xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-300">
+                                                REG: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(registrationPool)}
+                                            </span>
+                                            {sponsorshipPool > 0 && (
+                                                <span className="text-[9px] font-black px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                                                    SPON: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(sponsorshipPool)}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Payment Quota Battery Progress */}
+                                        <div className="pt-2 space-y-2">
+                                          <div className="flex justify-between items-center text-[9px] font-black uppercase font-mono px-1">
+                                            <span className="text-white/50 flex items-center gap-1">
+                                              <Activity className="w-3 h-3 text-yellow-400" />
+                                              PAYMENT QUOTA:
+                                            </span>
+                                            <span className="text-yellow-400 font-bold" suppressHydrationWarning>
+                                              {participantEntries?.filter(p => p.hasPaid).length} / {participantEntries?.length} UNITS [{Math.round(((participantEntries?.filter(p => p.hasPaid).length || 0) / (participantEntries?.length || 1)) * 100)}%]
+                                            </span>
+                                          </div>
+                                          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                                            <div 
+                                              className="h-full bg-gradient-to-r from-yellow-500 to-yellow-300 rounded-full shadow-[0_0_12px_rgba(250,204,21,0.8)] transition-all duration-500" 
+                                              style={{ width: `${((participantEntries?.filter(p => p.hasPaid).length || 0) / (participantEntries?.length || 1)) * 100}%` }}
+                                            />
+                                          </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Verification Log Filter & Search */}
+                                    <div className="space-y-3">
+                                      <div className="flex items-center justify-between px-1">
+                                        <div className="flex items-center gap-2">
+                                          <Receipt className="w-4 h-4 text-yellow-400" />
+                                          <h4 className="text-[10px] font-black uppercase italic tracking-widest text-white font-headline">Unit Verification Log</h4>
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-xl border border-white/10">
+                                          <button
+                                            type="button"
+                                            onClick={() => setFinancialFilter('all')}
+                                            className={cn(
+                                              "px-2 py-0.5 text-[8px] font-black uppercase font-mono rounded-lg transition-all",
+                                              financialFilter === 'all' ? "bg-yellow-400 text-black" : "text-white/40 hover:text-white"
+                                            )}
+                                          >
+                                            ALL ({participantEntries?.length || 0})
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => setFinancialFilter('paid')}
+                                            className={cn(
+                                              "px-2 py-0.5 text-[8px] font-black uppercase font-mono rounded-lg transition-all",
+                                              financialFilter === 'paid' ? "bg-yellow-400 text-black" : "text-white/40 hover:text-white"
+                                            )}
+                                          >
+                                            LUNAS ({participantEntries?.filter(p => p.hasPaid).length || 0})
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => setFinancialFilter('unpaid')}
+                                            className={cn(
+                                              "px-2 py-0.5 text-[8px] font-black uppercase font-mono rounded-lg transition-all",
+                                              financialFilter === 'unpaid' ? "bg-yellow-400 text-black" : "text-white/40 hover:text-white"
+                                            )}
+                                          >
+                                            BELUM ({participantEntries?.filter(p => !p.hasPaid).length || 0})
+                                          </button>
+                                        </div>
+                                      </div>
+
+                                      {/* Search Bar for Participants */}
+                                      <div className="relative">
+                                        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                                        <Input 
+                                          placeholder="Filter unit atlet..."
+                                          value={financialSearch}
+                                          onChange={(e) => setFinancialSearch(e.target.value)}
+                                          className="h-8 pl-8 pr-8 bg-black/40 border-white/10 hover:border-yellow-400/40 focus:border-yellow-400 rounded-xl text-[10px] text-white uppercase placeholder:normal-case placeholder:text-white/30"
+                                        />
+                                        {financialSearch && (
+                                          <button type="button" onClick={() => setFinancialSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                                            <X className="w-3 h-3" />
+                                          </button>
+                                        )}
+                                      </div>
+
+                                      {/* High-Density Banking Smartcard List */}
+                                      <ScrollArea className="h-[380px] sm:h-[460px] pr-2">
+                                        <div className="space-y-2">
+                                          {(participantEntries || [])
+                                            .filter(player => {
+                                              if (financialFilter === 'paid' && !player.hasPaid) return false;
+                                              if (financialFilter === 'unpaid' && player.hasPaid) return false;
+                                              if (financialSearch.trim()) {
+                                                const q = financialSearch.toLowerCase().trim();
+                                                const type = activeSeason?.type || 'Single';
+                                                const isPlayerCoop = type === 'Co-Op' || type === 'Co-Op Hybrid';
+                                                const name = isPlayerCoop ? player.teamName : player.playerName;
+                                                const teamName = isPlayerCoop ? player.player1TeamName : player.teamName;
+                                                return (name && name.toLowerCase().includes(q)) || (teamName && teamName.toLowerCase().includes(q));
+                                              }
+                                              return true;
+                                            })
+                                            .map((player, idx) => {
+                                              const type = activeSeason?.type || 'Single';
+                                              const isPlayerCoop = type === 'Co-Op' || type === 'Co-Op Hybrid';
+                                              const teamId = isPlayerCoop ? player.player1TeamId : player.teamId;
+                                              const name = isPlayerCoop ? player.teamName : player.playerName;
+                                              const teamName = isPlayerCoop ? player.player1TeamName : player.teamName;
+                                              const team = teamsById[teamId];
+                                              const teamLogo = resolveLogo(team?.logoUrl, teamId, name);
+
+                                              return (
+                                                <div 
+                                                  key={player.id} 
+                                                  className={cn(
+                                                    "flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border transition-all duration-300 group/item relative overflow-hidden",
+                                                    player.hasPaid 
+                                                      ? "bg-yellow-400/[0.08] border-yellow-400/35 shadow-[0_0_15px_rgba(250,204,21,0.08)]" 
+                                                      : "bg-black/40 border-white/5 hover:border-white/20"
+                                                  )}
+                                                >
+                                                  <div className={cn(
+                                                    "absolute left-0 top-0 bottom-0 w-1 transition-all",
+                                                    player.hasPaid ? "bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]" : "bg-transparent"
+                                                  )} />
+
+                                                  <div className="flex items-center gap-2.5 overflow-hidden pl-1.5 min-w-0">
+                                                    <span className="text-[9px] font-mono font-bold text-white/30 w-4 shrink-0">
+                                                      #{idx + 1}
                                                     </span>
+
+                                                    <Avatar className={cn(
+                                                      "h-9 w-9 rounded-xl border transition-all shrink-0",
+                                                      player.hasPaid ? "border-yellow-400/50 shadow-[0_0_10px_rgba(250,204,21,0.3)]" : "border-white/10"
+                                                    )}>
+                                                      <AvatarImage key={teamLogo} src={teamLogo} alt={name} className="object-cover" referrerPolicy="no-referrer" />
+                                                      <AvatarFallback className="bg-black/40 font-black text-xs text-white/40">
+                                                        {name ? name.substring(0, 2).toUpperCase() : 'U'}
+                                                      </AvatarFallback>
+                                                    </Avatar>
+
+                                                    <div className="min-w-0 text-left">
+                                                      <div className={cn(
+                                                        "text-xs font-black uppercase italic truncate font-headline transition-colors",
+                                                        player.hasPaid ? "text-yellow-300" : "text-white"
+                                                      )} suppressHydrationWarning>
+                                                        {name}
+                                                      </div>
+                                                      <div className="text-[8px] font-mono text-white/40 truncate" suppressHydrationWarning>
+                                                        {teamName || 'Independent'}
+                                                      </div>
+                                                    </div>
+                                                  </div>
+
+                                                  <div className="flex items-center gap-2 shrink-0">
+                                                    <Badge 
+                                                      variant="outline" 
+                                                      className={cn(
+                                                        "text-[8px] font-black uppercase tracking-wider font-mono px-2 py-0.5 rounded-lg border transition-all",
+                                                        player.hasPaid 
+                                                          ? "border-yellow-400/40 bg-yellow-400/15 text-yellow-300" 
+                                                          : "border-white/10 bg-black/40 text-white/30"
+                                                      )}
+                                                      suppressHydrationWarning
+                                                    >
+                                                      {player.hasPaid ? "VERIFIED" : "PENDING"}
+                                                    </Badge>
+
+                                                    <Checkbox 
+                                                      id={`paid-${player.id}`} 
+                                                      checked={!!player.hasPaid} 
+                                                      onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
+                                                      disabled={!isAdmin} 
+                                                      className={cn(
+                                                        "h-5 w-5 rounded-md border transition-all",
+                                                        player.hasPaid 
+                                                          ? "border-yellow-400 bg-yellow-400 text-black shadow-[0_0_10px_rgba(250,204,21,0.5)]" 
+                                                          : "border-white/20 bg-black/40 hover:border-yellow-400/40"
+                                                      )} 
+                                                    />
+                                                  </div>
                                                 </div>
-                                                <Progress value={((participantEntries?.filter(p => p.hasPaid).length || 0) / (participantEntries?.length || 1)) * 100} className="h-1.5 bg-white/5" color="bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]" />
-                                            </div>
+                                              );
+                                            })}
                                         </div>
-                                        <div className="space-y-4 pt-2">
-                                            <div className="flex items-center justify-between px-1">
-                                                <h4 className="text-[10px] font-black tracking-[0.3em] text-yellow-400/60 flex items-center gap-2 uppercase italic">
-                                                    <Receipt className="w-3.5 h-3.5" /> Unit Verification Log
-                                                </h4>
-                                                <div className="h-px flex-1 bg-gradient-to-r from-yellow-400/20 to-transparent ml-4" />
-                                            </div>
-                                            <ScrollArea className="h-[500px] sm:h-[650px] pr-4">
-                                                <div className="space-y-2.5 pb-10">
-                                                    {(participantEntries || []).map(player => {
-                                                        const type = activeSeason?.type || 'Single';
-                                                        const isPlayerCoop = type === 'Co-Op' || type === 'Co-Op Hybrid';
-                                                        const teamId = isPlayerCoop ? player.player1TeamId : player.teamId;
-                                                        const name = isPlayerCoop ? player.teamName : player.playerName;
-                                                        const teamName = isPlayerCoop ? player.player1TeamName : player.teamName;
-                                                        const team = teamsById[teamId];
-                                                        const teamLogo = resolveLogo(team?.logoUrl, teamId, name);
-                                                        return (
-                                                            <div key={player.id} className={cn(
-                                                                "flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all duration-500 group/item relative overflow-hidden",
-                                                                player.hasPaid 
-                                                                    ? "bg-yellow-400/10 border-yellow-400/30 shadow-[inset_0_0_20px_rgba(250,204,21,0.05)]" 
-                                                                    : "bg-black/20 border-white/5 hover:border-white/20"
-                                                            )}>
-                                                                <div className={cn(
-                                                                    "absolute left-0 top-0 bottom-0 w-1 transition-all duration-500",
-                                                                    player.hasPaid ? "bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]" : "bg-white/5"
-                                                                )} />
-                                                                <div className='flex items-center gap-4 overflow-hidden pl-2 relative z-10'>
-                                                                    <div className="relative shrink-0">
-                                                                        <div className={cn(
-                                                                            "absolute -inset-1 rounded-full blur-md opacity-0 transition-opacity",
-                                                                            player.hasPaid && "bg-yellow-400/20 opacity-100"
-                                                                        )} />
-                                                                        <Avatar className={cn(
-                                                                            "h-11 w-11 border-2 transition-all duration-500",
-                                                                            player.hasPaid ? "border-yellow-400 scale-105" : "border-white/10"
-                                                                        )}>
-                                                                            <AvatarImage key={teamLogo} src={teamLogo} alt={name} className="object-cover" referrerPolicy="no-referrer" />
-                                                                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-5 h-5 text-white/20" /></AvatarFallback>
-                                                                        </Avatar>
-                                                                    </div>
-                                                                    <div className="flex flex-col overflow-hidden text-left">
-                                                                        <Label htmlFor={`paid-${player.id}`} className={cn(
-                                                                            "text-sm sm:text-base font-black uppercase italic truncate cursor-pointer transition-colors pr-2",
-                                                                            player.hasPaid ? "text-yellow-400" : "text-white/80 group-hover/item:text-white"
-                                                                        )} suppressHydrationWarning>{name}</Label>
-                                                                        <span className={cn(
-                                                                            "text-[9px] font-black uppercase tracking-[0.2em] truncate pr-4 transition-colors",
-                                                                            player.hasPaid ? "text-yellow-400/40" : "text-white/20"
-                                                                        )} suppressHydrationWarning>{teamName || 'Athlete Protocol'}</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-center gap-4 relative z-10 shrink-0">
-                                                                    <div className={cn(
-                                                                        "px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter border shadow-sm transition-all",
-                                                                        player.hasPaid 
-                                                                            ? "border-yellow-400/40 bg-yellow-400/20 text-yellow-400" 
-                                                                            : "border-white/10 bg-black/40 text-white/20"
-                                                                    )} suppressHydrationWarning>
-                                                                        {player.hasPaid ? "VERIFIED" : "PENDING"}
-                                                                    </div>
-                                                                    <Checkbox 
-                                                                        id={`paid-${player.id}`} 
-                                                                        checked={!!player.hasPaid} 
-                                                                        onCheckedChange={() => handlePaymentToggle(player.id, !!player.hasPaid)} 
-                                                                        disabled={!isAdmin} 
-                                                                        className={cn(
-                                                                            "h-6 w-6 rounded-lg border-2 transition-all duration-300",
-                                                                            player.hasPaid 
-                                                                                ? "border-yellow-400 bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.4)]" 
-                                                                                : "border-white/20 bg-black/40 hover:border-yellow-400/40"
-                                                                        )} 
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </ScrollArea>
-                                        </div>
+                                      </ScrollArea>
                                     </div>
                                 </div>
                             </Card>
@@ -978,12 +1540,66 @@ export default function LeaguePage() {
         </div>
       </div>
 
+      {/* ============================================================ */}
+      {/* 4. POPOUT: BUKA KUNCI ADMIN (BIOMETRIC / CYBER KEY MATRIX)    */}
+      {/* ============================================================ */}
       <Dialog open={passwordPrompt.open} onOpenChange={(isOpen) => !isOpen && setPasswordPrompt({ open: false })}>
-        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-4 bg-[#0A192F]/95 backdrop-blur-2xl rounded-none shadow-[0_0_50px_rgba(204,253,1,0.2)]"><DialogHeader><div className="flex items-center gap-4 text-primary mb-2"><KeyRound className="w-8 h-8" /><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('admin_auth')}</DialogTitle></div><DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[8px] sm:text-[10px]">{t('admin_auth_desc')}</DialogDescription></DialogHeader><div className="grid gap-4 py-4 grief-6"><div className="space-y-2"><Label htmlFor="password-input" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-primary/60">{t('password')}</Label><Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-12 sm:h-14 bg-white/5 border-white/10 rounded-none focus:border-primary/50 text-lg font-black" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} /></div></div><DialogFooter><Button onClick={handlePasswordCheck} className="w-full h-12 sm:h-14 font-black tracking-widest text-sm sm:text-lg uppercase italic rounded-none shadow-xl shadow-primary/20 text-black">{t('unlock')}</Button></DialogFooter></DialogContent>
+        <DialogContent className="max-w-[94vw] sm:max-w-md p-0 overflow-hidden border-2 border-primary/40 bg-[#070B14]/98 backdrop-blur-3xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.3)]">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_rgba(204,253,1,0.9)] pointer-events-none" />
+          
+          <div className="p-6 sm:p-7 space-y-6">
+            <DialogHeader className="space-y-2 text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/15 border border-primary/40 text-primary flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.3)] shrink-0">
+                  <KeyRound className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
+                    {t('admin_auth')}
+                  </DialogTitle>
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/80 font-mono">
+                    SECURITY_PROTOCOL // LEVEL_4_ACCESS
+                  </p>
+                </div>
+              </div>
+              <DialogDescription className="text-xs text-white/50 font-mono leading-relaxed pt-1">
+                {t('admin_auth_desc')}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-2">
+              <Label htmlFor="password-input" className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40 font-mono">
+                ENCRYPTED_SECURITY_KEY
+              </Label>
+              <div className="relative group/input">
+                <Input 
+                  id="password-input" 
+                  type="password" 
+                  value={passwordInput} 
+                  onChange={(e) => setPasswordInput(e.target.value)} 
+                  placeholder="••••••••"
+                  className="h-13 bg-black/60 border border-white/10 group-hover/input:border-primary/40 focus:border-primary rounded-2xl text-xl font-mono font-black text-primary px-4 tracking-[0.3em] transition-all shadow-inner" 
+                  onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} 
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex-col gap-2 sm:flex-col pt-1">
+              <Button 
+                onClick={handlePasswordCheck} 
+                className="w-full h-12 font-headline font-black tracking-wider text-xs uppercase italic rounded-2xl shadow-[0_0_30px_rgba(204,253,1,0.45)] text-black bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Unlock className="w-4 h-4" />
+                <span>AUTHORIZE PROTOCOL // BUKA ADMIN</span>
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
       </Dialog>
 
       <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}>
-        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col"><DialogHeader className="shrink-0"><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle></DialogHeader><ScrollArea className="flex-1 py-4 pr-2"><div className="space-y-4 sm:space-y-6"><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="grid grid-cols-2 gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid (Indiv)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op Hybrid" id="co-op-hybrid"/><Label htmlFor="co-op-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid (Co-Op)</Label></div></RadioGroup></div>{(newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid') && (<div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label></div></RadioGroup></div>)}<div className="space-y-2 sm:space-y-3"><Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-sm sm:text-sm"/></div><div className="grid grid-cols-2 gap-3 sm:gap-4"><div className="space-y-2 sm:space-y-3"><Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div><div className="space-y-2 sm:space-y-3"><Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div></div><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></ScrollArea></DialogContent>
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col"><DialogHeader className="shrink-0"><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle></DialogHeader><ScrollArea className="flex-1 py-4 pr-2"><div className="space-y-4 sm:space-y-6"><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single (1v1)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single Hybrid" id="single-hybrid"/><Label htmlFor="single-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer text-primary">Single Hybrid (8 Besar)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op (2v2)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid Indiv (Grup)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op Hybrid" id="co-op-hybrid"/><Label htmlFor="co-op-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid Co-Op</Label></div></RadioGroup></div>{(newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid') && (<div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label></div></RadioGroup></div>)}<div className="space-y-2 sm:space-y-3"><Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-sm sm:text-sm"/></div><div className="grid grid-cols-2 gap-3 sm:gap-4"><div className="space-y-2 sm:space-y-3"><Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div><div className="space-y-2 sm:space-y-3"><Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div></div><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></ScrollArea></DialogContent>
       </Dialog>
 
       <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeason} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
@@ -994,9 +1610,169 @@ export default function LeaguePage() {
 
       <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Selesaikan Fase Grup?</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Masih ada pertandingan yang belum dimainkan. Jika dilanjutkan, sisa pertandingan akan diabaikan dan format Playoff akan dibuat.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleGeneratePlayoffs} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
 
-      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">Konfirmasi Penjadwalan</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">Tindakan ini akan {hasFixtures ? 'menghapus semua jadwal yang ada dan membuat yang baru secara acak' : 'membuat jadwal pertandingan baru secara acak'}.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Batal</AlertDialogCancel><AlertDialogAction onClick={handleGenerateFixtures} className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">Ya, Lanjutkan</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      {/* ============================================================ */}
+      {/* 2. POPOUT: BUAT JADWAL (FIXTURE MATRIX GENERATOR HUD)         */}
+      {/* ============================================================ */}
+      <AlertDialog open={showGenerateConfirm} onOpenChange={setShowGenerateConfirm}>
+        <AlertDialogContent className="max-w-[94vw] sm:max-w-md p-0 overflow-hidden border-2 border-indigo-500/40 bg-[#070B14]/98 backdrop-blur-3xl rounded-3xl shadow-[0_0_90px_rgba(99,102,241,0.3)]">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_20px_rgba(99,102,241,0.9)] pointer-events-none" />
+          
+          <div className="p-6 sm:p-7 space-y-5">
+            <AlertDialogHeader className="space-y-2 text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/40 text-indigo-400 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)] shrink-0">
+                  <RefreshCw className="w-5 h-5 animate-spin" style={{ animationDuration: '8s' }} />
+                </div>
+                <div>
+                  <AlertDialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
+                    Fixture Generator <span className="text-indigo-400">Matrix</span>
+                  </AlertDialogTitle>
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-indigo-400/80 font-mono">
+                    RADAR_CALIBRATION // MISSION_DISPATCH
+                  </p>
+                </div>
+              </div>
+              <AlertDialogDescription className="text-xs text-white/50 font-mono leading-relaxed pt-1">
+                Tindakan ini akan menggenerasikan seluruh jadwal pertandingan liga secara otomatis dan acak.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
 
-      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}><DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl"><DialogHeader><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{t('register_players')}</DialogTitle><DialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('register_players_desc', { seasonName: activeSeason?.name })}</DialogDescription></DialogHeader><RegisterPlayersForm allPlayers={allPlayers || []} registeredPlayers={individualPool || []} onRegister={handleRegisterPlayers} isLoading={isLoadingPlayers} /></DialogContent></Dialog>
+            {/* Telemetry Status Pod */}
+            <div className="p-3.5 bg-black/60 border border-white/10 rounded-2xl space-y-2 font-mono text-[10px]">
+              <div className="flex justify-between items-center text-white/50">
+                <span>TARGET_EDITION:</span>
+                <span className="text-white font-bold">{activeSeason?.name}</span>
+              </div>
+              <div className="flex justify-between items-center text-white/50">
+                <span>COMPETITION_FORMAT:</span>
+                <span className="text-indigo-400 font-bold uppercase">{activeSeason?.type || 'Single'}</span>
+              </div>
+              <div className="flex justify-between items-center text-white/50">
+                <span>ROSTER_REGISTERED:</span>
+                <span className="text-primary font-bold">{participantEntries?.length || 0} Atlet</span>
+              </div>
+              {hasFixtures && (
+                <div className="pt-2 border-t border-red-500/20 text-red-400 flex items-center gap-1.5 text-[9px] font-bold">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span>PERINGATAN: Jadwal lama akan di-reset dan ditimpa!</span>
+                </div>
+              )}
+            </div>
+
+            <AlertDialogFooter className="flex-row gap-2 pt-1">
+              <AlertDialogCancel className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs italic rounded-2xl bg-white/[0.03] border-white/10 text-white/70 hover:bg-white/[0.08] hover:text-white transition-all">
+                BATALKAN // STANDBY
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleGenerateFixtures} 
+                className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs italic rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white shadow-[0_0_25px_rgba(99,102,241,0.5)] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>GENERATE FIXTURES</span>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ============================================================ */}
+      {/* 3. POPOUT: MULAI MUSIM (APEX LAUNCH CONFIRMATION)             */}
+      {/* ============================================================ */}
+      <AlertDialog open={showStartSeasonConfirm} onOpenChange={setShowStartSeasonConfirm}>
+        <AlertDialogContent className="max-w-[94vw] sm:max-w-md p-0 overflow-hidden border-2 border-primary/50 bg-[#070B14]/98 backdrop-blur-3xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.4)]">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_rgba(204,253,1,0.9)] pointer-events-none" />
+          
+          <div className="p-6 sm:p-7 space-y-5">
+            <AlertDialogHeader className="space-y-2 text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/15 border border-primary/40 text-primary flex items-center justify-center shadow-[0_0_25px_rgba(204,253,1,0.4)] shrink-0">
+                  <Play className="w-5 h-5 fill-primary" />
+                </div>
+                <div>
+                  <AlertDialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
+                    Apex Launch <span className="text-primary">Countdown</span>
+                  </AlertDialogTitle>
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/80 font-mono">
+                    LIGHTS_OUT_AND_AWAY_WE_GO // ACTIVATION
+                  </p>
+                </div>
+              </div>
+              <AlertDialogDescription className="text-xs text-white/50 font-mono leading-relaxed pt-1">
+                Apakah Anda siap mengaktifkan musim <strong>{activeSeason?.name}</strong>? Status kompetisi akan beralih ke <strong>IN PROGRESS</strong>.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {/* Launch Checklist */}
+            <div className="p-3.5 bg-black/60 border border-white/10 rounded-2xl space-y-2 font-mono text-[10px]">
+              <div className="flex items-center justify-between text-white/60">
+                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-primary" /> ROSTER_VERIFIED:</span>
+                <span className="text-primary font-bold">{participantEntries?.length || 0} Atlet Terdaftar</span>
+              </div>
+              <div className="flex items-center justify-between text-white/60">
+                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-primary" /> FIXTURES_LOCKED:</span>
+                <span className="text-primary font-bold">{matches?.length || 0} Pertandingan</span>
+              </div>
+              <div className="flex items-center justify-between text-white/60">
+                <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-primary" /> LEAGUE_TABLE:</span>
+                <span className="text-primary font-bold">Inisialisasi Standings 0 PTS</span>
+              </div>
+            </div>
+
+            <AlertDialogFooter className="flex-row gap-2 pt-1">
+              <AlertDialogCancel className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs italic rounded-2xl bg-white/[0.03] border-white/10 text-white/70 hover:bg-white/[0.08] hover:text-white transition-all">
+                STANDBY // BATAL
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => {
+                  handleUpdateSeasonStatus('In Progress');
+                  setShowStartSeasonConfirm(false);
+                }} 
+                className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs italic rounded-2xl bg-primary hover:bg-primary/90 text-black shadow-[0_0_35px_rgba(204,253,1,0.6)] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 fill-black" />
+                <span>APEX LAUNCH // GO ▶</span>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ============================================================ */}
+      {/* 1. POPOUT: DAFTARKAN PEMAIN (ROSTER INTAKE COCKPIT)           */}
+      {/* ============================================================ */}
+      <Dialog open={showRegisterPlayers} onOpenChange={setShowRegisterPlayers}>
+        <DialogContent className="max-w-[96vw] sm:max-w-xl p-0 overflow-hidden border-2 border-primary/40 bg-[#070B14]/98 backdrop-blur-3xl rounded-3xl shadow-[0_0_90px_rgba(204,253,1,0.25)]">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_rgba(204,253,1,0.9)] pointer-events-none" />
+          
+          <div className="p-5 sm:p-7 space-y-4">
+            <DialogHeader className="space-y-1.5 text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/15 border border-primary/40 text-primary flex items-center justify-center shadow-[0_0_20px_rgba(204,253,1,0.3)] shrink-0">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
+                    Roster Intake <span className="text-primary">Cockpit</span>
+                  </DialogTitle>
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/80 font-mono">
+                    ATHLETE_RECRUITMENT // {activeSeason?.name}
+                  </p>
+                </div>
+              </div>
+              <DialogDescription className="sr-only">
+                Daftarkan atlet ke dalam turnamen {activeSeason?.name}
+              </DialogDescription>
+            </DialogHeader>
+
+            <RegisterPlayersForm 
+              allPlayers={allPlayers || []} 
+              registeredPlayers={individualPool || []} 
+              onRegister={handleRegisterPlayers} 
+              isLoading={isLoadingPlayers} 
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={individualPool || []} allPlayers={allPlayers || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
       <CoopManualPairingDialog open={showManualPairingDialog} onOpenChange={setShowManualPairingDialog} season={activeSeason} registeredPlayers={individualPool || []} allPlayersMap={playersById as Record<string, PlayerWithTeam>} onSavePairs={handleSavePairs} />

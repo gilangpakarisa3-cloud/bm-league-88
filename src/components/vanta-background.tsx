@@ -36,19 +36,19 @@ export function VantaBackground() {
       }
     ]
 
-    return Array.from({ length: 32 }).map((_, i) => {
+    // Optimized symbol count from 32 to 14 for major CPU/GPU efficiency boost
+    return Array.from({ length: 14 }).map((_, i) => {
       const config = symbolConfigs[i % symbolConfigs.length];
       return {
         id: i,
         Icon: config.Icon,
         color: config.color,
-        glow: config.glow,
-        size: Math.random() * 96 + 48, // Reduced by 20% (range 48-144)
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        duration: Math.random() * 20 + 30, // 30-50 seconds for slow movement
-        delay: Math.random() * -60,
-        opacity: Math.random() * 0.08 + 0.03, // Slightly increased for visible glow
+        size: Math.random() * 64 + 40, // 40-104px
+        left: `${Math.random() * 96}%`,
+        top: `${Math.random() * 96}%`,
+        duration: Math.random() * 15 + 25, // 25-40s
+        delay: Math.random() * -30,
+        opacity: Math.random() * 0.05 + 0.03, // subtle low opacity
         rotation: Math.random() * 360,
       }
     })
@@ -57,15 +57,15 @@ export function VantaBackground() {
   if (!mounted) return null
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#0A192F]">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#0A192F] select-none" aria-hidden="true">
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(204,253,1,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(204,253,1,0.01)_1px,transparent_1px)] bg-[size:100px_100px]" />
       
-      {/* PlayStation Symbols Floating Layer */}
-      {symbols.map(({ id, Icon, size, left, top, duration, delay, opacity, rotation, color, glow }) => (
+      {/* PlayStation Symbols Floating Layer - GPU layer isolated */}
+      {symbols.map(({ id, Icon, size, left, top, duration, delay, opacity, rotation, color }) => (
         <div
           key={id}
-          className="absolute animate-float"
+          className="absolute animate-float will-change-transform pointer-events-none"
           style={{
             left,
             top,
@@ -77,8 +77,8 @@ export function VantaBackground() {
         >
           <Icon 
             size={size} 
-            strokeWidth={2.5} 
-            className={cn(color, glow)}
+            strokeWidth={2} 
+            className={color}
           />
         </div>
       ))}

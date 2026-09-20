@@ -28,34 +28,39 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-4 border-primary/20 bg-[#0A192F]/95 backdrop-blur-3xl shadow-[0_10px_60px_rgba(0,0,0,0.8)]">
-      {/* High-Performance Top Signal Bar */}
-      <div className="h-2 w-full bg-black relative overflow-hidden border-b border-primary/10">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/60 to-transparent animate-pulse" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(204,253,1,0.3)_50%,transparent_100%)] bg-[length:200%_100%] animate-marquee" />
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/80 backdrop-blur-3xl shadow-[0_15px_50px_rgba(0,0,0,0.9)]">
+      {/* High-Performance Top Aero Signal Bar */}
+      <div className="h-1.5 w-full bg-black/90 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/80 to-transparent animate-pulse" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(204,253,1,0.4)_50%,transparent_100%)] bg-[length:200%_100%] animate-marquee" />
       </div>
       
-      <div className="container mx-auto flex h-16 sm:h-24 items-center justify-between px-2 sm:px-6 gap-2 sm:gap-6">
+      <div className="max-w-[94rem] mx-auto flex h-16 sm:h-20 items-center justify-between px-3 sm:px-8 gap-3 sm:gap-6">
         {/* Brand/Logo Section */}
-        <Link href="/" className="flex items-center gap-2 group relative shrink-0">
+        <Link href="/" className="flex items-center gap-3 group relative shrink-0">
           <div className="relative">
-            <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <div className="bg-primary p-1.5 sm:p-2.5 rounded-xl rotate-[15deg] group-hover:rotate-0 transition-all duration-500 shadow-[0_0_30px_rgba(204,253,1,0.6)] border-2 border-black/20 relative z-10">
-              <Flame className="h-5 w-5 sm:h-7 sm:w-7 text-black" />
+            <div className="absolute -inset-3 bg-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            <div className="bg-gradient-to-br from-primary via-primary to-yellow-400 p-2 sm:p-2.5 rounded-2xl transition-all duration-500 shadow-[0_0_25px_rgba(204,253,1,0.5)] border border-black/20 relative z-10 group-hover:scale-105">
+              <Flame className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
             </div>
           </div>
-          <span className="font-black text-xl sm:text-3xl tracking-tighter uppercase italic text-white leading-none pr-1 sm:pr-2 hidden md:block">
-            BM <span className="text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.5)]">88</span>
-          </span>
+          <div className="flex flex-col">
+            <span className="font-black text-lg sm:text-2xl tracking-tighter uppercase italic text-white leading-none">
+              BM <span className="text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]">LEAGUE 88</span>
+            </span>
+            <span className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30 italic hidden md:block">
+              ENGINEERING RACING HUD
+            </span>
+          </div>
         </Link>
 
-        {/* ULTRA AGGRESSIVE HUD NAVIGATION */}
-        <div className="flex-1 flex justify-center items-center h-full min-w-0 px-1">
-          <div className="relative bg-black/60 border-2 border-white/10 w-full h-12 sm:h-16 flex items-center px-0 overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.5)] group/nav-container rounded-none">
-            {/* HUD Pattern Overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:15px_15px] pointer-events-none opacity-40" />
+        {/* AERODYNAMIC COCKPIT NAVIGATION DOCK (VISIBLE ON TABLET & DESKTOP) */}
+        <div className="hidden md:flex flex-1 justify-center items-center h-full min-w-0 px-2 max-w-2xl">
+          <div className="relative bg-black/60 border border-white/10 w-full h-11 sm:h-13 flex items-center p-1 overflow-hidden shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] rounded-full backdrop-blur-xl">
+            {/* HUD Scanning Layer */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none opacity-30" />
             
-            <nav className="flex items-center justify-between w-full h-full relative z-10">
+            <nav className="flex items-center justify-between w-full h-full relative z-10 gap-1">
               {navLinks.map((link) => {
                 const isActive = pathname ? pathname.startsWith(link.href) : false;
                 return (
@@ -63,48 +68,16 @@ export function Header() {
                     key={link.href} 
                     href={link.href}
                     className={cn(
-                      "relative flex-1 flex flex-col items-center justify-center text-[10px] sm:text-[15px] font-black uppercase tracking-tighter sm:tracking-[0.1em] italic transition-all duration-500 whitespace-nowrap group/link overflow-hidden h-full",
-                      isActive ? "text-black" : "text-white/30 hover:text-primary"
+                      "relative flex-1 flex items-center justify-center text-[10px] sm:text-xs font-black uppercase tracking-wider italic transition-all duration-300 rounded-full h-full px-2 sm:px-3.5 whitespace-nowrap min-w-0",
+                      isActive 
+                        ? "bg-primary text-black shadow-[0_0_25px_rgba(204,253,1,0.5)] font-black" 
+                        : "text-white/50 hover:text-white hover:bg-white/[0.05]"
                     )}
                   >
-                    {/* Aggressive Skewed Active Layer */}
-                    <div className={cn(
-                      "absolute inset-0 -skew-x-[20deg] transition-all duration-700 -z-10 origin-bottom",
-                      isActive 
-                        ? "bg-primary translate-y-0 shadow-[0_0_40px_rgba(204,253,1,0.5)] border-r-4 border-black/30" 
-                        : "bg-white/[0.02] translate-y-full group-hover/link:translate-y-0 group-hover/link:bg-primary/20 border-r border-white/5"
-                    )}>
-                      {isActive && (
-                        <>
-                          <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                          {/* Laser Scanning Animation */}
-                          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                            <div className="w-full h-[3px] bg-black/20 absolute top-0 left-0 animate-scanning opacity-50" />
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    
-                    <div className="relative z-10 flex flex-col items-center gap-0.5">
-                      {isActive && (
-                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[6px] font-black text-black/40 tracking-[0.4em] animate-pulse">
-                            ACTIVE_LINK
-                         </span>
-                      )}
-                      <span className="relative flex items-center gap-1 sm:gap-2 px-1">
-                        {isActive && <Activity className="w-2.5 h-2.5 animate-pulse hidden md:block" />}
-                        {link.label}
-                      </span>
-                      {!isActive && (
-                        <div className="h-0.5 w-0 bg-primary/40 transition-all duration-500 group-hover/link:w-1/2 rounded-full" />
-                      )}
-                    </div>
-                    
-                    {/* HUD Decorative Details */}
-                    <div className={cn(
-                        "absolute bottom-0.5 right-1 w-1 h-1 rounded-full transition-all duration-500",
-                        isActive ? "bg-black/20" : "bg-white/5 group-hover/link:bg-primary/20"
-                    )} />
+                    <span className="relative z-10 flex items-center gap-1.5 min-w-0 overflow-visible pr-0.5">
+                      {isActive && <Activity className="w-3 h-3 animate-pulse shrink-0 hidden lg:block" />}
+                      <span className="inline-block pr-0.5">{link.label}</span>
+                    </span>
                   </Link>
                 )
               })}
@@ -113,21 +86,21 @@ export function Header() {
         </div>
 
         {/* Action Tools Section */}
-        <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-14 sm:w-14 rounded-none -skew-x-[15deg] bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all shadow-xl group/lang relative overflow-hidden">
-                <div className="skew-x-[15deg] flex flex-col items-center">
-                    <Languages className="h-4 w-4 sm:h-6 sm:w-6" />
-                    <span className="text-[6px] font-black mt-1 opacity-20 group-hover/lang:opacity-100 uppercase tracking-widest">SYS_LNG</span>
+              <Button variant="ghost" size="icon" className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all shadow-lg group/lang relative overflow-hidden">
+                <div className="flex flex-col items-center">
+                    <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-[6px] font-black opacity-30 group-hover/lang:opacity-100 uppercase tracking-widest">LNG</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-[#0A192F] border-2 border-primary/40 backdrop-blur-3xl rounded-none p-1 shadow-2xl">
-              <DropdownMenuItem onClick={() => setLanguage('id')} className="font-black text-[10px] uppercase tracking-widest focus:bg-primary focus:text-black py-3 px-6 italic cursor-pointer transition-colors">
+            <DropdownMenuContent align="end" className="bg-black/90 border border-primary/40 backdrop-blur-3xl rounded-2xl p-1.5 shadow-2xl">
+              <DropdownMenuItem onClick={() => setLanguage('id')} className="font-black text-[11px] uppercase tracking-wider focus:bg-primary focus:text-black py-2.5 px-4 italic cursor-pointer rounded-xl transition-colors">
                 ID_TRANSMISSION
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('en')} className="font-black text-[10px] uppercase tracking-widest focus:bg-primary focus:text-black py-3 px-6 italic cursor-pointer transition-colors">
+              <DropdownMenuItem onClick={() => setLanguage('en')} className="font-black text-[11px] uppercase tracking-wider focus:bg-primary focus:text-black py-2.5 px-4 italic cursor-pointer rounded-xl transition-colors">
                 EN_TRANSMISSION
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -138,16 +111,16 @@ export function Header() {
             variant="ghost" 
             size="icon" 
             className={cn(
-              "h-9 w-9 sm:h-14 sm:w-14 rounded-none -skew-x-[15deg] transition-all duration-500 border shadow-2xl group/settings relative overflow-hidden",
+              "h-10 w-10 sm:h-11 sm:w-11 rounded-2xl transition-all duration-300 border shadow-lg group/settings relative overflow-hidden",
               pathname === '/settings' 
-                ? "bg-primary text-black border-black shadow-[0_0_30px_rgba(204,253,1,0.6)]" 
-                : "bg-white/5 border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
+                ? "bg-primary text-black border-primary shadow-[0_0_25px_rgba(204,253,1,0.5)]" 
+                : "bg-white/[0.03] border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
             )}
           >
             <Link href="/settings">
-              <div className="skew-x-[15deg] flex flex-col items-center">
-                <Settings className={cn("h-4 w-4 sm:h-6 sm:w-6", pathname === '/settings' ? "animate-spin-slow" : "group-hover/settings:rotate-90 transition-transform duration-700")} />
-                <span className={cn("text-[6px] font-black mt-1 uppercase tracking-widest", pathname === '/settings' ? "opacity-60" : "opacity-20")}>CFG_HUB</span>
+              <div className="flex flex-col items-center">
+                <Settings className={cn("h-4 w-4 sm:h-5 sm:w-5", pathname === '/settings' ? "animate-spin-slow" : "group-hover/settings:rotate-90 transition-transform duration-500")} />
+                <span className={cn("text-[6px] font-black uppercase tracking-widest", pathname === '/settings' ? "opacity-70" : "opacity-30")}>CFG</span>
               </div>
             </Link>
           </Button>

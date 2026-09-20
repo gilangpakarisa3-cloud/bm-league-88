@@ -130,14 +130,47 @@
   }
 
   @keyframes float {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    33% { transform: translate(15px, -20px) rotate(120deg); }
-    66% { transform: translate(-15px, 10px) rotate(240deg); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
   }
 
   @keyframes pulse-soft {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
+  }
+
+  @keyframes spin-reverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+
+  @keyframes gold-radiance {
+    0%, 100% {
+      filter: drop-shadow(0 0 25px rgba(251, 191, 36, 0.7)) drop-shadow(0 0 50px rgba(251, 191, 36, 0.3));
+    }
+    50% {
+      filter: drop-shadow(0 0 45px rgba(251, 191, 36, 1)) drop-shadow(0 0 80px rgba(251, 191, 36, 0.6));
+    }
+  }
+
+  @keyframes laser-sweep {
+    0% { transform: translateX(-100%); opacity: 0; }
+    30% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: translateX(250%); opacity: 0; }
+  }
+
+  @keyframes energy-flow {
+    from {
+      stroke-dashoffset: 28;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .animate-energy-flow {
+    animation: energy-flow 1.2s linear infinite;
   }
 
   .animate-battle-glow {
@@ -153,7 +186,19 @@
   }
 
   .animate-spin-slow {
-    animation: spin-slow 15s linear infinite;
+    animation: spin-slow 18s linear infinite;
+  }
+
+  .animate-spin-reverse {
+    animation: spin-reverse 24s linear infinite;
+  }
+
+  .animate-gold-radiance {
+    animation: gold-radiance 3s ease-in-out infinite;
+  }
+
+  .animate-laser-sweep {
+    animation: laser-sweep 4s ease-in-out infinite;
   }
 
   .animate-float {
@@ -175,14 +220,164 @@
     margin: 0 40px;
   }
   .scrollbar-ultra-sport::-webkit-scrollbar-thumb {
-    background: #facc15; /* Vibrant Yellow (Yellow-400) */
+    background: #ccfd01; /* Neon Primary */
     border-radius: 20px;
-    border: 1px solid rgba(250, 204, 21, 0.2);
-    box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
+    border: 1px solid rgba(204, 253, 1, 0.3);
+    box-shadow: 0 0 12px rgba(204, 253, 1, 0.3);
     transition: all 0.3s ease;
   }
   .scrollbar-ultra-sport::-webkit-scrollbar-thumb:hover {
-    background: #fde047; /* Brighter Yellow */
-    box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+    background: #e6ff66;
+    box-shadow: 0 0 20px rgba(204, 253, 1, 0.7);
+  }
+
+  /* Aero Cockpit Card Utilities */
+  .aero-card {
+    @apply relative bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.7)] transition-all duration-500 hover:border-primary/40;
+  }
+
+  .aero-glow-primary {
+    box-shadow: 0 0 35px rgba(204, 253, 1, 0.25);
+  }
+
+  .aero-glow-amber {
+    box-shadow: 0 0 35px rgba(250, 204, 21, 0.25);
+  }
+
+  .aero-glow-cyan {
+    box-shadow: 0 0 35px rgba(100, 255, 218, 0.25);
+  }
+
+  .aero-glow-crimson {
+    box-shadow: 0 0 35px rgba(239, 68, 68, 0.25);
+  }
+
+  /* Ultra Futuristic Subtle Carbon Mesh */
+  .cyber-carbon {
+    background-color: #06090e;
+    background-image: 
+      radial-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 0),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.002) 25%, transparent 25%),
+      linear-gradient(225deg, rgba(255, 255, 255, 0.002) 25%, transparent 25%),
+      linear-gradient(315deg, rgba(255, 255, 255, 0.002) 25%, transparent 25%),
+      linear-gradient(45deg, rgba(255, 255, 255, 0.002) 25%, transparent 25%);
+    background-size: 24px 24px, 14px 14px, 14px 14px, 14px 14px, 14px 14px;
+  }
+
+  /* Holographic Foil Shimmer */
+  @keyframes holo-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .holo-shimmer-gold {
+    background: linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(250, 204, 21, 0.08) 35%,
+      rgba(255, 255, 255, 0.25) 50%,
+      rgba(250, 204, 21, 0.08) 65%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: holo-shimmer 5s ease-in-out infinite;
+  }
+
+  .holo-shimmer-neon {
+    background: linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(204, 253, 1, 0.08) 35%,
+      rgba(255, 255, 255, 0.25) 50%,
+      rgba(204, 253, 1, 0.08) 65%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: holo-shimmer 5s ease-in-out infinite;
+  }
+
+  /* Laser Cyber Grid Overlay */
+  .cyber-grid-overlay {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.002) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.002) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Gold Trophy Champion Aura */
+  .gold-champion-glow {
+    box-shadow: 0 0 50px rgba(250, 204, 21, 0.35), inset 0 0 30px rgba(250, 204, 21, 0.1);
+  }
+
+  .neon-volt-glow {
+    box-shadow: 0 0 50px rgba(204, 253, 1, 0.35), inset 0 0 30px rgba(204, 253, 1, 0.1);
+  }
+
+  /* Angled Cyber Clip Paths */
+  .cyber-cut-tr {
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+  }
+
+  .cyber-cut-diag {
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+
+  /* Safe Cross-Browser Gradient Text with Fallback */
+  .headline-white-gradient {
+    color: #ffffff;
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 60%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  @supports not (-webkit-background-clip: text) {
+    .headline-white-gradient {
+      color: #ffffff;
+      -webkit-text-fill-color: #ffffff;
+    }
+  }
+
+  /* Ultra-lightweight Popout & Shockwave Keyframes */
+  @keyframes popout-bounce {
+    0% {
+      transform: scale(0.65) translateY(20px);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.04) translateY(-3px);
+      opacity: 1;
+    }
+    80% {
+      transform: scale(0.98) translateY(1px);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes radar-pulse {
+    0% {
+      transform: scale(0.85);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1.45);
+      opacity: 0;
+    }
+  }
+
+  .animate-popout-bounce {
+    animation: popout-bounce 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-radar-pulse {
+    animation: radar-pulse 1.4s cubic-bezier(0.1, 0.8, 0.2, 1) infinite;
   }
 }

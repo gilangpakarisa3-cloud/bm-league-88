@@ -32,7 +32,7 @@ export type Season = {
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
-  type?: 'Single' | 'Co-Op' | 'Hybrid' | 'Co-Op Hybrid';
+  type?: 'Single' | 'Co-Op' | 'Hybrid' | 'Co-Op Hybrid' | 'Single Hybrid';
   hybridGroupMeetings?: 1 | 2;
   startDate?: Timestamp;
   endDate?: Timestamp;

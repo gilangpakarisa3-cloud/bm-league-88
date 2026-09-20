@@ -28,3 +28,24 @@ export const PLAYOFF_SUCCESSOR_MAP: Record<string, { winner: { bid: string, slot
     'playoff-sf1': { winner: { bid: 'playoff-final', slot: 1 } },
     'playoff-sf2': { winner: { bid: 'playoff-final', slot: 2 } },
 };
+
+/**
+ * Playoff Successor Map for 8-Team Single Hybrid Single Elimination Bracket (Pure Knockout, Kalah = Gugur)
+ * - QF 1 & QF 2 winners advance to Semifinal 1 (playoff-sf1)
+ * - QF 3 & QF 4 winners advance to Semifinal 2 (playoff-sf2)
+ * - SF 1 & SF 2 winners advance to Grand Final (playoff-final)
+ * - Losers are eliminated immediately (no lower bracket)
+ */
+export const SINGLE_HYBRID_SUCCESSOR_MAP: Record<string, { winner: { bid: string, slot: 1 | 2 }, loser?: { bid: string, slot: 1 | 2 } }> = {
+    'playoff-m1': { winner: { bid: 'playoff-sf1', slot: 1 } },
+    'playoff-m2': { winner: { bid: 'playoff-sf1', slot: 2 } },
+    'playoff-m3': { winner: { bid: 'playoff-sf2', slot: 1 } },
+    'playoff-m4': { winner: { bid: 'playoff-sf2', slot: 2 } },
+    'playoff-sf1': { winner: { bid: 'playoff-final', slot: 1 } },
+    'playoff-sf2': { winner: { bid: 'playoff-final', slot: 2 } },
+};
+
+export function getPlayoffSuccessorMap(seasonType?: string) {
+    if (seasonType === 'Single Hybrid') return SINGLE_HYBRID_SUCCESSOR_MAP;
+    return PLAYOFF_SUCCESSOR_MAP;
+}

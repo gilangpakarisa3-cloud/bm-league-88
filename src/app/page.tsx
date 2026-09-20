@@ -216,12 +216,16 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
         )}
 
         {hasPlayoffs ? (
-            <div className="w-full overflow-hidden rounded-2xl sm:rounded-3xl border-2 sm:border-4 border-primary/30 bg-[#0A192F]/80 shadow-[0_0_50px_rgba(204,253,1,0.1)] backdrop-blur-xl p-4 sm:p-8">
+            <div className="w-full overflow-hidden rounded-[2.5rem] border border-primary/30 bg-black/70 shadow-[0_20px_70px_rgba(0,0,0,0.8)] backdrop-blur-2xl p-4 sm:p-8">
                 <div className="flex flex-col items-center gap-2 mb-6 sm:mb-10">
-                    <h2 className="text-lg sm:text-2xl font-black text-primary flex items-center justify-center gap-2 sm:gap-3 uppercase italic tracking-tighter pr-2 sm:pr-4">
-                        <Swords className="w-6 h-6 sm:w-8 h-8"/> Bagan Babak Playoff
+                    <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 px-4 py-1 rounded-full">
+                        <Swords className="w-4 h-4 text-primary animate-pulse"/>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic">Playoff Bracket Stage</span>
+                    </div>
+                    <h2 className="text-xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">
+                        Bagan Babak Playoff
                     </h2>
-                    <p className="text-[8px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] sm:tracking-[0.4em]">Tournament HUD System v2.0</p>
+                    <p className="text-[8px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Tournament HUD System v2.0</p>
                 </div>
                 <TournamentBracket 
                     matches={matches || []}
@@ -233,34 +237,38 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                 />
             </div>
         ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 px-2 sm:px-0 max-w-[92rem] mx-auto items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 px-2 sm:px-0 max-w-[92rem] mx-auto items-start">
                 {leaderboardData ? (
                     isHybrid ? (
                         <>
                             {/* Group A Column */}
                             <div className="flex flex-col group/card relative">
-                                <div className="bg-primary px-6 py-3 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
-                                    <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                                    <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
-                                        <div className="bg-black/20 p-1.5 rounded-lg border border-black/10 shadow-md">
-                                            <Trophy className="w-4 h-4 text-black" />
+                                <div className="absolute -inset-2 bg-primary/5 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                                
+                                <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-primary/40 transition-all duration-500 z-10">
+                                    {/* Aerodynamic Pod Header */}
+                                    <div className="py-4 px-6 sm:px-8 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border-b border-white/10 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-primary p-2 rounded-xl text-black shadow-[0_0_15px_rgba(204,253,1,0.5)]">
+                                                <Trophy className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-base sm:text-lg font-black uppercase italic tracking-wide text-white leading-none">4 Besar Grup A</h2>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-primary/70">Top Seed Protocol</span>
+                                            </div>
                                         </div>
-                                        <h2 className="text-sm sm:text-base font-black uppercase italic tracking-widest text-black leading-none pr-2">4 Besar Grup A</h2>
+                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                                            <Scan className="w-3 h-3 text-primary" />
+                                            <span className="text-[8px] font-black text-white/60 uppercase tracking-wider">INTEL_NODE</span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2 relative z-10 opacity-40 skew-x-[12deg]">
-                                        <Scan className="w-3.5 h-3.5 text-black" />
-                                        <span className="text-[8px] font-black text-black uppercase tracking-widest hidden xs:block">INTEL_NODE</span>
-                                    </div>
-                                </div>
 
-                                <Card className="border-2 border-white/10 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-primary/30 transition-all duration-500 relative z-10">
-                                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
                                     <div className="relative z-10">
                                         {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
                                             <LeaderboardTable players={leaderboardData.groupA} defendingChampionId={defendingChampionId} />
                                         ) : (
-                                            <div className="p-16 text-center text-white/10 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-4">
-                                                <Zap className="w-10 h-10 opacity-20" />
+                                            <div className="p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-4">
+                                                <Zap className="w-10 h-10 opacity-30" />
                                                 MENANTI SINYAL KICK-OFF
                                             </div>
                                         )}
@@ -270,28 +278,32 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
 
                             {/* Group B Column */}
                             <div className="flex flex-col group/card relative">
-                                <div className="bg-primary px-6 py-3 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
-                                    <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                                    <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
-                                        <div className="bg-black/20 p-1.5 rounded-lg border border-black/10 shadow-md">
-                                            <Trophy className="w-4 h-4 text-black" />
+                                <div className="absolute -inset-2 bg-primary/5 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                                
+                                <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-primary/40 transition-all duration-500 z-10">
+                                    {/* Aerodynamic Pod Header */}
+                                    <div className="py-4 px-6 sm:px-8 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border-b border-white/10 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-primary p-2 rounded-xl text-black shadow-[0_0_15px_rgba(204,253,1,0.5)]">
+                                                <Trophy className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-base sm:text-lg font-black uppercase italic tracking-wide text-white leading-none">4 Besar Grup B</h2>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-primary/70">Top Seed Protocol</span>
+                                            </div>
                                         </div>
-                                        <h2 className="text-sm sm:text-base font-black uppercase italic tracking-widest text-black leading-none pr-2">4 Besar Grup B</h2>
+                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                                            <Scan className="w-3 h-3 text-primary" />
+                                            <span className="text-[8px] font-black text-white/60 uppercase tracking-wider">INTEL_NODE</span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2 relative z-10 opacity-40 skew-x-[12deg]">
-                                        <Scan className="w-3.5 h-3.5 text-black" />
-                                        <span className="text-[8px] font-black text-black uppercase tracking-widest hidden xs:block">INTEL_NODE</span>
-                                    </div>
-                                </div>
 
-                                <Card className="border-2 border-white/10 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-primary/30 transition-all duration-500 relative z-10">
-                                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
                                     <div className="relative z-10">
                                         {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
                                             <LeaderboardTable players={leaderboardData.groupB} defendingChampionId={defendingChampionId} />
                                         ) : (
-                                            <div className="p-16 text-center text-white/10 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-4">
-                                                <Zap className="w-10 h-10 opacity-20" />
+                                            <div className="p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-4">
+                                                <Zap className="w-10 h-10 opacity-30" />
                                                 MENANTI SINYAL KICK-OFF
                                             </div>
                                         )}
@@ -300,29 +312,33 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                             </div>
                         </>
                     ) : (
-                        <div className="lg:col-span-2 flex flex-col max-w-3xl mx-auto w-full group/card relative">
-                            <div className="bg-primary px-8 py-4 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-xl">
-                                <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                                <div className="flex items-center gap-4 relative z-10 skew-x-[12deg]">
-                                    <div className="bg-black/20 p-2 rounded-lg border border-black/10 shadow-lg">
-                                        <Award className="w-6 h-6 text-black" />
-                                    </div>
-                                    <h2 className="text-xl sm:text-2xl font-black uppercase italic tracking-widest text-black leading-none pr-4">{t('home_top_players')}</h2>
-                                </div>
-                                <div className="flex items-center gap-3 relative z-10 opacity-40 skew-x-[12deg]">
-                                    <Binary className="w-5 h-5 text-black" />
-                                    <span className="text-[10px] font-black text-black uppercase tracking-[0.3em] hidden xs:block">MASTER_MANIFEST</span>
-                                </div>
-                            </div>
+                        <div className="lg:col-span-2 flex flex-col max-w-4xl mx-auto w-full group/card relative">
+                            <div className="absolute -inset-3 bg-primary/5 rounded-[3rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-                            <Card className="border-4 border-white/10 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-primary/40 transition-all duration-500 relative z-10">
-                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
+                            <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.8)] group-hover/card:border-primary/40 transition-all duration-500 z-10">
+                                {/* Aerodynamic Pod Header */}
+                                <div className="py-5 px-8 sm:px-10 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border-b border-white/10 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-primary p-2.5 rounded-2xl text-black shadow-[0_0_20px_rgba(204,253,1,0.5)]">
+                                            <Award className="w-5 h-5 sm:w-6 sm:h-6" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg sm:text-2xl font-black uppercase italic tracking-wide text-white leading-none">{t('home_top_players')}</h2>
+                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-primary/70">Top Roster Standings</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                        <Binary className="w-4 h-4 text-primary" />
+                                        <span className="text-[8px] sm:text-[9px] font-black text-white/70 uppercase tracking-widest hidden xs:block">MASTER_MANIFEST</span>
+                                    </div>
+                                </div>
+
                                 <div className="relative z-10">
                                     {leaderboardData.top && leaderboardData.top.length > 0 ? (
                                         <LeaderboardTable players={leaderboardData.top} defendingChampionId={defendingChampionId} />
                                     ) : (
-                                        <div className="p-20 text-center text-white/10 font-black uppercase tracking-widest text-sm italic flex flex-col items-center gap-6">
-                                            <Activity className="w-12 h-12 opacity-20 animate-pulse" />
+                                        <div className="p-20 text-center text-white/20 font-black uppercase tracking-widest text-sm italic flex flex-col items-center gap-6">
+                                            <Activity className="w-12 h-12 opacity-30 animate-pulse" />
                                             {t('no_players_yet')}
                                         </div>
                                     )}
@@ -331,8 +347,8 @@ function LeaderboardSection({ onPlayoffStatusChange }: { onPlayoffStatusChange: 
                         </div>
                     )
                 ) : (
-                    <div className="lg:col-span-2 p-16 text-center text-white/10 font-black uppercase tracking-[0.3em] h-full flex flex-col items-center justify-center gap-4">
-                        <Zap className="w-12 h-12 opacity-20 animate-pulse" />
+                    <div className="lg:col-span-2 p-16 text-center text-white/20 font-black uppercase tracking-[0.3em] h-full flex flex-col items-center justify-center gap-4">
+                        <Zap className="w-12 h-12 opacity-30 animate-pulse" />
                         {t('no_players_yet')}
                     </div>
                 )}
@@ -347,11 +363,11 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
   return (
      <Table>
       <TableHeader>
-          <TableRow className="hover:bg-transparent border-b-white/5 h-10 sm:h-12 bg-white/[0.02]">
+          <TableRow className="hover:bg-transparent border-b border-white/10 h-10 sm:h-12 bg-white/[0.02]">
           <TableHead className="w-1 p-0"></TableHead>
-          <TableHead className="w-[40px] sm:w-[60px] pl-4 sm:pl-6 font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">#</TableHead>
-          <TableHead className="font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">{t('player')}</TableHead>
-          <TableHead className="text-right pr-4 sm:pr-6 font-black text-white/20 uppercase text-[8px] sm:text-[9px] tracking-widest">{t('pts')}</TableHead>
+          <TableHead className="w-[32px] sm:w-[60px] pl-2 sm:pl-6 font-black text-white/30 uppercase text-[8px] sm:text-[9px] tracking-widest">#</TableHead>
+          <TableHead className="font-black text-white/30 uppercase text-[8px] sm:text-[9px] tracking-widest">{t('player')}</TableHead>
+          <TableHead className="text-right pr-2 sm:pr-8 font-black text-white/30 uppercase text-[8px] sm:text-[9px] tracking-widest">{t('pts')}</TableHead>
           </TableRow>
       </TableHeader>
       <TableBody>
@@ -361,37 +377,37 @@ const LeaderboardTable = ({ players, isBottom = false, defendingChampionId }: { 
             const isDefendingChampion = pId === defendingChampionId;
             return (
               <TableRow key={entry.id} className={cn(
-                  "border-b-white/5 transition-all duration-300 group/row h-14 sm:h-16",
-                  isFirst ? "bg-yellow-400/[0.03] hover:bg-yellow-400/[0.08]" : "hover:bg-white/[0.03]"
+                  "border-b border-white/5 transition-all duration-300 group/row h-13 sm:h-16",
+                  isFirst ? "bg-primary/[0.04] hover:bg-primary/[0.08]" : "hover:bg-white/[0.03]"
                 )}>
-                  <TableCell className={cn("p-0 w-1 sm:w-1.5 transition-all duration-500", 
-                    isFirst ? 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]' :
-                    isBottom ? 'bg-destructive' : 'bg-transparent'
+                  <TableCell className={cn("p-0 w-1 transition-all duration-500", 
+                    isFirst ? 'bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)]' :
+                    isBottom ? 'bg-red-500' : 'bg-transparent'
                   )}></TableCell>
-                  <TableCell className={cn("font-black text-lg sm:text-xl pl-4 sm:pl-6 italic", 
-                    isFirst ? "text-yellow-400 scale-110 drop-shadow-[0_0_10px_rgba(250,204,21,0.4)]" : "text-white/20 group-hover/row:text-white/40"
+                  <TableCell className={cn("font-black text-sm sm:text-lg pl-2 sm:pl-6 italic", 
+                    isFirst ? "text-primary scale-105 drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-white/40 group-hover/row:text-white/70"
                   )}>{entry.rank}</TableCell>
                   <TableCell className="py-2">
-                  <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                       <div className="relative shrink-0">
-                        <Avatar className={cn("h-8 w-8 sm:h-10 sm:w-10 border-2 transition-all duration-500", isFirst ? "border-yellow-400 scale-105 shadow-xl" : "border-white/10 group-hover/row:border-primary")}>
+                        <Avatar className={cn("h-8 w-8 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-xl sm:rounded-2xl", isFirst ? "border-primary shadow-[0_0_15px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover/row:border-primary/50")}>
                             <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
-                            <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-4 h-4 sm:w-5 sm:h-5 text-white/20" /></AvatarFallback>
+                            <AvatarFallback className="bg-black/60 font-black text-[10px] sm:text-xs rounded-xl sm:rounded-2xl"><User className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white/30" /></AvatarFallback>
                         </Avatar>
                         {isDefendingChampion && (
-                            <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-amber-500 rounded-lg p-0.5 sm:p-1 border-2 border-background shadow-lg rotate-12">
-                                <Award className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-white" />
+                            <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-amber-500 rounded-lg p-0.5 sm:p-1 border border-black shadow-lg">
+                                <Award className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-black" />
                             </div>
                         )}
                       </div>
-                      <div className="overflow-hidden">
-                        <div className={cn("font-black truncate uppercase italic pr-4 transition-colors", isFirst ? "text-yellow-400 text-sm sm:text-lg" : "text-xs sm:text-base text-white group-hover:text-primary")}>{entry.playerName}</div>
-                        <div className="text-[7px] sm:text-[9px] text-white/40 truncate font-black uppercase tracking-widest">{entry.team?.name || entry.teamName}</div>
+                      <div className="overflow-hidden min-w-0 flex-1">
+                        <div className={cn("font-black truncate uppercase italic transition-colors leading-tight", isFirst ? "text-primary text-xs sm:text-base" : "text-xs sm:text-sm text-white group-hover/row:text-primary")}>{entry.playerName}</div>
+                        <div className="text-[7px] sm:text-[10px] text-white/40 truncate font-black uppercase tracking-wider">{entry.team?.name || entry.teamName}</div>
                       </div>
                   </div>
                   </TableCell>
-                  <TableCell className="text-right pr-4 sm:pr-6 font-black text-xl sm:text-2xl tabular-nums italic">
-                    <span className={isFirst ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]" : "text-primary"}>{entry.points}</span>
+                  <TableCell className="text-right pr-2 sm:pr-8 font-black text-lg sm:text-2xl tabular-nums italic">
+                    <span className={cn("px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg sm:rounded-xl text-xs sm:text-base", isFirst ? "text-black bg-primary font-black shadow-[0_0_15px_rgba(204,253,1,0.4)]" : "text-primary bg-primary/10 border border-primary/20")}>{entry.points}</span>
                   </TableCell>
               </TableRow>
             )
@@ -430,19 +446,19 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="mx-auto px-2 sm:px-4 py-8 sm:py-12 relative w-full">
+    <div className="mx-auto px-2 sm:px-4 py-6 sm:py-12 relative w-full">
       <div className="absolute top-0 right-0 -z-10 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/5 rounded-full blur-[100px] sm:blur-[150px] pointer-events-none" />
       <div className="absolute top-1/2 left-0 -z-10 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-accent/5 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
 
-      <div className="max-w-[92rem] mx-auto space-y-10 sm:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <section className="text-center space-y-4 sm:space-y-6 relative px-4">
+      <div className="max-w-[92rem] mx-auto space-y-8 sm:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <section className="text-center space-y-3 sm:space-y-6 relative px-2 sm:px-4">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-3 sm:px-4 py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary italic mb-1 sm:2">
             <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-primary"/> Official League Station
           </div>
-          <h1 className="font-headline text-4xl sm:text-7xl md:text-8xl font-black tracking-tighter text-white uppercase italic pr-2 sm:pr-4 drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+          <h1 className="font-headline text-3xl sm:text-7xl md:text-8xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]">
             BM <span className="text-primary drop-shadow-[0_0_20px_rgba(204,253,1,0.4)]">LEAGUE 88</span>
           </h1>
-          <p className="mt-2 sm:mt-4 max-w-2xl mx-auto text-xs sm:text-base font-bold text-white/60 uppercase tracking-widest leading-relaxed">
+          <p className="mt-1 sm:mt-4 max-w-2xl mx-auto text-xs sm:text-base font-bold text-white/60 uppercase tracking-widest leading-relaxed">
             {t('home_welcome')}
           </p>
         </section>

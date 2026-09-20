@@ -1,21 +1,39 @@
-
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PasswordManager } from '@/components/password-manager';
 import { useTranslation } from '@/hooks/use-translation';
-import { KeyRound, RefreshCw, Loader2, AlertTriangle, Database, Scan, Binary, Zap, ShieldCheck, Power, Activity } from 'lucide-react';
+import { 
+    KeyRound, 
+    RefreshCw, 
+    Loader2, 
+    AlertTriangle, 
+    Database, 
+    Scan, 
+    Binary, 
+    Zap, 
+    ShieldCheck, 
+    Power, 
+    Activity,
+    Radio,
+    Sparkles,
+    Lock,
+    Unlock,
+    Server,
+    Cpu
+} from 'lucide-react';
 import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import type { Season, Match, Player, CoOpLeagueEntry, LeagueEntry } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { useSharedPassword } from '@/context/password-context';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
 
@@ -217,170 +235,348 @@ export default function SettingsPage() {
 
     return (
         <div className="max-w-[92rem] mx-auto px-4 py-8 relative">
-            <div className="absolute top-0 right-0 -z-10 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 -z-10 w-[300px] h-[300px] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
+            {/* Ambient Background Glows */}
+            <div className="absolute top-0 right-0 -z-10 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -z-10 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-12">
-                <div className="flex flex-col md:flex-row justify-between items-stretch gap-6 min-h-[140px] sm:min-h-[190px]">
-                    <div className="flex flex-col justify-center space-y-4 flex-1 w-full py-8 sm:py-10 px-8 sm:px-12 relative group/header overflow-hidden bg-black/60 backdrop-blur-3xl border-b-4 border-primary/20 rounded-none shadow-[0_20px_80px_rgba(0,0,0,0.8)] transition-all duration-500">
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:25px_25px] opacity-20 pointer-events-none" />
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-10">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
+                
+                {/* COCKPIT COMMAND HERO BANNER */}
+                <div className="flex flex-col md:flex-row justify-between items-stretch gap-6 min-h-[140px] sm:min-h-[180px]">
+                    <div className="flex flex-col justify-center space-y-4 flex-1 w-full py-8 sm:py-10 px-8 sm:px-12 relative group/header overflow-hidden bg-black/60 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-500">
+                        {/* High-Tech Grid & Scanline */}
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:25px_25px] opacity-30 pointer-events-none" />
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-15">
                             <div className="w-full h-[2px] bg-primary blur-[1px] absolute top-0 left-0 animate-scanning" />
                         </div>
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
+                        <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-b from-primary via-primary/80 to-primary/30 rounded-l-[2.5rem] shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
                         
-                        <div className="relative z-10 space-y-1">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(204,253,1,0.8)]" />
-                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] text-primary italic">Global Configuration Hub</span>
+                        <div className="relative z-10 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2.5 mb-1">
+                                <div className="flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-[9px] font-mono font-black text-primary uppercase tracking-widest">
+                                    <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                                    <span>SYSTEM_OPERATIONS // CORE_V2.5</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono font-bold text-white/50 uppercase tracking-wider">
+                                    <Server className="w-3 h-3 text-cyan-400" />
+                                    <span>NODE: NOMINAL</span>
+                                </div>
                             </div>
-                            <h1 className="font-headline text-3xl sm:text-7xl font-black tracking-tighter text-white uppercase italic drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] leading-none">
-                                APP <span className="text-primary">SETTINGS</span>
+
+                            <h1 className="font-headline text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_0_40px_rgba(255,255,255,0.1)] leading-none">
+                                APP <span className="text-primary drop-shadow-[0_0_25px_rgba(204,253,1,0.5)]">SETTINGS</span>
                             </h1>
+                            <p className="text-white/50 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] font-mono">
+                                Central Governance Console & Multi-Format Calibrator
+                            </p>
                         </div>
                     </div>
-                    <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0"><LiveClock /></div>
+                    
+                    <div className="w-full md:w-[420px] flex items-stretch shrink-0">
+                        <LiveClock className="h-full" />
+                    </div>
                 </div>
 
+                {/* CONTROL MODULES GRID */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                    {/* WEBSITE OPERATIONAL STATUS CARD */}
-                    <div className="flex flex-col group/card relative">
-                        <div className="bg-red-600 px-6 py-2.5 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
-                            <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                            <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
-                                <Power className="w-4 h-4 text-white" />
-                                <h2 className="text-xs font-black uppercase italic tracking-widest text-white leading-none pr-2">System Operations</h2>
-                            </div>
-                            <Activity className="w-4 h-4 text-white/40 relative z-10 skew-x-[12deg]" />
-                        </div>
-                        <Card className="border-2 border-red-600/20 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-red-600/40 transition-all duration-500 relative z-10">
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(220,38,38,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(220,38,38,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                            <CardContent className="p-8 space-y-6">
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/5">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">WEBSITE_VISIBILITY_STATE</p>
-                                        <p className="text-sm font-bold text-white/90">Status: <span className={isDeactivated ? "text-red-500" : "text-primary"}>{isDeactivated ? "DEACTIVATED" : "ACTIVE"}</span></p>
-                                    </div>
-                                    <Switch 
-                                        checked={!isDeactivated} 
-                                        onCheckedChange={(checked) => {
-                                            setPendingAction(() => () => updateDeactivationStatus(!checked));
-                                            setPasswordPromptOpen(true);
-                                        }} 
-                                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-red-600 scale-125 transition-all"
-                                    />
-                                </div>
-                                <div className="flex items-start gap-3 opacity-40">
-                                    <Scan className="w-4 h-4 mt-0.5" />
-                                    <p className="text-[10px] font-bold text-white leading-relaxed">Saat dinonaktifkan, publik hanya akan melihat pesan pemeliharaan. Admin tetap dapat mengakses halaman pengaturan ini.</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    
+                    {/* 1. WEBSITE OPERATIONAL STATUS MODULE */}
+                    <div className={cn(
+                        "flex flex-col group/card relative rounded-[2rem] sm:rounded-[2.3rem] overflow-hidden border-2 bg-gradient-to-b from-[#0D111A]/95 via-[#070A12]/95 to-[#030508]/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-500",
+                        isDeactivated 
+                            ? "border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.15)]" 
+                            : "border-emerald-500/40 shadow-[0_0_50px_rgba(16,185,129,0.15)]"
+                    )}>
+                        {/* Top Laser Accent */}
+                        <div className={cn(
+                            "absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r opacity-80 pointer-events-none z-20",
+                            isDeactivated ? "from-transparent via-red-500 to-transparent" : "from-transparent via-emerald-400 to-transparent"
+                        )} />
 
-                    {/* ADMIN SECURITY CARD */}
-                    <div className="flex flex-col group/card relative">
-                        <div className="bg-primary px-6 py-2.5 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
-                            <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                            <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
-                                <KeyRound className="w-4 h-4 text-black" />
-                                <h2 className="text-xs font-black uppercase italic tracking-widest text-black leading-none pr-2">Security Control</h2>
-                            </div>
-                            <Scan className="w-4 h-4 text-black/40 relative z-10 skew-x-[12deg]" />
-                        </div>
-                        <Card className="border-2 border-white/10 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-primary/30 transition-all duration-500 relative z-10">
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                            <CardContent className="p-8 space-y-6">
-                                <div className="space-y-2">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">ACCESS_PROTOCOL_VERIFIED</p>
-                                    <p className="text-sm font-bold text-white/70 leading-relaxed">Kelola otorisasi pusat untuk fitur administratif di seluruh station.</p>
+                        {/* Card Header */}
+                        <div className={cn(
+                            "py-3.5 px-6 flex items-center justify-between overflow-hidden shrink-0 shadow-md relative z-10",
+                            isDeactivated 
+                                ? "bg-gradient-to-r from-red-600 via-rose-600 to-red-500 text-white" 
+                                : "bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-black"
+                        )}>
+                            <div className="flex items-center gap-2.5 relative z-10">
+                                <div className="bg-black/20 p-1.5 rounded-xl border border-black/10 shadow-inner">
+                                    <Power className="w-4 h-4" />
                                 </div>
-                                <Button 
-                                    onClick={() => setShowPasswordManager(true)} 
-                                    className="w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-none -skew-x-[12deg] border-r-8 border-black/20 shadow-xl transition-all hover:scale-[1.02]"
-                                >
-                                    <span className="skew-x-[12deg] flex items-center gap-2"><Zap className="w-4 h-4 fill-current"/> GANTI KATA SANDI ADMIN</span>
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
+                                <div>
+                                    <h2 className="text-xs sm:text-sm font-black uppercase italic tracking-wider font-headline leading-none">
+                                        System Operations
+                                    </h2>
+                                    <p className={cn(
+                                        "text-[8px] font-black uppercase tracking-widest font-mono mt-0.5",
+                                        isDeactivated ? "text-white/70" : "text-black/70"
+                                    )}>
+                                        WEBSITE_FEED_CONTROLLER
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className={cn(
+                                "flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[8px] font-black font-mono uppercase tracking-widest",
+                                isDeactivated ? "border-white/20 bg-white/10 text-white" : "border-black/20 bg-black/15 text-black"
+                            )}>
+                                <Activity className="w-3 h-3 animate-pulse" />
+                                <span>{isDeactivated ? "OFFLINE" : "LIVE"}</span>
+                            </div>
+                        </div>
 
-                    {/* DATA RECAP CARD */}
-                    <div className="flex flex-col group/card relative">
-                        <div className="bg-amber-500 px-6 py-2.5 flex items-center justify-between relative overflow-hidden -skew-x-[12deg] mb-[-4px] z-20 border-r-4 border-black/20 shadow-lg">
-                            <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                            <div className="flex items-center gap-3 relative z-10 skew-x-[12deg]">
-                                <RefreshCw className={cn("w-4 h-4 text-black", isSyncing && "animate-spin")} />
-                                <h2 className="text-xs font-black uppercase italic tracking-widest text-black leading-none pr-2">History Recalibration</h2>
-                            </div>
-                            <Binary className="w-4 h-4 text-black/40 relative z-10 skew-x-[12deg]" />
-                        </div>
-                        <Card className="border-2 border-amber-500/20 shadow-2xl overflow-hidden bg-black/60 backdrop-blur-3xl rounded-none group-hover/card:border-amber-500/40 transition-all duration-500 relative z-10">
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(245,158,11,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(245,158,11,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
-                            <CardContent className="p-8 space-y-6">
-                                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex gap-4 items-start relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/5 -mr-8 -mt-8 rounded-full blur-xl" />
-                                    <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0 mt-1" />
-                                    <div className="space-y-1 relative z-10">
-                                        <p className="text-[10px] font-black text-amber-200 uppercase tracking-widest">Format Agnostic Engine</p>
-                                        <p className="text-[11px] font-bold text-amber-200/60 leading-relaxed italic">Mendukung sinkronisasi penuh dari data Single, Co-Op, dan Hybrid termasuk data gol individu dari seluruh fase kompetisi.</p>
+                        {/* Card Body */}
+                        <CardContent className="p-6 sm:p-7 space-y-6 relative z-10">
+                            <div className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-black/60 border border-white/10 shadow-inner">
+                                <div className="space-y-1 min-w-0 pr-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className={cn(
+                                            "w-2.5 h-2.5 rounded-full animate-pulse",
+                                            isDeactivated ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" : "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"
+                                        )} />
+                                        <p className="text-[9px] font-mono font-black uppercase tracking-[0.25em] text-white/50">
+                                            BROADCAST_STATUS
+                                        </p>
                                     </div>
+                                    <p className="text-base sm:text-lg font-black uppercase italic tracking-tight font-headline">
+                                        {isDeactivated ? (
+                                            <span className="text-red-400 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]">MAINTENANCE LOCKED</span>
+                                        ) : (
+                                            <span className="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.4)]">OPERATIONAL // LIVE</span>
+                                        )}
+                                    </p>
                                 </div>
-                                <Button 
-                                    onClick={() => {
-                                        setPendingAction(() => () => handleSyncCareerStats());
+
+                                <Switch 
+                                    checked={!isDeactivated} 
+                                    onCheckedChange={(checked) => {
+                                        setPendingAction(() => () => updateDeactivationStatus(!checked));
                                         setPasswordPromptOpen(true);
                                     }} 
-                                    disabled={isSyncing || !isPasswordLoaded} 
-                                    variant="outline"
-                                    className="w-full h-16 font-black uppercase italic tracking-widest text-[10px] border-amber-500/30 text-amber-500 hover:bg-amber-500/10 rounded-none -skew-x-[12deg] border-r-8 transition-all"
-                                >
-                                    <span className="skew-x-[12deg] flex items-center justify-center gap-3">
-                                        {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5" />}
-                                        {isSyncing ? "CALIBRATING DATA..." : "REKAP SELURUH FORMAT (V2.5)"}
-                                    </span>
-                                </Button>
-                            </CardContent>
-                        </Card>
+                                    className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-600 scale-125 transition-all shadow-lg"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-0.5">
+                                    <span className="text-[8px] font-mono uppercase tracking-widest text-white/40">PUBLIC_ROUTE</span>
+                                    <p className="text-[11px] font-mono font-bold text-white/80">
+                                        {isDeactivated ? "REVERT_TO_HOLD" : "OPEN_ACCESS"}
+                                    </p>
+                                </div>
+                                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-0.5">
+                                    <span className="text-[8px] font-mono uppercase tracking-widest text-white/40">ADMIN_GATEWAY</span>
+                                    <p className="text-[11px] font-mono font-bold text-cyan-400">UNRESTRICTED</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                <Scan className="w-4 h-4 mt-0.5 text-white/40 shrink-0" />
+                                <p className="text-[10px] font-bold text-white/50 leading-relaxed font-mono">
+                                    Saat dinonaktifkan, publik akan melihat layar pemeliharaan. Admin tetap dapat mengakses portal melalui kunci otorisasi.
+                                </p>
+                            </div>
+                        </CardContent>
                     </div>
+
+                    {/* 2. ADMIN SECURITY CONTROL CENTER MODULE */}
+                    <div className="flex flex-col group/card relative rounded-[2rem] sm:rounded-[2.3rem] overflow-hidden border-2 border-cyan-500/40 bg-gradient-to-b from-[#0D111A]/95 via-[#070A12]/95 to-[#030508]/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] hover:border-cyan-400/80 hover:shadow-[0_0_50px_rgba(6,182,212,0.2)] transition-all duration-500">
+                        {/* Top Laser Accent */}
+                        <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80 pointer-events-none z-20" />
+
+                        {/* Card Header */}
+                        <div className="py-3.5 px-6 flex items-center justify-between overflow-hidden shrink-0 shadow-md relative z-10 bg-gradient-to-r from-cyan-500 via-sky-400 to-blue-500 text-black">
+                            <div className="flex items-center gap-2.5 relative z-10">
+                                <div className="bg-black/20 p-1.5 rounded-xl border border-black/10 shadow-inner">
+                                    <KeyRound className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xs sm:text-sm font-black uppercase italic tracking-wider font-headline leading-none">
+                                        Security Control
+                                    </h2>
+                                    <p className="text-[8px] font-black uppercase tracking-widest font-mono text-black/70 mt-0.5">
+                                        ENCRYPTED_CYPHER_ACCESS
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border border-black/20 bg-black/15 text-[8px] font-black font-mono uppercase tracking-widest text-black">
+                                <ShieldCheck className="w-3 h-3" />
+                                <span>SECURE // LEVEL 4</span>
+                            </div>
+                        </div>
+
+                        {/* Card Body */}
+                        <CardContent className="p-6 sm:p-7 space-y-6 relative z-10">
+                            <div className="space-y-1.5">
+                                <div className="flex items-center gap-2 text-cyan-400">
+                                    <Cpu className="w-3.5 h-3.5" />
+                                    <span className="text-[9px] font-mono font-black uppercase tracking-[0.25em]">
+                                        AUTHENTICATION_CORE
+                                    </span>
+                                </div>
+                                <p className="text-xs font-bold text-white/70 leading-relaxed font-mono">
+                                    Kunci otorisasi universal untuk manajemen turnamen, penjadwalan, draft tim, mutasi skor, dan penguncian administrasi.
+                                </p>
+                            </div>
+
+                            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
+                                <div className="flex items-center justify-between text-[9px] font-mono font-bold text-white/40 uppercase">
+                                    <span>HASH_ALGORITHM</span>
+                                    <span className="text-cyan-400">SHA-256 SALT</span>
+                                </div>
+                                <div className="flex items-center justify-between text-[9px] font-mono font-bold text-white/40 uppercase">
+                                    <span>STATUS</span>
+                                    <span className="text-emerald-400">AUTHENTICATED</span>
+                                </div>
+                            </div>
+
+                            <Button 
+                                onClick={() => setShowPasswordManager(true)} 
+                                className="w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-cyan-500/20 transition-all hover:scale-[1.02] bg-gradient-to-r from-cyan-400 to-sky-500 text-black hover:from-cyan-300 hover:to-sky-400"
+                            >
+                                <span className="flex items-center justify-center gap-2">
+                                    <KeyRound className="w-4 h-4" />
+                                    GANTI KATA SANDI ADMIN
+                                </span>
+                            </Button>
+                        </CardContent>
+                    </div>
+
+                    {/* 3. MULTI-FORMAT HISTORICAL RECALIBRATION ENGINE (FULL SPAN) */}
+                    <div className="flex flex-col group/card relative rounded-[2rem] sm:rounded-[2.3rem] overflow-hidden border-2 border-amber-500/40 bg-gradient-to-b from-[#0D111A]/95 via-[#070A12]/95 to-[#030508]/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] hover:border-amber-400/80 hover:shadow-[0_0_50px_rgba(245,158,11,0.2)] transition-all duration-500 lg:col-span-2">
+                        {/* Top Laser Accent */}
+                        <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-80 pointer-events-none z-20" />
+
+                        {/* Card Header */}
+                        <div className="py-3.5 px-6 flex items-center justify-between overflow-hidden shrink-0 shadow-md relative z-10 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 text-black">
+                            <div className="flex items-center gap-2.5 relative z-10">
+                                <div className="bg-black/20 p-1.5 rounded-xl border border-black/10 shadow-inner">
+                                    <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xs sm:text-sm font-black uppercase italic tracking-wider font-headline leading-none">
+                                        Historical Telemetry Recalibrator
+                                    </h2>
+                                    <p className="text-[8px] font-black uppercase tracking-widest font-mono text-black/70 mt-0.5">
+                                        FORMAT_AGNOSTIC_DATA_ENGINE // V2.5
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border border-black/20 bg-black/15 text-[8px] font-black font-mono uppercase tracking-widest text-black">
+                                <Binary className="w-3 h-3" />
+                                <span>MULTI-SEASON</span>
+                            </div>
+                        </div>
+
+                        {/* Card Body */}
+                        <CardContent className="p-6 sm:p-8 space-y-6 relative z-10">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                {[
+                                    { label: 'SINGLE 1v1', desc: 'Individu Standings' },
+                                    { label: 'CO-OP 2v2', desc: 'Duo Pairs & Goals' },
+                                    { label: 'HYBRID KNOCKOUT', desc: 'Group & Playoff' },
+                                    { label: 'GOAL DIFFERENTIALS', desc: 'Career Historical' }
+                                ].map((badge, idx) => (
+                                    <div key={idx} className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center">
+                                        <div className="text-[8px] font-mono font-black text-amber-400 uppercase tracking-widest">{badge.label}</div>
+                                        <div className="text-[9px] text-white/50 font-bold truncate">{badge.desc}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/25 flex gap-4 items-start relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                                <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30 shrink-0 mt-0.5">
+                                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                                </div>
+                                <div className="space-y-1 relative z-10">
+                                    <p className="text-[10px] font-mono font-black text-amber-300 uppercase tracking-widest">
+                                        Format Agnostic Engine Sync Protocol
+                                    </p>
+                                    <p className="text-xs font-bold text-amber-200/80 leading-relaxed font-mono">
+                                        Mendukung sinkronisasi mendalam dari histori klasemen Season 1 hingga musim aktif. 
+                                        Secara otomatis menghitung ulang total pertandingan, menang, seri, kalah, dan akumulasi gol individu masing-masing pemain.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <Button 
+                                onClick={() => {
+                                    setPendingAction(() => () => handleSyncCareerStats());
+                                    setPasswordPromptOpen(true);
+                                }} 
+                                disabled={isSyncing || !isPasswordLoaded} 
+                                className="w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-amber-500/20 transition-all bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black hover:from-amber-400 hover:to-yellow-300"
+                            >
+                                <span className="flex items-center justify-center gap-3">
+                                    {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5" />}
+                                    {isSyncing ? "CALIBRATING DATA MATRICES..." : "REKAP SELURUH FORMAT MUSIM (V2.5)"}
+                                </span>
+                            </Button>
+                        </CardContent>
+                    </div>
+
                 </div>
 
                 <PasswordManager open={showPasswordManager} onOpenChange={setShowPasswordManager} />
 
+                {/* CYBER MATRIX AUTHORIZATION DIALOG */}
                 <Dialog open={passwordPromptOpen} onOpenChange={setPasswordPromptOpen}>
-                    <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-amber-500 border-8 bg-[#0A192F]/95 backdrop-blur-3xl rounded-none shadow-[0_0_150px_rgba(245,158,11,0.2)]">
-                        <DialogHeader className="space-y-4">
-                            <div className="flex items-center gap-5 text-amber-500">
-                                <div className="p-4 bg-amber-500/10 rounded-none border-2 border-amber-500/40 -skew-x-[12deg]">
-                                    <ShieldCheck className="w-10 h-10 skew-x-[12deg]" />
+                    <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-2 border-amber-500/50 bg-[#0B0F19]/98 backdrop-blur-3xl rounded-[2.5rem] p-6 sm:p-8 shadow-[0_0_80px_rgba(245,158,11,0.25)] text-white">
+                        <div className="absolute top-0 left-12 right-12 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent pointer-events-none" />
+
+                        <DialogHeader className="space-y-3">
+                            <div className="flex items-center gap-3.5">
+                                <div className="p-3 bg-amber-500/10 rounded-2xl border border-amber-500/30 text-amber-400">
+                                    <ShieldCheck className="w-7 h-7" />
                                 </div>
-                                <div className="text-left">
-                                    <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic pr-4 leading-none">Otorisasi Rekap</DialogTitle>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500/60 mt-1">Status: Restricted_Access</p>
+                                <div className="text-left min-w-0">
+                                    <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight uppercase italic font-headline text-white leading-none">
+                                        Otorisasi Rekap
+                                    </DialogTitle>
+                                    <p className="text-[9px] font-mono font-black uppercase tracking-[0.25em] text-amber-400/80 mt-1">
+                                        SECURITY_CLEARANCE // LEVEL 04
+                                    </p>
                                 </div>
                             </div>
-                            <DialogDescription className="font-bold text-white/40 uppercase tracking-widest text-[10px] leading-relaxed text-left border-l-2 border-white/10 pl-4">Tindakan ini akan memindai seluruh data histori klasemen dari Season 1 hingga saat ini secara menyeluruh.</DialogDescription>
+                            <DialogDescription className="font-mono text-white/50 text-xs leading-relaxed text-left border-l-2 border-amber-500/40 pl-3">
+                                Masukkan kata sandi administrator untuk mengonfirmasi kalibrasi data historis menyeluruh.
+                            </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-8 py-10">
-                            <div className="space-y-3">
-                                <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/60 ml-1 italic">ENCRYPTED_KEY_TRANSMISSION</Label>
-                                <div className="relative group/input">
-                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.8)] z-20" />
-                                    <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-16 bg-black/60 border-white/10 rounded-none focus:border-amber-500/50 text-2xl font-black tracking-[0.3em] text-amber-500 pl-8" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
-                                </div>
+
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="password-input" className="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-amber-400 italic">
+                                    CIPHER_KEY_INPUT
+                                </Label>
+                                <Input 
+                                    id="password-input" 
+                                    type="password" 
+                                    value={passwordInput} 
+                                    onChange={(e) => setPasswordInput(e.target.value)} 
+                                    placeholder="••••••••" 
+                                    className="h-14 bg-black/60 border-white/10 rounded-2xl focus:border-amber-400 text-xl font-mono font-black tracking-[0.3em] text-amber-300 px-5" 
+                                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} 
+                                    autoFocus
+                                />
                             </div>
                         </div>
-                        <DialogFooter>
-                            <Button onClick={handlePasswordCheck} className="w-full h-16 font-black tracking-[0.3em] text-lg sm:text-xl uppercase italic rounded-none shadow-2xl shadow-amber-500/30 text-black bg-amber-500 border-r-8 border-black/20 group/unlock relative overflow-hidden">
-                                <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/unlock:translate-x-[100%] transition-transform duration-700" />
-                                <span className="relative z-10 flex items-center justify-center gap-4">
-                                    <Scan className="w-6 h-6" />
-                                    KONFIRMASI & MULAI
-                                </span>
+
+                        <DialogFooter className="gap-2 sm:gap-0">
+                            <Button 
+                                onClick={handlePasswordCheck} 
+                                className="w-full h-14 font-black tracking-[0.2em] text-xs uppercase italic rounded-2xl shadow-xl shadow-amber-500/25 text-black bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 transition-all flex items-center justify-center gap-2.5"
+                            >
+                                <Scan className="w-4 h-4" />
+                                KONFIRMASI & EKSEKUSI
                             </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
             </div>
         </div>
     );

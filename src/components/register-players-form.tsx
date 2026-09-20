@@ -1,17 +1,21 @@
 'use client';
 
 import * as React from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { Player, LeagueEntry, WithId, Team } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from './ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { User } from 'lucide-react';
+import { User, Search, Check, Users, Shield, Zap, Sparkles, CheckCheck, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-
+import { Input } from './ui/input';
+import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
+import { resolveLogo } from '@/lib/logo-utils';
 
 interface RegisterPlayersFormProps {
   allPlayers: WithId<Player>[];
@@ -27,7 +31,8 @@ export function RegisterPlayersForm({
   isLoading = false,
 }: RegisterPlayersFormProps) {
   const { t } = useTranslation();
-  const [selected, setSelected] = React.useState<Record<string, boolean>>({});
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState('');
   const firestore = useFirestore();
 
   const teamsCollection = useMemoFirebase(
@@ -36,7 +41,7 @@ export function RegisterPlayersForm({
   );
   const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
 
-  const teamsById = React.useMemo(() => {
+  const teamsById = useMemo(() => {
     if (!teams) return {};
     return teams.reduce((acc, team) => {
       acc[team.id] = team;
@@ -44,17 +49,30 @@ export function RegisterPlayersForm({
     }, {} as Record<string, WithId<Team>>);
   }, [teams]);
 
-  const registeredPlayerIds = React.useMemo(() => 
+  const registeredPlayerIds = useMemo(() => 
     new Set(registeredPlayers.map(p => p.playerId))
   , [registeredPlayers]);
 
-  const availablePlayers = React.useMemo(() =>
+  const availablePlayers = useMemo(() =>
     allPlayers.filter(p => !registeredPlayerIds.has(p.id))
   , [allPlayers, registeredPlayerIds]);
+
+  const filteredPlayers = useMemo(() => {
+    if (!searchQuery.trim()) return availablePlayers;
+    const q = searchQuery.toLowerCase().trim();
+    return availablePlayers.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      (p.teamName && p.teamName.toLowerCase().includes(q))
+    );
+  }, [availablePlayers, searchQuery]);
+
+  const selectedCount = useMemo(() => 
+    Object.values(selected).filter(Boolean).length
+  , [selected]);
   
-  const areAllSelected = React.useMemo(() => 
-    availablePlayers.length > 0 && availablePlayers.every(p => !!selected[p.id])
-  , [availablePlayers, selected]);
+  const areAllFilteredSelected = useMemo(() => 
+    filteredPlayers.length > 0 && filteredPlayers.every(p => !!selected[p.id])
+  , [filteredPlayers, selected]);
 
   const handleSelect = (playerId: string) => {
     setSelected(prev => ({
@@ -63,21 +81,27 @@ export function RegisterPlayersForm({
     }));
   };
   
-  const handleSelectAll = (checked: boolean | 'indeterminate') => {
-    if (checked === true) {
-      const newSelected = availablePlayers.reduce((acc, player) => {
-        acc[player.id] = true;
-        return acc;
-      }, {} as Record<string, boolean>);
-      setSelected(newSelected);
+  const handleSelectAllFiltered = () => {
+    if (areAllFilteredSelected) {
+      // Unselect filtered
+      setSelected(prev => {
+        const next = { ...prev };
+        filteredPlayers.forEach(p => delete next[p.id]);
+        return next;
+      });
     } else {
-      setSelected({});
+      // Select all filtered
+      setSelected(prev => {
+        const next = { ...prev };
+        filteredPlayers.forEach(p => { next[p.id] = true; });
+        return next;
+      });
     }
   };
 
-
   const handleSubmit = () => {
     const selectedIds = Object.keys(selected).filter(id => selected[id]);
+    if (selectedIds.length === 0) return;
     onRegister(selectedIds);
   };
   
@@ -87,80 +111,200 @@ export function RegisterPlayersForm({
 
   if (availablePlayers.length === 0) {
     return (
-      <div className="text-center text-muted-foreground py-8">
-        <p>{t('all_players_registered')}</p>
+      <div className="py-12 px-4 text-center space-y-3 bg-white/[0.02] border border-white/5 rounded-2xl">
+        <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary mx-auto flex items-center justify-center">
+          <CheckCheck className="w-6 h-6" />
+        </div>
+        <div className="space-y-1">
+          <h4 className="font-headline font-black text-white uppercase italic text-sm tracking-wide">
+            Semua Atlet Terdaftar
+          </h4>
+          <p className="text-xs text-white/40 font-mono">
+            {t('all_players_registered')}
+          </p>
+        </div>
       </div>
     );
   }
 
+  const selectionPercent = availablePlayers.length > 0 
+    ? Math.round((selectedCount / availablePlayers.length) * 100) 
+    : 0;
+
   return (
-    <div className="space-y-4">
-       <div className="flex items-center space-x-3 p-2 rounded-md border">
-        <Checkbox
-          id="select-all"
-          checked={areAllSelected}
-          onCheckedChange={handleSelectAll}
-        />
-        <label
-          htmlFor="select-all"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          {t('select_all_players')}
-        </label>
-      </div>
-      <ScrollArea className="h-64 border rounded-md">
-        <div className="p-4 space-y-2">
-          {availablePlayers.map(player => {
-            const team = player.teamId ? teamsById[player.teamId] : null;
-            return (
-              <div
-                key={player.id}
-                className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted cursor-pointer"
-                onClick={() => handleSelect(player.id)}
-              >
-                <Checkbox
-                  id={`player-${player.id}`}
-                  checked={!!selected[player.id]}
-                  onCheckedChange={() => handleSelect(player.id)}
-                />
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={team?.logoUrl} />
-                  <AvatarFallback><User /></AvatarFallback>
-                </Avatar>
-                <label htmlFor={`player-${player.id}`} className="flex-1 cursor-pointer">
-                  <div className="font-medium">{player.name}</div>
-                  <div className="text-sm text-muted-foreground">{player.teamName || 'Tanpa Tim'}</div>
-                </label>
-              </div>
-            )
-          })}
+    <div className="space-y-3 sm:space-y-4">
+      
+      {/* Telemetry Progress & Quick Control Deck */}
+      <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2 shadow-inner">
+        <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-black uppercase tracking-wider font-mono">
+          <div className="flex items-center gap-1.5 text-primary">
+            <Zap className="w-3.5 h-3.5 fill-primary" />
+            <span>ROSTER_SELECTION: <strong className="text-white text-xs">{selectedCount}</strong> / {availablePlayers.length} ATLET</span>
+          </div>
+          <span className="text-primary/90 font-mono">[{selectionPercent}% KUOTA]</span>
         </div>
+        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+          <div 
+            className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(204,253,1,0.8)] transition-all duration-300"
+            style={{ width: `${selectionPercent}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Search & Bulk Select Toolbar */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+          <Input 
+            placeholder="Cari nama atlet atau klub..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 pl-9 pr-8 bg-black/40 border-white/10 hover:border-primary/40 focus:border-primary rounded-xl text-xs text-white uppercase placeholder:normal-case placeholder:text-white/30"
+          />
+          {searchQuery && (
+            <button 
+              type="button" 
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        <Button
+          type="button"
+          onClick={handleSelectAllFiltered}
+          variant="outline"
+          size="sm"
+          className={cn(
+            "h-9 px-3 text-[10px] font-black uppercase tracking-wider italic font-headline rounded-xl border transition-all shrink-0",
+            areAllFilteredSelected 
+              ? "bg-primary text-black border-primary shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
+              : "bg-white/[0.03] border-white/10 hover:border-primary/40 text-white/80"
+          )}
+        >
+          {areAllFilteredSelected ? "BATAL SEMUA" : "PILIH SEMUA"}
+        </Button>
+      </div>
+
+      {/* High-Density Athletes Roster List */}
+      <ScrollArea className="h-[320px] sm:h-[360px] pr-2 rounded-2xl border border-white/10 bg-black/40 p-2 shadow-inner">
+        {filteredPlayers.length === 0 ? (
+          <div className="py-12 text-center text-white/40 text-xs font-mono">
+            Tidak ada atlet yang cocok dengan "{searchQuery}"
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            {filteredPlayers.map((player, idx) => {
+              const isSelected = !!selected[player.id];
+              const team = player.teamId ? teamsById[player.teamId] : null;
+              const teamLogo = resolveLogo(team?.logoUrl, player.teamId, player.name);
+
+              return (
+                <div
+                  key={player.id}
+                  onClick={() => handleSelect(player.id)}
+                  className={cn(
+                    "flex items-center justify-between p-2 sm:p-2.5 rounded-xl border transition-all cursor-pointer select-none group/item relative overflow-hidden",
+                    isSelected 
+                      ? "bg-primary/10 border-primary/50 shadow-[0_0_15px_rgba(204,253,1,0.15)]" 
+                      : "bg-white/[0.02] border-white/5 hover:border-white/20 hover:bg-white/[0.05]"
+                  )}
+                >
+                  {/* Active Indicator Bar */}
+                  <div className={cn(
+                    "absolute left-0 top-0 bottom-0 w-1 transition-all",
+                    isSelected ? "bg-primary shadow-[0_0_8px_rgba(204,253,1,0.8)]" : "bg-transparent"
+                  )} />
+
+                  {/* Left: Index & Checkbox & Avatar & Info */}
+                  <div className="flex items-center gap-2.5 sm:gap-3 pl-1.5 min-w-0">
+                    <div className="text-[10px] font-mono font-black text-white/30 w-5 shrink-0">
+                      #{idx + 1}
+                    </div>
+
+                    <div className={cn(
+                      "w-4.5 h-4.5 rounded-md border flex items-center justify-center shrink-0 transition-all",
+                      isSelected 
+                        ? "bg-primary border-primary text-black shadow-[0_0_8px_rgba(204,253,1,0.8)]" 
+                        : "border-white/20 bg-black/40 group-hover/item:border-white/40"
+                    )}>
+                      {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    </div>
+
+                    <Avatar className="h-8 w-8 rounded-lg border border-white/10 shrink-0">
+                      <AvatarImage src={player.avatarUrl || teamLogo} className="object-cover" />
+                      <AvatarFallback className="bg-white/5 text-[10px] font-black text-white/50">
+                        {player.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "font-headline font-black uppercase italic tracking-tight text-xs truncate",
+                          isSelected ? "text-primary" : "text-white"
+                        )}>
+                          {player.name}
+                        </span>
+                        {player.ovr && (
+                          <span className="text-[8px] font-black font-mono px-1 py-0.2 rounded bg-amber-400/10 border border-amber-400/30 text-amber-300">
+                            {player.ovr}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[9px] text-white/40 font-mono truncate">
+                        {player.teamName || 'Tanpa Tim'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Tier Badge */}
+                  {player.division && (
+                    <Badge 
+                      variant="outline" 
+                      className="text-[8px] font-black uppercase tracking-wider font-mono border-white/10 text-white/50 shrink-0 hidden xs:inline-flex"
+                    >
+                      {player.division}
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </ScrollArea>
-      <Button onClick={handleSubmit} className="w-full">
-        {t('register_selected_players')}
+
+      {/* Action Submit Dock */}
+      <Button 
+        onClick={handleSubmit} 
+        disabled={selectedCount === 0}
+        className={cn(
+          "w-full h-12 font-headline font-black uppercase italic tracking-wider text-xs rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2",
+          selectedCount > 0 
+            ? "bg-primary text-black hover:bg-primary/90 shadow-[0_0_30px_rgba(204,253,1,0.5)] cursor-pointer" 
+            : "bg-white/10 text-white/30 border border-white/5 cursor-not-allowed"
+        )}
+      >
+        <Sparkles className="w-4 h-4" />
+        <span>DAFTARKAN {selectedCount} ATLET // ROSTER CONFIRMED</span>
       </Button>
     </div>
   );
 }
 
-
 function RegisterPlayersSkeleton() {
-    return (
-        <div className="space-y-4">
-            <ScrollArea className="h-64 border rounded-md">
-                <div className="p-4 space-y-2">
-                    {[...Array(5)].map((_, i) => (
-                        <div key={i} className="flex items-center space-x-3 p-2">
-                            <Skeleton className="h-5 w-5 rounded" />
-                            <div className="space-y-1">
-                                <Skeleton className="h-5 w-32" />
-                                <Skeleton className="h-4 w-24" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </ScrollArea>
-             <Skeleton className="h-10 w-full" />
-        </div>
-    );
+  return (
+    <div className="space-y-4">
+      <div className="h-12 bg-white/5 rounded-2xl animate-pulse" />
+      <div className="h-9 bg-white/5 rounded-xl animate-pulse" />
+      <div className="space-y-2">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-11 bg-white/5 rounded-xl animate-pulse" />
+        ))}
+      </div>
+      <div className="h-12 bg-white/5 rounded-2xl animate-pulse" />
+    </div>
+  );
 }

@@ -3,14 +3,18 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "hosting": {
-    "source": ".",
+  "apphosting": {
+    "backendId": "studio",
+    "rootDir": ".",
     "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "framework": "nextjs",
-    "cleanUrls": true
+      "node_modules",
+      ".git",
+      ".next",
+      ".vscode",
+      ".agents",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
   }
 }
+

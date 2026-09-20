@@ -59,20 +59,19 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
       <div className="container mx-auto px-4 relative z-10">
         {/* CENTERED HEADER */}
         <div className="flex flex-col items-center gap-4 mb-8">
-            <div className="bg-red-500 px-8 py-2 flex items-center justify-center relative overflow-hidden -skew-x-[15deg] border-r-4 border-black/20 shadow-[0_0_30px_rgba(239,68,68,0.3)]">
-                <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-                <div className="flex items-center gap-3 relative z-10 skew-x-[15deg]">
-                    <span className="relative flex h-3 w-3">
+            <div className="bg-red-500/90 px-6 py-2 flex items-center justify-center relative overflow-hidden rounded-full border border-red-500/40 shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+                <div className="flex items-center gap-3 relative z-10">
+                    <span className="relative flex h-2.5 w-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                     </span>
-                    <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-[0.4em] italic pr-2">Live Score</h2>
+                    <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-[0.3em] italic pr-1">Live Score</h2>
                 </div>
             </div>
             <div className="flex items-center gap-2 opacity-30">
-                <div className="h-px w-12 bg-white" />
+                <div className="h-px w-12 bg-white rounded-full" />
                 <Binary className="w-4 h-4 text-white" />
-                <div className="h-px w-12 bg-white" />
+                <div className="h-px w-12 bg-white rounded-full" />
             </div>
         </div>
 
@@ -93,9 +92,9 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
             return (
               <div key={match.id} className="relative group/live-card">
                 {/* Glow Effect */}
-                <div className="absolute -inset-2 bg-primary/5 rounded-[2.5rem] blur-2xl opacity-0 group-hover/live-card:opacity-100 transition-opacity duration-700" />
+                <div className="absolute -inset-2 bg-primary/10 rounded-[2.5rem] blur-2xl opacity-0 group-hover/live-card:opacity-100 transition-opacity duration-700 pointer-events-none" />
                 
-                <div className="bg-black/60 border-2 border-white/10 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 flex flex-col sm:flex-row items-center gap-6 sm:gap-10 shadow-2xl hover:border-primary/40 transition-all duration-500 relative overflow-hidden backdrop-blur-3xl min-w-[280px] sm:min-w-[450px]">
+                <div className="bg-black/60 border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 flex flex-col sm:flex-row items-center gap-6 sm:gap-10 shadow-2xl hover:border-primary/40 transition-all duration-500 relative overflow-hidden backdrop-blur-3xl min-w-[280px] sm:min-w-[450px] aero-card">
                     
                     {/* Interior Scan Line */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-0 group-hover/live-card:opacity-20 transition-opacity">
@@ -107,14 +106,14 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                         <div className="flex items-center gap-4 flex-1">
                             {isAdmin && (
                                 <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
-                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', 1)}><Plus className="h-3 w-3" /></Button>
-                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-3 w-3" /></Button>
+                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-xl border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', 1)}><Plus className="h-3 w-3" /></Button>
+                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-xl border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-3 w-3" /></Button>
                                 </div>
                             )}
                             <div className="flex flex-col items-center gap-3 flex-1">
                                 <div className="relative">
                                     <div className="absolute -inset-2 bg-primary/10 rounded-full blur-lg opacity-0 group-hover/live-card:opacity-100 transition-opacity" />
-                                    <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-110">
+                                    <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-white/10 group-hover/live-card:border-primary transition-all duration-500 shadow-xl scale-100 group-hover/live-card:scale-105">
                                         <AvatarImage src={logo1} className="object-cover" />
                                         <AvatarFallback className="bg-black/40 text-[10px] font-black">P1</AvatarFallback>
                                     </Avatar>
@@ -131,29 +130,29 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                         {/* CENTER SCORE HUB */}
                         <div className="flex flex-col items-center gap-3">
                             <div className="relative group/score-box">
-                                <div className="absolute -inset-4 bg-primary/5 rounded-2xl blur-xl animate-pulse" />
-                                <div className="bg-[#0A192F] border-2 border-primary/30 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl shadow-[0_0_40px_rgba(204,253,1,0.1)] flex flex-col items-center relative z-10 -skew-x-[12deg] group-hover/live-card:border-primary transition-colors">
+                                <div className="absolute -inset-4 bg-primary/10 rounded-2xl blur-xl animate-pulse pointer-events-none" />
+                                <div className="bg-[#0A192F]/90 border border-primary/30 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl shadow-[0_0_40px_rgba(204,253,1,0.1)] flex flex-col items-center relative z-10 group-hover/live-card:border-primary transition-colors">
                                     <div className="flex items-center gap-4 sm:gap-6">
-                                        <span className="text-3xl sm:text-5xl font-black text-primary italic tabular-nums skew-x-[12deg] drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] leading-none">{match.player1Score ?? 0}</span>
-                                        <div className="w-px h-8 sm:h-12 bg-white/10 skew-x-[12deg]" />
-                                        <span className="text-3xl sm:text-5xl font-black text-primary italic tabular-nums skew-x-[12deg] drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] leading-none">{match.player2Score ?? 0}</span>
+                                        <span className="text-3xl sm:text-5xl font-black text-primary italic tabular-nums drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] leading-none">{match.player1Score ?? 0}</span>
+                                        <div className="w-px h-8 sm:h-12 bg-white/10" />
+                                        <span className="text-3xl sm:text-5xl font-black text-primary italic tabular-nums drop-shadow-[0_0_15px_rgba(204,253,1,0.5)] leading-none">{match.player2Score ?? 0}</span>
                                     </div>
                                     {isBo3 && (
-                                        <div className="mt-2 flex items-center gap-2 skew-x-[12deg]">
-                                            <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em]">Series Wins</span>
-                                            <div className="flex items-center gap-1.5 bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                                                <span className="text-[10px] font-black text-white/60 tabular-nums">{match.player1Wins}</span>
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <span className="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Series Wins</span>
+                                            <div className="flex items-center gap-1.5 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                                <span className="text-[10px] font-black text-white/70 tabular-nums">{match.player1Wins}</span>
                                                 <div className="w-px h-2 bg-white/10" />
-                                                <span className="text-[10px] font-black text-white/60 tabular-nums">{match.player2Wins}</span>
+                                                <span className="text-[10px] font-black text-white/70 tabular-nums">{match.player2Wins}</span>
                                             </div>
                                         </div>
                                     )}
                                 </div>
                             </div>
                             <div className="flex flex-col items-center gap-1">
-                                <Badge className="bg-red-500 text-white border-none font-black text-[8px] h-5 px-3 uppercase italic shadow-lg animate-pulse">LIVE BROADCAST</Badge>
+                                <Badge className="bg-red-500 text-white border-none font-black text-[8px] h-5 px-3 uppercase italic shadow-lg animate-pulse rounded-full">LIVE BROADCAST</Badge>
                                 {isBo3 && (
-                                    <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary text-[7px] font-black uppercase tracking-widest px-2 h-4 italic">
+                                    <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary text-[7px] font-black uppercase tracking-widest px-2.5 h-4 italic rounded-full">
                                         GAME {gameIdx} OF 3
                                     </Badge>
                                 )}

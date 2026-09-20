@@ -117,15 +117,15 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
 
                             <div className="absolute top-4 right-4 z-20">
                                 <Badge className={cn(
-                                    "font-black text-[8px] uppercase tracking-widest h-6 px-3 italic border-none -skew-x-[12deg] border-r-4 border-black/20 shadow-lg", 
+                                    "font-black text-[9px] uppercase tracking-wider h-6 px-3 italic border-none rounded-full shadow-lg", 
                                     tierColor
                                 )}>
-                                    <span className="skew-x-[12deg]">T{team.tier || 3}</span>
+                                    <span>T{team.tier || 3}</span>
                                 </Badge>
                             </div>
 
                             {/* Large Ghost Text Background */}
-                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl font-black text-white/[0.02] uppercase tracking-tighter italic whitespace-nowrap pointer-events-none group-hover:text-primary/[0.04] transition-colors pr-10 select-none">
+                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl font-black text-white/[0.02] uppercase tracking-tight italic whitespace-nowrap pointer-events-none group-hover:text-primary/[0.04] transition-colors pr-10 select-none">
                                 {team.name}
                             </span>
 
@@ -138,18 +138,18 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                                         <div className="w-full h-1 bg-primary blur-[1px] animate-scanning" />
                                     </div>
 
-                                    <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-white/10 shadow-2xl group-hover:border-primary transition-all duration-700 group-hover:scale-110 relative z-10">
+                                    <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-2 border-white/10 shadow-2xl group-hover:border-primary transition-all duration-700 group-hover:scale-105 relative z-10">
                                         <AvatarImage src={logoUrl} alt={`${team.name} logo`} className="object-cover" />
                                         <AvatarFallback className="bg-black/60"><Shield className="h-14 w-14 text-white/5" /></AvatarFallback>
                                     </Avatar>
                                     
-                                    <div className="absolute -bottom-2 -right-2 bg-primary text-black p-2 rounded-xl shadow-2xl z-20 rotate-12 group-hover:rotate-0 transition-transform duration-500 border-4 border-[#0A192F]">
+                                    <div className="absolute -bottom-2 -right-2 bg-primary text-black p-2.5 rounded-2xl shadow-2xl z-20 transition-transform duration-500 group-hover:scale-110 border-2 border-[#0A192F]">
                                         <Zap className="w-4 h-4 fill-black" />
                                     </div>
                                 </div>
                                 
                                 <div className="space-y-1 text-center relative z-10">
-                                    <p className="font-black text-xl sm:text-2xl text-center text-white tracking-tighter uppercase italic group-hover:text-primary transition-colors duration-500 pr-4 leading-none">
+                                    <p className="font-black text-xl sm:text-2xl text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-500 pr-4 leading-none">
                                         {team.name}
                                     </p>
                                     <div className="flex items-center justify-center gap-2 opacity-40">
@@ -160,12 +160,12 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                             </CardContent>
 
                             {isAdmin && (
-                                <CardFooter className="flex justify-center gap-2 p-4 border-t border-white/5 bg-black/40 backdrop-blur-md mt-auto relative z-20">
+                                <CardFooter className="flex justify-center gap-2 p-4 border-t border-white/5 bg-black/40 backdrop-blur-md mt-auto relative z-20 rounded-b-[2rem]">
                                     <Button 
                                         variant="ghost" 
                                         size="sm" 
                                         onClick={() => onEdit(team)}
-                                        className="flex-1 font-black text-[9px] uppercase tracking-widest h-10 border border-white/5 hover:bg-primary/10 hover:text-primary transition-all rounded-xl"
+                                        className="flex-1 font-black text-[10px] uppercase tracking-widest h-10 border border-white/10 hover:bg-primary/10 hover:text-primary transition-all rounded-xl"
                                     >
                                         <Pencil className="h-3.5 w-3.5 mr-2" />
                                         {t('edit_team_title')}
@@ -174,7 +174,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                                         variant="ghost" 
                                         size="sm" 
                                         onClick={() => confirmDelete(team)}
-                                        className="h-10 w-10 p-0 hover:bg-red-500/10 hover:text-red-500 transition-all border border-white/5 rounded-xl"
+                                        className="h-10 w-10 p-0 hover:bg-red-500/10 hover:text-red-500 transition-all border border-white/10 rounded-xl"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
                                         <span className="sr-only">{t('delete_team')}</span>
@@ -188,18 +188,18 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
         </div>
 
         <AlertDialog open={!!deletingTeam} onOpenChange={(isOpen) => !isOpen && setDeletingTeam(null)}>
-            <AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl rounded-[2rem]">
+            <AlertDialogContent className="border border-red-500/40 bg-[#0A192F]/95 backdrop-blur-3xl rounded-3xl p-6 sm:p-8 shadow-[0_0_80px_rgba(239,68,68,0.2)]">
                 <AlertDialogHeader>
-                <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle>
-                <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
+                <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle>
+                <AlertDialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[10px]">
                     {t('delete_team_confirm_desc', { teamName: deletingTeam?.name })}
                 </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="gap-3">
-                <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic">{t('cancel')}</AlertDialogCancel>
+                <AlertDialogFooter className="gap-3 mt-6">
+                <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic border border-white/10 bg-white/5">{t('cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                     onClick={handleDelete}
-                    className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic"
+                    className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic shadow-lg shadow-red-500/25"
                 >
                     {t('delete')}
                 </AlertDialogAction>

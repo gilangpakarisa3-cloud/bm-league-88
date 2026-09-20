@@ -1,23 +1,20 @@
-
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame, BarChart3, CheckCircle2 } from 'lucide-react';
+import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame, BarChart3, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { Progress } from './ui/progress';
-import { ScrollArea } from './ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { ChartContainer, ChartConfig } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer } from 'recharts';
+import { getSeasonTheme, type TISeasonTheme } from '@/lib/season-theme';
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
@@ -34,76 +31,192 @@ interface PlayerPerformanceDialogProps {
   singleLeagueTable: WithId<LeagueEntry>[];
 }
 
-const StatDisplay = ({ label, value, variant = "default" }: { label: string, value: string | number, variant?: "default" | "primary" | "gold" }) => (
-  <div className={cn(
-      "flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all duration-500 group/stat",
-      variant === "primary" ? "bg-primary/10 border-primary/20 hover:border-primary/50" : 
-      variant === "gold" ? "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/30"
-  )}>
-    <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em]">{label}</span>
-    <span className={cn("text-lg font-black italic tabular-nums leading-none mt-1.5", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
-  </div>
-);
-
-const IntelCard = ({ icon: Icon, label, value, variant = "default", tooltip }: { icon: any, label: string, value: string | number, variant?: "default" | "primary" | "gold", tooltip?: string }) => (
-    <Popover>
-        <PopoverTrigger asChild>
-            <div className={cn(
-                "flex flex-col items-center text-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-500 relative overflow-hidden group/intel cursor-help",
-                variant === "primary" ? "bg-primary/10 border-primary/30 hover:border-primary/50" : 
-                variant === "gold" ? "bg-yellow-500/10 border-yellow-500/30 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"
-            )}>
-                <div className="absolute inset-0 bg-current opacity-0 group-hover/intel:opacity-5 transition-opacity" />
-                <div className="flex items-center justify-center gap-1.5 relative z-10">
-                    <Icon className={cn("w-3 h-3", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white/60")} />
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60">{label}</span>
-                </div>
-                <span className={cn("font-black text-sm uppercase italic leading-none relative z-10", variant === "primary" ? "text-primary" : variant === "gold" ? "text-yellow-500" : "text-white")} suppressHydrationWarning>{value}</span>
-            </div>
-        </PopoverTrigger>
-        {tooltip && (
-            <PopoverContent className="w-56 text-center bg-black/90 border-primary/30 backdrop-blur-xl">
-                <p className="text-[10px] font-bold text-white/80">{tooltip}</p>
-            </PopoverContent>
+const StatChip = ({
+  code,
+  label,
+  value,
+  variant = 'default',
+  primaryHex,
+  glowRgba,
+  isCrimson = false
+}: {
+  code: string;
+  label: string;
+  value: string | number;
+  variant?: 'default' | 'primary' | 'gold' | 'win' | 'draw' | 'loss';
+  primaryHex?: string;
+  glowRgba?: string;
+  isCrimson?: boolean;
+}) => {
+  const isPrimary = variant === 'primary';
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center py-2.5 sm:py-3 px-1.5 sm:px-2 rounded-2xl border transition-all duration-300 relative overflow-hidden backdrop-blur-md group/stat",
+        variant === "gold" ? "bg-amber-500/[0.08] border-amber-500/40 hover:border-amber-500 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]" :
+        variant === "win" ? "bg-green-500/[0.08] border-green-500/30 hover:border-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)]" :
+        variant === "loss" ? "bg-red-500/[0.08] border-red-500/30 hover:border-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]" :
+        variant === "draw" ? "bg-yellow-500/[0.08] border-yellow-500/30 hover:border-yellow-500 hover:shadow-[0_0_20px_rgba(234,179,8,0.2)]" :
+        !isPrimary ? "bg-white/[0.03] border-white/10 hover:border-white/20" : ""
+      )}
+      style={isPrimary && primaryHex ? {
+        backgroundColor: `${primaryHex}14`,
+        borderColor: `${primaryHex}50`,
+        boxShadow: `0 0 16px ${primaryHex}20`
+      } : undefined}
+    >
+      <div className="flex items-center gap-1">
+        <span className="text-[7px] font-black uppercase text-white/30 tracking-widest">{code}</span>
+        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white/60">{label}</span>
+      </div>
+      <span
+        className={cn(
+          "text-lg sm:text-2xl font-black italic tabular-nums leading-none mt-1.5 font-headline",
+          variant === "gold" ? "text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]" :
+          variant === "win" ? "text-green-400" :
+          variant === "loss" ? "text-red-400" :
+          variant === "draw" ? "text-yellow-400" :
+          !isPrimary ? "text-white" : ""
         )}
+        style={isPrimary && primaryHex ? {
+          color: primaryHex,
+          textShadow: `0 0 12px ${glowRgba || primaryHex}`
+        } : undefined}
+        suppressHydrationWarning
+      >
+        {value}
+      </span>
+    </div>
+  );
+};
+
+const IntelCard = ({ 
+  icon: Icon, 
+  label, 
+  value, 
+  variant = "default", 
+  tooltip,
+  primaryHex,
+  glowRgba
+}: { 
+  icon: any; 
+  label: string; 
+  value: string | number; 
+  variant?: "default" | "primary" | "gold"; 
+  tooltip?: string; 
+  primaryHex?: string;
+  glowRgba?: string;
+}) => {
+  const isPrimary = variant === "primary";
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <div 
+          className={cn(
+            "flex flex-col items-center text-center gap-1.5 p-3 rounded-2xl border transition-all duration-300 relative overflow-hidden group/intel cursor-help backdrop-blur-md shadow-md hover:scale-[1.02]",
+            variant === "gold" ? "bg-amber-500/[0.07] border-amber-500/30 hover:border-amber-500 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]" : 
+            !isPrimary ? "bg-white/[0.03] border-white/10 hover:border-white/20" : ""
+          )}
+          style={isPrimary && primaryHex ? {
+            backgroundColor: `${primaryHex}12`,
+            borderColor: `${primaryHex}45`,
+            boxShadow: `0 0 15px ${primaryHex}15`
+          } : undefined}
+        >
+          <div className="flex items-center justify-center gap-1.5 relative z-10">
+            <Icon 
+              className={cn("w-3.5 h-3.5", variant === "gold" ? "text-amber-400" : !isPrimary ? "text-white/60" : "")} 
+              style={isPrimary && primaryHex ? { color: primaryHex } : undefined}
+            />
+            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.15em] text-white/60">{label}</span>
+          </div>
+          <span 
+            className={cn(
+              "font-black text-sm sm:text-base uppercase italic leading-none relative z-10 mt-0.5", 
+              variant === "gold" ? "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : 
+              !isPrimary ? "text-white" : ""
+            )} 
+            style={isPrimary && primaryHex ? { 
+              color: primaryHex,
+              textShadow: `0 0 10px ${glowRgba || primaryHex}`
+            } : undefined}
+            suppressHydrationWarning
+          >
+            {value}
+          </span>
+        </div>
+      </PopoverTrigger>
+      {tooltip && (
+        <PopoverContent 
+          className="w-60 text-center bg-black/95 backdrop-blur-2xl rounded-2xl shadow-xl z-50 border"
+          style={primaryHex ? { borderColor: `${primaryHex}50` } : undefined}
+        >
+          <p className="text-[10px] font-bold text-white/80 leading-relaxed">{tooltip}</p>
+        </PopoverContent>
+      )}
     </Popover>
-);
+  );
+};
+
+const formatMatchDate = (d: any) => {
+  if (!d) return '-';
+  try {
+    const dateObj = typeof d.toDate === 'function' ? d.toDate() : new Date(d);
+    return format(dateObj, "d MMM, HH:mm", { locale: localeId });
+  } catch {
+    return '-';
+  }
+};
 
 export function PlayerPerformanceDialog({ 
-    player, 
-    matches, 
-    allPlayers, 
-    allTeams, 
-    totalPlayersInSeason, 
-    open, 
-    onOpenChange, 
-    defendingChampionId, 
-    isAdmin, 
-    activeSeason, 
-    coopLeagueTable,
-    singleLeagueTable
+  player, 
+  matches, 
+  allPlayers, 
+  allTeams, 
+  totalPlayersInSeason, 
+  open, 
+  onOpenChange, 
+  defendingChampionId, 
+  isAdmin, 
+  activeSeason, 
+  coopLeagueTable,
+  singleLeagueTable
 }: PlayerPerformanceDialogProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('history');
   const [isMounted, setIsMounted] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
 
   useEffect(() => {
     setIsMounted(true);
-    if (player) setActiveTab('history');
-  }, [player]);
+  }, []);
+
+  // Save scroll position when dialog opens and reset dialog internal scroll to top
+  useEffect(() => {
+    if (open) {
+      if (typeof window !== 'undefined') {
+        scrollPositionRef.current = window.scrollY;
+      }
+      setActiveTab('history');
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    }
+  }, [open, player]);
   
-  const playersById = useMemo(() => allPlayers.reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
-  const teamsById = useMemo(() => allTeams.reduce((acc, t) => { acc[t.id] = t; return acc; }, {} as Record<string, WithId<Team>>), [allTeams]);
+  const playersById = useMemo(() => (allPlayers || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
+  const teamsById = useMemo(() => (allTeams || []).reduce((acc, t) => { acc[t.id] = t; return acc; }, {} as Record<string, WithId<Team>>), [allTeams]);
 
   const masterPlayersRanked = useMemo(() => {
     const players = Object.values(playersById);
     const withOvr = players.map(p => {
-        const poss = (p.overallPlayed || 0) * 3;
-        const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-        const ovrRating = poss > 0 ? (act / poss) * 100 : 0;
-        return { ...p, ovrRating };
+      const poss = (p.overallPlayed || 0) * 3;
+      const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
+      const ovrRating = poss > 0 ? (act / poss) * 100 : 0;
+      return { ...p, ovrRating };
     });
-    return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed).map((p, i) => ({ ...p, masterRank: i + 1 }));
+    return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0)).map((p, i) => ({ ...p, masterRank: i + 1 }));
   }, [playersById]);
 
   const performanceStats = useMemo(() => {
@@ -115,26 +228,41 @@ export function PlayerPerformanceDialog({
     const coopTableById = (coopLeagueTable || []).reduce((acc, entry) => { acc[entry.id] = entry; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>);
     const singleTableByPlayerId = (singleLeagueTable || []).reduce((acc, entry) => { acc[entry.playerId] = entry; return acc; }, {} as Record<string, WithId<LeagueEntry>>);
 
-    const playerMatches = matches.filter(m => (m.player1Id === playerIdToFilter || m.player2Id === playerIdToFilter));
+    const playerMatches = (matches || []).filter(m => (m.player1Id === playerIdToFilter || m.player2Id === playerIdToFilter));
 
     const completedMatches = playerMatches
       .filter(m => m.isCompleted)
-      .sort((a, b) => b.matchDate.toMillis() - a.matchDate.toMillis())
+      .sort((a, b) => {
+        const timeA = a.matchDate?.toMillis ? a.matchDate.toMillis() : 0;
+        const timeB = b.matchDate?.toMillis ? b.matchDate.toMillis() : 0;
+        return timeB - timeA;
+      })
       .map(m => {
         const isPlayer1 = m.player1Id === playerIdToFilter;
         const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
-        let opponent = null; let opponentTeam = null;
+        let opponent = null; 
+        let opponentTeam = null;
         
         if (isCoop) {
-            const opponentEntry = coopTableById[opponentId];
-            if (opponentEntry) { opponent = { name: opponentEntry.teamName }; opponentTeam = teamsById[opponentEntry.player1TeamId] || null; }
+          const opponentEntry = coopTableById[opponentId];
+          if (opponentEntry) { 
+            opponent = { name: opponentEntry.teamName }; 
+            opponentTeam = teamsById[opponentEntry.player1TeamId] || null; 
+          }
         } else {
-            const opponentEntry = singleTableByPlayerId[opponentId];
-            if (opponentEntry) { opponent = { name: opponentEntry.playerName }; opponentTeam = teamsById[opponentEntry.teamId]; }
-            else { const opponentPlayer = playersById[opponentId]; if(opponentPlayer){ opponent = { name: opponentPlayer.name }; opponentTeam = teamsById[opponentPlayer.teamId]; } }
+          const opponentEntry = singleTableByPlayerId[opponentId];
+          if (opponentEntry) { 
+            opponent = { name: opponentEntry.playerName }; 
+            opponentTeam = teamsById[opponentEntry.teamId]; 
+          } else { 
+            const opponentPlayer = playersById[opponentId]; 
+            if (opponentPlayer) { 
+              opponent = { name: opponentPlayer.name }; 
+              opponentTeam = teamsById[opponentPlayer.teamId]; 
+            } 
+          }
         }
 
-        // CORRECTED BO3 DETECTION: Only Bo3 if it's not a group match and has wins data
         const isBo3 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group';
         const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
         const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
@@ -151,42 +279,63 @@ export function PlayerPerformanceDialog({
       
     const upcomingMatches = playerMatches
       .filter(m => !m.isCompleted)
-      .sort((a,b) => a.matchDate.toMillis() - b.matchDate.toMillis())
+      .sort((a, b) => {
+        const timeA = a.matchDate?.toMillis ? a.matchDate.toMillis() : 0;
+        const timeB = b.matchDate?.toMillis ? b.matchDate.toMillis() : 0;
+        return timeA - timeB;
+      })
       .map(m => {
-          const isPlayer1 = m.player1Id === playerIdToFilter;
-          const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
-          let opponent = null; let opponentTeam = null;
-          if (isCoop) {
-            const opponentEntry = coopTableById[opponentId];
-            if (opponentEntry) { 
-                opponent = { name: opponentEntry.teamName }; 
-                opponentTeam = teamsById[opponentEntry.player1TeamId] || null; 
-            } else if (opponentId === 'TBD') {
-                opponent = { name: 'TBD' };
-            }
-          } else {
-              const opponentEntry = singleTableByPlayerId[opponentId];
-              if (opponentEntry) { opponent = { name: opponentEntry.playerName }; opponentTeam = teamsById[opponentEntry.teamId]; }
-              else if (opponentId === 'TBD') { opponent = { name: 'TBD' }; }
-              else { const opponentPlayer = playersById[opponentId]; if (opponentPlayer) { opponent = { name: opponentPlayer.name }; opponentTeam = teamsById[opponentPlayer.teamId]; } }
+        const isPlayer1 = m.player1Id === playerIdToFilter;
+        const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
+        let opponent = null; 
+        let opponentTeam = null;
+        if (isCoop) {
+          const opponentEntry = coopTableById[opponentId];
+          if (opponentEntry) { 
+            opponent = { name: opponentEntry.teamName }; 
+            opponentTeam = teamsById[opponentEntry.player1TeamId] || null; 
+          } else if (opponentId === 'TBD') {
+            opponent = { name: 'TBD' };
           }
-          return { ...m, isPlayer1, opponent, opponentTeam }
+        } else {
+          const opponentEntry = singleTableByPlayerId[opponentId];
+          if (opponentEntry) { 
+            opponent = { name: opponentEntry.playerName }; 
+            opponentTeam = teamsById[opponentEntry.teamId]; 
+          } else if (opponentId === 'TBD') { 
+            opponent = { name: 'TBD' }; 
+          } else { 
+            const opponentPlayer = playersById[opponentId]; 
+            if (opponentPlayer) { 
+              opponent = { name: opponentPlayer.name }; 
+              opponentTeam = teamsById[opponentPlayer.teamId]; 
+            } 
+          }
+        }
+        return { ...m, isPlayer1, opponent, opponentTeam };
       });
 
     const stats = completedMatches.reduce((acc, m) => {
-        acc.played++;
-        if (m.result === 'W') acc.win++;
-        else if (m.result === 'L') acc.loss++;
-        else acc.draw++;
-        if (m.player1Score !== null && m.player2Score !== null) {
-            const isP1 = m.player1Id === playerIdToFilter;
-            acc.gf += isP1 ? m.player1Score : m.player2Score;
-            acc.ga += isP1 ? m.player2Score : m.player1Score;
-        }
-        return acc;
-    }, { played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0 });
+      acc.played++;
+      if (m.result === 'W') acc.win++;
+      else if (m.result === 'L') acc.loss++;
+      else acc.draw++;
+      if (m.player1Score !== null && m.player2Score !== null) {
+        const isP1 = m.player1Id === playerIdToFilter;
+        acc.gf += isP1 ? m.player1Score : m.player2Score;
+        acc.ga += isP1 ? m.player2Score : m.player1Score;
+      }
+      return acc;
+    }, { 
+      played: 0, 
+      win: 0, 
+      draw: 0, 
+      loss: 0, 
+      gf: 0, 
+      ga: 0 
+    });
 
-    const totalMatchesCount = playerMatches.length;
+    const totalMatchesCount = Math.max(playerMatches.length, (player.played || 0) + upcomingMatches.length, 1);
     const seasonProgress = totalMatchesCount > 0 ? (stats.played / totalMatchesCount) * 100 : 0;
     
     const possiblePoints = stats.played * 3;
@@ -195,29 +344,29 @@ export function PlayerPerformanceDialog({
 
     let trendScore = 0;
     const chartData = [{ match: 0, points: 0 }, ...[...completedMatches].reverse().map((match, index) => {
-        if (match.result === 'W') trendScore += 1;
-        else if (match.result === 'L') trendScore -= 1;
-        return { match: index + 1, points: trendScore };
+      if (match.result === 'W') trendScore += 1;
+      else if (match.result === 'L') trendScore -= 1;
+      return { match: index + 1, points: trendScore };
     })];
 
-    // MASTER CAREER LOOKUP FIX
-    let p1Id = null; let p2Id = null;
+    let p1Id = null; 
+    let p2Id = null;
     if (isCoop) {
-        const cE = coopTableById[player.id];
-        if (cE) { p1Id = cE.player1Id; p2Id = cE.player2Id; }
+      const cE = coopTableById[player.id];
+      if (cE) { p1Id = cE.player1Id; p2Id = cE.player2Id; }
     } else {
-        p1Id = player.playerId;
+      p1Id = player.playerId;
     }
 
     const m1 = p1Id ? masterPlayersRanked.find(p => p.id === p1Id) : null;
     const m2 = p2Id ? masterPlayersRanked.find(p => p.id === p2Id) : null;
     
     const masterInfoSummary = {
-        ovr: isCoop && m1 && m2 ? ((m1.ovrRating + m2.ovrRating) / 2).toFixed(0) : (m1?.ovrRating.toFixed(0) || '0'),
-        rank: isCoop && m1 && m2 ? Math.min(m1.masterRank, m2.masterRank) : (m1?.masterRank || '?'),
-        isCoop: isCoop,
-        p1Ovr: m1?.ovrRating.toFixed(0) || '0',
-        p2Ovr: m2?.ovrRating.toFixed(0) || '0'
+      ovr: isCoop && m1 && m2 ? ((m1.ovrRating + m2.ovrRating) / 2).toFixed(0) : (m1?.ovrRating.toFixed(0) || '0'),
+      rank: isCoop && m1 && m2 ? Math.min(m1.masterRank, m2.masterRank) : (m1?.masterRank || '?'),
+      isCoop: isCoop,
+      p1Ovr: m1?.ovrRating.toFixed(0) || '0',
+      p2Ovr: m2?.ovrRating.toFixed(0) || '0'
     };
 
     let pST = "Balance"; 
@@ -225,42 +374,80 @@ export function PlayerPerformanceDialog({
     let pSD = t('play_style_balanced_desc');
     
     if (stats.played > 0) {
-        const avgGF = stats.gf / stats.played;
-        const avgGA = stats.ga / stats.played;
-        if (avgGF > 1.6) {
-            pST = "Attacking";
-            pSType = 'attacking';
-            pSD = t('play_style_attacking_desc');
-        } else if (avgGA < 1.2 && stats.played >= 3) {
-            pST = "Defense & Counter";
-            pSType = 'defensive';
-            pSD = t('play_style_defensive_desc');
-        }
+      const avgGF = stats.gf / stats.played;
+      const avgGA = stats.ga / stats.played;
+      if (avgGF > 1.6) {
+        pST = "Attacking";
+        pSType = 'attacking';
+        pSD = t('play_style_attacking_desc');
+      } else if (avgGA < 1.2 && stats.played >= 3) {
+        pST = "Defense & Counter";
+        pSType = 'defensive';
+        pSD = t('play_style_defensive_desc');
+      }
     }
 
     const last5Matches = completedMatches.slice(0, 5);
     let performanceStatus = null;
     if (last5Matches.length > 0) {
-        const winCount = last5Matches.filter(m => m.result === 'W').length;
-        const lossCount = last5Matches.filter(m => m.result === 'L').length;
-        if (winCount === 5) performanceStatus = { text: "Merasa tak terkalahkan", color: "text-green-400" };
-        else if (winCount >= 3) performanceStatus = { text: "Performa Unggul", color: "text-green-400" };
-        else if (lossCount >= 3) performanceStatus = { text: "Performa Menurun", color: "text-red-400" };
+      const winCount = last5Matches.filter(m => m.result === 'W').length;
+      const lossCount = last5Matches.filter(m => m.result === 'L').length;
+      if (winCount === 5) performanceStatus = { text: "Performa Sempurna", color: "text-primary" };
+      else if (winCount >= 3) performanceStatus = { text: "Momentum Positif", color: "text-green-400" };
+      else if (lossCount >= 3) performanceStatus = { text: "Evaluasi Taktikal", color: "text-red-400" };
+      else performanceStatus = { text: "Status Stabil", color: "text-white/70" };
+    } else {
+      performanceStatus = { text: "Siap Bertanding", color: "text-white/60" };
     }
 
     const groupSize = activeSeason.type === 'Hybrid' 
-        ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
-        : totalPlayersInSeason;
+      ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length 
+      : totalPlayersInSeason;
 
-    return { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText: pST, playStyleType: pSType, playStyleDescription: pSD, masterInfoSummary }
+    return { 
+      completedMatches, 
+      upcomingMatches, 
+      winRate, 
+      seasonProgress, 
+      totalMatchesCount, 
+      chartData, 
+      performanceStatus, 
+      stats, 
+      groupSize, 
+      playStyleText: pST, 
+      playStyleType: pSType, 
+      playStyleDescription: pSD, 
+      masterInfoSummary 
+    };
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t, masterPlayersRanked]);
 
-  const chartConfig = { points: { label: "Tren", color: "hsl(var(--primary))" } } satisfies ChartConfig;
+  const theme = useMemo(() => getSeasonTheme(activeSeason), [activeSeason]);
+  const primaryHex = theme.primaryHex;
+  const secondaryHex = theme.secondaryHex;
+  const glowRgba = theme.glowRgba;
+  const isCrimson = theme.themeKey === 'crimson';
 
   if (!player || !performanceStats) return null;
 
   const playerTeamDetails = teamsById[player.teamId];
-  const { completedMatches, upcomingMatches, winRate, seasonProgress, totalMatchesCount, chartData, performanceStatus, stats, groupSize, playStyleText, playStyleType, playStyleDescription, masterInfoSummary } = performanceStats;
+  const displayLogo = playerTeamDetails?.logoUrl || (player as any).logoUrl || (player as any).team?.logoUrl;
+  const displayTeamName = playerTeamDetails?.name || player.teamName || (player as any).team?.name || 'Independent';
+
+  const { 
+    completedMatches, 
+    upcomingMatches, 
+    winRate, 
+    seasonProgress, 
+    totalMatchesCount, 
+    chartData, 
+    performanceStatus, 
+    stats, 
+    groupSize, 
+    playStyleText, 
+    playStyleType, 
+    playStyleDescription, 
+    masterInfoSummary 
+  } = performanceStats;
   
   const isTopRank = player.rank === 1;
   const isBottomRank = player.rank >= groupSize - 2 && groupSize > 3;
@@ -268,286 +455,582 @@ export function PlayerPerformanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-primary border-4 p-0 overflow-hidden bg-background/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_150px_rgba(204,253,1,0.2)]">
-        <ScrollArea className="max-h-[90vh]">
-            <div className="p-6 relative">
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-20" />
+      <DialogContent 
+        onOpenAutoFocus={(e) => {
+          // Prevent auto-focusing elements inside ScrollArea so dialog opens at scroll position 0
+          e.preventDefault();
+        }}
+        onCloseAutoFocus={(e) => {
+          // Prevent Radix from jumping or scrolling the page to bottom upon modal close
+          e.preventDefault();
+          const targetY = scrollPositionRef.current;
+          if (typeof window !== 'undefined' && targetY !== undefined) {
+            requestAnimationFrame(() => {
+              window.scrollTo({ top: targetY, behavior: 'instant' });
+            });
+          }
+        }}
+        className={cn(
+          "!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2",
+          "w-[95vw] sm:w-[90vw] max-w-3xl",
+          "max-h-[90vh] flex flex-col",
+          "border border-white/15 p-0 overflow-hidden",
+          "bg-black/95 backdrop-blur-3xl rounded-[2.5rem]",
+          "z-50",
+          "[&>button:last-child]:top-5 [&>button:last-child]:right-5 [&>button:last-child]:h-10 [&>button:last-child]:w-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-white/10 [&>button:last-child]:border [&>button:last-child]:border-white/20 [&>button:last-child]:text-white [&>button:last-child]:hover:bg-white/20 [&>button:last-child]:transition-all [&>button:last-child]:z-50 [&>button:last-child]:flex [&>button:last-child]:items-center [&>button:last-child]:justify-center [&>button:last-child]:opacity-100"
+        )}
+        style={{
+          boxShadow: `0 25px 80px rgba(0,0,0,0.95), 0 0 45px ${primaryHex}20`
+        }}
+      >
+        <div className="relative flex flex-col h-full max-h-[90vh] overflow-hidden">
+          {/* Top Accent Racing Tracer */}
+          <div 
+            className="absolute top-0 left-0 right-0 h-[3px] z-30 pointer-events-none"
+            style={{
+              background: `linear-gradient(to right, transparent, ${primaryHex}, transparent)`,
+              boxShadow: `0 0 20px ${glowRgba}`
+            }}
+          />
+          
+          {/* Scrollable Container with explicit Ref to ensure opening at the very top */}
+          <div 
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto overflow-x-hidden p-5 sm:p-8 scrollbar-thin scrollbar-track-transparent"
+            style={{ scrollbarColor: `${primaryHex}40 transparent` }}
+          >
+            <div className="relative">
+              {/* Dossier Header: Cyber Athlete Profile */}
+              <DialogHeader className="relative z-10 text-left">
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-6 pb-2 pr-12">
+                  {/* Avatar & Interactive Neon Ring */}
+                  <div className="relative group shrink-0">
+                    <div 
+                      className="absolute -inset-4 rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-700 animate-pulse" 
+                      style={{ backgroundColor: `${primaryHex}40` }}
+                    />
+                    
+                    {player.group && (
+                      <div className="absolute -top-2 -left-2 z-20">
+                        <Badge 
+                          className="border-2 border-black font-black text-[9px] px-2.5 h-5 rounded-full italic shadow-xl uppercase"
+                          style={{
+                            backgroundColor: primaryHex,
+                            color: isCrimson ? '#ffffff' : '#000000'
+                          }}
+                        >
+                          GRUP {player.group}
+                        </Badge>
+                      </div>
+                    )}
 
-                <DialogHeader className="flex flex-col items-center text-center relative z-10">
-                    <div className="flex items-center gap-2 mb-4 bg-primary/10 px-4 py-1 rounded-full border border-primary/20">
-                        <Scan className="w-3 h-3 text-primary animate-pulse" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-primary italic">Roster Intel Transmission</span>
+                    <Avatar 
+                      className="h-20 w-20 sm:h-24 sm:w-24 shadow-2xl relative z-10 group-hover:scale-105 transition-all duration-500 rounded-3xl border-2"
+                      style={{
+                        borderColor: primaryHex,
+                        boxShadow: `0 0 30px ${primaryHex}40`
+                      }}
+                    >
+                      <AvatarImage src={displayLogo} alt={player.playerName} className="object-cover" referrerPolicy="no-referrer" />
+                      <AvatarFallback className="bg-black/60 font-black text-xs rounded-3xl">
+                        <User className="h-10 w-10 text-white/20" />
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div 
+                      className={cn(
+                        "absolute -bottom-2 -right-2 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-2xl border-2 border-black font-headline text-xs sm:text-sm font-black shadow-xl z-20 transition-transform group-hover:scale-110",
+                        isTopRank ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.6)]" : 
+                        isBottomRank ? "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.6)]" : ""
+                      )} 
+                      style={(!isTopRank && !isBottomRank) ? {
+                        backgroundColor: primaryHex,
+                        color: isCrimson ? '#ffffff' : '#000000',
+                        boxShadow: `0 0 20px ${glowRgba}`
+                      } : undefined}
+                      title={`Peringkat #${player.rank}`}
+                      suppressHydrationWarning
+                    >
+                      #{player.rank}
                     </div>
 
-                    <div className="relative group">
-                      <div className="absolute -inset-6 bg-primary/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse" />
-                      
-                      {player.group && (
-                          <div className="absolute -top-2 -left-2 z-20">
-                              <Badge className="bg-primary text-black border-2 border-background font-black text-[10px] px-3 h-7 italic shadow-xl uppercase">
-                                  GRUP {player.group}
-                              </Badge>
-                          </div>
+                    {isDefendingChampion && (
+                      <div className="absolute -top-3 -right-3 transform rotate-12 z-20 animate-bounce">
+                        <Badge className="bg-amber-500 text-black border-2 border-white p-1.5 rounded-xl shadow-2xl" title="Juara Bertahan">
+                          <Award className="w-4 h-4"/>
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Player Name, Team, and Tactical Style */}
+                  <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start text-center sm:text-left space-y-1.5">
+                    <div 
+                      className="inline-flex items-center gap-2 px-3.5 py-0.5 rounded-full border backdrop-blur-md"
+                      style={{
+                        backgroundColor: `${primaryHex}15`,
+                        borderColor: `${primaryHex}35`
+                      }}
+                    >
+                      <Scan className="w-3 h-3 animate-pulse" style={{ color: primaryHex }} />
+                      <span className="text-[8px] font-black uppercase tracking-[0.25em] italic" style={{ color: primaryHex }}>
+                        {theme.editionName} • ROSTER INTEL
+                      </span>
+                    </div>
+
+                    <DialogTitle 
+                      className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight uppercase italic text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] leading-tight font-headline" 
+                      suppressHydrationWarning
+                    >
+                      {player.playerName}
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                      Profil dan telemetri performa atlet {player.playerName}
+                    </DialogDescription>
+
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                      <div className="flex items-center gap-2 font-black text-white/80 uppercase tracking-wider text-[10px] sm:text-[11px] bg-white/[0.04] px-3.5 py-1 rounded-full border border-white/10 shadow-inner">
+                        <Avatar className="h-4 w-4 opacity-90 border border-white/10">
+                          <AvatarImage src={displayLogo} className="object-cover" referrerPolicy="no-referrer" />
+                          <AvatarFallback><Shield className="w-3 h-3"/></AvatarFallback>
+                        </Avatar>
+                        <span suppressHydrationWarning>{displayTeamName}</span>
+                      </div>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Badge 
+                            className={cn(
+                              "text-[9px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full border cursor-help shadow-lg transition-all hover:scale-105", 
+                              playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30 shadow-red-500/20" : 
+                              playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-blue-500/20" : ""
+                            )}
+                            style={playStyleType !== 'attacking' && playStyleType !== 'defensive' ? {
+                              backgroundColor: `${primaryHex}20`,
+                              color: primaryHex,
+                              borderColor: `${primaryHex}40`,
+                              boxShadow: `0 0 15px ${primaryHex}20`
+                            } : undefined}
+                          >
+                            {playStyleText}
+                          </Badge>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 text-center bg-black/95 backdrop-blur-2xl rounded-2xl shadow-2xl z-50 border" style={{ borderColor: `${primaryHex}40` }}>
+                          <p className="text-[11px] font-bold leading-relaxed text-white text-center">{playStyleDescription}</p>
+                        </PopoverContent>
+                      </Popover>
+
+                      {isTopRank && (
+                        <Badge className="bg-amber-400/20 text-amber-300 border-amber-400/30 text-[9px] font-black uppercase tracking-wider px-3 py-1 rounded-full italic">
+                          Leader Klasemen
+                        </Badge>
                       )}
-
-                      <Avatar className="h-28 w-28 border-4 border-primary shadow-2xl relative z-10 group-hover:scale-105 transition-all duration-500">
-                        <AvatarImage src={playerTeamDetails?.logoUrl} alt={player.playerName} className="object-cover" referrerPolicy="no-referrer" />
-                        <AvatarFallback className="bg-black/40 font-black text-xs"><User className="h-14 w-14 text-white/10" /></AvatarFallback>
-                      </Avatar>
-                      
-                      <div className={cn(
-                        "absolute -bottom-2 -right-2 flex h-12 w-12 items-center justify-center rounded-2xl border-4 border-background text-base font-black shadow-xl z-20 rotate-12 transition-transform group-hover:rotate-0",
-                        isTopRank ? "bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.4)]" : 
-                        isBottomRank ? "bg-red-500 text-white" : "bg-primary text-black shadow-[0_0_20px_rgba(204,253,1,0.4)]"
-                      )} suppressHydrationWarning>
-                        {player.rank}
-                      </div>
-
-                       {isDefendingChampion && (
-                          <div className="absolute -top-3 -right-3 transform rotate-12 z-20 animate-bounce">
-                              <Badge className="bg-amber-500 text-black border-2 border-white p-2 rounded-xl shadow-2xl">
-                                  <Award className="w-6 h-6"/>
-                              </Badge>
-                          </div>
-                      )}
                     </div>
-
-                    <div className="space-y-1 pt-6 w-full flex flex-col items-center">
-                      <DialogTitle className="text-4xl font-black tracking-tighter uppercase italic text-white text-center drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] leading-none mb-2" suppressHydrationWarning>{player.playerName}</DialogTitle>
-                      
-                      <div className="flex items-center justify-center gap-3 font-black text-white/60 uppercase tracking-widest text-[11px] text-center bg-white/5 px-4 py-1.5 rounded-xl border border-white/5">
-                          <Avatar className="h-5 w-5 opacity-80 border border-white/10">
-                              <AvatarImage src={playerTeamDetails?.logoUrl} className="object-cover" referrerPolicy="no-referrer" />
-                              <AvatarFallback><Shield/></AvatarFallback>
-                          </Avatar>
-                          <span className="text-center" suppressHydrationWarning>{player.teamName || 'Independent'}</span>
-                      </div>
-
-                      <div className="pt-4 flex justify-center">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Badge className={cn("text-xs font-black uppercase tracking-tighter px-6 py-2.5 border-2 cursor-help shadow-2xl animate-in fade-in zoom-in duration-500 transition-all hover:scale-105", 
-                                    playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                                    playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : 
-                                    "bg-primary/20 text-primary border-primary/30")}>
-                                    {playStyleText}
-                                </Badge>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-64 text-center bg-background/95 border-primary/30 backdrop-blur-xl rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                                <p className="text-[11px] font-bold leading-relaxed text-white text-center">{playStyleDescription}</p>
-                            </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                </DialogHeader>
-
-                <div className="space-y-8 mt-10 relative z-10">
-                    <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all duration-500 relative">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-12 -mt-12 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-                        
-                        <CardHeader className="p-5 bg-primary text-black relative z-10 border-b-2 border-black/10">
-                            <div className="flex flex-col items-center gap-2 text-center">
-                                <div className="flex items-center justify-center gap-3">
-                                    <Binary className="w-4 h-4" />
-                                    <h3 className="text-[11px] font-black tracking-[0.25em] uppercase italic">SEASON PERFORMANCE HUD</h3>
-                                </div>
-                                <div className="flex items-center gap-3 bg-black/10 px-3 py-1 rounded-lg">
-                                    <Badge className="bg-black text-primary border-none font-black uppercase italic text-[10px] px-3 h-6 shadow-lg">OVR {winRate.toFixed(0)}%</Badge>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{performanceStatus?.text || "Status: Stabil"}</span>
-                                </div>
-                            </div>
-                        </CardHeader>
-
-                        <CardContent className="p-6 space-y-8 relative z-10">
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center px-1">
-                                    <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-2">
-                                        <Scan className="w-3.5 h-3.5"/> Signal Analysis
-                                    </h3>
-                                    <span className="text-[11px] font-black text-primary italic tabular-nums" suppressHydrationWarning>{seasonProgress.toFixed(0)}% COMPLETE</span>
-                                </div>
-                                <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                    <div className="absolute left-0 top-0 h-full bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)] transition-all duration-1000" style={{ width: `${seasonProgress}%` }} />
-                                </div>
-                                <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] text-center" suppressHydrationWarning>UNIT LOG: {stats.played} / {totalMatchesCount} ENAGEMENTS FINALIZED</p>
-                            </div>
-
-                            <div className="grid grid-cols-5 gap-2.5">
-                                <StatDisplay label="Main" value={stats.played} />
-                                <StatDisplay label="Win" value={stats.win} />
-                                <StatDisplay label="Draw" value={stats.draw} />
-                                <StatDisplay label="Loss" value={stats.loss} />
-                                <StatDisplay label="Points" value={player.points} variant="primary" />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 pt-2">
-                                <div className="space-y-3 text-center">
-                                    <p className="text-[8px] font-black text-primary/60 uppercase tracking-[0.3em] italic">Season Intel</p>
-                                    <div className="grid gap-2.5">
-                                        <IntelCard icon={Percent} label="OVR Musim" value={`${winRate.toFixed(0)}%`} variant="primary" tooltip="Efektivitas raihan poin dalam musim aktif ini." />
-                                        <IntelCard icon={Trophy} label="Rank Grup" value={`#${player.rank}`} tooltip="Posisi saat ini dalam klasemen grup." />
-                                    </div>
-                                </div>
-                                <div className="space-y-3 text-center">
-                                    <p className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em] italic">Career Intel</p>
-                                    <div className="grid gap-2.5">
-                                        <IntelCard 
-                                            icon={Flame} 
-                                            label={masterInfoSummary.isCoop ? "OVR Avg" : "OVR Master"} 
-                                            value={masterInfoSummary.ovr} 
-                                            variant="gold" 
-                                            tooltip={masterInfoSummary.isCoop ? `Karir gabungan: P1 (${masterInfoSummary.p1Ovr}%) & P2 (${masterInfoSummary.p2Ovr}%)` : "Performa karir kumulatif dari seluruh pertandingan."}
-                                        />
-                                        <IntelCard 
-                                            icon={Star} 
-                                            label="Rank Global" 
-                                            value={`#${masterInfoSummary.rank}`} 
-                                            tooltip={masterInfoSummary.isCoop ? "Peringkat karir terbaik di antara kedua pemain." : "Peringkat elit berdasarkan OVR karir global."}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                  
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <div className="flex justify-center mb-8">
-                        <TabsList className="grid grid-cols-3 w-full h-16 sm:h-20 bg-black/60 p-2 border-b-4 border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-none shadow-[0_10px_50px_rgba(0,0,0,0.5)]">
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/60" />
-                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/60" />
-                            
-                            {['history', 'upcoming', 'trend'].map((tab) => (
-                                <TabsTrigger 
-                                    key={tab}
-                                    value={tab} 
-                                    className={cn(
-                                        "relative h-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs italic transition-all duration-700 group/tab overflow-hidden",
-                                        "data-[state=active]:text-black data-[state=inactive]:text-white/30 data-[state=inactive]:hover:text-white/70"
-                                    )}
-                                >
-                                    <span className="relative z-10">{tab === 'history' ? 'RIWAYAT' : tab === 'upcoming' ? 'SISA LAGA' : 'TREN'}</span>
-                                    <div className={cn(
-                                        "absolute inset-0 -skew-x-[15deg] transition-all duration-700 -z-0 translate-x-[-100%] group-data-[state=active]/tab:translate-x-0",
-                                        "group-data-[state=active]/tab:bg-primary group-data-[state=active]/tab:shadow-[0_0_40px_rgba(204,253,1,0.5)]",
-                                        "border-r-4 border-white/10 group-data-[state=active]/tab:border-black/20"
-                                    )} />
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                      </div>
-                      
-                      <TabsContent value="history" className="mt-0 outline-none animate-in fade-in duration-500">
-                           {completedMatches.length > 0 ? (
-                              <div className="space-y-4">
-                              {completedMatches.map(match => (
-                                  <div key={match.id} className="group/match relative overflow-hidden transition-all duration-500 border-2 border-white/5 bg-black/40 backdrop-blur-xl hover:border-primary/30 p-4 rounded-2xl flex items-center justify-between shadow-2xl">
-                                    <div className={cn(
-                                        "absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-500",
-                                        match.result === 'W' ? "bg-primary shadow-[0_0_15px_rgba(204,253,1,0.8)]" : 
-                                        match.result === 'L' ? "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]" : 
-                                        "bg-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.8)]"
-                                    )} />
-                                    
-                                    <div className="flex items-center gap-4 relative z-10">
-                                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black border-2 shadow-inner transition-transform group-hover/match:scale-110 duration-500", 
-                                            match.result === 'W' ? "bg-green-500/20 text-green-400 border-green-500/30" : 
-                                            match.result === 'L' ? "bg-red-500/20 text-red-400 border-red-500/30" : 
-                                            "bg-yellow-500/20 text-yellow-400 border-yellow-500/50")}>
-                                            {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
-                                        </div>
-                                        <div className="text-left space-y-0.5">
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-[13px] font-black tracking-tight uppercase italic pr-2 text-white/90" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
-                                                <Badge variant="outline" className={cn("text-[8px] h-4.5 px-2 font-black uppercase italic tracking-widest", match.isPlayer1 ? "border-primary/30 text-primary bg-primary/5" : "border-white/10 text-white/30")}>
-                                                    {match.isPlayer1 ? 'Home' : 'Away'}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.25em]" suppressHydrationWarning>{format(match.matchDate.toDate(), "d MMM, HH:mm", { locale: localeId })}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 relative z-10 bg-black/60 px-4 py-2 rounded-xl border border-white/5 shadow-inner">
-                                        <span className={cn(
-                                            "text-xl font-black tabular-nums italic", 
-                                            match.isPlayer1 
-                                                ? (match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-500' : 'text-yellow-500')
-                                                : "text-white/30"
-                                        )} suppressHydrationWarning>
-                                            {match.s1}
-                                        </span>
-                                        <span className="text-xs font-black text-white/10">/</span>
-                                        <span className={cn(
-                                            "text-xl font-black tabular-nums italic",
-                                            !match.isPlayer1
-                                                ? (match.result === 'W' ? 'text-primary' : match.result === 'L' ? 'text-red-500' : 'text-yellow-500')
-                                                : "text-white/30"
-                                        )} suppressHydrationWarning>
-                                            {match.s2}
-                                        </span>
-                                    </div>
-                                  </div>
-                              ))}
-                              </div>
-                          ) : <div className="text-center py-20 opacity-20 flex flex-col items-center gap-4"><Activity className="w-12 h-12"/><p className="text-xs font-black uppercase tracking-0.4em italic text-center">No Historical Log Found</p></div>}
-                      </TabsContent>
-                      
-                      <TabsContent value="upcoming" className="mt-0 outline-none animate-in fade-in duration-500">
-                           {upcomingMatches.length > 0 ? (
-                              <div className="space-y-4">
-                              {upcomingMatches.map(match => (
-                                  <div key={match.id} className="group/match relative overflow-hidden transition-all duration-500 border-2 border-dashed border-white/10 bg-black/20 backdrop-blur-sm p-4 rounded-2xl flex items-center justify-between opacity-60 hover:opacity-100 hover:border-primary/20">
-                                      <div className="flex items-center gap-4 relative z-10">
-                                          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border-2 border-white/5"><Activity className="w-5 h-5 text-white/20"/></div>
-                                          <div className="text-left space-y-0.5">
-                                              <p className="text-[13px] font-black tracking-tight uppercase italic pr-2 text-white/80" suppressHydrationWarning>vs {match.opponent?.name || 'TBD'}</p>
-                                              <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.25em]">SIGNAL DETECTED • RESERVED</p>
-                                          </div>
-                                      </div>
-                                      <Badge variant="outline" className="text-[9px] font-black border-primary/20 text-primary/40 uppercase italic px-3 h-6 bg-primary/5">QUEUE</Badge>
-                                  </div>
-                              ))}
-                              </div>
-                          ) : <div className="text-center py-20 opacity-20 flex flex-col items-center gap-4"><Zap className="w-12 h-12 animate-pulse"/><p className="text-xs font-black uppercase tracking-[0.4em] italic text-center">Protocol Complete • No Queue</p></div>}
-                      </TabsContent>
-                      
-                       <TabsContent value="trend" className="mt-0 outline-none animate-in fade-in duration-500">
-                          <Card className="bg-black/80 backdrop-blur-3xl border-2 border-white/5 overflow-hidden rounded-[2rem] shadow-2xl relative group/trend">
-                              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-                              <CardHeader className="p-5 pb-3 bg-primary/5 border-b border-white/5">
-                                  <div className="flex justify-between items-center">
-                                      <CardTitle className="text-[10px] font-black tracking-[0.3em] text-primary uppercase flex items-center gap-2.5 italic">
-                                          <TrendingUp className="w-4 h-4"/> MOMENTUM STABILITY
-                                      </CardTitle>
-                                      <Badge className="bg-primary/10 border-primary/30 text-primary text-[10px] font-black italic px-3 h-6" suppressHydrationWarning>
-                                          {chartData.length > 1 ? chartData[chartData.length - 1].points : 0} PTS TREND
-                                      </Badge>
-                                  </div>
-                              </CardHeader>
-                              <CardContent className="p-6 pt-8">
-                                  {isMounted && chartData.length > 1 ? (
-                                      <ChartContainer config={chartConfig} className="h-40 w-full opacity-80 group-hover/trend:opacity-100 transition-opacity">
-                                          <LineChart data={chartData} margin={{ left: -20, right: 10, top: 10 }}>
-                                              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                              <XAxis dataKey="match" hide />
-                                              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.2)' }} allowDecimals={false} />
-                                              <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="5 5" />
-                                              <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={4} dot={{ fill: "hsl(var(--primary))", r: 5, strokeWidth: 3, stroke: "black" }} activeDot={{ r: 8, stroke: 'white', strokeWidth: 3 }} />
-                                          </LineChart>
-                                      </ChartContainer>
-                                  ) : <div className="text-center py-16 opacity-20 flex flex-col items-center gap-4"><BarChart3 className="w-10 h-10"/><p className="text-[10px] font-black uppercase tracking-[0.3em] italic text-center">Insufficient Data Matrix</p></div>}
-                              </CardContent>
-                          </Card>
-                       </TabsContent>
-                  </Tabs>
-
-                  <div className="bg-primary/10 border border-primary/20 rounded-[1.5rem] p-5 text-center mt-10 relative overflow-hidden group/disclaimer">
-                    <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover/disclaimer:translate-x-[100%] transition-transform duration-1000" />
-                    <p className="text-[9px] text-white/40 font-black tracking-[0.3em] uppercase mb-1.5 relative z-10 italic">Technical Analysis Disclaimer</p>
-                    <p className="text-[11px] font-bold text-primary/80 italic leading-relaxed text-center relative z-10 px-2">Data dikalkulasi berdasarkan performa agregat unit pemain dalam seluruh fase kompetisi. Stabilitas sinyal di atas nol menunjukkan konsistensi kemenangan taktis yang tinggi.</p>
                   </div>
                 </div>
+              </DialogHeader>
+
+              {/* Core Telemetry Display: Season Performance HUD */}
+              <div className="space-y-6 mt-6 relative z-10">
+                <Card 
+                  className="bg-black/70 backdrop-blur-2xl border rounded-[2rem] overflow-hidden group transition-all duration-500 relative shadow-2xl"
+                  style={{
+                    borderColor: `${primaryHex}30`
+                  }}
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: `${primaryHex}10` }} />
+                  
+                  {/* HUD Header Banner */}
+                  <div 
+                    className="p-4 sm:p-5 border-b border-white/10 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3"
+                    style={{
+                      background: `linear-gradient(to right, ${primaryHex}18, rgba(0,0,0,0.8), transparent)`
+                    }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div 
+                        className="p-1.5 rounded-lg border"
+                        style={{
+                          backgroundColor: `${primaryHex}15`,
+                          borderColor: `${primaryHex}35`
+                        }}
+                      >
+                        <Binary className="w-4 h-4 animate-pulse" style={{ color: primaryHex }} />
+                      </div>
+                      <div>
+                        <h3 className="text-[11px] sm:text-xs font-black tracking-[0.25em] uppercase italic" style={{ color: primaryHex }}>
+                          SEASON PERFORMANCE HUD
+                        </h3>
+                        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">
+                          {theme.sysTag} • Statistical Matrix
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/[0.04] border border-white/10 px-3.5 py-1.5 rounded-full shadow-inner">
+                      <Badge 
+                        className="border-none font-black uppercase italic text-[10px] px-2.5 h-5 rounded-full"
+                        style={{
+                          backgroundColor: primaryHex,
+                          color: isCrimson ? '#ffffff' : '#000000',
+                          boxShadow: `0 0 12px ${glowRgba}`
+                        }}
+                      >
+                        OVR {winRate.toFixed(0)}%
+                      </Badge>
+                      <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: primaryHex }} />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white/70">
+                        {performanceStatus?.text}
+                      </span>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-5 sm:p-6 space-y-6 relative z-10">
+                    {/* Signal Completion Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-[9px] font-black uppercase tracking-[0.25em] italic flex items-center gap-1.5" style={{ color: primaryHex }}>
+                          <Scan className="w-3.5 h-3.5" style={{ color: primaryHex }} /> Signal Completion Analysis
+                        </span>
+                        <span className="text-[11px] font-black italic tabular-nums" style={{ color: primaryHex }} suppressHydrationWarning>
+                          {seasonProgress.toFixed(0)}% COMPLETE
+                        </span>
+                      </div>
+                      <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/10">
+                        <div 
+                          className="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" 
+                          style={{ 
+                            width: `${Math.min(seasonProgress, 100)}%`,
+                            background: `linear-gradient(to right, ${secondaryHex}, ${primaryHex})`,
+                            boxShadow: `0 0 15px ${glowRgba}`
+                          }} 
+                        />
+                      </div>
+                      <div className="flex justify-between items-center text-[8px] font-black text-white/40 uppercase tracking-[0.15em] px-1" suppressHydrationWarning>
+                        <span>ENGAGEMENTS: {stats.played} OF {totalMatchesCount} LOGGED</span>
+                        <span>GOALS: {stats.gf} GF / {stats.ga} GA</span>
+                      </div>
+                    </div>
+
+                    {/* 5 High-Tech Stat Chips */}
+                    <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                      <StatChip code="P" label="Main" value={stats.played} />
+                      <StatChip code="W" label="Menang" value={stats.win} variant="win" />
+                      <StatChip code="D" label="Seri" value={stats.draw} variant="draw" />
+                      <StatChip code="L" label="Kalah" value={stats.loss} variant="loss" />
+                      <StatChip 
+                        code="PTS" 
+                        label="Poin" 
+                        value={player.points ?? ((stats.win * 3) + stats.draw)} 
+                        variant="primary" 
+                        primaryHex={primaryHex}
+                        glowRgba={glowRgba}
+                        isCrimson={isCrimson}
+                      />
+                    </div>
+
+                    {/* Intel Telemetry Matrix: 4 Sleek Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                      <IntelCard 
+                        icon={Percent} 
+                        label="OVR Musim" 
+                        value={`${winRate.toFixed(0)}%`} 
+                        variant="primary" 
+                        primaryHex={primaryHex}
+                        glowRgba={glowRgba}
+                        tooltip="Efektivitas raihan poin dalam musim aktif ini." 
+                      />
+                      <IntelCard 
+                        icon={Trophy} 
+                        label={activeSeason?.type === 'Hybrid' ? `Rank Grup ${player.group || ''}` : "Rank Musim"} 
+                        value={`#${player.rank}`} 
+                        variant="primary" 
+                        primaryHex={primaryHex}
+                        glowRgba={glowRgba}
+                        tooltip="Posisi saat ini dalam klasemen grup / klasemen musim." 
+                      />
+                      <IntelCard 
+                        icon={Flame} 
+                        label={masterInfoSummary.isCoop ? "OVR Avg" : "OVR Master"} 
+                        value={masterInfoSummary.ovr} 
+                        variant="gold" 
+                        tooltip={masterInfoSummary.isCoop ? `Karir gabungan: P1 (${masterInfoSummary.p1Ovr}%) & P2 (${masterInfoSummary.p2Ovr}%)` : "Performa karir kumulatif dari seluruh pertandingan sepanjang sejarah liga."}
+                      />
+                      <IntelCard 
+                        icon={Star} 
+                        label="Rank Global" 
+                        value={`#${masterInfoSummary.rank}`} 
+                        variant="gold" 
+                        tooltip={masterInfoSummary.isCoop ? "Peringkat karir terbaik di antara kedua pemain." : "Peringkat elit berdasarkan OVR karir global pemain."}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              
+                {/* Activity Section: RIWAYAT, SISA LAGA, TREN */}
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="flex justify-center mb-5">
+                    <TabsList className="grid grid-cols-3 w-full h-11 sm:h-12 bg-black/80 p-1 border border-white/10 relative overflow-hidden backdrop-blur-2xl rounded-full shadow-lg">
+                      {['history', 'upcoming', 'trend'].map((tab) => (
+                        <TabsTrigger 
+                          key={tab}
+                          value={tab} 
+                          className={cn(
+                            "h-full rounded-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-[11px] italic transition-all duration-300",
+                            theme.tabsActiveBg,
+                            "data-[state=inactive]:text-white/40 data-[state=inactive]:hover:text-white"
+                          )}
+                        >
+                          <span>{tab === 'history' ? 'RIWAYAT LAGA' : tab === 'upcoming' ? 'SISA LAGA' : 'TREN GRAFIK'}</span>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </div>
+                  
+                  {/* TAB 1: Match History */}
+                  <TabsContent value="history" className="mt-0 outline-none animate-in fade-in duration-300">
+                    {completedMatches.length > 0 ? (
+                      <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent">
+                        {completedMatches.map(match => (
+                          <div 
+                            key={match.id} 
+                            className="group/match relative overflow-hidden transition-all duration-300 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-white/30 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-lg"
+                          >
+                            {/* Result vertical neon bar */}
+                            <div 
+                              className={cn(
+                                "absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300",
+                                match.result === 'L' ? "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]" : 
+                                match.result === 'D' ? "bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.8)]" : ""
+                              )}
+                              style={match.result === 'W' ? {
+                                backgroundColor: primaryHex,
+                                boxShadow: `0 0 12px ${glowRgba}`
+                              } : undefined}
+                            />
+                            
+                            <div className="flex items-center gap-3 sm:gap-4 relative z-10 min-w-0 flex-1">
+                              {/* Result badge M / K / S */}
+                              <div 
+                                className={cn(
+                                  "w-10 h-10 rounded-xl shrink-0 flex items-center justify-center text-xs font-black border transition-transform group-hover/match:scale-105", 
+                                  match.result === 'L' ? "bg-red-500/15 text-red-400 border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.2)]" : 
+                                  match.result === 'D' ? "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]" : ""
+                                )}
+                                style={match.result === 'W' ? {
+                                  backgroundColor: `${primaryHex}20`,
+                                  color: primaryHex,
+                                  borderColor: `${primaryHex}50`,
+                                  boxShadow: `0 0 10px ${primaryHex}30`
+                                } : undefined}
+                              >
+                                {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
+                              </div>
+
+                              {/* Opponent Info */}
+                              <div className="min-w-0 flex-1 text-left space-y-0.5">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white truncate max-w-[180px] sm:max-w-none" suppressHydrationWarning>
+                                    vs {match.opponent?.name || 'TBD'}
+                                  </span>
+                                  <Badge 
+                                    variant="outline" 
+                                    className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-widest shrink-0"
+                                    style={match.isPlayer1 ? {
+                                      borderColor: `${primaryHex}40`,
+                                      color: primaryHex,
+                                      backgroundColor: `${primaryHex}10`
+                                    } : {
+                                      borderColor: 'rgba(255,255,255,0.1)',
+                                      color: 'rgba(255,255,255,0.4)',
+                                      backgroundColor: 'rgba(255,255,255,0.05)'
+                                    }}
+                                  >
+                                    {match.isPlayer1 ? 'Home' : 'Away'}
+                                  </Badge>
+                                </div>
+                                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest" suppressHydrationWarning>
+                                  {formatMatchDate(match.matchDate)}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Score Box */}
+                            <div className="shrink-0 flex items-center gap-2 sm:gap-3 relative z-10 bg-black/80 px-3.5 sm:px-4 py-2 rounded-xl border border-white/10 shadow-inner">
+                              <span 
+                                className="text-lg sm:text-xl font-black tabular-nums italic" 
+                                style={match.isPlayer1 ? (
+                                  match.result === 'W' ? { color: primaryHex, textShadow: `0 0 8px ${glowRgba}` } : 
+                                  match.result === 'L' ? { color: '#f87171' } : { color: '#fbbf24' }
+                                ) : { color: 'rgba(255,255,255,0.4)' }}
+                                suppressHydrationWarning
+                              >
+                                {match.s1}
+                              </span>
+                              <span className="text-xs font-black text-white/20">:</span>
+                              <span 
+                                className="text-lg sm:text-xl font-black tabular-nums italic"
+                                style={!match.isPlayer1 ? (
+                                  match.result === 'W' ? { color: primaryHex, textShadow: `0 0 8px ${glowRgba}` } : 
+                                  match.result === 'L' ? { color: '#f87171' } : { color: '#fbbf24' }
+                                ) : { color: 'rgba(255,255,255,0.4)' }}
+                                suppressHydrationWarning
+                              >
+                                {match.s2}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
+                        <Activity className="w-10 h-10 text-white/40"/>
+                        <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Belum Ada Pertandingan Yang Rampung</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  {/* TAB 2: Upcoming Matches */}
+                  <TabsContent value="upcoming" className="mt-0 outline-none animate-in fade-in duration-300">
+                    {upcomingMatches.length > 0 ? (
+                      <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent">
+                        {upcomingMatches.map(match => (
+                          <div 
+                            key={match.id} 
+                            className="group/match relative overflow-hidden transition-all duration-300 border border-dashed border-white/15 bg-black/40 backdrop-blur-sm hover:border-white/30 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 opacity-80 hover:opacity-100"
+                          >
+                            <div className="flex items-center gap-3 sm:gap-4 relative z-10 min-w-0 flex-1">
+                              <div className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center bg-white/5 border border-white/10">
+                                <Activity className="w-4 h-4 animate-pulse" style={{ color: primaryHex }} />
+                              </div>
+                              <div className="min-w-0 flex-1 text-left space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white/90 truncate" suppressHydrationWarning>
+                                    vs {match.opponent?.name || 'TBD'}
+                                  </span>
+                                  <Badge 
+                                    variant="outline" 
+                                    className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-widest shrink-0"
+                                    style={match.isPlayer1 ? {
+                                      borderColor: `${primaryHex}40`,
+                                      color: primaryHex,
+                                      backgroundColor: `${primaryHex}10`
+                                    } : {
+                                      borderColor: 'rgba(255,255,255,0.1)',
+                                      color: 'rgba(255,255,255,0.4)',
+                                      backgroundColor: 'rgba(255,255,255,0.05)'
+                                    }}
+                                  >
+                                    {match.isPlayer1 ? 'Home' : 'Away'}
+                                  </Badge>
+                                </div>
+                                <p className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: `${primaryHex}CC` }}>
+                                  <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: primaryHex }} />
+                                  SIGNAL QUEUED • FIXTURE PENDING
+                                </p>
+                              </div>
+                            </div>
+                            <Badge 
+                              variant="outline" 
+                              className="text-[9px] font-black uppercase italic px-3 h-6 shrink-0 border"
+                              style={{
+                                borderColor: `${primaryHex}40`,
+                                color: primaryHex,
+                                backgroundColor: `${primaryHex}15`
+                              }}
+                            >
+                              UPCOMING
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
+                        <Zap className="w-10 h-10 animate-pulse" style={{ color: primaryHex }} />
+                        <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Seluruh Pertandingan Musim Telah Dimainkan</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  {/* TAB 3: Momentum Trend Chart */}
+                  <TabsContent value="trend" className="mt-0 outline-none animate-in fade-in duration-300">
+                    <Card className="bg-black/80 backdrop-blur-3xl border border-white/10 overflow-hidden rounded-3xl shadow-2xl relative group/trend">
+                      <div 
+                        className="absolute top-0 left-0 w-full h-[2px]" 
+                        style={{
+                          background: `linear-gradient(to right, transparent, ${primaryHex}, transparent)`
+                        }}
+                      />
+                      <CardHeader className="p-4 sm:p-5 bg-white/[0.02] border-b border-white/10">
+                        <div className="flex justify-between items-center">
+                          <CardTitle className="text-xs sm:text-sm font-black tracking-[0.2em] uppercase flex items-center gap-2 italic" style={{ color: primaryHex }}>
+                            <TrendingUp className="w-4 h-4" style={{ color: primaryHex }} /> MOMENTUM STABILITY
+                          </CardTitle>
+                          <Badge 
+                            className="text-[10px] font-black italic px-3 h-6 border-none" 
+                            style={{
+                              backgroundColor: primaryHex,
+                              color: isCrimson ? '#ffffff' : '#000000',
+                              boxShadow: `0 0 10px ${glowRgba}`
+                            }}
+                            suppressHydrationWarning
+                          >
+                            {chartData.length > 1 ? chartData[chartData.length - 1].points : 0} PTS TREND
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-6 pt-6">
+                        {isMounted && chartData.length > 1 ? (
+                          <div className="w-full h-48 sm:h-56">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={chartData} margin={{ left: -15, right: 10, top: 10, bottom: 0 }}>
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                                <XAxis dataKey="match" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)', fontWeight: 700 }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.4)' }} allowDecimals={false} />
+                                <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="5 5" />
+                                <Line 
+                                  type="monotone" 
+                                  dataKey="points" 
+                                  stroke={primaryHex} 
+                                  strokeWidth={3} 
+                                  dot={{ fill: primaryHex, r: 4, strokeWidth: 2, stroke: "#000" }} 
+                                  activeDot={{ r: 7, stroke: '#fff', strokeWidth: 3 }} 
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        ) : (
+                          <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
+                            <BarChart3 className="w-10 h-10 text-white/40"/>
+                            <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Data Pertandingan Belum Cukup Untuk Grafik Tren</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+
+                {/* Technical Analysis Disclaimer */}
+                <div 
+                  className="rounded-2xl p-4 sm:p-5 text-center mt-6 relative overflow-hidden group/disclaimer border"
+                  style={{
+                    backgroundColor: `${primaryHex}0A`,
+                    borderColor: `${primaryHex}25`
+                  }}
+                >
+                  <p className="text-[8px] sm:text-[9px] text-white/40 font-black tracking-[0.25em] uppercase mb-1 relative z-10 italic">
+                    Technical Analysis & Telemetry Disclaimer
+                  </p>
+                  <p 
+                    className="text-[10px] sm:text-[11px] font-bold italic leading-relaxed text-center relative z-10 max-w-xl mx-auto"
+                    style={{ color: `${primaryHex}CC` }}
+                  >
+                    Data dikalkulasi berdasarkan performa agregat unit pemain dalam seluruh fase kompetisi. Stabilitas sinyal di atas nol menunjukkan konsistensi kemenangan taktis yang tinggi.
+                  </p>
+                </div>
+              </div>
             </div>
-        </ScrollArea>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

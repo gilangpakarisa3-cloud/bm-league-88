@@ -20,16 +20,6 @@
       ]
     },
     {
-      "collectionGroup": "coopLeagueTable",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "points",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "matches",
       "queryScope": "COLLECTION_GROUP",
       "fields": [

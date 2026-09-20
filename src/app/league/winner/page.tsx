@@ -61,7 +61,7 @@ function LeagueWinnerPageContents({ seasonId }: { seasonId: string | null }) {
                 const allMatches = allMatchesSnap.docs.map(d => d.data() as Match);
                 
                 // 1. Identify Winner
-                if (season.type === 'Hybrid' || season.type === 'Co-Op Hybrid') {
+                if (season.type === 'Hybrid' || season.type === 'Co-Op Hybrid' || season.type === 'Single Hybrid') {
                     const finalMatch = allMatches.find(m => m.round === 'Grand-Final' && m.isCompleted);
                     if (finalMatch) {
                         const isBo3 = season.type === 'Co-Op Hybrid' || (finalMatch.round && finalMatch.round !== 'Group');
@@ -130,7 +130,7 @@ function LeagueWinnerPageContents({ seasonId }: { seasonId: string | null }) {
                     let totalPoints = Number(winnerData.points) || 0;
 
                     // 3. For Hybrid seasons, we must add stats from knockout matches manually
-                    if (season.type === 'Hybrid' || season.type === 'Co-Op Hybrid') {
+                    if (season.type === 'Hybrid' || season.type === 'Co-Op Hybrid' || season.type === 'Single Hybrid') {
                         const knockoutMatches = allMatches.filter(m => 
                             !!m.isCompleted && 
                             m.round !== 'Group' && 

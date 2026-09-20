@@ -19,24 +19,52 @@ import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
 import { Button } from './ui/button';
-import { User, Pencil, Trash2, Shield, Swords, Trophy, Target, Zap, Activity, Users, Scan, Star, Medal, Binary } from 'lucide-react';
-import { Separator } from './ui/separator';
+import { 
+  User, 
+  Pencil, 
+  Trash2, 
+  Shield, 
+  Trophy, 
+  Target, 
+  Zap, 
+  Activity, 
+  Users, 
+  Scan, 
+  Star, 
+  Medal, 
+  Binary, 
+  Search, 
+  LayoutGrid, 
+  ListOrdered, 
+  Flame, 
+  Gauge, 
+  Sparkles,
+  TrendingUp,
+  X,
+  Crosshair
+} from 'lucide-react';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 import { Progress } from './ui/progress';
+import { Input } from './ui/input';
 
 interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
   isAdmin: boolean;
   withAdminCheck: (action: () => void) => void;
+  onStatsUpdate?: (stats: { totalPlayers: number; avgOvr: number; totalGoals: number; activeClubs: number }) => void;
 }
 
 export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps) {
   const { toast } = useToast();
   const { t } = useTranslation();
   const [deletingPlayer, setDeletingPlayer] = useState<WithId<Player> | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTier, setSelectedTier] = useState<string>('ALL');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  
   const firestore = useFirestore();
 
   const playersCollection = useMemoFirebase(
@@ -63,63 +91,22 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     
     // 1. Calculate OVR for all
     const withOvr = players.map(p => {
-        const poss = (p.overallPlayed || 0) * 3;
-        const actualPoints = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-        const ovrRating = poss > 0 ? (actualPoints / poss) * 100 : 0;
-        return { ...p, ovrRating };
+      const poss = (p.overallPlayed || 0) * 3;
+      const actualPoints = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
+      const ovrRating = poss > 0 ? (actualPoints / poss) * 100 : 0;
+      const winRate = p.overallPlayed > 0 ? ((p.overallWin || 0) / p.overallPlayed) * 100 : 0;
+      return { ...p, ovrRating, winRate };
     });
 
     // 2. Sort by OVR to determine rank
-    const sortedByOvr = [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || b.overallPlayed - a.overallPlayed);
+    const sortedByOvr = [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0));
     
     // 3. Map to final display objects with ovrRank
     return sortedByOvr.map((p, index) => ({
-        ...p,
-        ovrRank: index + 1
+      ...p,
+      ovrRank: index + 1
     }));
   }, [players]);
-
-  const sortedPlayers = useMemo(() => {
-    return [...playersWithRanks].sort((a, b) => a.ovrRank - b.ovrRank);
-  }, [playersWithRanks]);
-
-  const tiers = useMemo(() => {
-    if (sortedPlayers.length === 0) return [];
-    return [
-      { 
-        title: 'Legend', 
-        players: sortedPlayers.slice(0, 4), 
-        color: 'text-yellow-400', 
-        bgShadow: 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)]',
-        cardBorder: 'group-hover:border-yellow-400/50',
-        cardBg: 'bg-yellow-400/[0.08] backdrop-blur-3xl border-yellow-400/20 shadow-[inset_0_0_60px_rgba(250,204,21,0.05)]'
-      },
-      { 
-        title: 'Top Player', 
-        players: sortedPlayers.slice(4, 8), 
-        color: 'text-primary', 
-        bgShadow: 'bg-primary shadow-[0_0_15px_rgba(204,253,1,0.4)]',
-        cardBorder: 'group-hover:border-primary/50',
-        cardBg: 'bg-primary/[0.06] backdrop-blur-3xl border-primary/20 shadow-[inset_0_0_60px_rgba(204,253,1,0.03)]'
-      },
-      { 
-        title: 'Reguler', 
-        players: sortedPlayers.slice(8, 12), 
-        color: 'text-accent', 
-        bgShadow: 'bg-accent shadow-[0_0_15px_rgba(100,255,218,0.4)]',
-        cardBorder: 'group-hover:border-accent/50',
-        cardBg: 'bg-accent/[0.06] backdrop-blur-3xl border-accent/20 shadow-[inset_0_0_60px_rgba(100,255,218,0.03)]'
-      },
-      { 
-        title: 'Amateur', 
-        players: sortedPlayers.slice(12), 
-        color: 'text-pink-500', 
-        bgShadow: 'bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]',
-        cardBorder: 'group-hover:border-pink-500/50',
-        cardBg: 'bg-pink-500/[0.06] backdrop-blur-3xl border-pink-500/20 shadow-[inset_0_0_60px_rgba(236,72,153,0.03)]'
-      },
-    ].filter(t => t.players.length > 0);
-  }, [sortedPlayers]);
 
   const teamsById = useMemo(() => {
     if (!teams) return {};
@@ -129,397 +116,786 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     }, {} as Record<string, WithId<Team>>);
   }, [teams]);
 
+  // Defined Tiers configuration
+  const tiersConfig = useMemo(() => {
+    if (playersWithRanks.length === 0) return [];
+    return [
+      { 
+        id: 'LEGEND',
+        title: 'Legend', 
+        players: playersWithRanks.slice(0, 4), 
+        color: 'text-yellow-400', 
+        borderColor: 'border-yellow-400/40 hover:border-yellow-400',
+        bgPill: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/30',
+        bgBadge: 'bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)]',
+        accentGlow: 'from-yellow-400/20 via-amber-500/10 to-transparent',
+        badgeTitle: 'TITAN CLASS',
+        hudBar: 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)]'
+      },
+      { 
+        id: 'TOP_PLAYER',
+        title: 'Top Player', 
+        players: playersWithRanks.slice(4, 8), 
+        color: 'text-primary', 
+        borderColor: 'border-primary/40 hover:border-primary',
+        bgPill: 'bg-primary/10 text-primary border-primary/30',
+        bgBadge: 'bg-primary text-black shadow-[0_0_20px_rgba(204,253,1,0.5)]',
+        accentGlow: 'from-primary/20 via-primary/5 to-transparent',
+        badgeTitle: 'PRO DIVISION',
+        hudBar: 'bg-primary shadow-[0_0_15px_rgba(204,253,1,0.8)]'
+      },
+      { 
+        id: 'REGULER',
+        title: 'Reguler', 
+        players: playersWithRanks.slice(8, 12), 
+        color: 'text-accent', 
+        borderColor: 'border-accent/40 hover:border-accent',
+        bgPill: 'bg-accent/10 text-accent border-accent/30',
+        bgBadge: 'bg-accent text-black shadow-[0_0_20px_rgba(100,255,218,0.5)]',
+        accentGlow: 'from-accent/20 via-accent/5 to-transparent',
+        badgeTitle: 'CORE SQUAD',
+        hudBar: 'bg-accent shadow-[0_0_15px_rgba(100,255,218,0.8)]'
+      },
+      { 
+        id: 'AMATEUR',
+        title: 'Amateur', 
+        players: playersWithRanks.slice(12), 
+        color: 'text-rose-400', 
+        borderColor: 'border-rose-400/40 hover:border-rose-400',
+        bgPill: 'bg-rose-400/10 text-rose-400 border-rose-400/30',
+        bgBadge: 'bg-rose-400 text-black shadow-[0_0_20px_rgba(251,113,133,0.5)]',
+        accentGlow: 'from-rose-400/20 via-rose-500/5 to-transparent',
+        badgeTitle: 'ROOKIE FIELD',
+        hudBar: 'bg-rose-400 shadow-[0_0_15px_rgba(251,113,133,0.8)]'
+      },
+    ];
+  }, [playersWithRanks]);
+
+  // Overall league quick stats
+  const leagueMetrics = useMemo(() => {
+    const totalPlayers = playersWithRanks.length;
+    if (totalPlayers === 0) return { totalPlayers: 0, avgOvr: 0, totalGoals: 0, activeClubs: 0, highestOvr: 0 };
+    
+    const avgOvr = Math.round(playersWithRanks.reduce((acc, p) => acc + p.ovrRating, 0) / totalPlayers);
+    const totalGoals = playersWithRanks.reduce((acc, p) => acc + (p.overallGoalsFor || 0), 0);
+    const uniqueTeams = new Set(playersWithRanks.map(p => p.teamId).filter(Boolean)).size;
+    const highestOvr = Math.round(playersWithRanks[0]?.ovrRating || 0);
+
+    return { totalPlayers, avgOvr, totalGoals, activeClubs: uniqueTeams, highestOvr };
+  }, [playersWithRanks]);
+
+  // Filtered players based on search query and selected tier
+  const filteredTiers = useMemo(() => {
+    return tiersConfig.map(tier => {
+      if (selectedTier !== 'ALL' && tier.id !== selectedTier) {
+        return { ...tier, players: [] };
+      }
+
+      const matching = tier.players.filter(p => {
+        const team = p.teamId ? teamsById[p.teamId] : null;
+        const q = searchQuery.toLowerCase().trim();
+        if (!q) return true;
+        return (
+          p.name.toLowerCase().includes(q) ||
+          (team && team.name.toLowerCase().includes(q))
+        );
+      });
+
+      return { ...tier, players: matching };
+    }).filter(tier => tier.players.length > 0);
+  }, [tiersConfig, selectedTier, searchQuery, teamsById]);
+
+  const allFilteredPlayers = useMemo(() => {
+    return filteredTiers.flatMap(t => t.players);
+  }, [filteredTiers]);
 
   const handleDelete = () => {
     if (!firestore || !deletingPlayer) return;
     const playerRef = doc(firestore, 'players', deletingPlayer.id);
     deleteDocumentNonBlocking(playerRef);
     toast({
-        title: t('player_deleted_title'),
-        description: t('player_deleted_list_desc', { playerName: deletingPlayer.name }),
+      title: t('player_deleted_title'),
+      description: t('player_deleted_list_desc', { playerName: deletingPlayer.name }),
     });
     setDeletingPlayer(null);
   };
   
   const confirmDelete = (player: WithId<Player>) => {
     withAdminCheck(() => {
-        setDeletingPlayer(player)
+      setDeletingPlayer(player);
     });
-  }
+  };
 
   const isLoading = isLoadingPlayers || isLoadingTeams;
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => (
-          <Card key={i} className="h-[400px] border-white/5 bg-white/5 animate-pulse rounded-2xl">
-            <CardHeader className="items-center pt-10">
-              <Skeleton className="h-28 w-28 rounded-full" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-6 w-3/4 mx-auto" />
-              <Skeleton className="h-4 w-1/2 mx-auto" />
-              <div className="grid grid-cols-3 gap-2 mt-10">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-2xl bg-white/5 border border-white/10" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <Skeleton key={i} className="h-[460px] rounded-3xl bg-white/5 border border-white/10" />
+          ))}
+        </div>
       </div>
     );
   }
   
   if (playersWithRanks.length === 0) {
     return (
-      <div className="w-full overflow-hidden rounded-2xl border-2 border-dashed border-white/10 bg-card/40 p-16 text-center backdrop-blur-md">
-        <Users className="w-16 h-16 text-white/10 mx-auto mb-4" />
-        <h2 className="text-xl font-black text-muted-foreground uppercase tracking-widest">{t('no_players_found_title')}</h2>
-        <p className="text-sm font-bold text-muted-foreground/60 mt-2 uppercase tracking-tighter">
+      <div className="w-full overflow-hidden rounded-3xl border border-dashed border-white/15 bg-black/60 p-16 text-center backdrop-blur-2xl">
+        <Users className="w-16 h-16 text-white/20 mx-auto mb-4 animate-pulse" />
+        <h2 className="text-xl font-black text-white/70 uppercase tracking-widest">{t('no_players_found_title')}</h2>
+        <p className="text-xs font-bold text-white/40 mt-2 uppercase tracking-tight">
           {t('no_players_found_desc')}
         </p>
       </div>
     );
   }
 
-
   return (
-    <>
-      <div className="space-y-24">
-        {tiers.map((tier) => (
-          <div key={tier.title} className="flex flex-col md:flex-row gap-6 md:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            
-            {/* Modular HUD Sidebar Label Section */}
-            <div className={cn(
-                "flex md:flex-col items-center md:items-end justify-between md:justify-start gap-4 shrink-0 md:w-32 relative group/sidebar",
-                tier.title === 'Top Player' ? "md:pt-4" : "md:pt-8"
-            )}>
-                {/* HUD Signal Segments */}
-                <div className="flex md:flex-col gap-1.5 h-1.5 w-full md:h-fit md:w-1.5 order-1 md:order-none">
-                    {[...Array(5)].map((_, i) => (
-                        <div 
-                            key={i} 
-                            className={cn(
-                                "rounded-full transition-all duration-1000",
-                                i < 3 ? tier.bgShadow.split(' ')[0] : "bg-white/5",
-                                i === 0 ? "flex-[3] md:h-20" : "flex-1 md:h-4"
-                            )} 
-                        />
-                    ))}
-                </div>
-
-                <div className="flex md:flex-col items-center md:items-end gap-2 md:gap-6 md:rotate-180 md:[writing-mode:vertical-lr] relative z-10">
-                    <div className="flex flex-col md:flex-row-reverse items-center gap-2">
-                        <div className={cn("w-2 h-2 rounded-full animate-pulse hidden md:block", tier.bgShadow)} />
-                        <h2 className={cn("text-3xl md:text-6xl font-black uppercase italic tracking-tighter whitespace-nowrap leading-none", tier.color)}>
-                            {tier.title}
-                        </h2>
-                    </div>
-                    <div className="flex items-center gap-2 opacity-30 mt-1 md:mt-0">
-                        <span className="text-white text-[8px] md:text-[11px] tracking-[0.4em] font-black uppercase whitespace-nowrap">
-                            Scouting • Level
-                        </span>
-                        <Target className="w-3 h-3 text-white" />
-                    </div>
-                </div>
-
-                {/* HUD Geometric Details */}
-                <div className="hidden md:flex flex-col gap-1 mt-auto items-end opacity-10">
-                    <div className="w-8 h-0.5 bg-white" />
-                    <div className="w-4 h-0.5 bg-white" />
-                    <div className="w-12 h-0.5 bg-white" />
-                </div>
-            </div>
-
-            {/* Players Grid Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 flex-1">
-                {tier.players.map((player) => {
-                const team = player.teamId ? teamsById[player.teamId] : null;
-                const wonSeasons = hallOfFame?.filter(record => record.winnerPlayerId === player.id) || [];
-                const hasWins = wonSeasons.length > 0;
-                
-                return (
-                    <div key={player.id} className="group relative">
-                        <div className={cn(
-                            "absolute -inset-1 bg-gradient-to-br rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-1000",
-                            tier.title === 'Legend' ? "from-yellow-400 to-amber-600" : "from-primary to-accent"
-                        )} />
-                        
-                        <Card className={cn(
-                            "relative flex flex-col h-full transition-all duration-500 overflow-hidden rounded-2xl border-2",
-                            tier.cardBg,
-                            tier.cardBorder
-                        )}>
-                            <div className="relative pt-10 pb-6 flex flex-col items-center overflow-hidden">
-                                <span className="absolute top-4 left-4 text-6xl font-black text-white/[0.03] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-white/[0.05] transition-colors pr-4">
-                                    {player.name}
-                                </span>
-                                
-                                <div className="relative z-10">
-                                    {/* Photo Scan Line */}
-                                    <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none z-20 opacity-0 group-hover:opacity-20 transition-opacity">
-                                        <div className={cn("w-full h-1 blur-[1px] animate-scanning", tier.title === 'Legend' ? "bg-yellow-400" : "bg-primary")} />
-                                    </div>
-
-                                    <Avatar className={cn(
-                                        "h-28 w-28 border-4 transition-all duration-500 shadow-2xl scale-100 group-hover:scale-105",
-                                        tier.cardBorder.replace('group-hover:', '')
-                                    )}>
-                                        <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
-                                        <AvatarFallback className="bg-black/40"><User className="h-14 w-14 text-white/20" /></AvatarFallback>
-                                    </Avatar>
-                                    
-                                    <div className={cn(
-                                        "absolute -bottom-2 -right-2 h-14 w-14 rounded-xl flex flex-col items-center justify-center border-4 border-[#0A192F] shadow-2xl rotate-12 group-hover:rotate-0 transition-all duration-500",
-                                        tier.title === 'Legend' ? "bg-yellow-400 text-black" : "bg-primary text-black"
-                                    )}>
-                                        <span className="text-sm font-black leading-none">#{player.ovrRank}</span>
-                                        <span className="text-[8px] font-black leading-none uppercase opacity-60 mt-1 mb-0.5">OVR</span>
-                                        <span className="text-base font-black leading-none italic">{player.ovrRating.toFixed(0)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <CardContent className="flex-grow space-y-6 px-6 relative z-10">
-                                <div className="text-center space-y-1">
-                                    <h3 className={cn(
-                                        "font-black text-2xl tracking-tighter uppercase italic transition-colors pr-4",
-                                        tier.color.includes('white') ? "text-white group-hover:text-primary" : `text-white group-hover:${tier.color.replace('text-', '')}`
-                                    )}>
-                                        {player.name}
-                                    </h3>
-                                    <div className="flex items-center justify-center gap-2">
-                                        {team ? (
-                                            <Badge variant="outline" className={cn(
-                                                "bg-white/5 border-white/10 text-[10px] font-black uppercase tracking-widest gap-1.5 py-1",
-                                                tier.title === 'Legend' ? "text-yellow-400" : "text-primary"
-                                            )}>
-                                                <Shield className="w-3 h-3" />
-                                                {team.name}
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="outline" className="bg-white/5 border-white/10 text-[10px] font-black uppercase tracking-widest text-muted-foreground py-1">
-                                                Free Agent
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 border-b border-white/5 pb-2">
-                                        <span className="flex items-center gap-1.5"><Activity className="w-3 h-3" /> Career Overview</span>
-                                        <span className="text-white/40">{player.overallPlayed || 0} Matches</span>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-3 gap-3 relative">
-                                        {/* Background Glow Connector */}
-                                        <div className={cn(
-                                            "absolute inset-0 blur-2xl -z-10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
-                                            tier.title === 'Legend' ? "bg-yellow-400/10" : "bg-primary/5"
-                                        )} />
-                                        
-                                        {[
-                                            { label: 'WIN', value: player.overallWin, color: tier.title === 'Legend' ? 'text-yellow-400' : 'text-primary', borderColor: tier.title === 'Legend' ? 'border-yellow-400/30' : 'border-primary/30', bgColor: tier.title === 'Legend' ? 'bg-yellow-400/10' : 'bg-primary/5' },
-                                            { label: 'DRAW', value: player.overallDraw, color: 'text-yellow-400', borderColor: 'border-yellow-400/30', bgColor: 'bg-yellow-400/5' },
-                                            { label: 'LOSS', value: player.overallLoss, color: 'text-red-500', borderColor: 'border-red-500/30', bgColor: 'bg-red-500/5' }
-                                        ].map((stat, i) => (
-                                            <div key={i} className={cn(
-                                                "relative group/stat overflow-hidden border-2 rounded-xl p-3 transition-all duration-500",
-                                                stat.borderColor,
-                                                stat.bgColor,
-                                                "hover:scale-105"
-                                            )}>
-                                                {/* HUD Corner Accent */}
-                                                <div className={cn("absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 opacity-40", stat.borderColor.replace('/30', ''))} />
-                                                
-                                                <div className="relative z-10 flex flex-col items-center">
-                                                    <span className={cn("text-[7px] font-black tracking-[0.2em] mb-1.5 opacity-60", stat.color)}>
-                                                        {stat.label}
-                                                    </span>
-                                                    <span className="text-2xl font-black italic tabular-nums leading-none text-white drop-shadow-md">
-                                                        {stat.value || 0}
-                                                    </span>
-                                                </div>
-                                                
-                                                {/* Animated Bottom Bar */}
-                                                <div className={cn(
-                                                    "absolute bottom-0 left-0 h-0.5 w-full transform translate-y-full transition-transform duration-500 group-hover/stat:translate-y-0",
-                                                    stat.color.replace('text-', 'bg-')
-                                                )} />
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Championship Legacy Module */}
-                                    <div className={cn(
-                                        "rounded-xl p-3.5 space-y-3 relative overflow-hidden group/legacy shadow-inner border transition-all duration-500",
-                                        hasWins 
-                                            ? tier.title === 'Legend' ? "bg-yellow-400/20 border-yellow-400/40 shadow-[0_0_30px_rgba(250,204,21,0.1)]" : "bg-yellow-500/10 border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.05)]"
-                                            : "bg-white/5 border-white/10"
-                                    )}>
-                                        {/* Animated HUD scanning line for the legacy block */}
-                                        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(234,179,8,0.05)_50%,transparent_100%)] bg-[length:200%_100%] animate-marquee pointer-events-none opacity-0 group-hover/legacy:opacity-100 transition-opacity" />
-                                        
-                                        <div className="flex justify-between items-start relative z-10">
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-1.5 mb-0.5">
-                                                    <Medal className={cn("w-2.5 h-2.5", hasWins ? "text-yellow-500" : "text-white/40")} />
-                                                    <span className={cn("text-[7px] font-black uppercase tracking-[0.2em]", hasWins ? "text-yellow-500/80" : "text-white/40")}>
-                                                        Championship Legacy
-                                                    </span>
-                                                </div>
-                                                <span className="text-[11px] font-black text-white uppercase italic tracking-tight pr-4">League Titles Won</span>
-                                            </div>
-                                            {hasWins && (
-                                                <div className="bg-yellow-500/20 p-1 rounded-lg border border-yellow-500/30">
-                                                    <Trophy className="w-3.5 h-3.5 text-yellow-500" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        <div className="relative pt-1 min-h-[40px] flex flex-wrap gap-1.5">
-                                            {hasWins ? (
-                                                wonSeasons.map((record, idx) => (
-                                                    <Badge 
-                                                        key={record.seasonId} 
-                                                        variant="outline" 
-                                                        className={cn(
-                                                            "border-yellow-500/40 text-yellow-500 text-[8px] font-black uppercase tracking-tighter italic animate-in fade-in zoom-in duration-500",
-                                                            tier.title === 'Legend' ? "bg-yellow-400/20" : "bg-yellow-500/10"
-                                                        )}
-                                                        style={{ animationDelay: `${idx * 100}ms` }}
-                                                    >
-                                                        {record.seasonName}
-                                                    </Badge>
-                                                ))
-                                            ) : (
-                                                <div className="w-full flex flex-col items-center justify-center py-2 opacity-20 group-hover/legacy:opacity-40 transition-opacity">
-                                                    <Star className="w-4 h-4 mb-1" />
-                                                    <span className="text-[8px] font-black uppercase tracking-[0.3em] italic">Awaiting First Title</span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Total Goals Section - Redesigned to Super Sport Solid & Glassy */}
-                                        <div className={cn(
-                                            "relative z-10 flex flex-col rounded-2xl border-2 transition-all duration-500 shadow-2xl overflow-hidden",
-                                            tier.title === 'Legend' ? "bg-yellow-400/[0.05] border-yellow-400/20 group-hover/legacy:border-yellow-400/50" : "bg-primary/[0.03] border-primary/20 group-hover/legacy:border-primary/50"
-                                        )}>
-                                            {/* Sub-Header Solid Strip */}
-                                            <div className={cn(
-                                                "px-4 py-1.5 flex items-center justify-between",
-                                                tier.title === 'Legend' ? "bg-yellow-400" : "bg-primary"
-                                            )}>
-                                                <div className="flex items-center gap-2">
-                                                    <Binary className="w-3 h-3 text-black" />
-                                                    <span className="text-[8px] font-black text-black uppercase tracking-[0.2em] italic">Offensive Statistics</span>
-                                                </div>
-                                                <Scan className="w-3 h-3 text-black/40" />
-                                            </div>
-                                            
-                                            <div className="p-4 flex items-center justify-between relative">
-                                                {/* Glassy Overlay Pattern */}
-                                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20" />
-                                                
-                                                <div className="flex flex-col gap-0.5 relative z-10">
-                                                    <span className="text-[11px] font-black text-white/60 uppercase tracking-widest">Total Goals Scored</span>
-                                                    <span className="text-[7px] font-bold text-white/20 uppercase tracking-widest">Career Aggregate Units</span>
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-3 relative z-10">
-                                                    <div className="flex flex-col items-end leading-none">
-                                                        <span className={cn(
-                                                            "text-3xl font-black italic tabular-nums drop-shadow-md",
-                                                            tier.title === 'Legend' ? "text-yellow-400" : "text-primary"
-                                                        )} suppressHydrationWarning>
-                                                            {player.overallGoalsFor || 0}
-                                                        </span>
-                                                    </div>
-                                                    <div className={cn(
-                                                        "p-1.5 rounded-lg border-2 group-hover/legacy:scale-110 transition-transform duration-500 shadow-lg",
-                                                        tier.title === 'Legend' ? "bg-black/40 border-yellow-400/30" : "bg-black/40 border-primary/30"
-                                                    )}>
-                                                        <Zap className={cn("w-3.5 h-3.5 fill-current animate-pulse", tier.title === 'Legend' ? "text-yellow-400" : "text-primary")} />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Bottom Decoration line */}
-                                            <div className={cn(
-                                                "h-1 w-full bg-gradient-to-r from-transparent via-transparent to-transparent",
-                                                tier.title === 'Legend' ? "via-yellow-400/40" : "via-primary/40"
-                                            )} />
-                                        </div>
-                                        
-                                        <div className="flex justify-between items-center text-[6px] font-black text-white/20 uppercase tracking-[0.2em] relative z-10 border-t border-white/5 pt-2">
-                                            <div className="flex items-center gap-1">
-                                                <div className={cn("w-1 h-1 rounded-full", hasWins ? "bg-yellow-500/40" : "bg-white/10")} />
-                                                <span>{player.name} legacy log</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <span>Verified system</span>
-                                                <div className={cn("w-1 h-1 rounded-full animate-pulse", tier.title === 'Legend' ? "bg-yellow-400/40" : "bg-primary/40")} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-
-                            {isAdmin && (
-                                <CardFooter className="grid grid-cols-2 gap-2 p-4 border-t border-white/10 bg-black/40 backdrop-blur-md">
-                                    <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        onClick={() => onEdit(player)}
-                                        className={cn(
-                                            "font-black text-[10px] uppercase tracking-widest h-10 border border-white/10 transition-all",
-                                            tier.title === 'Legend' ? "hover:bg-yellow-400/10 hover:text-yellow-400 hover:border-yellow-400/30" : "hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-                                        )}
-                                    >
-                                        <Pencil className="w-3 h-3 mr-2" />
-                                        {t('edit_player_title')}
-                                    </Button>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        onClick={() => confirmDelete(player)}
-                                        className="font-black text-[10px] uppercase tracking-widest h-10 border border-white/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all"
-                                    >
-                                        <Trash2 className="w-3 h-3 mr-2" />
-                                        {t('delete')}
-                                    </Button>
-                                </CardFooter>
-                            )}
-                        </Card>
-                    </div>
-                );
-                })}
-            </div>
+    <div className="space-y-8">
+      {/* Quick Telemetry KPI Cards Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-primary transition-all">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-primary/10 rounded-full blur-xl pointer-events-none" />
+          <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
+            <span>ATHLETES_ROSTER</span>
+            <Users className="w-3.5 h-3.5 text-primary" />
           </div>
-        ))}
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+              {leagueMetrics.totalPlayers}
+            </span>
+            <span className="text-[10px] font-black uppercase text-primary tracking-widest">ACTIVE</span>
+          </div>
+          <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full w-full shadow-[0_0_10px_rgba(204,253,1,0.8)]" />
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-yellow-400/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-yellow-400 transition-all">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-400/10 rounded-full blur-xl pointer-events-none" />
+          <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
+            <span>PEAK_OVR_RATING</span>
+            <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl sm:text-4xl font-black italic text-yellow-400 tracking-tighter tabular-nums leading-none drop-shadow-[0_0_15px_rgba(250,204,21,0.4)]">
+              {leagueMetrics.highestOvr}
+            </span>
+            <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">/ 100</span>
+          </div>
+          <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.8)]" style={{ width: `${leagueMetrics.highestOvr}%` }} />
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-accent/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-accent transition-all">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-accent/10 rounded-full blur-xl pointer-events-none" />
+          <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
+            <span>LEAGUE_AVERAGE</span>
+            <Gauge className="w-3.5 h-3.5 text-accent" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+              {leagueMetrics.avgOvr}
+            </span>
+            <span className="text-[10px] font-black uppercase text-accent tracking-widest">OVR MEAN</span>
+          </div>
+          <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-accent rounded-full shadow-[0_0_10px_rgba(100,255,218,0.8)]" style={{ width: `${leagueMetrics.avgOvr}%` }} />
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-rose-500/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-rose-500 transition-all">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 rounded-full blur-xl pointer-events-none" />
+          <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
+            <span>OFFENSIVE_PAYLOAD</span>
+            <Flame className="w-3.5 h-3.5 text-rose-500" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+              {leagueMetrics.totalGoals}
+            </span>
+            <span className="text-[10px] font-black uppercase text-rose-400 tracking-widest">GOALS</span>
+          </div>
+          <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-rose-500 rounded-full w-3/4 shadow-[0_0_10px_rgba(244,63,94,0.8)]" />
+          </div>
+        </div>
       </div>
 
-      <AlertDialog open={!!deletingPlayer} onOpenChange={(isOpen) => !isOpen && setDeletingPlayer(null)}>
-        <AlertDialogContent className="border-red-500/50 bg-card/95 backdrop-blur-xl">
-            <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-black tracking-tighter uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle>
-            <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
-                {t('delete_player_confirm_desc', { playerName: deletingPlayer?.name })}
-            </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12">{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12"
+      {/* Cyberpunk Interactive Filter & View Controls */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-3xl border border-white/10 bg-black/60 backdrop-blur-2xl">
+        {/* Real-time Search Input */}
+        <div className="relative flex-1 max-w-md group/search">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within/search:text-primary transition-colors" />
+          <Input 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Pencarian atlet, klub, ID divisi..." 
+            className="h-12 pl-11 pr-10 bg-black/50 border-white/10 focus:border-primary/60 text-xs font-bold text-white placeholder:text-white/30 rounded-2xl tracking-wider uppercase transition-all"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white transition-colors"
             >
-                {t('delete')}
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Tier Filter Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          <button
+            onClick={() => setSelectedTier('ALL')}
+            className={cn(
+              "px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap flex items-center gap-2",
+              selectedTier === 'ALL'
+                ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                : "bg-white/5 text-white/50 border-white/10 hover:border-white/30 hover:text-white"
+            )}
+          >
+            <span>ALL</span>
+            <span className={cn(
+              "text-[9px] px-1.5 py-0.2 rounded-md font-mono",
+              selectedTier === 'ALL' ? "bg-black text-white" : "bg-white/10 text-white/70"
+            )}>
+              {playersWithRanks.length}
+            </span>
+          </button>
+
+          {tiersConfig.map(t => {
+            const count = t.players.length;
+            const isSelected = selectedTier === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTier(t.id)}
+                className={cn(
+                  "px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap flex items-center gap-2",
+                  isSelected
+                    ? cn(t.bgBadge, "border-transparent")
+                    : cn("bg-white/5 border-white/10 hover:border-white/30 text-white/50 hover:", t.color)
+                )}
+              >
+                <span>{t.title}</span>
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.2 rounded-md font-mono",
+                  isSelected ? "bg-black text-white" : "bg-white/10 text-white/70"
+                )}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* View Mode Toggle Switcher */}
+        <div className="flex items-center p-1 bg-black/60 border border-white/10 rounded-2xl shrink-0 self-end md:self-auto">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={cn(
+              "p-2 rounded-xl text-xs font-black uppercase transition-all flex items-center gap-1.5",
+              viewMode === 'grid' 
+                ? "bg-primary text-black shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
+                : "text-white/40 hover:text-white"
+            )}
+            title="Tampilan Kartu Holo"
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span className="hidden sm:inline text-[9px] tracking-widest">HOLO</span>
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            className={cn(
+              "p-2 rounded-xl text-xs font-black uppercase transition-all flex items-center gap-1.5",
+              viewMode === 'table' 
+                ? "bg-primary text-black shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
+                : "text-white/40 hover:text-white"
+            )}
+            title="Tampilan Tabel Telemetri"
+          >
+            <ListOrdered className="w-4 h-4" />
+            <span className="hidden sm:inline text-[9px] tracking-widest">MATRIX</span>
+          </button>
+        </div>
+      </div>
+
+      {allFilteredPlayers.length === 0 ? (
+        <div className="w-full overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-12 text-center backdrop-blur-xl">
+          <Crosshair className="w-12 h-12 text-white/20 mx-auto mb-3 animate-spin-slow" />
+          <h3 className="text-base font-black text-white uppercase tracking-widest">Tidak ada atlet yang cocok</h3>
+          <p className="text-xs text-white/40 uppercase tracking-wider mt-1">Coba sesuaikan kata kunci pencarian atau filter tier Anda.</p>
+        </div>
+      ) : viewMode === 'grid' ? (
+        /* GRID VIEW: Apex Holographic Athlete Cards */
+        <div className="space-y-16">
+          {filteredTiers.map((tier) => (
+            <div key={tier.id} className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-500">
+              {/* Tier Section Header Banner */}
+              <div className="flex items-center justify-between px-2 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-2.5 h-7 rounded-full", tier.hudBar)} />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className={cn("text-2xl sm:text-3xl font-black uppercase italic tracking-tighter leading-none", tier.color)}>
+                        {tier.title}
+                      </h2>
+                      <Badge variant="outline" className={cn("text-[8px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full border", tier.bgPill)}>
+                        {tier.badgeTitle}
+                      </Badge>
+                    </div>
+                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-[0.3em]">
+                      Tier Classification Division • {tier.players.length} Registered Contenders
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-[9px] font-black text-white/40 uppercase tracking-widest font-mono">
+                  <Scan className="w-3.5 h-3.5 text-primary animate-pulse" />
+                  <span>HUD // SYNC_OK</span>
+                </div>
+              </div>
+
+              {/* Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {tier.players.map((player) => {
+                  const team = player.teamId ? teamsById[player.teamId] : null;
+                  const wonSeasons = hallOfFame?.filter(record => record.winnerPlayerId === player.id) || [];
+                  const hasWins = wonSeasons.length > 0;
+                  const winRate = player.winRate || 0;
+                  const goalsPerMatch = player.overallPlayed > 0 
+                    ? ((player.overallGoalsFor || 0) / player.overallPlayed).toFixed(1) 
+                    : '0.0';
+
+                  return (
+                    <div key={player.id} className="group relative">
+                      {/* Ambient Holographic Aura Glow on Hover */}
+                      <div className={cn(
+                        "absolute -inset-1 rounded-[2.2rem] opacity-0 group-hover:opacity-100 blur-xl transition-all duration-700 pointer-events-none bg-gradient-to-b",
+                        tier.accentGlow
+                      )} />
+
+                      <Card className={cn(
+                        "relative flex flex-col h-full bg-gradient-to-b from-[#0B1526]/90 via-[#070D18]/95 to-[#040810] border border-white/10 rounded-[2.2rem] overflow-hidden transition-all duration-500 shadow-[0_15px_40px_rgba(0,0,0,0.8)]",
+                        tier.borderColor,
+                        "hover:-translate-y-1.5"
+                      )}>
+                        {/* Top Laser Accent Line */}
+                        <div className={cn("h-1 w-full", tier.hudBar)} />
+
+                        {/* Card Header & Avatar Area */}
+                        <div className="relative pt-6 pb-4 px-6 flex flex-col items-center overflow-hidden">
+                          {/* Background Watermark Player Name */}
+                          <span className="absolute top-2 left-4 text-5xl font-black text-white/[0.02] uppercase tracking-tighter whitespace-nowrap pointer-events-none group-hover:text-white/[0.05] transition-colors select-none">
+                            {player.name}
+                          </span>
+
+                          {/* Top Card Badge / Rank Pill */}
+                          <div className="w-full flex items-center justify-between mb-4 z-10">
+                            <div className="flex items-center gap-1.5">
+                              <Badge className={cn("text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border", tier.bgPill)}>
+                                #{player.ovrRank} RANK
+                              </Badge>
+                              {player.ovrRank <= 3 && (
+                                <Medal className={cn(
+                                  "w-4 h-4",
+                                  player.ovrRank === 1 ? "text-yellow-400" :
+                                  player.ovrRank === 2 ? "text-slate-300" : "text-amber-600"
+                                )} />
+                              )}
+                            </div>
+
+                            <span className="text-[8px] font-mono text-white/30 uppercase tracking-widest">
+                              ID_{player.id.slice(0, 5)}
+                            </span>
+                          </div>
+
+                          {/* Avatar with OVR Hex Badge */}
+                          <div className="relative z-10 mb-3">
+                            {/* Scanning laser beam on hover */}
+                            <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none z-20 opacity-0 group-hover:opacity-30 transition-opacity">
+                              <div className={cn("w-full h-1 blur-[1px] animate-scanning", tier.hudBar)} />
+                            </div>
+
+                            <Avatar className={cn(
+                              "h-24 w-24 border-2 transition-all duration-500 shadow-2xl scale-100 group-hover:scale-105",
+                              tier.color.includes('yellow') ? "border-yellow-400/50 group-hover:border-yellow-400" :
+                              tier.color.includes('primary') ? "border-primary/50 group-hover:border-primary" :
+                              tier.color.includes('accent') ? "border-accent/50 group-hover:border-accent" :
+                              "border-rose-400/50 group-hover:border-rose-400"
+                            )}>
+                              <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
+                              <AvatarFallback className="bg-black/80 font-black text-white/30 text-xl">
+                                {player.name.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+
+                            {/* OVR Rating Badge with Cyber Cut Corner */}
+                            <div className={cn(
+                              "absolute -bottom-2 -right-2 h-12 w-12 rounded-2xl flex flex-col items-center justify-center border-2 border-[#0A192F] shadow-2xl transition-transform duration-500 group-hover:scale-110",
+                              tier.bgBadge
+                            )}>
+                              <span className="text-[7px] font-black leading-none uppercase tracking-tighter opacity-70">OVR</span>
+                              <span className="text-base font-black leading-none italic tabular-nums tracking-tighter mt-0.5">
+                                {player.ovrRating.toFixed(0)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Player Identity */}
+                          <div className="text-center space-y-1.5 z-10 w-full px-2">
+                            <h3 className={cn(
+                              "font-black text-xl tracking-tight uppercase italic truncate transition-colors",
+                              "text-white group-hover:text-white"
+                            )}>
+                              {player.name}
+                            </h3>
+                            <div className="flex items-center justify-center gap-2">
+                              {team ? (
+                                <Badge variant="outline" className={cn(
+                                  "bg-white/5 border-white/10 text-[9px] font-black uppercase tracking-widest gap-1 py-0.5 px-2.5 rounded-full text-white/80"
+                                )}>
+                                  <Shield className="w-2.5 h-2.5 text-primary" />
+                                  <span className="truncate max-w-[130px]">{team.name}</span>
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-white/5 border-white/10 text-[9px] font-black uppercase tracking-widest text-white/40 py-0.5 px-2.5 rounded-full">
+                                  Free Agent
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card Content & Telemetry Section */}
+                        <CardContent className="flex-grow space-y-4 px-5 pb-5 pt-2 relative z-10">
+                          {/* Win Rate Meter */}
+                          <div className="space-y-1.5 bg-black/40 border border-white/5 rounded-2xl p-3">
+                            <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest">
+                              <span className="text-white/40 flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3 text-primary" /> Victory Rate
+                              </span>
+                              <span className={cn("font-mono font-black italic", tier.color)}>
+                                {winRate.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                              <div 
+                                className={cn("h-full rounded-full transition-all duration-1000", tier.hudBar)} 
+                                style={{ width: `${Math.min(100, Math.max(5, winRate))}%` }} 
+                              />
+                            </div>
+                          </div>
+
+                          {/* W / D / L Tri-Grid */}
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="p-2.5 rounded-xl bg-black/50 border border-emerald-500/20 hover:border-emerald-500/50 transition-colors">
+                              <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-0.5">WIN</span>
+                              <span className="text-xl font-black italic tabular-nums text-white leading-none">
+                                {player.overallWin || 0}
+                              </span>
+                            </div>
+                            <div className="p-2.5 rounded-xl bg-black/50 border border-yellow-500/20 hover:border-yellow-500/50 transition-colors">
+                              <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-yellow-400 mb-0.5">DRAW</span>
+                              <span className="text-xl font-black italic tabular-nums text-white leading-none">
+                                {player.overallDraw || 0}
+                              </span>
+                            </div>
+                            <div className="p-2.5 rounded-xl bg-black/50 border border-rose-500/20 hover:border-rose-500/50 transition-colors">
+                              <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-rose-400 mb-0.5">LOSS</span>
+                              <span className="text-xl font-black italic tabular-nums text-white leading-none">
+                                {player.overallLoss || 0}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Offensive Telemetry: Goals & GPM */}
+                          <div className="flex items-center justify-between p-3 rounded-2xl bg-black/50 border border-white/5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+                                <Zap className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-white/40">Total Goals</span>
+                                <span className="text-lg font-black italic tabular-nums text-white leading-none">
+                                  {player.overallGoalsFor || 0} <span className="text-[9px] font-normal text-white/40">PTS</span>
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-white/40">Per Match</span>
+                              <span className="text-sm font-black font-mono text-primary italic leading-none">
+                                {goalsPerMatch}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Championship Legacy Pod */}
+                          <div className={cn(
+                            "rounded-2xl p-3 border transition-all relative overflow-hidden",
+                            hasWins 
+                              ? "bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_20px_rgba(250,204,21,0.05)]" 
+                              : "bg-white/[0.02] border-white/5"
+                          )}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <Trophy className={cn("w-3 h-3", hasWins ? "text-yellow-400" : "text-white/30")} />
+                                <span className={cn(
+                                  "text-[8px] font-black uppercase tracking-widest",
+                                  hasWins ? "text-yellow-400" : "text-white/40"
+                                )}>
+                                  Championship Legacy
+                                </span>
+                              </div>
+                              <span className="text-[9px] font-black font-mono text-white/60">
+                                {hasWins ? `${wonSeasons.length} TITLES` : '0 TITLES'}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1 min-h-[22px] items-center">
+                              {hasWins ? (
+                                wonSeasons.map(rec => (
+                                  <Badge 
+                                    key={rec.seasonId}
+                                    className="bg-yellow-400/20 border-yellow-400/40 text-yellow-400 text-[8px] font-black uppercase tracking-tight py-0 px-2 rounded-md"
+                                  >
+                                    🏆 {rec.seasonName}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-[8px] font-black uppercase tracking-widest text-white/20 italic">
+                                  Menunggu gelar pertama
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+
+                        {/* Admin Controls Footer */}
+                        {isAdmin && (
+                          <CardFooter className="grid grid-cols-2 gap-2 p-3 border-t border-white/10 bg-black/80 rounded-b-[2.2rem]">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => onEdit(player)}
+                              className="font-black text-[9px] uppercase tracking-widest h-9 rounded-xl border border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all"
+                            >
+                              <Pencil className="w-3 h-3 mr-1.5" />
+                              {t('edit_player_title')}
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => confirmDelete(player)}
+                              className="font-black text-[9px] uppercase tracking-widest h-9 rounded-xl border border-white/10 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/40 transition-all"
+                            >
+                              <Trash2 className="w-3 h-3 mr-1.5" />
+                              {t('delete')}
+                            </Button>
+                          </CardFooter>
+                        )}
+                      </Card>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* TABLE VIEW: Cyber Telemetry Leaderboard Matrix */
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/60 backdrop-blur-2xl shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-bold text-white border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/[0.02] text-[9px] font-black uppercase tracking-[0.25em] text-white/40">
+                  <th className="py-4 px-4 text-center">RANK</th>
+                  <th className="py-4 px-4">ATLET // KLUB</th>
+                  <th className="py-4 px-4 text-center">TIER</th>
+                  <th className="py-4 px-4 text-center">OVR</th>
+                  <th className="py-4 px-4 text-center">MAIN</th>
+                  <th className="py-4 px-4 text-center text-emerald-400">W</th>
+                  <th className="py-4 px-4 text-center text-yellow-400">D</th>
+                  <th className="py-4 px-4 text-center text-rose-400">L</th>
+                  <th className="py-4 px-4 text-center text-primary">WIN%</th>
+                  <th className="py-4 px-4 text-center">GOL</th>
+                  <th className="py-4 px-4">GELAR JUARA</th>
+                  {isAdmin && <th className="py-4 px-4 text-center">AKSI</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 font-mono">
+                {allFilteredPlayers.map((player) => {
+                  const team = player.teamId ? teamsById[player.teamId] : null;
+                  const wonSeasons = hallOfFame?.filter(record => record.winnerPlayerId === player.id) || [];
+                  const tier = tiersConfig.find(t => t.players.some(p => p.id === player.id)) || tiersConfig[3];
+
+                  return (
+                    <tr 
+                      key={player.id}
+                      className="hover:bg-white/[0.04] transition-colors group/row"
+                    >
+                      {/* Rank */}
+                      <td className="py-4 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <span className={cn(
+                            "w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs",
+                            player.ovrRank === 1 ? "bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.5)]" :
+                            player.ovrRank === 2 ? "bg-slate-300 text-black shadow-[0_0_15px_rgba(203,213,225,0.4)]" :
+                            player.ovrRank === 3 ? "bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.4)]" :
+                            "bg-white/5 text-white/60 border border-white/10"
+                          )}>
+                            #{player.ovrRank}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Athlete & Team */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3 font-sans">
+                          <Avatar className="h-10 w-10 border border-white/10 shrink-0">
+                            <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
+                            <AvatarFallback className="bg-black/60 text-xs font-black">
+                              {player.name.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <span className="block font-black text-sm uppercase italic tracking-tight text-white group-hover/row:text-primary transition-colors truncate">
+                              {player.name}
+                            </span>
+                            <span className="block text-[10px] font-bold uppercase tracking-wider text-white/40 truncate">
+                              {team?.name || 'Free Agent'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Tier */}
+                      <td className="py-4 px-4 text-center">
+                        <Badge variant="outline" className={cn("text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border", tier.bgPill)}>
+                          {tier.title}
+                        </Badge>
+                      </td>
+
+                      {/* OVR */}
+                      <td className="py-4 px-4 text-center">
+                        <span className={cn("text-base font-black italic tabular-nums", tier.color)}>
+                          {player.ovrRating.toFixed(0)}
+                        </span>
+                      </td>
+
+                      {/* Played */}
+                      <td className="py-4 px-4 text-center text-white/60 font-black">
+                        {player.overallPlayed || 0}
+                      </td>
+
+                      {/* Win */}
+                      <td className="py-4 px-4 text-center text-emerald-400 font-black">
+                        {player.overallWin || 0}
+                      </td>
+
+                      {/* Draw */}
+                      <td className="py-4 px-4 text-center text-yellow-400 font-black">
+                        {player.overallDraw || 0}
+                      </td>
+
+                      {/* Loss */}
+                      <td className="py-4 px-4 text-center text-rose-400 font-black">
+                        {player.overallLoss || 0}
+                      </td>
+
+                      {/* Win % */}
+                      <td className="py-4 px-4 text-center font-black text-primary">
+                        {(player.winRate || 0).toFixed(0)}%
+                      </td>
+
+                      {/* Goals */}
+                      <td className="py-4 px-4 text-center font-black text-white">
+                        {player.overallGoalsFor || 0}
+                      </td>
+
+                      {/* Titles */}
+                      <td className="py-4 px-4 font-sans">
+                        {wonSeasons.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {wonSeasons.map(rec => (
+                              <Badge 
+                                key={rec.seasonId}
+                                className="bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 text-[8px] font-black uppercase tracking-tight py-0 px-1.5"
+                              >
+                                🏆 {rec.seasonName}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[9px] text-white/20 font-mono">-</span>
+                        )}
+                      </td>
+
+                      {/* Admin Actions */}
+                      {isAdmin && (
+                        <td className="py-4 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1 font-sans">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEdit(player)}
+                              className="h-8 w-8 text-white/40 hover:text-primary hover:bg-primary/10 rounded-lg"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => confirmDelete(player)}
+                              className="h-8 w-8 text-white/40 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={!!deletingPlayer} onOpenChange={(isOpen) => !isOpen && setDeletingPlayer(null)}>
+        <AlertDialogContent className="border border-rose-500/40 bg-[#0A192F]/95 backdrop-blur-3xl rounded-3xl p-6 sm:p-8 shadow-[0_0_80px_rgba(239,68,68,0.25)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase italic text-rose-500">
+              {t('are_you_sure')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[10px]">
+              {t('delete_player_confirm_desc', { playerName: deletingPlayer?.name })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3 mt-6">
+            <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12 rounded-xl border border-white/10 bg-white/5">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-rose-500 text-white hover:bg-rose-600 font-black tracking-widest text-[10px] uppercase h-12 rounded-xl shadow-lg shadow-rose-500/25"
+            >
+              {t('delete')}
             </AlertDialogAction>
-            </AlertDialogFooter>
+          </AlertDialogFooter>
         </AlertDialogContent>
-    </AlertDialog>
-    </>
+      </AlertDialog>
+    </div>
   );
 }
