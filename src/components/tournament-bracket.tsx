@@ -1913,123 +1913,357 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             <DialogContent 
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 z-50 w-[95vw] sm:w-[90vw] max-w-4xl max-h-[90vh] flex flex-col border border-white/15 p-0 overflow-hidden bg-black/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_50px_rgba(204,253,1,0.15)] focus:outline-none focus-visible:outline-none [&>button:last-child]:top-5 [&>button:last-child]:right-5 [&>button:last-child]:h-10 [&>button:last-child]:w-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-white/10 [&>button:last-child]:border [&>button:last-child]:border-white/20 [&>button:last-child]:text-white [&>button:last-child]:hover:bg-primary [&>button:last-child]:hover:text-black [&>button:last-child]:hover:border-primary [&>button:last-child]:transition-all [&>button:last-child]:z-50 [&>button:last-child]:flex [&>button:last-child]:items-center [&>button:last-child]:justify-center [&>button:last-child]:opacity-100"
+                className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 z-50 w-[95vw] sm:w-[88vw] max-w-3xl max-h-[88vh] flex flex-col border p-0 overflow-hidden bg-black/95 backdrop-blur-3xl rounded-[2rem] shadow-[0_25px_80px_rgba(0,0,0,0.95)] focus:outline-none focus-visible:outline-none [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:h-8 [&>button:last-child]:w-8 [&>button:last-child]:rounded-full [&>button:last-child]:bg-white/10 [&>button:last-child]:border [&>button:last-child]:border-white/20 [&>button:last-child]:text-white [&>button:last-child]:hover:bg-white [&>button:last-child]:hover:text-black [&>button:last-child]:transition-all [&>button:last-child]:z-50 [&>button:last-child]:flex [&>button:last-child]:items-center [&>button:last-child]:justify-center [&>button:last-child]:opacity-100"
+                style={{
+                    borderColor: `${theme.primaryHex}40`,
+                    boxShadow: `0 25px 80px rgba(0,0,0,0.95), 0 0 35px ${theme.primaryHex}26`
+                }}
             >
                 {/* Top Racing Tracer */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_rgba(204,253,1,0.8)] z-20" />
+                <div 
+                    className="absolute top-0 left-0 right-0 h-[2px] z-20" 
+                    style={{
+                        background: `linear-gradient(to right, transparent, ${theme.primaryHex}, transparent)`,
+                        boxShadow: `0 0 16px ${theme.primaryHex}`
+                    }}
+                />
                 
-                <ScrollArea className="max-h-[90vh] scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-                    <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 relative">
-                        <div className="absolute inset-0 bg-[radial-gradient(rgba(204,253,1,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-30" />
-                        <DialogHeader className="p-6 sm:p-8 bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent border-b border-white/10 relative z-10 rounded-t-[2.5rem]">
-                            <div className="flex items-center gap-4 justify-center sm:justify-start">
-                                <div className="p-3 bg-primary/15 border border-primary/30 rounded-2xl text-primary shadow-[0_0_20px_rgba(204,253,1,0.3)]"><BarChart3 className="w-7 h-7" /></div>
-                                <div className="text-center sm:text-left">
-                                    <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic leading-none text-white font-headline drop-shadow-md">HUD ANALISIS PERTANDINGAN</DialogTitle>
-                                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
-                                        <Badge className="bg-primary/10 border border-primary/30 text-primary font-black tracking-widest text-[9px] px-3 h-5 rounded-full uppercase italic shadow-sm">{selectedMatch?.round || 'Playoff Battle'}</Badge>
+                <ScrollArea className="max-h-[88vh] scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                    <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-5 relative">
+                        <div 
+                            className="absolute inset-0 pointer-events-none opacity-25"
+                            style={{
+                                backgroundImage: `radial-gradient(${theme.primaryHex}33 1px, transparent 1px)`,
+                                backgroundSize: '18px 18px'
+                            }}
+                        />
+
+                        {/* Compact Header Bar */}
+                        <DialogHeader className="p-3.5 sm:p-4.5 bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent border-b border-white/10 relative z-10 rounded-t-[2rem] -mx-3.5 -mt-3.5 sm:-mx-6 sm:-mt-6 mb-1">
+                            <div className="flex items-center gap-3 justify-center sm:justify-start">
+                                <div 
+                                    className="p-2 border rounded-xl shadow-md shrink-0 flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: `${theme.primaryHex}1A`,
+                                        borderColor: `${theme.primaryHex}4D`,
+                                        color: theme.primaryHex,
+                                        boxShadow: `0 0 15px ${theme.primaryHex}33`
+                                    }}
+                                >
+                                    <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
+                                </div>
+                                <div className="text-center sm:text-left min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+                                        <DialogTitle className="text-lg sm:text-2xl font-black tracking-tight uppercase italic leading-none text-white font-headline drop-shadow-md">
+                                            HUD ANALISIS PERTANDINGAN
+                                        </DialogTitle>
+                                        <Badge 
+                                            className="font-black tracking-widest text-[8px] sm:text-[9px] px-2.5 h-4.5 rounded-full uppercase italic border shadow-sm"
+                                            style={{
+                                                backgroundColor: `${theme.primaryHex}1A`,
+                                                borderColor: `${theme.primaryHex}4D`,
+                                                color: theme.primaryHex
+                                            }}
+                                        >
+                                            {selectedMatch?.round || theme.seasonBadge || 'Playoff Battle'}
+                                        </Badge>
                                     </div>
+                                    <p className="text-[8px] sm:text-[9px] font-mono font-bold uppercase tracking-[0.2em] text-white/40 mt-1">
+                                        {theme.sysTag} • TELEMETRY COMBAT MATRIX
+                                    </p>
                                 </div>
                             </div>
                         </DialogHeader>
 
+                        {/* Admin Schedule Configuration */}
                         {!selectedMatch?.isProjection && (
-                            <div className="relative z-10 space-y-6 animate-in slide-in-from-top-4 duration-700 px-2 sm:px-0">
-                                <div className="max-w-2xl mx-auto bg-black/80 backdrop-blur-2xl border border-white/10 p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center text-center">
-                                        <div className="flex flex-col items-center space-y-2.5">
-                                            <Label className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70 italic flex items-center gap-2"><CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan</Label>
-                                            <Popover><PopoverTrigger asChild disabled={!isAdmin}><Button variant="outline" className="w-full h-12 bg-white/[0.03] border border-white/10 font-black text-sm uppercase rounded-xl tracking-tight transition-all px-4 text-center hover:border-primary/40">{editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}</Button></PopoverTrigger>
-                                            {isAdmin && <PopoverContent className="w-auto p-0 bg-black/95 border-primary/30 rounded-2xl" align="center"><Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-2xl" /></PopoverContent>}</Popover>
+                            <div className="relative z-10 animate-in slide-in-from-top-3 duration-500">
+                                <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-3 sm:p-4 rounded-2xl relative overflow-hidden shadow-lg">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center text-center">
+                                        <div className="flex flex-col items-center space-y-1.5">
+                                            <Label 
+                                                className="text-[9px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
+                                                style={{ color: theme.primaryHex }}
+                                            >
+                                                <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
+                                            </Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild disabled={!isAdmin}>
+                                                    <Button variant="outline" className="w-full h-9 bg-white/[0.03] border border-white/10 font-black text-xs uppercase rounded-xl tracking-tight transition-all px-3 text-center hover:border-white/30">
+                                                        {editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                {isAdmin && (
+                                                    <PopoverContent className="w-auto p-0 bg-black/95 border-white/20 rounded-2xl" align="center">
+                                                        <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus className="rounded-2xl" />
+                                                    </PopoverContent>
+                                                )}
+                                            </Popover>
                                         </div>
-                                        <div className="flex flex-col items-center space-y-2.5">
-                                            <Label className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70 italic flex items-center gap-2"><Clock className="w-3 h-3" /> Waktu Kick-Off (24H)</Label>
-                                            <div className="flex items-center justify-center gap-3">
-                                                <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}><SelectTrigger className="h-12 bg-white/[0.03] border border-white/10 focus:border-primary/50 font-black text-lg tabular-nums w-28 rounded-xl text-center"><SelectValue /></SelectTrigger><SelectContent className="bg-black/95 border-primary/30 rounded-xl">{Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
-                                                <span className="text-primary font-black text-xl">:</span>
-                                                <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}><SelectTrigger className="h-12 bg-white/[0.03] border border-white/10 focus:border-primary/50 font-black text-lg tabular-nums w-28 rounded-xl text-center"><SelectValue /></SelectTrigger><SelectContent className="bg-black/95 border-primary/30 rounded-xl">{Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}</SelectContent></Select>
+                                        <div className="flex flex-col items-center space-y-1.5">
+                                            <Label 
+                                                className="text-[9px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
+                                                style={{ color: theme.primaryHex }}
+                                            >
+                                                <Clock className="w-3 h-3" /> Waktu Kick-Off (24H)
+                                            </Label>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}>
+                                                    <SelectTrigger className="h-9 bg-white/[0.03] border border-white/10 focus:border-white/40 font-black text-sm tabular-nums w-20 rounded-xl text-center">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-black/95 border-white/20 rounded-xl">
+                                                        {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <span className="font-black text-base" style={{ color: theme.primaryHex }}>:</span>
+                                                <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}>
+                                                    <SelectTrigger className="h-9 bg-white/[0.03] border border-white/10 focus:border-white/40 font-black text-sm tabular-nums w-20 rounded-xl text-center">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-black/95 border-white/20 rounded-xl">
+                                                        {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                         </div>
                                     </div>
                                     {isAdmin && (
-                                        <div className="mt-8 flex flex-col items-center gap-3">
-                                            <Button onClick={handleSaveManualSchedule} disabled={isUpdatingSchedule} className="h-12 px-10 font-black uppercase italic tracking-wider gap-2 shadow-[0_0_25px_rgba(204,253,1,0.3)] rounded-xl bg-primary text-black hover:bg-primary/90">{isUpdatingSchedule ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} SIMPAN KONFIGURASI JADWAL</Button>
-                                            {selectedMatch?.isCompleted && onRevertMatch && <Button variant="outline" className="bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-wider text-[10px] h-10 px-6 rounded-xl transition-all gap-2" onClick={() => { onRevertMatch(selectedMatch); setSelectedMatch(null); }}><Undo2 className="w-3.5 h-3.5" /> RESET VALIDASI SKOR</Button>}
+                                        <div className="mt-3 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-center gap-2">
+                                            <Button 
+                                                onClick={handleSaveManualSchedule} 
+                                                disabled={isUpdatingSchedule} 
+                                                className="h-8 px-6 font-black uppercase italic tracking-wider text-[10px] gap-1.5 rounded-lg text-black transition-all"
+                                                style={{
+                                                    backgroundColor: theme.primaryHex,
+                                                    boxShadow: `0 0 15px ${theme.primaryHex}4D`
+                                                }}
+                                            >
+                                                {isUpdatingSchedule ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} SIMPAN JADWAL
+                                            </Button>
+                                            {selectedMatch?.isCompleted && onRevertMatch && (
+                                                <Button 
+                                                    variant="outline" 
+                                                    className="bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-wider text-[9px] h-8 px-4 rounded-lg transition-all gap-1.5" 
+                                                    onClick={() => { onRevertMatch(selectedMatch); setSelectedMatch(null); }}
+                                                >
+                                                    <Undo2 className="w-3 h-3" /> RESET SKOR
+                                                </Button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
                             </div>
                         )}
 
-                        <div className="flex flex-col sm:grid sm:grid-cols-[1fr_120px_1fr] items-center relative z-10 px-2 sm:px-0">
-                            <div className="flex flex-col items-center text-center gap-4 w-full">
+                        {/* VS Matchup Section (Compact & Proportional) */}
+                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 relative z-10 py-1">
+                            {/* Player 1 */}
+                            <div className="flex flex-col items-center text-center gap-2 w-full min-w-0">
                                 {analysis1 ? (
                                     <>
                                         <div className="relative">
-                                            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-primary shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105 bg-black/60 overflow-hidden flex items-center justify-center p-2">
+                                            <Avatar 
+                                                className="h-16 w-16 sm:h-20 sm:w-20 border-2 sm:border-[3px] shadow-xl relative z-10 transition-transform duration-300 bg-black/70 overflow-hidden flex items-center justify-center p-1.5"
+                                                style={{
+                                                    borderColor: theme.primaryHex,
+                                                    boxShadow: `0 0 20px ${theme.primaryHex}4D`
+                                                }}
+                                            >
                                                 <AvatarImage key={analysis1.logoUrl} src={analysis1.logoUrl} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
-                                                <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
+                                                <AvatarFallback className="bg-black/50 font-black text-xs"><User className="w-8 h-8 text-white/20"/></AvatarFallback>
                                             </Avatar>
-                                            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-primary text-primary font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis1.entry?.rank || '?'}</div>
+                                            <div 
+                                                className="absolute -bottom-1 -right-1 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-black border text-[10px] sm:text-xs font-black z-20 rotate-6 shadow-md" 
+                                                style={{
+                                                    borderColor: theme.primaryHex,
+                                                    color: theme.primaryHex
+                                                }}
+                                                suppressHydrationWarning
+                                            >
+                                                {analysis1.entry?.rank || '?'}
+                                            </div>
                                         </div>
-                                        <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p1?.name}</h3>
-                                        <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[8px] tracking-widest bg-primary/5">{analysis1.team?.name || 'Independent'}</Badge>
+                                        <h3 className="text-sm sm:text-lg font-black uppercase italic text-white text-center w-full leading-tight truncate px-1" suppressHydrationWarning>
+                                            {selectedMatch?.p1?.name}
+                                        </h3>
+                                        <Badge 
+                                            variant="outline" 
+                                            className="text-[7.5px] sm:text-[8px] uppercase tracking-wider font-bold max-w-[130px] truncate"
+                                            style={{
+                                                borderColor: `${theme.primaryHex}40`,
+                                                color: theme.primaryHex,
+                                                backgroundColor: `${theme.primaryHex}0D`
+                                            }}
+                                        >
+                                            {analysis1.team?.name || 'Independent'}
+                                        </Badge>
                                     </>
-                                ) : <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>}
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2 opacity-20">
+                                        <div className="h-16 w-16 rounded-full border-2 border-dashed border-white/30 flex items-center justify-center">
+                                            <User className="w-8 h-8 text-white/30" />
+                                        </div>
+                                        <h3 className="text-xs font-black uppercase italic">SLOT TERSEDIA</h3>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center justify-center py-10 sm:py-0 h-full relative"><div className="bg-[#0A192F] border-4 border-primary rounded-2xl w-16 h-16 flex items-center justify-center shadow-[0_0_40px_rgba(204,253,1,0.2)] z-10 rotate-45 group/vs"><span className="text-primary font-black text-2xl italic -rotate-45 pr-0.5 group-hover/vs:scale-110 transition-transform">VS</span></div></div>
-                            <div className="flex flex-col items-center text-center gap-4 w-full">
+
+                            {/* Center VS Emblem */}
+                            <div className="flex items-center justify-center px-1">
+                                <div 
+                                    className="border-2 rounded-xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center z-10 rotate-45 group/vs transition-transform shadow-lg"
+                                    style={{
+                                        backgroundColor: '#070C14',
+                                        borderColor: theme.primaryHex,
+                                        boxShadow: `0 0 20px ${theme.primaryHex}40`
+                                    }}
+                                >
+                                    <span 
+                                        className="font-black text-xs sm:text-base italic -rotate-45 font-headline"
+                                        style={{ color: theme.primaryHex }}
+                                    >
+                                        VS
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Player 2 */}
+                            <div className="flex flex-col items-center text-center gap-2 w-full min-w-0">
                                 {analysis2 ? (
                                     <>
                                         <div className="relative">
-                                            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-105 bg-black/60 overflow-hidden flex items-center justify-center p-2">
+                                            <Avatar 
+                                                className="h-16 w-16 sm:h-20 sm:w-20 border-2 sm:border-[3px] shadow-xl relative z-10 transition-transform duration-300 bg-black/70 overflow-hidden flex items-center justify-center p-1.5"
+                                                style={{
+                                                    borderColor: theme.secondaryHex || '#FFFFFF',
+                                                    boxShadow: `0 0 20px ${(theme.secondaryHex || '#FFFFFF')}4D`
+                                                }}
+                                            >
                                                 <AvatarImage key={analysis2.logoUrl} src={analysis2.logoUrl} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
-                                                <AvatarFallback className="bg-black/40 font-black text-xs"><User className="w-12 h-12 text-white/10"/></AvatarFallback>
+                                                <AvatarFallback className="bg-black/50 font-black text-xs"><User className="w-8 h-8 text-white/20"/></AvatarFallback>
                                             </Avatar>
-                                            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-white text-white font-black text-base z-20 rotate-12 shadow-xl" suppressHydrationWarning>{analysis2.entry?.rank || '?'}</div>
+                                            <div 
+                                                className="absolute -bottom-1 -right-1 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-black border text-[10px] sm:text-xs font-black z-20 -rotate-6 shadow-md"
+                                                style={{
+                                                    borderColor: theme.secondaryHex || '#FFFFFF',
+                                                    color: theme.secondaryHex || '#FFFFFF'
+                                                }}
+                                                suppressHydrationWarning
+                                            >
+                                                {analysis2.entry?.rank || '?'}
+                                            </div>
                                         </div>
-                                        <h3 className="text-xl sm:text-2xl font-black uppercase italic text-white text-center w-full leading-none" suppressHydrationWarning>{selectedMatch?.p2?.name}</h3>
-                                        <Badge variant="outline" className="border-white/20 text-white/60 uppercase text-[8px] tracking-widest bg-white/5">{analysis2.team?.name || 'Independent'}</Badge>
+                                        <h3 className="text-sm sm:text-lg font-black uppercase italic text-white text-center w-full leading-tight truncate px-1" suppressHydrationWarning>
+                                            {selectedMatch?.p2?.name}
+                                        </h3>
+                                        <Badge 
+                                            variant="outline" 
+                                            className="text-[7.5px] sm:text-[8px] uppercase tracking-wider font-bold max-w-[130px] truncate"
+                                            style={{
+                                                borderColor: `${theme.secondaryHex || '#FFFFFF'}40`,
+                                                color: theme.secondaryHex || 'rgba(255,255,255,0.7)',
+                                                backgroundColor: `${theme.secondaryHex || '#FFFFFF'}0D`
+                                            }}
+                                        >
+                                            {analysis2.team?.name || 'Independent'}
+                                        </Badge>
                                     </>
-                                ) : <div className="flex flex-col items-center gap-4 opacity-10"><div className="h-24 w-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center"><User className="w-12 h-12 text-white/20" /></div><h3 className="text-lg font-black uppercase italic text-center">SLOT TERSEDIA</h3></div>}
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2 opacity-20">
+                                        <div className="h-16 w-16 rounded-full border-2 border-dashed border-white/30 flex items-center justify-center">
+                                            <User className="w-8 h-8 text-white/30" />
+                                        </div>
+                                        <h3 className="text-xs font-black uppercase italic">SLOT TERSEDIA</h3>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
+                        {/* Telemetry Matrix & Playstyle Cards */}
                         {analysis1 && analysis2 && (
-                            <div className="space-y-10 relative z-10 animate-in fade-in duration-1000 delay-300">
-                                <div className="bg-black/40 border-2 border-white/5 rounded-[2rem] p-8 space-y-8 relative overflow-hidden group/stats">
-                                     <div className="flex flex-col items-center gap-2 mb-4">
-                                         <h3 className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase italic flex items-center gap-3"><Zap className="w-3.5 h-3.5 text-primary" /> Probability Matrix</h3>
-                                         <div className="flex items-center gap-6 w-full max-w-sm">
-                                             <span className="text-2xl font-black text-primary italic tabular-nums" suppressHydrationWarning>{analysis1.winRate.toFixed(0)}%</span>
-                                             <div className="h-3 flex-1 bg-white/5 rounded-full overflow-hidden flex border border-white/10">
-                                                 <div className="h-full bg-primary shadow-[0_0_10px_rgba(204,253,1,0.6)]" style={{ width: `${analysis1.winRate}%` }} />
-                                                 <div className="h-full bg-white/20" style={{ width: `${analysis2.winRate}%` }} />
+                            <div className="space-y-3 sm:space-y-4 relative z-10 animate-in fade-in duration-700">
+                                {/* Probability Matrix Card */}
+                                <div 
+                                    className="bg-black/60 border rounded-2xl p-3.5 sm:p-4.5 space-y-3 relative overflow-hidden"
+                                    style={{ borderColor: `${theme.primaryHex}26` }}
+                                >
+                                     {/* Probability Bar */}
+                                     <div className="flex flex-col items-center gap-1.5">
+                                         <h4 
+                                            className="text-[9px] font-black tracking-[0.25em] uppercase italic flex items-center gap-1.5"
+                                            style={{ color: theme.primaryHex }}
+                                         >
+                                             <Zap className="w-3 h-3" style={{ color: theme.primaryHex }} /> Probability Matrix
+                                         </h4>
+                                         <div className="flex items-center gap-3 w-full max-w-xs">
+                                             <span 
+                                                className="text-lg sm:text-xl font-black italic tabular-nums" 
+                                                style={{ color: theme.primaryHex }}
+                                                suppressHydrationWarning
+                                             >
+                                                 {analysis1.winRate.toFixed(0)}%
+                                             </span>
+                                             <div className="h-2 flex-1 bg-white/10 rounded-full overflow-hidden flex border border-white/10">
+                                                 <div 
+                                                    className="h-full transition-all duration-700" 
+                                                    style={{ 
+                                                        width: `${analysis1.winRate}%`,
+                                                        backgroundColor: theme.primaryHex,
+                                                        boxShadow: `0 0 10px ${theme.primaryHex}`
+                                                    }} 
+                                                 />
+                                                 <div 
+                                                    className="h-full transition-all duration-700" 
+                                                    style={{ 
+                                                        width: `${analysis2.winRate}%`,
+                                                        backgroundColor: theme.secondaryHex || '#94A3B8'
+                                                    }} 
+                                                 />
                                              </div>
-                                             <span className="text-2xl font-black text-white/40 italic tabular-nums" suppressHydrationWarning>{analysis2.winRate.toFixed(0)}%</span>
+                                             <span 
+                                                className="text-lg sm:text-xl font-black italic tabular-nums" 
+                                                style={{ color: theme.secondaryHex || 'rgba(255,255,255,0.5)' }}
+                                                suppressHydrationWarning
+                                             >
+                                                 {analysis2.winRate.toFixed(0)}%
+                                             </span>
                                          </div>
                                      </div>
 
-                                     <div className="space-y-5">
+                                     {/* Stats Breakdown Bars */}
+                                     <div className="space-y-2 pt-1 border-t border-white/5">
                                          {[
                                              { label: 'MATCH LOGS', v1: analysis1.stats.played, v2: analysis2.stats.played },
-                                             { label: 'TOTAL VICTORIES', v1: analysis1.stats.win, v2: analysis2.stats.win, color: 'text-green-400' },
-                                             { label: 'UNIT GOALS', v1: analysis1.stats.gf, v2: analysis2.stats.gf, color: 'text-primary' },
-                                             { label: 'MASTER OVR', v1: analysis1.masterInfo?.ovrRating.toFixed(0) || '0', v2: analysis2.masterInfo?.ovrRating.toFixed(0) || '0', color: 'text-yellow-500' }
+                                             { label: 'TOTAL VICTORIES', v1: analysis1.stats.win, v2: analysis2.stats.win, customColor: theme.primaryHex },
+                                             { label: 'UNIT GOALS', v1: analysis1.stats.gf, v2: analysis2.stats.gf, customColor: theme.secondaryHex || theme.primaryHex },
+                                             { label: 'MASTER OVR', v1: analysis1.masterInfo?.ovrRating.toFixed(0) || '0', v2: analysis2.masterInfo?.ovrRating.toFixed(0) || '0', customColor: '#F59E0B' }
                                          ].map((stat, i) => (
-                                             <div key={i} className="space-y-1.5">
-                                                 <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-white/20">
-                                                     <span suppressHydrationWarning>{stat.v1} Units</span>
-                                                     <span className="text-white/40 italic">{stat.label}</span>
-                                                     <span suppressHydrationWarning>{stat.v2} Units</span>
+                                             <div key={i} className="space-y-1">
+                                                 <div className="flex justify-between items-center text-[7.5px] sm:text-[8px] font-black uppercase tracking-widest text-white/30">
+                                                     <span suppressHydrationWarning className="text-white/60 font-mono">{stat.v1} Units</span>
+                                                     <span className="text-white/50 italic font-headline">{stat.label}</span>
+                                                     <span suppressHydrationWarning className="text-white/60 font-mono">{stat.v2} Units</span>
                                                  </div>
-                                                 <div className="flex items-center gap-2 h-1.5 w-full">
+                                                 <div className="flex items-center gap-1.5 h-1.5 w-full">
                                                      <div className="flex-1 bg-white/5 h-full rounded-full overflow-hidden flex justify-end">
-                                                         <div className={cn("h-full transition-all duration-1000", stat.color ? stat.color.replace('text-', 'bg-') : "bg-primary/40")} style={{ width: `${(Number(stat.v1) / (Number(stat.v1) + Number(stat.v2) || 1)) * 100}%` }} />
+                                                         <div 
+                                                             className="h-full transition-all duration-700" 
+                                                             style={{ 
+                                                                 width: `${(Number(stat.v1) / (Number(stat.v1) + Number(stat.v2) || 1)) * 100}%`,
+                                                                 backgroundColor: stat.customColor || theme.primaryHex
+                                                             }} 
+                                                         />
                                                      </div>
-                                                     <div className="w-1.5 h-1.5 rounded-full bg-white/10 shrink-0" />
+                                                     <div className="w-1 h-1 rounded-full bg-white/20 shrink-0" />
                                                      <div className="flex-1 bg-white/5 h-full rounded-full overflow-hidden">
-                                                         <div className={cn("h-full transition-all duration-1000", stat.color ? stat.color.replace('text-', 'bg-') : "bg-white/20")} style={{ width: `${(Number(stat.v2) / (Number(stat.v1) + Number(stat.v2) || 1)) * 100}%` }} />
+                                                         <div 
+                                                             className="h-full transition-all duration-700" 
+                                                             style={{ 
+                                                                 width: `${(Number(stat.v2) / (Number(stat.v1) + Number(stat.v2) || 1)) * 100}%`,
+                                                                 backgroundColor: stat.customColor ? `${stat.customColor}99` : 'rgba(255,255,255,0.3)'
+                                                             }} 
+                                                         />
                                                      </div>
                                                  </div>
                                              </div>
@@ -2037,31 +2271,118 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                      </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                     <Card className="bg-black/60 border-2 border-primary/20 rounded-2xl p-6 relative overflow-hidden group/p1">
-                                         <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgba(204,253,1,0.5)]" />
-                                         <div className="flex flex-col gap-4 relative z-10">
+                                {/* Compact Play Style Cards */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                     <Card 
+                                        className="bg-black/60 border rounded-xl p-3 relative overflow-hidden"
+                                        style={{ borderColor: `${theme.primaryHex}33` }}
+                                     >
+                                         <div 
+                                            className="absolute top-0 left-0 w-1 h-full" 
+                                            style={{ 
+                                                backgroundColor: theme.primaryHex,
+                                                boxShadow: `0 0 8px ${theme.primaryHex}`
+                                            }} 
+                                         />
+                                         <div className="flex flex-col gap-1.5 relative z-10 pl-1.5">
                                              <div className="flex justify-between items-start">
-                                                 <div className="flex flex-col"><span className="text-[7px] font-black uppercase tracking-[0.4em] text-primary/60 italic mb-1">Play Style</span><h4 className="text-lg font-black uppercase italic text-white pr-2">{analysis1.playStyleText}</h4></div>
-                                                 <div className="flex gap-1">{analysis1.form.map((f, i) => (<div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50")}>{f}</div>))}</div>
+                                                 <div className="flex flex-col">
+                                                     <span 
+                                                        className="text-[6.5px] font-black uppercase tracking-[0.25em] italic"
+                                                        style={{ color: theme.primaryHex }}
+                                                     >
+                                                         Play Style
+                                                     </span>
+                                                     <h4 className="text-xs sm:text-sm font-black uppercase italic text-white pr-1">
+                                                         {analysis1.playStyleText}
+                                                     </h4>
+                                                 </div>
+                                                 <div className="flex gap-0.5">
+                                                     {analysis1.form.map((f, i) => (
+                                                         <div 
+                                                             key={i} 
+                                                             className={cn(
+                                                                 "w-4 h-4 rounded flex items-center justify-center text-[7px] font-black", 
+                                                                 f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : 
+                                                                 f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : 
+                                                                 "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50"
+                                                             )}
+                                                         >
+                                                             {f}
+                                                         </div>
+                                                     ))}
+                                                 </div>
                                              </div>
-                                             <p className="text-[10px] font-bold text-white/40 leading-relaxed italic" suppressHydrationWarning>"{analysis1.playStyleDescription}"</p>
+                                             <p className="text-[8.5px] sm:text-[9px] font-semibold text-white/40 leading-snug italic line-clamp-2" suppressHydrationWarning>
+                                                 "{analysis1.playStyleDescription}"
+                                             </p>
                                          </div>
                                      </Card>
-                                     <Card className="bg-black/60 border-2 border-white/10 rounded-2xl p-6 relative overflow-hidden group/p2">
-                                         <div className="absolute right-0 top-0 w-1 h-full bg-white/20" />
-                                         <div className="flex flex-col gap-4 relative z-10 text-right">
+
+                                     <Card 
+                                        className="bg-black/60 border rounded-xl p-3 relative overflow-hidden"
+                                        style={{ borderColor: `${theme.secondaryHex || 'rgba(255,255,255,0.2)'}33` }}
+                                     >
+                                         <div 
+                                            className="absolute right-0 top-0 w-1 h-full" 
+                                            style={{ 
+                                                backgroundColor: theme.secondaryHex || 'rgba(255,255,255,0.5)',
+                                                boxShadow: theme.secondaryHex ? `0 0 8px ${theme.secondaryHex}` : undefined
+                                            }} 
+                                         />
+                                         <div className="flex flex-col gap-1.5 relative z-10 text-right pr-1.5">
                                              <div className="flex justify-between items-start flex-row-reverse">
-                                                 <div className="flex flex-col"><span className="text-[7px] font-black uppercase tracking-[0.4em] text-white/30 italic mb-1">Tactical DNA</span><h4 className="text-lg font-black uppercase italic text-white pr-2">{analysis2.playStyleText}</h4></div>
-                                                 <div className="flex gap-1">{analysis2.form.map((f, i) => (<div key={i} className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-black", f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50")}>{f}</div>))}</div>
+                                                 <div className="flex flex-col">
+                                                     <span 
+                                                        className="text-[6.5px] font-black uppercase tracking-[0.25em] italic"
+                                                        style={{ color: theme.secondaryHex || 'rgba(255,255,255,0.5)' }}
+                                                     >
+                                                         Tactical DNA
+                                                     </span>
+                                                     <h4 className="text-xs sm:text-sm font-black uppercase italic text-white pl-1">
+                                                         {analysis2.playStyleText}
+                                                     </h4>
+                                                 </div>
+                                                 <div className="flex gap-0.5">
+                                                     {analysis2.form.map((f, i) => (
+                                                         <div 
+                                                             key={i} 
+                                                             className={cn(
+                                                                 "w-4 h-4 rounded flex items-center justify-center text-[7px] font-black", 
+                                                                 f === 'W' ? "bg-green-500/20 text-green-400 border border-green-500/30" : 
+                                                                 f === 'L' ? "bg-red-500/20 text-red-400 border border-red-500/30" : 
+                                                                 "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50"
+                                                             )}
+                                                         >
+                                                             {f}
+                                                         </div>
+                                                     ))}
+                                                 </div>
                                              </div>
-                                             <p className="text-[10px] font-bold text-white/40 leading-relaxed italic" suppressHydrationWarning>"{analysis2.playStyleDescription}"</p>
+                                             <p className="text-[8.5px] sm:text-[9px] font-semibold text-white/40 leading-snug italic line-clamp-2" suppressHydrationWarning>
+                                                 "{analysis2.playStyleDescription}"
+                                             </p>
                                          </div>
                                      </Card>
                                 </div>
                             </div>
                         )}
-                        <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 text-center relative overflow-hidden"><p className="text-[9px] font-bold text-primary/60 italic leading-relaxed uppercase tracking-tighter">Data di atas disinkronisasi secara real-time berdasarkan performa di seluruh fase kompetisi.</p></div>
+
+                        {/* Live Sync Footer Notice */}
+                        <div 
+                            className="rounded-xl p-2.5 text-center relative overflow-hidden border"
+                            style={{
+                                backgroundColor: `${theme.primaryHex}0D`,
+                                borderColor: `${theme.primaryHex}26`
+                            }}
+                        >
+                            <p 
+                                className="text-[8px] font-bold italic leading-tight uppercase tracking-tight"
+                                style={{ color: `${theme.primaryHex}CC` }}
+                            >
+                                Data disinkronisasi real-time sesuai performa season & telemetry match {theme.seasonBadge}.
+                            </p>
+                        </div>
                     </div>
                 </ScrollArea>
             </DialogContent>

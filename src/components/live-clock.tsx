@@ -70,11 +70,20 @@ export function LiveClock({ className, theme }: { className?: string; theme?: TI
                 <div className="p-6 sm:p-8 flex-1 flex flex-col items-center justify-center relative z-10">
                     {/* Main Time Display - High Performance Clean Style */}
                     <div className="flex flex-col items-center relative mb-4">
-                        <div className="flex items-baseline justify-center gap-1">
-                            <span className="text-6xl sm:text-8xl font-black tracking-tighter text-white uppercase italic font-headline tabular-nums leading-none transition-colors duration-500" suppressHydrationWarning>
-                                {formattedTime.split(':')[0]}<span className="animate-pulse" style={{ color: primaryColor }}>:</span>{formattedTime.split(':')[1]}
+                        <div className="flex items-baseline justify-center">
+                            <span className="text-6xl sm:text-8xl font-black tracking-normal text-white uppercase italic font-headline tabular-nums leading-none transition-colors duration-500 pr-0.5 sm:pr-1" suppressHydrationWarning>
+                                {formattedTime.split(':')[0]}
                             </span>
-                            <span className="text-xl sm:text-3xl font-black italic tabular-nums leading-none ml-1 opacity-80" style={{ color: primaryColor }}>
+                            <span 
+                                className="text-6xl sm:text-8xl font-black italic font-headline leading-none animate-pulse px-0.5 sm:px-1 select-none" 
+                                style={{ color: primaryColor }}
+                            >
+                                :
+                            </span>
+                            <span className="text-6xl sm:text-8xl font-black tracking-normal text-white uppercase italic font-headline tabular-nums leading-none transition-colors duration-500 pl-0.5 sm:pl-1" suppressHydrationWarning>
+                                {formattedTime.split(':')[1]}
+                            </span>
+                            <span className="text-xl sm:text-3xl font-black italic tabular-nums leading-none ml-1.5 opacity-80" style={{ color: primaryColor }}>
                                 {formattedTime.split(':')[2]}
                             </span>
                         </div>

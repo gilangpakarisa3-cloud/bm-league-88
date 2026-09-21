@@ -43,7 +43,8 @@ import {
   Sparkles,
   TrendingUp,
   X,
-  Crosshair
+  Crosshair,
+  Crown
 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
@@ -713,130 +714,269 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
         </div>
       ) : (
         /* TABLE VIEW: Cyber Telemetry Leaderboard Matrix */
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/60 backdrop-blur-2xl shadow-2xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-bold text-white border-collapse">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0A192F]/90 via-black/85 to-[#0A192F]/95 backdrop-blur-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95)] relative group/matrix">
+          {/* Top Racing Accent Tracer */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent z-20 shadow-[0_0_20px_rgba(204,253,1,0.8)]" />
+          
+          {/* Matrix HUD Sub-Header Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 px-4 sm:px-6 bg-gradient-to-r from-white/[0.04] via-black/60 to-white/[0.02] border-b border-white/10 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary">
+                <Scan className="w-4 h-4 animate-pulse" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] sm:text-xs font-black uppercase italic tracking-[0.25em] text-white flex items-center gap-2">
+                  ALL-TIME TELEMETRY MATRIX
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                </span>
+                <span className="text-[8px] font-mono text-white/40 uppercase tracking-widest">
+                  SYS_NODE: STAT_REGISTRY_V4 // TOTAL: {allFilteredPlayers.length} ATHLETES
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-white/[0.03] border border-white/10 text-[9px] font-black uppercase tracking-wider text-white/60">
+                <Gauge className="w-3 h-3 text-primary" />
+                <span>OVR SORT: DYNAMIC</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 border border-primary/30 text-[9px] font-black uppercase italic tracking-wider text-primary">
+                <Zap className="w-3 h-3 fill-primary" />
+                <span>LIVE SYNC</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+            <table className="w-full text-left text-xs text-white border-collapse font-sans">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.02] text-[9px] font-black uppercase tracking-[0.25em] text-white/40">
-                  <th className="py-4 px-4 text-center">RANK</th>
-                  <th className="py-4 px-4">ATLET // KLUB</th>
-                  <th className="py-4 px-4 text-center">TIER</th>
-                  <th className="py-4 px-4 text-center">OVR</th>
-                  <th className="py-4 px-4 text-center">MAIN</th>
-                  <th className="py-4 px-4 text-center text-emerald-400">W</th>
-                  <th className="py-4 px-4 text-center text-yellow-400">D</th>
-                  <th className="py-4 px-4 text-center text-rose-400">L</th>
-                  <th className="py-4 px-4 text-center text-primary">WIN%</th>
-                  <th className="py-4 px-4 text-center">GOL</th>
-                  <th className="py-4 px-4">GELAR JUARA</th>
-                  {isAdmin && <th className="py-4 px-4 text-center">AKSI</th>}
+                <tr className="border-b border-white/10 bg-black/60 text-[9px] font-black uppercase tracking-[0.25em] text-white/40 select-none">
+                  <th className="py-4 px-3 sm:px-4 text-center w-16">
+                    <span className="inline-flex items-center gap-1">RANK</span>
+                  </th>
+                  <th className="py-4 px-4 min-w-[200px]">
+                    <span className="inline-flex items-center gap-1.5">
+                      <User className="w-3 h-3 text-white/40" />
+                      ATLET // DRIVER KLUB
+                    </span>
+                  </th>
+                  <th className="py-4 px-3 text-center">
+                    <span className="inline-flex items-center gap-1">
+                      <Shield className="w-3 h-3 text-white/40" />
+                      TIER
+                    </span>
+                  </th>
+                  <th className="py-4 px-3 text-center">
+                    <span className="inline-flex items-center gap-1 text-primary">
+                      <Flame className="w-3 h-3 text-primary" />
+                      OVR
+                    </span>
+                  </th>
+                  <th className="py-4 px-3 text-center">MAIN</th>
+                  <th className="py-4 px-3 text-center text-emerald-400">W</th>
+                  <th className="py-4 px-3 text-center text-yellow-400">D</th>
+                  <th className="py-4 px-3 text-center text-rose-400">L</th>
+                  <th className="py-4 px-4 text-center text-primary min-w-[140px]">
+                    <span className="inline-flex items-center gap-1 text-primary">
+                      <TrendingUp className="w-3 h-3" />
+                      WIN RATE
+                    </span>
+                  </th>
+                  <th className="py-4 px-3 text-center min-w-[70px]">
+                    <span className="inline-flex items-center gap-1 text-white/80">
+                      <Target className="w-3 h-3 text-white/40" />
+                      GOL
+                    </span>
+                  </th>
+                  <th className="py-4 px-4 min-w-[220px]">
+                    <span className="inline-flex items-center gap-1 text-amber-400">
+                      <Trophy className="w-3 h-3 text-amber-400" />
+                      GELAR JUARA
+                    </span>
+                  </th>
+                  {isAdmin && <th className="py-4 px-4 text-center w-24">AKSI</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 font-mono">
+              <tbody className="divide-y divide-white/[0.06]">
                 {allFilteredPlayers.map((player) => {
                   const team = player.teamId ? teamsById[player.teamId] : null;
                   const wonSeasons = hallOfFame?.filter(record => record.winnerPlayerId === player.id) || [];
                   const tier = tiersConfig.find(t => t.players.some(p => p.id === player.id)) || tiersConfig[3];
+                  const isTopPodium = player.ovrRank <= 3;
+                  const winPercent = player.winRate || 0;
 
                   return (
                     <tr 
                       key={player.id}
-                      className="hover:bg-white/[0.04] transition-colors group/row"
+                      className={cn(
+                        "transition-all duration-300 group/row relative",
+                        player.ovrRank === 1 ? "bg-gradient-to-r from-yellow-500/[0.08] via-transparent to-transparent hover:bg-yellow-500/[0.12]" :
+                        player.ovrRank === 2 ? "bg-gradient-to-r from-slate-300/[0.05] via-transparent to-transparent hover:bg-slate-300/[0.09]" :
+                        player.ovrRank === 3 ? "bg-gradient-to-r from-amber-600/[0.05] via-transparent to-transparent hover:bg-amber-600/[0.09]" :
+                        "hover:bg-white/[0.04]"
+                      )}
                     >
-                      {/* Rank */}
-                      <td className="py-4 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <span className={cn(
-                            "w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs",
-                            player.ovrRank === 1 ? "bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.5)]" :
-                            player.ovrRank === 2 ? "bg-slate-300 text-black shadow-[0_0_15px_rgba(203,213,225,0.4)]" :
-                            player.ovrRank === 3 ? "bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.4)]" :
-                            "bg-white/5 text-white/60 border border-white/10"
+                      {/* Rank with Podium Cut Badge */}
+                      <td className="py-4 px-3 sm:px-4 text-center">
+                        <div className="flex items-center justify-center">
+                          <div className={cn(
+                            "relative w-8 h-8 rounded-xl flex items-center justify-center font-black italic tracking-tighter text-xs transition-transform duration-300 group-hover/row:scale-110",
+                            player.ovrRank === 1 ? "bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-500 text-black shadow-[0_0_20px_rgba(250,204,21,0.6)] border border-yellow-200" :
+                            player.ovrRank === 2 ? "bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 text-black shadow-[0_0_15px_rgba(203,213,225,0.5)] border border-white" :
+                            player.ovrRank === 3 ? "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)] border border-amber-400/40" :
+                            "bg-white/5 text-white/50 border border-white/10 group-hover/row:border-white/30 group-hover/row:text-white"
                           )}>
-                            #{player.ovrRank}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Athlete & Team */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3 font-sans">
-                          <Avatar className="h-10 w-10 border border-white/10 shrink-0">
-                            <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
-                            <AvatarFallback className="bg-black/60 text-xs font-black">
-                              {player.name.slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0">
-                            <span className="block font-black text-sm uppercase italic tracking-tight text-white group-hover/row:text-primary transition-colors truncate">
-                              {player.name}
-                            </span>
-                            <span className="block text-[10px] font-bold uppercase tracking-wider text-white/40 truncate">
-                              {team?.name || 'Free Agent'}
-                            </span>
+                            {player.ovrRank === 1 ? (
+                              <Crown className="w-4 h-4 fill-black" />
+                            ) : (
+                              <span>#{player.ovrRank}</span>
+                            )}
                           </div>
                         </div>
                       </td>
 
-                      {/* Tier */}
-                      <td className="py-4 px-4 text-center">
-                        <Badge variant="outline" className={cn("text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border", tier.bgPill)}>
+                      {/* Athlete & Team with Futuristic HUD Capsule */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative shrink-0">
+                            <Avatar className={cn(
+                              "h-11 w-11 rounded-2xl border-2 transition-transform duration-300 group-hover/row:scale-105 shadow-md",
+                              isTopPodium ? "border-primary/50 shadow-[0_0_15px_rgba(204,253,1,0.25)]" : "border-white/10"
+                            )}>
+                              <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
+                              <AvatarFallback className="bg-black/80 text-[11px] font-black text-white italic">
+                                {player.name.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            {isTopPodium && (
+                              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center shadow-[0_0_8px_rgba(204,253,1,0.9)]">
+                                <Sparkles className="w-2 h-2 text-black" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="block font-black text-sm uppercase italic tracking-tight text-white group-hover/row:text-primary transition-colors truncate drop-shadow-sm">
+                              {player.name}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="w-1 h-1 rounded-full bg-white/40" />
+                              <span className="text-[10px] font-black uppercase tracking-wider text-white/50 truncate">
+                                {team?.name || 'Free Agent'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Tier Badge */}
+                      <td className="py-4 px-3 text-center">
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-[8px] font-black uppercase tracking-[0.2em] italic px-2.5 py-1 rounded-full border shadow-sm transition-all whitespace-nowrap",
+                            tier.bgPill
+                          )}
+                        >
                           {tier.title}
                         </Badge>
                       </td>
 
-                      {/* OVR */}
-                      <td className="py-4 px-4 text-center">
-                        <span className={cn("text-base font-black italic tabular-nums", tier.color)}>
-                          {player.ovrRating.toFixed(0)}
+                      {/* OVR Rating with Futuristic Glowing Pod */}
+                      <td className="py-4 px-3 text-center">
+                        <div className="inline-flex items-center justify-center">
+                          <div className={cn(
+                            "px-3 py-1 rounded-xl bg-black/60 border font-black italic tabular-nums text-base tracking-tight shadow-inner flex items-baseline gap-0.5",
+                            player.ovrRating >= 70 ? "border-yellow-400/40 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]" :
+                            player.ovrRating >= 55 ? "border-primary/40 text-primary shadow-[0_0_15px_rgba(204,253,1,0.2)]" :
+                            player.ovrRating >= 45 ? "border-accent/40 text-accent shadow-[0_0_15px_rgba(100,255,218,0.2)]" :
+                            "border-white/10 text-white/70"
+                          )}>
+                            <span>{player.ovrRating.toFixed(0)}</span>
+                            <span className="text-[8px] font-mono opacity-50 not-italic">OVR</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Played (Capsule) */}
+                      <td className="py-4 px-3 text-center font-mono font-black text-white/80 tabular-nums">
+                        <span className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/5">
+                          {player.overallPlayed || 0}
                         </span>
                       </td>
 
-                      {/* Played */}
-                      <td className="py-4 px-4 text-center text-white/60 font-black">
-                        {player.overallPlayed || 0}
+                      {/* Win (Emerald Tactical) */}
+                      <td className="py-4 px-3 text-center font-mono font-black text-emerald-400 tabular-nums">
+                        <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                          {player.overallWin || 0}
+                        </span>
                       </td>
 
-                      {/* Win */}
-                      <td className="py-4 px-4 text-center text-emerald-400 font-black">
-                        {player.overallWin || 0}
+                      {/* Draw (Amber Tactical) */}
+                      <td className="py-4 px-3 text-center font-mono font-black text-yellow-400 tabular-nums">
+                        <span className="px-2 py-0.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                          {player.overallDraw || 0}
+                        </span>
                       </td>
 
-                      {/* Draw */}
-                      <td className="py-4 px-4 text-center text-yellow-400 font-black">
-                        {player.overallDraw || 0}
+                      {/* Loss (Rose Tactical) */}
+                      <td className="py-4 px-3 text-center font-mono font-black text-rose-400 tabular-nums">
+                        <span className="px-2 py-0.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                          {player.overallLoss || 0}
+                        </span>
                       </td>
 
-                      {/* Loss */}
-                      <td className="py-4 px-4 text-center text-rose-400 font-black">
-                        {player.overallLoss || 0}
-                      </td>
-
-                      {/* Win % */}
-                      <td className="py-4 px-4 text-center font-black text-primary">
-                        {(player.winRate || 0).toFixed(0)}%
+                      {/* Win Rate with Sporty Racing Progress Gauge */}
+                      <td className="py-4 px-4 text-center">
+                        <div className="flex flex-col gap-1.5 w-full max-w-[130px] mx-auto">
+                          <div className="flex items-center justify-between text-[10px] font-black italic tabular-nums leading-none">
+                            <span className="text-white/40 text-[8px] uppercase tracking-wider">VICTORY</span>
+                            <span className={cn(
+                              winPercent >= 60 ? "text-primary drop-shadow-[0_0_8px_rgba(204,253,1,0.6)]" :
+                              winPercent >= 45 ? "text-accent" : "text-white/70"
+                            )}>
+                              {winPercent.toFixed(0)}%
+                            </span>
+                          </div>
+                          <div className="h-2 w-full bg-black/70 border border-white/10 rounded-full overflow-hidden p-[1px] relative shadow-inner">
+                            <div 
+                              className={cn(
+                                "h-full rounded-full transition-all duration-700 relative",
+                                winPercent >= 60 ? "bg-gradient-to-r from-primary/80 to-primary shadow-[0_0_10px_rgba(204,253,1,0.8)]" :
+                                winPercent >= 45 ? "bg-gradient-to-r from-accent/80 to-accent shadow-[0_0_10px_rgba(100,255,218,0.8)]" :
+                                "bg-gradient-to-r from-white/30 to-white/60"
+                              )} 
+                              style={{ width: `${Math.min(100, Math.max(6, winPercent))}%` }} 
+                            />
+                          </div>
+                        </div>
                       </td>
 
                       {/* Goals */}
-                      <td className="py-4 px-4 text-center font-black text-white">
-                        {player.overallGoalsFor || 0}
+                      <td className="py-4 px-3 text-center font-mono font-black text-white tabular-nums text-sm">
+                        <div className="inline-flex items-center gap-1">
+                          <span>{player.overallGoalsFor || 0}</span>
+                          <span className="text-[8px] text-white/30 uppercase">G</span>
+                        </div>
                       </td>
 
-                      {/* Titles */}
+                      {/* Titles / Championships */}
                       <td className="py-4 px-4 font-sans">
                         {wonSeasons.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1.5 items-center">
                             {wonSeasons.map(rec => (
-                              <Badge 
+                              <div 
                                 key={rec.seasonId}
-                                className="bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 text-[8px] font-black uppercase tracking-tight py-0 px-1.5"
+                                className="group/badge inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-transparent border border-amber-500/40 text-amber-400 rounded-lg px-2.5 py-1 shadow-[0_0_12px_rgba(245,158,11,0.15)] hover:border-amber-400 hover:shadow-[0_0_18px_rgba(245,158,11,0.3)] transition-all"
                               >
-                                🏆 {rec.seasonName}
-                              </Badge>
+                                <Trophy className="w-3 h-3 text-amber-400 shrink-0 fill-amber-400/20" />
+                                <span className="text-[9px] font-black uppercase tracking-tight italic text-amber-300 truncate max-w-[160px]">
+                                  {rec.seasonName}
+                                </span>
+                              </div>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-[9px] text-white/20 font-mono">-</span>
+                          <span className="text-[10px] text-white/20 font-mono tracking-widest pl-2">-</span>
                         )}
                       </td>
 
@@ -848,7 +988,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                               variant="ghost"
                               size="icon"
                               onClick={() => onEdit(player)}
-                              className="h-8 w-8 text-white/40 hover:text-primary hover:bg-primary/10 rounded-lg"
+                              className="h-8 w-8 text-white/40 hover:text-primary hover:bg-primary/10 rounded-xl transition-colors"
+                              title="Edit Athlete"
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
@@ -856,7 +997,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                               variant="ghost"
                               size="icon"
                               onClick={() => confirmDelete(player)}
-                              className="h-8 w-8 text-white/40 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg"
+                              className="h-8 w-8 text-white/40 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors"
+                              title="Delete Athlete"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
@@ -869,6 +1011,19 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
               </tbody>
             </table>
           </div>
+
+          {/* Matrix HUD Footer Telemetry */}
+          <div className="p-3 px-6 bg-black/70 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-[9px] font-mono text-white/40">
+            <div className="flex items-center gap-2">
+              <Binary className="w-3.5 h-3.5 text-primary" />
+              <span className="uppercase tracking-widest">TELEMETRY ENCODED // PROTOCOL 88-RACING</span>
+            </div>
+            <div className="flex items-center gap-4 uppercase tracking-wider">
+              <span>PODIUM TIERS: TITAN / PRO / CORE / ROOKIE</span>
+              <span className="text-white/20">•</span>
+              <span className="text-primary font-bold">STATUS: OPERATIONAL</span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -880,7 +1035,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
               {t('are_you_sure')}
             </AlertDialogTitle>
             <AlertDialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[10px]">
-              {t('delete_player_confirm_desc', { playerName: deletingPlayer?.name })}
+              {t('delete_player_confirm_desc', { playerName: deletingPlayer?.name || '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3 mt-6">

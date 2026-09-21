@@ -679,9 +679,16 @@ const TopScorerTable = memo(({
                                   </div>
                               </div>
                               <div className="text-right flex flex-col items-end shrink-0">
-                                  <div className="relative">
-                                     <span className="text-4xl sm:text-7xl font-black italic text-red-600 tabular-nums leading-none drop-shadow-[0_0_20px_rgba(220,38,38,0.5)]" suppressHydrationWarning>{mainPedofil.goals}</span>
-                                     <div className="absolute top-0 right-0 h-full w-full bg-gradient-to-t from-red-600/20 to-transparent pointer-events-none" />
+                                  <div className="relative flex items-center justify-end">
+                                     <span 
+                                        className="text-4xl sm:text-7xl font-black italic text-red-600 tabular-nums leading-none"
+                                        style={{
+                                            textShadow: '0 0 25px rgba(220, 38, 38, 0.7), 0 0 50px rgba(220, 38, 38, 0.3)'
+                                        }}
+                                        suppressHydrationWarning
+                                     >
+                                        {mainPedofil.goals}
+                                     </span>
                                   </div>
                                   <p className="text-[8px] sm:text-xs font-black text-red-500 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" suppressHydrationWarning>
                                     {mainPedofil.goals === 0 ? `${mainPedofil.played} LAGA MANDUL` : `${mainPedofil.played} LAGA RENDAH`}

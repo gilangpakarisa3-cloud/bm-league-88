@@ -197,7 +197,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                     </div>
 
                     {/* Series Wins Badge for Bo3 */}
-                    {isMatchBo3 && wins !== undefined && (
+                    {isMatchBo3 && wins !== undefined && wins !== null && (
                         <div 
                             className={cn(
                                 "absolute -bottom-1 z-20 flex items-center justify-center h-5 sm:h-6 px-1.5 sm:px-2 rounded-full border border-black font-black text-[8px] sm:text-[10px] tracking-wider shadow-lg",
@@ -454,7 +454,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                                     GAME {gameIdx}
                                 </Badge>
                             )}
-                            {!match.status === 'Live' && isMatchBo3 && (
+                            {match.status !== 'Live' && isMatchBo3 && (
                                 <span 
                                     className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] italic px-2 py-0.5 rounded-full border shadow-sm"
                                     style={{
@@ -1571,22 +1571,50 @@ export default function FixturesPage() {
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onCloseAutoFocus={(e) => e.preventDefault()}
                 className={cn(
-                    "!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 z-50 w-[95vw] sm:w-[90vw] max-w-2xl max-h-[90vh] flex flex-col border border-white/15 p-0 overflow-hidden bg-black/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_50px_rgba(204,253,1,0.2)] focus:outline-none focus-visible:outline-none [&>button:last-child]:top-5 [&>button:last-child]:right-5 [&>button:last-child]:h-10 [&>button:last-child]:w-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-white/10 [&>button:last-child]:border [&>button:last-child]:border-white/20 [&>button:last-child]:text-white [&>button:last-child]:hover:bg-primary [&>button:last-child]:hover:text-black [&>button:last-child]:hover:border-primary [&>button:last-child]:transition-all [&>button:last-child]:z-50 [&>button:last-child]:flex [&>button:last-child]:items-center [&>button:last-child]:justify-center [&>button:last-child]:opacity-100", 
+                    "!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 z-50 w-[95vw] sm:w-[90vw] max-w-2xl max-h-[90vh] flex flex-col border p-0 overflow-hidden bg-black/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_25px_80px_rgba(0,0,0,0.95)] focus:outline-none focus-visible:outline-none [&>button:last-child]:top-5 [&>button:last-child]:right-5 [&>button:last-child]:h-10 [&>button:last-child]:w-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-white/10 [&>button:last-child]:border [&>button:last-child]:border-white/20 [&>button:last-child]:text-white [&>button:last-child]:hover:bg-white [&>button:last-child]:hover:text-black [&>button:last-child]:transition-all [&>button:last-child]:z-50 [&>button:last-child]:flex [&>button:last-child]:items-center [&>button:last-child]:justify-center [&>button:last-child]:opacity-100", 
                     isProcessing && "opacity-80 scale-95 pointer-events-none"
                 )}
+                style={{
+                    borderColor: `${theme.primaryHex}4D`,
+                    boxShadow: `0 25px 80px rgba(0,0,0,0.95), 0 0 40px ${theme.primaryHex}26`
+                }}
             >
                 {/* Top Racing Accent Tracer */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_rgba(204,253,1,0.8)] z-20" />
+                <div 
+                    className="absolute top-0 left-0 right-0 h-[2px] z-20" 
+                    style={{
+                        background: `linear-gradient(to right, transparent, ${theme.primaryHex}, transparent)`,
+                        boxShadow: `0 0 20px ${theme.primaryHex}`
+                    }}
+                />
                 
                 <DialogHeader className="p-6 sm:p-8 bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent border-b border-white/10 shrink-0 relative overflow-hidden">
                     <div className="flex items-center gap-4 relative z-10">
-                        <div className="p-3 bg-primary/15 border border-primary/30 rounded-2xl text-primary shadow-[0_0_25px_rgba(204,253,1,0.3)]">
-                            {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 fill-primary" />}
+                        <div 
+                            className="p-3 border rounded-2xl shadow-lg flex items-center justify-center"
+                            style={{
+                                backgroundColor: `${theme.primaryHex}1A`,
+                                borderColor: `${theme.primaryHex}4D`,
+                                color: theme.primaryHex,
+                                boxShadow: `0 0 25px ${theme.primaryHex}4D`
+                            }}
+                        >
+                            {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6" style={{ fill: theme.primaryHex }} />}
                         </div>
                         <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[9px] font-black uppercase tracking-[0.25em] text-primary italic mb-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                Engagement Uplink
+                            <div 
+                                className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-[0.25em] italic mb-1.5 border shadow-sm"
+                                style={{
+                                    backgroundColor: `${theme.primaryHex}1A`,
+                                    borderColor: `${theme.primaryHex}4D`,
+                                    color: theme.primaryHex
+                                }}
+                            >
+                                <span 
+                                    className="w-1.5 h-1.5 rounded-full animate-pulse" 
+                                    style={{ backgroundColor: theme.primaryHex }}
+                                />
+                                Engagement Uplink // {theme.seasonBadge || activeSeason?.name}
                             </div>
                             <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic pr-6 leading-none text-white drop-shadow-md">
                                 {isProcessing ? "Menyinkronkan..." : "Update Match Engagement"}
@@ -1599,12 +1627,13 @@ export default function FixturesPage() {
                         </DialogDescription>
                     )}
                 </DialogHeader>
-                <div className="flex-1 p-6 sm:p-8 overflow-y-auto max-h-[calc(90vh-180px)] scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                <div className="flex-1 p-6 sm:p-8 overflow-y-auto max-h-[calc(90vh-180px)] scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                     {editingMatch && activeSeason && (
                         <ScoreForm 
                             match={editingMatch} 
                             onSave={(v) => handleUpdateScore(editingMatch.id, v)} 
                             seasonType={activeSeason.type} 
+                            theme={theme}
                             player1Info={{ 
                                 name: editingMatch.player1.name, 
                                 team: editingMatch.team1,
@@ -1657,30 +1686,68 @@ export default function FixturesPage() {
             <DialogContent 
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onCloseAutoFocus={(e) => e.preventDefault()}
-                className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 z-50 w-[95vw] sm:w-[90vw] max-w-md border border-primary/40 bg-[#0A192F]/95 backdrop-blur-3xl rounded-3xl shadow-[0_0_100px_rgba(204,253,1,0.2)] p-6 sm:p-8 focus:outline-none focus-visible:outline-none"
+                className="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 z-50 w-[95vw] sm:w-[90vw] max-w-md border bg-black/95 backdrop-blur-3xl rounded-3xl p-6 sm:p-8 focus:outline-none focus-visible:outline-none"
+                style={{
+                    borderColor: `${theme.primaryHex}4D`,
+                    boxShadow: `0 0 100px ${theme.glowRgba}`
+                }}
             >
                 <DialogHeader className="space-y-4">
-                    <div className="flex items-center gap-4 text-primary">
-                        <div className="p-3 bg-primary/10 rounded-2xl border border-primary/30">
+                    <div className="flex items-center gap-4">
+                        <div 
+                            className="p-3 rounded-2xl border flex items-center justify-center"
+                            style={{
+                                backgroundColor: `${theme.primaryHex}1A`,
+                                borderColor: `${theme.primaryHex}4D`,
+                                color: theme.primaryHex
+                            }}
+                        >
                             <KeyRound className="w-8 h-8" />
                         </div>
                         <div className="text-left">
-                            <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic pr-4 leading-none">{t('admin_auth')}</DialogTitle>
-                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70 mt-1">Status: Restricted_Access</p>
+                            <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic pr-4 leading-none text-white">{t('admin_auth')}</DialogTitle>
+                            <p 
+                                className="text-[10px] font-black uppercase tracking-[0.25em] mt-1"
+                                style={{ color: theme.primaryHex }}
+                            >
+                                Status: Restricted_Access
+                            </p>
                         </div>
                     </div>
                     <DialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[11px] leading-relaxed text-left border-l-2 border-white/10 pl-3.5">{t('admin_auth_desc')}</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-6">
                     <div className="space-y-2">
-                        <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/70 ml-1 italic">ENCRYPTED_KEY_TRANSMISSION</Label>
+                        <Label 
+                            htmlFor="password-input" 
+                            className="text-[10px] font-black uppercase tracking-[0.3em] ml-1 italic"
+                            style={{ color: theme.primaryHex }}
+                        >
+                            ENCRYPTED_KEY_TRANSMISSION
+                        </Label>
                         <div className="relative group/input">
-                            <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-14 bg-black/60 border-white/10 rounded-2xl focus:border-primary/50 text-xl font-black tracking-[0.25em] text-primary px-5" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
+                            <Input 
+                                id="password-input" 
+                                type="password" 
+                                value={passwordInput} 
+                                onChange={(e) => setPasswordInput(e.target.value)} 
+                                className="h-14 bg-black/60 border-white/10 rounded-2xl focus:border-white/40 text-xl font-black tracking-[0.25em] px-5" 
+                                style={{ color: theme.primaryHex }}
+                                onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} 
+                            />
                         </div>
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handlePasswordCheck} className="w-full h-14 font-black tracking-[0.25em] text-base uppercase italic rounded-2xl shadow-xl shadow-primary/25 text-black bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-3">
+                    <Button 
+                        onClick={handlePasswordCheck} 
+                        className="w-full h-14 font-black tracking-[0.25em] text-base uppercase italic rounded-2xl transition-all flex items-center justify-center gap-3"
+                        style={{
+                            backgroundColor: theme.primaryHex,
+                            color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
+                            boxShadow: `0 0 30px ${theme.glowRgba}`
+                        }}
+                    >
                         <Scan className="w-5 h-5" />
                         {t('unlock')}
                     </Button>
