@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Flame, Languages, Settings, Zap, Scan, Binary, Activity } from 'lucide-react';
+import { Flame, Languages, Settings, Zap, Scan, Binary, Activity, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -13,11 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useLanguage } from '@/context/language-context';
 import { useTranslation } from '@/hooks/use-translation';
+import { usePwa } from '@/context/pwa-context';
 
 export function Header() {
   const pathname = usePathname();
   const { setLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { canInstall, installApp } = usePwa();
 
   const navLinks = [
     { href: '/league', label: t('header_league') },
@@ -55,12 +57,12 @@ export function Header() {
         </Link>
 
         {/* AERODYNAMIC COCKPIT NAVIGATION DOCK (VISIBLE ON TABLET & DESKTOP) */}
-        <div className="hidden md:flex flex-1 justify-center items-center h-full min-w-0 px-2 max-w-2xl">
-          <div className="relative bg-black/60 border border-white/10 w-full h-11 sm:h-13 flex items-center p-1 overflow-hidden shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] rounded-full backdrop-blur-xl">
+        <div className="hidden md:flex flex-1 justify-center items-center h-full min-w-0 px-2 max-w-3xl">
+          <div className="relative bg-black/60 border border-white/10 w-full h-11 sm:h-12 flex items-center p-1 shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] rounded-full backdrop-blur-xl">
             {/* HUD Scanning Layer */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none opacity-30" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none opacity-30 rounded-full overflow-hidden" />
             
-            <nav className="flex items-center justify-between w-full h-full relative z-10 gap-1">
+            <nav className="flex items-center justify-between w-full h-full relative z-10 gap-0.5 sm:gap-1">
               {navLinks.map((link) => {
                 const isActive = pathname ? pathname.startsWith(link.href) : false;
                 return (
@@ -68,15 +70,15 @@ export function Header() {
                     key={link.href} 
                     href={link.href}
                     className={cn(
-                      "relative flex-1 flex items-center justify-center text-[10px] sm:text-xs font-black uppercase tracking-wider italic transition-all duration-300 rounded-full h-full px-2 sm:px-3.5 whitespace-nowrap min-w-0",
+                      "relative flex-1 flex items-center justify-center text-[10px] lg:text-[11px] xl:text-xs font-black uppercase tracking-tight sm:tracking-normal italic transition-all duration-300 rounded-full h-full px-2 lg:px-3 whitespace-nowrap min-w-max",
                       isActive 
                         ? "bg-primary text-black shadow-[0_0_25px_rgba(204,253,1,0.5)] font-black" 
                         : "text-white/50 hover:text-white hover:bg-white/[0.05]"
                     )}
                   >
-                    <span className="relative z-10 flex items-center gap-1.5 min-w-0 overflow-visible pr-0.5">
-                      {isActive && <Activity className="w-3 h-3 animate-pulse shrink-0 hidden lg:block" />}
-                      <span className="inline-block pr-0.5">{link.label}</span>
+                    <span className="relative z-10 flex items-center gap-1 min-w-0 pr-0.5">
+                      {isActive && <Activity className="w-3 h-3 animate-pulse shrink-0 hidden xl:block" />}
+                      <span className="inline-block">{link.label}</span>
                     </span>
                   </Link>
                 )
@@ -87,6 +89,20 @@ export function Header() {
 
         {/* Action Tools Section */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Install / Download App PWA Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={installApp}
+            title="Install / Download BM LEAGUE 88 App"
+            className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-primary/10 border border-primary/50 text-primary hover:bg-primary hover:text-black transition-all shadow-[0_0_15px_rgba(204,253,1,0.2)] hover:shadow-[0_0_20px_rgba(204,253,1,0.5)] group/install relative overflow-hidden shrink-0"
+          >
+            <div className="flex flex-col items-center">
+              <Download className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover/install:scale-110" />
+              <span className="text-[6px] font-black uppercase tracking-widest leading-none mt-0.5">APP</span>
+            </div>
+          </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all shadow-lg group/lang relative overflow-hidden">
