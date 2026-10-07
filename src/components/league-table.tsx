@@ -24,6 +24,7 @@ import { TournamentBracket } from "./tournament-bracket";
 import { getSeasonTheme, type TISeasonTheme } from "@/lib/season-theme";
 import { StandingsShareDialog } from "./standings-share-dialog";
 import { KnockoutShareDialog } from "./knockout-share-dialog";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./ui/tooltip";
 
 interface LeagueTableProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>, team?: WithId<Team>, logoUrl?: string })[];
@@ -41,6 +42,9 @@ interface LeagueTableProps {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
   onRevertMatch?: (match: WithId<Match>) => void;
+  onToggleDivision?: (entry: WithId<LeagueEntry>) => void;
+  selectedDivision?: 'div-1' | 'div-2';
+  onDivisionChange?: (division: 'div-1' | 'div-2') => void;
 }
 
 interface SingleTableProps {
@@ -56,20 +60,81 @@ interface SingleTableProps {
   totalPlayers: number;
   matches: WithId<Match>[];
   theme?: TISeasonTheme;
+  playersById?: Record<string, WithId<Player>>;
+  teamsById?: Record<string, WithId<Team>>;
+  hasDivisions?: boolean;
+  isDivision2?: boolean;
+  division1Name?: string;
+  division2Name?: string;
+  promotionSpots?: number;
+  relegationSpots?: number;
+  onToggleDivision?: (entry: WithId<LeagueEntry>) => void;
 }
 
-const PlayoffQualificationLegend = ({ seasonType, theme }: { seasonType?: Season['type'], theme?: TISeasonTheme }) => {
+const PlayoffQualificationLegend = ({ 
+  seasonType, 
+  theme,
+  hasDivisions = false,
+  isDivision2 = false,
+  div1Name = 'Divisi 1',
+  div2Name = 'Divisi 2',
+  promotionSpots = 2,
+  relegationSpots = 2,
+  totalPlayers = 0,
+}: { 
+  seasonType?: Season['type'], 
+  theme?: TISeasonTheme,
+  hasDivisions?: boolean,
+  isDivision2?: boolean,
+  div1Name?: string,
+  div2Name?: string,
+  promotionSpots?: number,
+  relegationSpots?: number,
+  totalPlayers?: number,
+}) => {
   const isSingleHybrid = seasonType === 'Single Hybrid';
   const isCoopHybrid = seasonType === 'Co-Op Hybrid';
   const currentTheme = theme || getSeasonTheme(null);
+  const actualPromotionSpots = Math.max(1, promotionSpots || 2);
+  const actualRelegationSpots = Math.max(1, relegationSpots || 2);
+
+  if (isDivision2) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 p-2.5 sm:p-4 px-3 sm:px-8 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
+        <div className="flex items-center gap-2">
+          <Scan className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.25em] text-cyan-400 italic">
+            {div2Name.toUpperCase()} • PROMOTION ZONE
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
+            <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-emerald-400">
+              Zona Promosi ({actualPromotionSpots === 1 ? '#1' : `#1 - #${actualPromotionSpots}`} Promosi ke {div1Name})
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isSingleHybrid) {
+    // Peserta peringkat 1-8 lolos ke Playoff 8 Besar
+    // Peringkat 9+ langsung degradasi / gugur
+    // Jika kuota degradasi > jumlah tim di luar 8 besar, sisanya diperebutkan di babak Playoff
+    const nonPlayoffSpots = Math.max(0, totalPlayers - 8);
+    const directRelegationCount = Math.min(actualRelegationSpots, nonPlayoffSpots);
+    const playoffRelegationCount = Math.max(0, actualRelegationSpots - directRelegationCount);
+    const startDirectRelegationRank = totalPlayers - directRelegationCount + 1;
+
     return (
       <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 p-2.5 sm:p-4 px-3 sm:px-8 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
         <div className="flex items-center gap-2">
           <Scan className={cn("w-3.5 h-3.5 animate-pulse", currentTheme.primaryText)} />
           <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.25em] text-white/50 italic">
-            {currentTheme.editionName} • MATRIX
+            {currentTheme.editionName} • LEAGUE TABLE
           </span>
         </div>
 
@@ -78,17 +143,38 @@ const PlayoffQualificationLegend = ({ seasonType, theme }: { seasonType?: Season
           <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
             <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
             <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-emerald-400">
-              Playoff 8 Besar <span className="text-white/40 font-normal">(#1-8)</span>
+              Playoff 8 Besar <span className="text-white/40 font-normal">(#1 - #8 Bertarung Gelar Juara)</span>
             </span>
           </div>
 
-          {/* Gugur */}
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
-            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.9)]" />
-            <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-rose-400">
-              Gugur <span className="text-white/40 font-normal">(#9+)</span>
-            </span>
-          </div>
+          {/* Degradasi jika multi divisi, atau gugur */}
+          {hasDivisions ? (
+            <>
+              {directRelegationCount > 0 && (
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.9)]" />
+                  <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-rose-400">
+                    Degradasi Langsung {directRelegationCount === 1 ? `(#${totalPlayers})` : `(#${startDirectRelegationRank} - #${totalPlayers})`}
+                  </span>
+                </div>
+              )}
+              {playoffRelegationCount > 0 && (
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+                  <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-amber-300">
+                    +{playoffRelegationCount} Slot Degradasi dari Gugur Playoff
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.9)]" />
+              <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-rose-400">
+                Gugur <span className="text-white/40 font-normal">(#9+)</span>
+              </span>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -97,40 +183,60 @@ const PlayoffQualificationLegend = ({ seasonType, theme }: { seasonType?: Season
   const ubText = isCoopHybrid ? "Seed #1 - 4" : "Seed #1 - 2 (Grup)";
   const lbText = isCoopHybrid ? "Seed #5 - 6" : "Seed #3 - 4 (Grup)";
   const elimText = isCoopHybrid ? "Seed #7+" : "Seed #5+ (Grup)";
+  const startRelegationRank = Math.max(1, totalPlayers - actualRelegationSpots + 1);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 p-2.5 sm:p-4 px-3 sm:px-8 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
       <div className="flex items-center gap-2">
         <Scan className="w-3.5 h-3.5 text-primary animate-pulse" />
         <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.25em] text-white/50 italic">
-          KLASEMEN PROTOCOL • MATRIX
+          KLASEMEN RESMI • LEAGUE STANDINGS
         </span>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
         {/* Upper Bracket */}
-        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
-          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
-          <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-emerald-400">
-            Playoff Utama <span className="text-white/40 font-normal">({ubText})</span>
-          </span>
-        </div>
+        {(seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid') && (
+          <>
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
+              <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-emerald-400">
+                Playoff Utama <span className="text-white/40 font-normal">({ubText})</span>
+              </span>
+            </div>
 
-        {/* Lower Bracket */}
-        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
-          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-pulse" />
-          <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-amber-400">
-            Playoff Contender <span className="text-white/40 font-normal">({lbText})</span>
-          </span>
-        </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)] animate-pulse" />
+              <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-amber-400">
+                Playoff Contender <span className="text-white/40 font-normal">({lbText})</span>
+              </span>
+            </div>
+          </>
+        )}
 
-        {/* Eliminasi */}
-        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
-          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.9)]" />
-          <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-rose-400">
-            Gugur <span className="text-white/40 font-normal">({elimText})</span>
-          </span>
-        </div>
+        {/* Relegation or Eliminasi */}
+        {hasDivisions ? (
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.9)]" />
+            <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-rose-400">
+              {seasonType === 'Hybrid'
+                ? `Zona Degradasi (${Math.ceil(actualRelegationSpots / 2)} Tiap Grup • Total ${actualRelegationSpots} Turun ke ${div2Name})`
+                : totalPlayers > actualRelegationSpots
+                  ? `Zona Degradasi (#${startRelegationRank} - #${totalPlayers} • Total ${actualRelegationSpots} Turun ke ${div2Name})`
+                  : `Zona Degradasi (Turun ke ${div2Name})`
+              }
+            </span>
+          </div>
+        ) : (
+          (seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid') && (
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.9)]" />
+              <span className="text-[9px] sm:text-[11px] font-black uppercase italic text-rose-400">
+                Gugur <span className="text-white/40 font-normal">({elimText})</span>
+              </span>
+            </div>
+          )
+        )}
       </div>
     </div>
   );
@@ -148,7 +254,16 @@ const SingleTable = memo(({
     isCoop = false, 
     totalPlayers,
     matches,
-    theme
+    theme,
+    playersById = {},
+    teamsById = {},
+    hasDivisions = false,
+    isDivision2 = false,
+    division1Name = 'Divisi 1',
+    division2Name = 'Divisi 2',
+    promotionSpots = 2,
+    relegationSpots = 2,
+    onToggleDivision,
 }: SingleTableProps) => {
     const { t } = useTranslation();
     const activeTheme = theme || getSeasonTheme(null);
@@ -156,7 +271,26 @@ const SingleTable = memo(({
 
     const playerFormsMap = useMemo(() => {
         if (!matches || matches.length === 0) return {};
-        const forms: Record<string, string[]> = {};
+        
+        // Lookup helpers for quick name resolution
+        const entryMap: Record<string, { playerName?: string; teamName?: string; teamId?: string }> = {};
+        tableData.forEach(e => {
+            const id = e.playerId || e.id;
+            entryMap[id] = { playerName: e.playerName, teamName: e.teamName, teamId: e.teamId };
+        });
+
+        type FormItem = {
+            result: 'W' | 'L' | 'D';
+            matchId: string;
+            opponentName: string;
+            opponentTeamName?: string;
+            opponentLogo?: string;
+            scoreText: string;
+            isHome: boolean;
+            round?: string;
+        };
+
+        const forms: Record<string, FormItem[]> = {};
         
         tableData.forEach(entry => {
             const playerId = entry.playerId || entry.id;
@@ -171,18 +305,40 @@ const SingleTable = memo(({
                 .reverse()
                 .map(m => {
                     const isPlayer1 = m.player1Id === playerId;
+                    const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
                     const isBo3 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group';
                     const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
                     const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
-                    const playerResult = isPlayer1 ? s1 : s2;
-                    const opponentResult = isPlayer1 ? s2 : s1;
-                    if (playerResult > opponentResult) return 'W';
-                    if (playerResult < opponentResult) return 'L';
-                    return 'D';
+                    const myScore = isPlayer1 ? s1 : s2;
+                    const oppScore = isPlayer1 ? s2 : s1;
+
+                    let result: 'W' | 'L' | 'D' = 'D';
+                    if (myScore > oppScore) result = 'W';
+                    else if (myScore < oppScore) result = 'L';
+
+                    // Resolve opponent name & team info
+                    const oppEntry = entryMap[opponentId];
+                    const oppPlayer = playersById[opponentId];
+                    const opponentName = oppEntry?.playerName || oppPlayer?.name || opponentId || 'Lawan';
+                    const oppTeamId = oppEntry?.teamId || oppPlayer?.teamId;
+                    const oppTeam = oppTeamId ? teamsById[oppTeamId] : undefined;
+                    const opponentTeamName = oppTeam?.name || oppEntry?.teamName || oppPlayer?.teamName;
+                    const opponentLogo = oppTeam?.logoUrl ? resolveLogo(oppTeam.logoUrl) : undefined;
+
+                    return {
+                        result,
+                        matchId: m.id,
+                        opponentName,
+                        opponentTeamName,
+                        opponentLogo,
+                        scoreText: `${myScore} - ${oppScore}${isBo3 ? ' (BO3)' : ''}`,
+                        isHome: isPlayer1,
+                        round: m.round
+                    };
                 });
         });
         return forms;
-    }, [matches, tableData]);
+    }, [matches, tableData, playersById, teamsById]);
 
     return (
       <div className="w-full overflow-x-auto scrollbar-ultra-sport">
@@ -241,21 +397,49 @@ const SingleTable = memo(({
               let isUpperBracketZone = false;
               let isLowerBracketZone = false;
               let isRelegationZone = false;
+              let isPromotionZone = false;
 
-              if (isSingleHybrid) {
-                isUpperBracketZone = entry.rank >= 1 && entry.rank <= 8;
-                isLowerBracketZone = false;
-                isRelegationZone = entry.rank > 8;
-              } else if (isCoopHybrid) {
-                isUpperBracketZone = entry.rank >= 1 && entry.rank <= 4;
-                isLowerBracketZone = entry.rank === 5 || entry.rank === 6;
-                isRelegationZone = entry.rank > 6;
-              } else if (isGroupHybrid) {
-                isUpperBracketZone = entry.rank >= 1 && entry.rank <= 2;
-                isLowerBracketZone = entry.rank === 3 || entry.rank === 4;
-                isRelegationZone = entry.rank > 4;
-              } else if (currentType === 'Single' && totalPlayers > 3) {
-                isRelegationZone = entry.rank >= totalPlayers - 2;
+              const actualPromotionSpots = Math.max(1, promotionSpots || 2);
+              const actualRelegationSpots = Math.max(1, relegationSpots || 2);
+
+              if (isDivision2) {
+                isPromotionZone = entry.rank <= actualPromotionSpots;
+              } else if (hasDivisions) {
+                if (isGroupHybrid) {
+                  // Di format 2 grup, rank 1-2 lolos Upper Bracket, rank 3-4 lolos Playoff Contender (Top 4 tiap grup lolos playoff)
+                  // Juru kunci grup di luar zona playoff (rank 5+) menjadi kandidat degradasi langsung
+                  const spotsPerGroup = Math.max(1, Math.ceil(actualRelegationSpots / 2));
+                  isUpperBracketZone = entry.rank >= 1 && entry.rank <= 2;
+                  isLowerBracketZone = entry.rank === 3 || entry.rank === 4;
+                  // Hanya yang di luar zona playoff (rank > 4) yang ditandai degradasi di fase grup
+                  isRelegationZone = entry.rank > 4 && entry.rank > Math.max(0, totalPlayers - spotsPerGroup);
+                } else if (isSingleHybrid) {
+                  // Top 8 lolos Playoff 8 Besar dan berhak bertarung untuk gelar juara
+                  isUpperBracketZone = entry.rank >= 1 && entry.rank <= 8;
+                  // Hanya rank di luar playoff (#9+) yang langsung degradasi di klasemen reguler
+                  // Tim di top 8 tidak ditandai degradasi karena masih bertanding di playoff
+                  const nonPlayoffSpots = Math.max(0, totalPlayers - 8);
+                  const directRelegationSpots = Math.min(actualRelegationSpots, nonPlayoffSpots);
+                  isRelegationZone = entry.rank > 8 && (entry.rank > totalPlayers - directRelegationSpots);
+                } else {
+                  isRelegationZone = totalPlayers > actualRelegationSpots && entry.rank > totalPlayers - actualRelegationSpots;
+                }
+              } else {
+                if (isSingleHybrid) {
+                  isUpperBracketZone = entry.rank >= 1 && entry.rank <= 8;
+                  isLowerBracketZone = false;
+                  isRelegationZone = entry.rank > 8;
+                } else if (isCoopHybrid) {
+                  isUpperBracketZone = entry.rank >= 1 && entry.rank <= 4;
+                  isLowerBracketZone = entry.rank === 5 || entry.rank === 6;
+                  isRelegationZone = entry.rank > 6;
+                } else if (isGroupHybrid) {
+                  isUpperBracketZone = entry.rank >= 1 && entry.rank <= 2;
+                  isLowerBracketZone = entry.rank === 3 || entry.rank === 4;
+                  isRelegationZone = entry.rank > 4;
+                } else if (currentType === 'Single' && totalPlayers > 3) {
+                  isRelegationZone = entry.rank >= totalPlayers - 2;
+                }
               }
               
               return (
@@ -263,10 +447,11 @@ const SingleTable = memo(({
                   key={entry.id} 
                   className={cn(
                     "transition-all h-16 sm:h-20 border-b border-white/5 relative group/row overflow-hidden",
+                    isPromotionZone ? "bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]" :
                     isFirst ? activeTheme.tableLeaderBg : 
                     isUpperBracketZone ? "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.07]" : 
                     isLowerBracketZone ? "bg-amber-500/[0.02] hover:bg-amber-500/[0.07]" : 
-                    isRelegationZone ? "bg-rose-500/[0.02] hover:bg-rose-500/[0.07]" : 
+                    isRelegationZone ? "bg-rose-500/[0.03] hover:bg-rose-500/[0.08]" : 
                     "hover:bg-white/[0.03]"
                   )}
                 >
@@ -276,10 +461,11 @@ const SingleTable = memo(({
                     <div 
                       className={cn(
                         "absolute left-0 top-2 bottom-2 w-1 sm:w-1.5 rounded-r-full transition-all duration-300",
+                        isPromotionZone ? "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]" :
                         isFirst ? activeTheme.tableLaserBeam :
                         isUpperBracketZone ? "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" :
                         isLowerBracketZone ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)]" :
-                        isRelegationZone ? "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.8)]" :
+                        isRelegationZone ? "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)]" :
                         "bg-transparent"
                       )} 
                     />
@@ -289,6 +475,10 @@ const SingleTable = memo(({
                       {isFirst ? (
                         <div className={cn("w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl font-black text-xs sm:text-base italic flex items-center justify-center group-hover/row:scale-110 transition-transform font-headline", activeTheme.tableLeaderGradient)}>
                           1
+                        </div>
+                      ) : isPromotionZone ? (
+                        <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-black text-xs sm:text-base italic flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.3)] group-hover/row:scale-105 transition-all font-headline">
+                          {entry.rank}
                         </div>
                       ) : isUpperBracketZone ? (
                         <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-black text-xs sm:text-base italic flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.2)] group-hover/row:border-emerald-400 group-hover/row:scale-105 transition-all font-headline">
@@ -345,6 +535,16 @@ const SingleTable = memo(({
                           {isFirst && (
                             <Badge className={cn("border-none text-[8px] px-1.5 h-4 rounded-full uppercase italic shrink-0 hidden sm:inline-flex shadow-sm", activeTheme.tableLeaderBadge)}>
                               LEADER
+                            </Badge>
+                          )}
+                          {isPromotionZone && (
+                            <Badge className="border-none text-[7.5px] px-1.5 h-4 rounded-full uppercase italic shrink-0 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                              🟢 PROMOSI
+                            </Badge>
+                          )}
+                          {isRelegationZone && hasDivisions && (
+                            <Badge className="border-none text-[7.5px] px-1.5 h-4 rounded-full uppercase italic shrink-0 bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
+                              🔻 DEGRADASI
                             </Badge>
                           )}
                         </div>
@@ -405,19 +605,74 @@ const SingleTable = memo(({
                   <TableCell className="hidden xl:table-cell text-center px-2">
                     <div className="flex justify-center gap-1">
                       {playerForm.length > 0 ? (
-                        playerForm.map((res, i) => (
-                          <div 
-                            key={i} 
-                            className={cn(
-                              "w-5 h-5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center text-[9px] font-black border transition-transform hover:scale-110", 
-                              res === 'W' ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : 
-                              res === 'L' ? "bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.3)]" : 
-                              "bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
-                            )}
-                          >
-                            {res === 'W' ? 'M' : res === 'L' ? 'K' : 'S'}
-                          </div>
-                        ))
+                        <TooltipProvider delayDuration={150}>
+                          {playerForm.map((formItem, i) => {
+                            const res = formItem.result;
+                            const isWin = res === 'W';
+                            const isLoss = res === 'L';
+                            const resultLabel = isWin ? 'Menang' : isLoss ? 'Kalah' : 'Seri';
+
+                            return (
+                              <Tooltip key={formItem.matchId ? `${formItem.matchId}-${i}` : i}>
+                                <TooltipTrigger asChild>
+                                  <div 
+                                    className={cn(
+                                      "w-5 h-5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center text-[9px] font-black border transition-all cursor-pointer hover:scale-110", 
+                                      isWin ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.3)] hover:bg-emerald-500/30" : 
+                                      isLoss ? "bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.3)] hover:bg-rose-500/30" : 
+                                      "bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.3)] hover:bg-amber-500/30"
+                                    )}
+                                  >
+                                    {isWin ? 'M' : isLoss ? 'K' : 'S'}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                  side="top" 
+                                  sideOffset={6}
+                                  className="p-2 px-3 bg-zinc-950/95 border border-white/15 backdrop-blur-xl text-white shadow-2xl rounded-xl min-w-[140px] text-left"
+                                >
+                                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5 mb-1.5">
+                                    <span className={cn(
+                                      "text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded",
+                                      isWin ? "bg-emerald-500/20 text-emerald-400" :
+                                      isLoss ? "bg-rose-500/20 text-rose-400" :
+                                      "bg-amber-500/20 text-amber-400"
+                                    )}>
+                                      {resultLabel}
+                                    </span>
+                                    <span className="text-[10px] text-white/40 font-semibold uppercase">
+                                      {formItem.isHome ? 'Kandang' : 'Tandang'}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {formItem.opponentLogo && (
+                                      <Avatar className="w-5 h-5 rounded-md border border-white/10 shrink-0">
+                                        <AvatarImage src={formItem.opponentLogo} alt={formItem.opponentName} className="object-contain p-0.5" />
+                                        <AvatarFallback className="text-[8px] bg-white/10 font-bold">{formItem.opponentName.slice(0, 2)}</AvatarFallback>
+                                      </Avatar>
+                                    )}
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                      <span className="text-[11px] font-bold text-white truncate leading-tight">
+                                        vs {formItem.opponentName}
+                                      </span>
+                                      {formItem.opponentTeamName && (
+                                        <span className="text-[9px] text-white/50 truncate">
+                                          {formItem.opponentTeamName}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="mt-1.5 pt-1.5 border-t border-white/10 flex items-center justify-between">
+                                    <span className="text-[10px] text-white/40 font-mono">Skor</span>
+                                    <span className="text-[12px] font-black font-mono tracking-wider text-white">
+                                      {formItem.scoreText}
+                                    </span>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+                        </TooltipProvider>
                       ) : (
                         <div className="flex items-center justify-center gap-1 opacity-25">
                           <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
@@ -445,15 +700,29 @@ const SingleTable = memo(({
 
                   {canRemovePlayer && (
                     <TableCell className="hidden sm:table-cell text-right px-2 pr-4">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 hover:bg-rose-500/10 hover:text-rose-400 transition-colors border border-white/5 rounded-xl" 
-                        onClick={() => onRemovePlayer?.(entry)} 
-                        title={`${t('remove')} ${entry.playerName}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {hasDivisions && onToggleDivision && (
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 px-2.5 text-[9px] font-mono font-black uppercase tracking-wider rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center gap-1" 
+                            onClick={() => onToggleDivision(entry)} 
+                            title={`Pindahkan ${entry.playerName} ke ${isDivision2 ? (division1Name || 'Divisi 1') : (division2Name || 'Divisi 2')}`}
+                          >
+                            <span>⇄ {isDivision2 ? (division1Name || 'DIV 1') : (division2Name || 'DIV 2')}</span>
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 hover:bg-rose-500/10 hover:text-rose-400 transition-colors border border-white/5 rounded-xl" 
+                          onClick={() => onRemovePlayer?.(entry)} 
+                          title={`${t('remove')} ${entry.playerName}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   )}
                 </TableRow>
@@ -575,7 +844,7 @@ const TopScorerTable = memo(({
                                             className="text-[7px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] animate-pulse"
                                             style={{ color: primaryHex }}
                                         >
-                                            MAXIMUM_THREAT_DETECTED
+                                            TOP SCORER // GOLDEN BOOT
                                         </span>
                                         <div className="h-1 w-8 sm:w-12" style={{ backgroundColor: primaryHex }} />
                                     </div>
@@ -628,9 +897,9 @@ const TopScorerTable = memo(({
                          <div className="mt-6 sm:mt-8 flex items-center justify-between border-t pt-3 sm:pt-4" style={{ borderColor: `${primaryHex}33` }}>
                             <div className="flex items-center gap-2">
                                 <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" style={{ color: primaryHex }} />
-                                <span className="text-[7px] sm:text-[8px] font-black text-white/40 uppercase">TACTICAL_RATING</span>
+                                <span className="text-[7px] sm:text-[8px] font-black text-white/40 uppercase">RATING PERFORMA</span>
                             </div>
-                            <span className="text-[7px] sm:text-[8px] font-black" style={{ color: primaryHex }}>STATUS: CRITICAL</span>
+                            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-wider" style={{ color: primaryHex }}>PERFORMA: ON FIRE</span>
                          </div>
                     </Card>
                 ) : (
@@ -651,12 +920,12 @@ const TopScorerTable = memo(({
                                  <div className="absolute -inset-6 bg-red-600/20 blur-3xl opacity-0 group-hover/badge:opacity-100 transition-opacity animate-pulse" />
                                  <div className="relative flex flex-col items-center">
                                      <Badge className="bg-red-600 text-white font-black italic text-xs sm:text-lg px-6 sm:px-12 h-8 sm:h-10 tracking-[0.25em] sm:tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(220,38,38,0.2)] border-r-4 border-black mb-2 sm:mb-3 rounded-none">
-                                         MAIN PEDOFIL
+                                         PEDOFIL
                                      </Badge>
                                      <div className="flex items-center gap-2">
                                          <div className="h-1 w-8 sm:w-12 bg-red-600" />
                                          <span className="text-[7px] font-black text-red-500 uppercase tracking-[0.3em] sm:tracking-[0.4em] animate-pulse">
-                                           {mainPedofil.goals === 0 ? 'MANDUL DETECTED' : 'LOW OUTPUT'}
+                                           {mainPedofil.goals === 0 ? 'MANDUL GOL' : 'MINIM GOL'}
                                          </span>
                                          <div className="h-1 w-8 sm:w-12 bg-red-600" />
                                      </div>
@@ -691,16 +960,16 @@ const TopScorerTable = memo(({
                                      </span>
                                   </div>
                                   <p className="text-[8px] sm:text-xs font-black text-red-500 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" suppressHydrationWarning>
-                                    {mainPedofil.goals === 0 ? `${mainPedofil.played} LAGA MANDUL` : `${mainPedofil.played} LAGA RENDAH`}
+                                    {mainPedofil.goals === 0 ? `${mainPedofil.played} LAGA MANDUL` : `${mainPedofil.played} LAGA MINIM`}
                                   </p>
                               </div>
                           </div>
                           <div className="mt-6 sm:mt-8 flex items-center justify-between border-t border-red-600/30 pt-3 sm:pt-4">
                              <div className="flex items-center gap-2">
                                  <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 animate-pulse" />
-                                 <span className="text-[7px] sm:text-[8px] font-black text-red-500/60 uppercase">SIGNAL_LOST</span>
+                                 <span className="text-[7px] sm:text-[8px] font-black text-red-500/60 uppercase">EFEKTIVITAS RENDAH</span>
                              </div>
-                             <span className="text-[8px] font-black text-red-500/40">SYSTEM_ALERT_ID: 000-00-0</span>
+                             <span className="text-[8px] font-black text-red-500/40">STATISTIK: COLD FORM</span>
                           </div>
                      </Card>
                  ) : (
@@ -723,13 +992,13 @@ const TopScorerTable = memo(({
                                   <CheckCircle2 className="w-10 h-10 animate-pulse" style={{ color: primaryHex }} />
                               </div>
                               <div className="space-y-1 text-center">
-                                  <p className="text-[11px] font-black uppercase tracking-[0.4em] italic" style={{ color: `${primaryHex}BB` }}>SYSTEM_SAFE: NO_DATA_DETECTED</p>
-                                  <p className="text-[8px] font-bold text-white/30 uppercase tracking-[0.3em]">AWAITING UNIT MATCH ENGAGEMENTS</p>
+                                  <p className="text-[11px] font-black uppercase tracking-[0.4em] italic" style={{ color: `${primaryHex}BB` }}>BELUM ADA DATA PEMAIN</p>
+                                  <p className="text-[8px] font-bold text-white/30 uppercase tracking-[0.3em]">MENUNGGU HASIL PERTANDINGAN LIGA</p>
                               </div>
                           </div>
                           <div className="absolute bottom-4 right-6 flex items-center gap-1.5 opacity-30">
                               <Radio className="w-3 h-3" style={{ color: primaryHex }} />
-                              <span className="text-[7px] font-black text-white uppercase">SIGNAL_CLEARED</span>
+                              <span className="text-[7px] font-black text-white uppercase">STATUS LIGA AKTIF</span>
                           </div>
                      </Card>
                  )}
@@ -744,9 +1013,9 @@ const TopScorerTable = memo(({
                 >
                     <div className="flex items-center gap-2">
                         <Binary className="w-4 h-4" style={{ color: primaryHex }} />
-                        <h4 className="text-xs font-black uppercase tracking-widest italic" style={{ color: primaryHex }}>ALL_ACTIVE_STRIKER_TELEMETRY</h4>
+                        <h4 className="text-xs font-black uppercase tracking-widest italic" style={{ color: primaryHex }}>DAFTAR PENCETAK GOL LIGA</h4>
                     </div>
-                    <span className="text-[9px] font-bold text-white/30">ORDER_BY: GOAL_METRICS_DESC</span>
+                    <span className="text-[9px] font-bold text-white/30">URUTKAN: JUMLAH GOL TERBANYAK</span>
                 </div>
                 <div className="overflow-x-auto scrollbar-ultra-sport">
                     <Table>
@@ -850,13 +1119,33 @@ export function LeagueTable({
     activeSeason = null,
     activeTab = "group_a",
     onTabChange,
-    onRevertMatch
+    onRevertMatch,
+    onToggleDivision,
+    selectedDivision: propSelectedDivision,
+    onDivisionChange,
 }: LeagueTableProps) {
   const { t } = useTranslation();
   const theme = useMemo(() => getSeasonTheme(activeSeason), [activeSeason]);
   const [isShareStandingsOpen, setIsShareStandingsOpen] = useState(false);
   const [isShareKnockoutOpen, setIsShareKnockoutOpen] = useState(false);
   
+  const [internalDivision, setInternalDivision] = useState<'div-1' | 'div-2'>('div-1');
+  const selectedDivision = propSelectedDivision !== undefined ? propSelectedDivision : internalDivision;
+  const setSelectedDivision = (div: 'div-1' | 'div-2') => {
+    setInternalDivision(div);
+    onDivisionChange?.(div);
+    if (div === 'div-2') {
+      if (activeTab === 'group_a' || activeTab === 'group_b' || activeTab === 'playoff') {
+        onTabChange?.('standings');
+      }
+    } else {
+      const isD1Hybrid = activeSeason?.type === 'Hybrid';
+      if (isD1Hybrid && activeTab === 'standings') {
+        onTabChange?.('group_a');
+      }
+    }
+  };
+
   const enrichedTableData = useMemo(() => {
     return tableData.map(entry => {
         const pId = entry.playerId || entry.id;
@@ -868,17 +1157,73 @@ export function LeagueTable({
     });
   }, [tableData, teamsById, playersById]);
 
-  const isHybrid = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid' || seasonType === 'Single Hybrid';
-  const isCoopHybrid = seasonType === 'Co-Op Hybrid';
-  const isSingleHybrid = seasonType === 'Single Hybrid';
+  const hasDivisions = !!activeSeason?.hasDivisions;
+  const isMerged = !!activeSeason?.isDiv2Merged;
+
+  const div1Entries = useMemo(() => enrichedTableData.filter(e => e.division !== 'div-2'), [enrichedTableData]);
+  const div2Entries = useMemo(() => enrichedTableData.filter(e => e.division === 'div-2'), [enrichedTableData]);
+
+  // Is multi-division actively split? (Has divisions enabled, not merged, and div2 has >= 3 players)
+  const isMultiDivisionActive = hasDivisions && !isMerged && div2Entries.length >= 3;
+
+  // The active enriched entries for display
+  const currentDisplayData = useMemo(() => {
+    if (!isMultiDivisionActive) return enrichedTableData;
+    return selectedDivision === 'div-1' ? div1Entries : div2Entries;
+  }, [isMultiDivisionActive, selectedDivision, div1Entries, div2Entries, enrichedTableData]);
+
+  // Sort current display entries
+  const sortedCurrentData = useMemo(() => {
+    const sortFn = (a: any, b: any) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0) || (b.win || 0) - (a.win || 0);
+    return [...currentDisplayData].sort(sortFn).map((entry, index) => ({ ...entry, rank: index + 1 }));
+  }, [currentDisplayData]);
+
+  // Active format for the selected division
+  const currentFormat = useMemo(() => {
+    if (isMultiDivisionActive && selectedDivision === 'div-2') {
+      if (activeSeason?.division2HasPlayoff === false) {
+        return 'Single';
+      }
+      return activeSeason?.division2Format || 'Single';
+    }
+    return seasonType || 'Single';
+  }, [isMultiDivisionActive, selectedDivision, activeSeason, seasonType]);
+
+  const matchesForDivision = useMemo(() => {
+    if (!isMultiDivisionActive) return matches;
+    return matches.filter(m => m.division === selectedDivision || (!m.division && selectedDivision === 'div-1'));
+  }, [matches, isMultiDivisionActive, selectedDivision]);
+
+  const isStandardHybrid = currentFormat === 'Hybrid';
+  const isCoopHybrid = currentFormat === 'Co-Op Hybrid';
+  const isSingleHybrid = currentFormat === 'Single Hybrid';
+  const isAnyHybrid = isStandardHybrid || isCoopHybrid || isSingleHybrid;
 
   const { groupA, groupB } = useMemo(() => {
-    if (!isHybrid || isCoopHybrid || isSingleHybrid) return { groupA: [], groupB: [] };
+    if (!isStandardHybrid) return { groupA: [], groupB: [] };
     const sortFn = (a: any, b: any) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0) || (b.win || 0) - (a.win || 0);
-    const a = [...enrichedTableData].filter(p => p.group === 'A').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
-    const b = [...enrichedTableData].filter(p => p.group === 'B').sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
+    
+    // Separate players with assigned group and unassigned players
+    const explicitA = currentDisplayData.filter(p => p.group === 'A');
+    const explicitB = currentDisplayData.filter(p => p.group === 'B');
+    const unassigned = currentDisplayData.filter(p => p.group !== 'A' && p.group !== 'B');
+
+    const fullA = [...explicitA];
+    const fullB = [...explicitB];
+
+    // Distribute unassigned players so no player is missing from the group view
+    unassigned.forEach(p => {
+      if (fullA.length <= fullB.length) {
+        fullA.push({ ...p, group: 'A' });
+      } else {
+        fullB.push({ ...p, group: 'B' });
+      }
+    });
+
+    const a = fullA.sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
+    const b = fullB.sort(sortFn).map((entry, index) => ({...entry, rank: index + 1}));
     return { groupA: a, groupB: b };
-  }, [enrichedTableData, isHybrid, isCoopHybrid, isSingleHybrid]);
+  }, [currentDisplayData, isStandardHybrid]);
 
   if (isLoading) return <LeagueTableSkeleton isCoop={seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid'} />;
   if (tableData.length === 0) {
@@ -897,27 +1242,98 @@ export function LeagueTable({
     );
   }
   
-  const isSeasonCoop = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid';
+  const isSeasonCoop = (seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid') && (!isMultiDivisionActive || selectedDivision === 'div-1');
 
   return (
     <div className={cn(
         "w-full overflow-hidden rounded-2xl sm:rounded-[2.5rem] border bg-gradient-to-b from-black/95 via-black/90 to-[#070B14]/95 backdrop-blur-3xl relative aero-card transition-all duration-500",
         theme.tableCardBorder,
-        theme.tableCardGlow,
-        activeTab === 'playoff'
-          ? "w-full"
-          : enrichedTableData.length <= 4
-            ? "max-w-3xl mx-auto"
-            : enrichedTableData.length <= 8
-              ? "max-w-4xl mx-auto"
-              : enrichedTableData.length <= 12
-                ? "max-w-5xl mx-auto"
-                : "max-w-6xl mx-auto"
+        theme.tableCardGlow
     )}>
         {/* Top Accent TI Theme Tracer */}
         <div className={cn("absolute top-0 left-0 right-0 h-[2.5px] z-20 pointer-events-none", theme.tableTopTracer)} />
 
-        {isHybrid && activeTab !== 'playoff' && <PlayoffQualificationLegend seasonType={seasonType} theme={theme} />}
+        {/* Multi-Division Auto-Merge Notification Banner */}
+        {hasDivisions && (isMerged || (div2Entries.length > 0 && div2Entries.length <= 2)) && (
+          <div className="p-3 sm:p-4 bg-amber-500/[0.08] border-b border-amber-500/30 flex items-center justify-between gap-3 text-amber-300">
+            <div className="flex items-center gap-2.5">
+              <Info className="w-4 h-4 shrink-0 text-amber-400 animate-pulse" />
+              <span className="text-[10px] sm:text-xs font-mono font-bold">
+                REGULASI MULTI-DIVISI: Divisi 2 dimerge ke Divisi 1 karena peserta &lt; 3 atlet ({div2Entries.length || 0} atlet). Seluruh peserta bertanding di Divisi 1.
+              </span>
+            </div>
+            <Badge variant="outline" className="border-amber-400/40 bg-amber-400/10 text-amber-300 text-[8px] font-mono uppercase tracking-wider shrink-0 hidden sm:inline-flex">
+              MERGED TO DIV 1
+            </Badge>
+          </div>
+        )}
+
+        {/* Multi-Division Switcher Pill Dock (Opsi 1) */}
+        {isMultiDivisionActive && (
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-black via-white/[0.02] to-black border-b border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center p-1 rounded-2xl bg-white/[0.04] border border-white/10 w-full sm:w-auto gap-1.5 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setSelectedDivision('div-1')}
+                className={cn(
+                  "flex-1 sm:flex-initial h-10 sm:h-12 px-4 sm:px-6 rounded-xl font-headline font-black text-xs uppercase tracking-wider italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
+                  selectedDivision === 'div-1'
+                    ? "bg-primary text-black border-primary shadow-[0_0_25px_rgba(204,253,1,0.45)]"
+                    : "bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/[0.04]"
+                )}
+              >
+                <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>{activeSeason?.division1Name || 'DIVISI 1'}</span>
+                <span className={cn(
+                  "text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full",
+                  selectedDivision === 'div-1' ? "bg-black/25 text-black" : "bg-white/10 text-white/50"
+                )}>
+                  {div1Entries.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedDivision('div-2')}
+                className={cn(
+                  "flex-1 sm:flex-initial h-10 sm:h-12 px-4 sm:px-6 rounded-xl font-headline font-black text-xs uppercase tracking-wider italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
+                  selectedDivision === 'div-2'
+                    ? "bg-cyan-400 text-black border-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.45)]"
+                    : "bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/[0.04]"
+                )}
+              >
+                <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>{activeSeason?.division2Name || 'DIVISI 2'}</span>
+                <span className={cn(
+                  "text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full",
+                  selectedDivision === 'div-2' ? "bg-black/25 text-black" : "bg-white/10 text-white/50"
+                )}>
+                  {div2Entries.length}
+                </span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-[9px] font-mono text-white/40 uppercase tracking-widest px-2">
+              <Zap className="w-3 h-3 text-primary animate-pulse" />
+              <span>SISTEM 2 DIVISI // {selectedDivision === 'div-1' ? (activeSeason?.division1Name || 'DIVISI 1') : (activeSeason?.division2Name || 'DIVISI 2')}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Legend */}
+        {activeTab !== 'playoff' && (
+          <PlayoffQualificationLegend 
+            seasonType={currentFormat} 
+            theme={theme} 
+            hasDivisions={hasDivisions && !isMerged}
+            isDivision2={isMultiDivisionActive && selectedDivision === 'div-2'}
+            div1Name={activeSeason?.division1Name || 'Divisi 1'}
+            div2Name={activeSeason?.division2Name || 'Divisi 2'}
+            promotionSpots={activeSeason?.promotionSpots ?? 2}
+            relegationSpots={activeSeason?.relegationSpots ?? 2}
+            totalPlayers={sortedCurrentData.length}
+          />
+        )}
         
         {isSeasonCoop ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -963,15 +1379,41 @@ export function LeagueTable({
                     )}
                   </div>
                 </div>
-                <TabsContent value="standings" className="mt-0"><SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={true} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} theme={theme} /></TabsContent>
-                <TabsContent value="topskor" className="mt-0 py-10"><TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} teamsById={teamsById} theme={theme} /></TabsContent>
+                <TabsContent value="standings" className="mt-0">
+                  <SingleTable 
+                    tableData={sortedCurrentData} 
+                    isCoop={true} 
+                    totalPlayers={sortedCurrentData.length} 
+                    onSelectPlayer={onSelectPlayer} 
+                    seasonType={currentFormat} 
+                    isLoading={isLoading} 
+                    onRemovePlayer={onRemovePlayer} 
+                    onToggleDivision={onToggleDivision}
+                    seasonStatus={seasonStatus} 
+                    isAdmin={isAdmin} 
+                    defendingChampionId={defendingChampionId} 
+                    matches={matchesForDivision} 
+                    theme={theme} 
+                    playersById={playersById} 
+                    teamsById={teamsById} 
+                    hasDivisions={hasDivisions && !isMerged}
+                    isDivision2={isMultiDivisionActive && selectedDivision === 'div-2'}
+                    division1Name={activeSeason?.division1Name || 'Divisi 1'}
+                    division2Name={activeSeason?.division2Name || 'Divisi 2'}
+                    promotionSpots={activeSeason?.promotionSpots ?? 2}
+                    relegationSpots={activeSeason?.relegationSpots ?? 2}
+                  />
+                </TabsContent>
+                <TabsContent value="topskor" className="mt-0 py-10">
+                  <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} />
+                </TabsContent>
                 {isCoopHybrid && (
                     <TabsContent value="playoff" className="mt-0 p-1 sm:p-2 xl:p-4 w-full">
                         <TournamentBracket 
-                            matches={matches || []}
+                            matches={matchesForDivision}
                             playersById={playersById}
                             teamsById={teamsById}
-                            leagueTable={tableData}
+                            leagueTable={sortedCurrentData}
                             season={activeSeason || null}
                             isAdmin={isAdmin}
                             defendingChampionId={defendingChampionId}
@@ -1024,17 +1466,39 @@ export function LeagueTable({
                       </div>
                     </div>
                     <TabsContent value="standings" className="mt-0">
-                        <SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={false} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} theme={theme} />
+                        <SingleTable 
+                          tableData={sortedCurrentData} 
+                          isCoop={false} 
+                          totalPlayers={sortedCurrentData.length} 
+                          onSelectPlayer={onSelectPlayer} 
+                          seasonType={currentFormat} 
+                          isLoading={isLoading} 
+                          onRemovePlayer={onRemovePlayer} 
+                          onToggleDivision={onToggleDivision}
+                          seasonStatus={seasonStatus} 
+                          isAdmin={isAdmin} 
+                          defendingChampionId={defendingChampionId} 
+                          matches={matchesForDivision} 
+                          theme={theme} 
+                          playersById={playersById} 
+                          teamsById={teamsById} 
+                          hasDivisions={hasDivisions && !isMerged}
+                          isDivision2={isMultiDivisionActive && selectedDivision === 'div-2'}
+                          division1Name={activeSeason?.division1Name || 'Divisi 1'}
+                          division2Name={activeSeason?.division2Name || 'Divisi 2'}
+                          promotionSpots={activeSeason?.promotionSpots ?? 2}
+                          relegationSpots={activeSeason?.relegationSpots ?? 2}
+                        />
                     </TabsContent>
                     <TabsContent value="topskor" className="mt-0 py-10">
-                        <TopScorerTable tableData={tableData} isLoading={isLoading} seasonType={seasonType} teamsById={teamsById} theme={theme} />
+                        <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} />
                     </TabsContent>
                     <TabsContent value="playoff" className="mt-0 p-1 sm:p-2 xl:p-4 w-full">
                         <TournamentBracket 
-                            matches={matches || []}
+                            matches={matchesForDivision}
                             playersById={playersById}
                             teamsById={teamsById}
-                            leagueTable={tableData}
+                            leagueTable={sortedCurrentData}
                             season={activeSeason || null}
                             isAdmin={isAdmin}
                             defendingChampionId={defendingChampionId}
@@ -1042,7 +1506,7 @@ export function LeagueTable({
                         />
                     </TabsContent>
                 </Tabs>
-            ) : isHybrid ? (
+            ) : isStandardHybrid ? (
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                     <div className="p-3 sm:p-4 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                       <TabsList className="grid flex-1 grid-cols-3 h-12 sm:h-14 p-1.5 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-full backdrop-blur-2xl gap-2">
@@ -1078,14 +1542,62 @@ export function LeagueTable({
                         )}
                       </div>
                     </div>
-                    <TabsContent value="group_a" className="mt-0"><SingleTable tableData={groupA} totalPlayers={groupA.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} theme={theme} /></TabsContent>
-                    <TabsContent value="group_b" className="mt-0"><SingleTable tableData={groupB} totalPlayers={groupB.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} isCoop={false} theme={theme} /></TabsContent>
+                    <TabsContent value="group_a" className="mt-0">
+                      <SingleTable 
+                        tableData={groupA} 
+                        totalPlayers={groupA.length} 
+                        onSelectPlayer={onSelectPlayer} 
+                        seasonType={currentFormat} 
+                        isLoading={isLoading} 
+                        onRemovePlayer={onRemovePlayer} 
+                        onToggleDivision={onToggleDivision}
+                        seasonStatus={seasonStatus} 
+                        isAdmin={isAdmin} 
+                        defendingChampionId={defendingChampionId} 
+                        matches={matchesForDivision} 
+                        isCoop={false} 
+                        theme={theme} 
+                        playersById={playersById} 
+                        teamsById={teamsById} 
+                        hasDivisions={hasDivisions && !isMerged}
+                        isDivision2={isMultiDivisionActive && selectedDivision === 'div-2'}
+                        division1Name={activeSeason?.division1Name || 'Divisi 1'}
+                        division2Name={activeSeason?.division2Name || 'Divisi 2'}
+                        promotionSpots={activeSeason?.promotionSpots ?? 2}
+                        relegationSpots={activeSeason?.relegationSpots ?? 2}
+                      />
+                    </TabsContent>
+                    <TabsContent value="group_b" className="mt-0">
+                      <SingleTable 
+                        tableData={groupB} 
+                        totalPlayers={groupB.length} 
+                        onSelectPlayer={onSelectPlayer} 
+                        seasonType={currentFormat} 
+                        isLoading={isLoading} 
+                        onRemovePlayer={onRemovePlayer} 
+                        onToggleDivision={onToggleDivision}
+                        seasonStatus={seasonStatus} 
+                        isAdmin={isAdmin} 
+                        defendingChampionId={defendingChampionId} 
+                        matches={matchesForDivision} 
+                        isCoop={false} 
+                        theme={theme} 
+                        playersById={playersById} 
+                        teamsById={teamsById} 
+                        hasDivisions={hasDivisions && !isMerged}
+                        isDivision2={isMultiDivisionActive && selectedDivision === 'div-2'}
+                        division1Name={activeSeason?.division1Name || 'Divisi 1'}
+                        division2Name={activeSeason?.division2Name || 'Divisi 2'}
+                        promotionSpots={activeSeason?.promotionSpots ?? 2}
+                        relegationSpots={activeSeason?.relegationSpots ?? 2}
+                      />
+                    </TabsContent>
                     <TabsContent value="playoff" className="mt-0 p-1 sm:p-2 xl:p-4 w-full">
                         <TournamentBracket 
-                            matches={matches || []}
+                            matches={matchesForDivision}
                             playersById={playersById}
                             teamsById={teamsById}
-                            leagueTable={tableData}
+                            leagueTable={sortedCurrentData}
                             season={activeSeason || null}
                             isAdmin={isAdmin}
                             defendingChampionId={defendingChampionId}
@@ -1094,46 +1606,81 @@ export function LeagueTable({
                     </TabsContent>
                 </Tabs>
             ) : (
-                <div className="w-full">
-                  <div className="p-3 sm:p-4 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Scan className="w-4 h-4" style={{ color: theme.primaryHex }} />
-                      <span className="text-xs font-black uppercase tracking-wider text-white">Klasemen Musim</span>
+                <Tabs value={activeTab === 'topskor' ? 'topskor' : 'standings'} onValueChange={onTabChange} className="w-full">
+                  <div className="p-3 sm:p-4 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <TabsList className="grid flex-1 grid-cols-2 h-12 sm:h-14 p-1.5 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-full backdrop-blur-2xl gap-2">
+                      <TabsTrigger value="standings" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveBg)}>
+                        <span className="flex items-center justify-center gap-2"><Scan className="w-4 h-4" />Klasemen</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="topskor" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveTopSkor)}>
+                        <span className="flex items-center justify-center gap-2"><Flame className="w-4 h-4" />Top Skor</span>
+                      </TabsTrigger>
+                    </TabsList>
+                    <div className="flex items-center gap-2 shrink-0 justify-end">
+                      <Button
+                        type="button"
+                        onClick={() => setIsShareStandingsOpen(true)}
+                        className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 border active:scale-95"
+                        style={{
+                          backgroundColor: theme.primaryHex,
+                          color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
+                          borderColor: `${theme.primaryHex}60`,
+                          boxShadow: `0 0 20px ${theme.glowRgba}`,
+                        }}
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span>Share Klasemen</span>
+                      </Button>
                     </div>
-                    <Button
-                      type="button"
-                      onClick={() => setIsShareStandingsOpen(true)}
-                      className="h-10 px-5 rounded-full font-black text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 border"
-                      style={{
-                        backgroundColor: theme.primaryHex,
-                        color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
-                        borderColor: `${theme.primaryHex}60`,
-                      }}
-                    >
-                      <Share2 className="w-4 h-4" />
-                      <span>Share Klasemen</span>
-                    </Button>
                   </div>
-                  <SingleTable tableData={enrichedTableData.map((e, i) => ({ ...e, rank: i + 1 }))} isCoop={false} totalPlayers={enrichedTableData.length} onSelectPlayer={onSelectPlayer} seasonType={seasonType} isLoading={isLoading} onRemovePlayer={onRemovePlayer} seasonStatus={seasonStatus} isAdmin={isAdmin} defendingChampionId={defendingChampionId} matches={matches} theme={theme} />
-                </div>
+                  <TabsContent value="standings" className="mt-0">
+                    <SingleTable 
+                      tableData={sortedCurrentData} 
+                      isCoop={false} 
+                      totalPlayers={sortedCurrentData.length} 
+                      onSelectPlayer={onSelectPlayer} 
+                      seasonType={currentFormat} 
+                      isLoading={isLoading} 
+                      onRemovePlayer={onRemovePlayer} 
+                      onToggleDivision={onToggleDivision}
+                      seasonStatus={seasonStatus} 
+                      isAdmin={isAdmin} 
+                      defendingChampionId={defendingChampionId} 
+                      matches={matchesForDivision} 
+                      theme={theme} 
+                      playersById={playersById} 
+                      teamsById={teamsById} 
+                      hasDivisions={hasDivisions && !isMerged}
+                      isDivision2={isMultiDivisionActive && selectedDivision === 'div-2'}
+                      division1Name={activeSeason?.division1Name || 'Divisi 1'}
+                      division2Name={activeSeason?.division2Name || 'Divisi 2'}
+                      promotionSpots={activeSeason?.promotionSpots ?? 2}
+                      relegationSpots={activeSeason?.relegationSpots ?? 2}
+                    />
+                  </TabsContent>
+                  <TabsContent value="topskor" className="mt-0 py-10">
+                    <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} />
+                  </TabsContent>
+                </Tabs>
             )
         )}
 
         <StandingsShareDialog 
           open={isShareStandingsOpen} 
           onOpenChange={setIsShareStandingsOpen} 
-          tableData={enrichedTableData} 
+          tableData={sortedCurrentData} 
           activeSeason={activeSeason} 
-          seasonType={seasonType}
+          seasonType={currentFormat}
+          divisionTitle={isMultiDivisionActive ? (selectedDivision === 'div-1' ? (activeSeason?.division1Name || 'Divisi 1') : (activeSeason?.division2Name || 'Divisi 2')) : undefined}
         />
 
         <KnockoutShareDialog
           open={isShareKnockoutOpen}
           onOpenChange={setIsShareKnockoutOpen}
-          matches={matches || []}
+          matches={matchesForDivision}
           playersById={playersById}
           teamsById={teamsById}
-          leagueTable={tableData}
+          leagueTable={sortedCurrentData}
           season={activeSeason}
         />
     </div>

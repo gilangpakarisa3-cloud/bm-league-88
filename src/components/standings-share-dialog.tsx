@@ -21,6 +21,7 @@ interface StandingsShareDialogProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>; team?: WithId<Team>; logoUrl?: string })[];
   activeSeason: WithId<Season> | null;
   seasonType?: Season['type'];
+  divisionTitle?: string;
 }
 
 // Convert any image URL into a self-contained base64 data URL
@@ -62,6 +63,7 @@ export function StandingsShareDialog({
   tableData,
   activeSeason,
   seasonType,
+  divisionTitle,
 }: StandingsShareDialogProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -149,7 +151,8 @@ export function StandingsShareDialog({
 
   const getShareText = () => {
     const seasonTitle = activeSeason?.name || 'BM LEAGUE 88';
-    let text = `📊 *KLASEMEN SEMENTARA - BM LEAGUE 88* 📊\n🏆 *${seasonTitle}*\n📅 *Per:* ${formattedDate} (${formattedTime})\n\n`;
+    const divHeader = divisionTitle ? ` [${divisionTitle}]` : '';
+    let text = `📊 *KLASEMEN SEMENTARA - BM LEAGUE 88* 📊\n🏆 *${seasonTitle}*${divHeader}\n📅 *Per:* ${formattedDate} (${formattedTime})\n\n`;
 
     sortedTable.forEach((entry, idx) => {
       const rank = idx + 1;
@@ -371,7 +374,7 @@ export function StandingsShareDialog({
                   BM LEAGUE 88
                 </div>
                 <div className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/80 border border-white/10">
-                  KLASEMEN RESMI
+                  {divisionTitle ? divisionTitle.toUpperCase() : 'KLASEMEN RESMI'}
                 </div>
               </div>
 

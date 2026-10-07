@@ -5,8 +5,8 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { LeagueTable } from '@/components/league-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices, Binary, Plus, Check, Search, X, AlertTriangle } from 'lucide-react';
-import { getSeasonTheme } from '@/lib/season-theme';
+import { PlusCircle, UserPlus, Trophy, Play, Flag, Pencil, Trash2, Share2, CalendarIcon, Lock, Unlock, Users, Award, User, Shuffle, RefreshCw, Group, Swords, Wallet, Receipt, LayoutGrid, Scan, Activity, Zap, Undo2, KeyRound, Dices, Binary, Plus, Check, Search, X, AlertTriangle, Palette, Sparkles } from 'lucide-react';
+import { getSeasonTheme, AVAILABLE_SEASON_THEMES } from '@/lib/season-theme';
 import Link from 'next/link';
 import {
   Dialog,
@@ -53,6 +53,7 @@ import { PlayerPerformanceDialog } from '@/components/player-performance-dialog'
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CoopDrawDialog } from '@/components/coop-draw-dialog';
 import { CoopManualPairingDialog } from '@/components/coop-manual-pairing-dialog';
@@ -85,12 +86,21 @@ export default function LeaguePage() {
   const [showGroupDrawDialog, setShowGroupDrawDialog] = useState(false);
   const [showTeamDraftDialog, setShowTeamDraftDialog] = useState(false);
   const [activeLeagueTab, setActiveLeagueTab] = useState("group_a");
+  const [selectedDivision, setSelectedDivision] = useState<'div-1' | 'div-2'>('div-1');
   
   const [newSeasonName, setNewSeasonName] = useState('');
   const [newSeasonFee, setNewSeasonFee] = useState<number | string>('');
   const [newSponsorshipAmount, setNewSponsorshipAmount] = useState<number | string>('');
   const [newSeasonType, setNewSeasonType] = useState<Season['type']>('Single');
+  const [newSeasonThemeKey, setNewSeasonThemeKey] = useState<Season['themeKey']>('auto');
   const [newHybridMeetings, setNewHybridMeetings] = useState<1 | 2>(1);
+  const [newHasDivisions, setNewHasDivisions] = useState(false);
+  const [newDivision1Name, setNewDivision1Name] = useState('Divisi 1');
+  const [newDivision2Name, setNewDivision2Name] = useState('Divisi 2');
+  const [newDivision2Format, setNewDivision2Format] = useState<Season['division2Format']>('Single');
+  const [newDivision2HasPlayoff, setNewDivision2HasPlayoff] = useState<boolean>(false);
+  const [newPromotionSpots, setNewPromotionSpots] = useState<number>(2);
+  const [newRelegationSpots, setNewRelegationSpots] = useState<number>(2);
   const [editingSeason, setEditingSeason] = useState<WithId<Season> | null>(null);
   
   const [deletingSeason, setDeletingSeason] = useState<WithId<Season> | null>(null);
@@ -363,35 +373,234 @@ export default function LeaguePage() {
     
     const seasonType = activeSeason.type || 'Single';
     const isHybridMode = seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid' || seasonType === 'Single Hybrid';
-    
+    const now = Date.now();
+    let matchCounter = 0;
+
+    // ============================================================
+    // MULTI-DIVISION SYSTEM (DIVISI 1 & DIVISI 2)
+    // ============================================================
+    if (activeSeason.hasDivisions && !isSeasonCoop && singleLeagueTable) {
+        const div2Pool = singleLeagueTable.filter(e => e.division === 'div-2');
+        const div1Pool = singleLeagueTable.filter(e => e.division !== 'div-2');
+
+        // SPECIAL RULE:
+        // "Jika divisi 2 hanya ada 1 atau 2 pemain saja, langsung merge ke divisi 1 saja. kecuali kalau ada 3 tetap gunakan format kompetisi."
+        if (div2Pool.length > 0 && div2Pool.length <= 2) {
+            // 1. Auto-merge: update Div 2 entries in Firestore to div-1
+            div2Pool.forEach(entry => {
+                batch.update(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, entry.id), {
+                    division: 'div-1'
+                });
+            });
+            batch.update(doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId), {
+                isDiv2Merged: true
+            });
+
+            // 2. Generate unified single pool fixtures for everyone
+            const mergedPool = singleLeagueTable;
+            const meetings = seasonType === 'Single' ? 2 : (seasonType === 'Single Hybrid' || seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid' ? (activeSeason.hybridGroupMeetings || 1) : 1);
+            for (let i = 0; i < mergedPool.length; i++) {
+                for (let j = i + 1; j < mergedPool.length; j++) {
+                    const id1 = mergedPool[i].playerId;
+                    const id2 = mergedPool[j].playerId;
+                    for (let k = 0; k < meetings; k++) {
+                        let p1Id = k === 0 ? id1 : id2;
+                        let p2Id = k === 0 ? id2 : id1;
+                        if (meetings === 1 && Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
+                        batch.set(doc(matchesCollectionRef), {
+                            seasonId: activeSeasonId,
+                            player1Id: p1Id,
+                            player2Id: p2Id,
+                            player1Score: null,
+                            player2Score: null,
+                            player1Wins: null,
+                            player2Wins: null,
+                            isCompleted: false,
+                            status: 'Scheduled',
+                            matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
+                            round: 'Group',
+                            division: 'div-1'
+                        });
+                    }
+                }
+            }
+            await batch.commit();
+            toast({
+                title: 'Divisi 2 Di-Merge ke Divisi 1',
+                description: `Pendaftar Divisi 2 hanya ${div2Pool.length} pemain (minimal 3 untuk kompetisi). Seluruh peserta otomatis digabung ke ${activeSeason.division1Name || 'Divisi 1'}.`
+            });
+            return;
+        } else if (div2Pool.length >= 3) {
+            // SEPARATE COMPETITIONS: Div 1 and Div 2 both have full competition!
+            batch.update(doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId), {
+                isDiv2Merged: false
+            });
+
+            // Division 1 Fixtures
+            if (seasonType === 'Hybrid') {
+                const gA = div1Pool.filter(p => p.group === 'A');
+                const gB = div1Pool.filter(p => p.group === 'B');
+                const meetings = activeSeason.hybridGroupMeetings || 1;
+                const generateHybridDiv1GroupMatches = (group: any[]) => {
+                    for (let i = 0; i < group.length; i++) {
+                        for (let j = i + 1; j < group.length; j++) {
+                            const p1Id = group[i].playerId;
+                            const p2Id = group[j].playerId;
+                            for (let k = 0; k < meetings; k++) {
+                                let subP1 = k === 0 ? p1Id : p2Id;
+                                let subP2 = k === 0 ? p2Id : p1Id;
+                                if (meetings === 1 && Math.random() > 0.5) [subP1, subP2] = [subP2, subP1];
+                                batch.set(doc(matchesCollectionRef), {
+                                    seasonId: activeSeasonId,
+                                    player1Id: subP1,
+                                    player2Id: subP2,
+                                    player1Score: null,
+                                    player2Score: null,
+                                    player1Wins: null,
+                                    player2Wins: null,
+                                    isCompleted: false,
+                                    status: 'Scheduled',
+                                    matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
+                                    round: 'Group',
+                                    division: 'div-1'
+                                });
+                            }
+                        }
+                    }
+                };
+                generateHybridDiv1GroupMatches(gA);
+                generateHybridDiv1GroupMatches(gB);
+            } else {
+                const div1Meetings = seasonType === 'Single' ? 2 : (seasonType === 'Single Hybrid' ? (activeSeason.hybridGroupMeetings || 1) : 1);
+                for (let i = 0; i < div1Pool.length; i++) {
+                    for (let j = i + 1; j < div1Pool.length; j++) {
+                        const id1 = div1Pool[i].playerId;
+                        const id2 = div1Pool[j].playerId;
+                        for (let k = 0; k < div1Meetings; k++) {
+                            let p1Id = k === 0 ? id1 : id2;
+                            let p2Id = k === 0 ? id2 : id1;
+                            if (div1Meetings === 1 && Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
+                            batch.set(doc(matchesCollectionRef), {
+                                seasonId: activeSeasonId,
+                                player1Id: p1Id,
+                                player2Id: p2Id,
+                                player1Score: null,
+                                player2Score: null,
+                                player1Wins: null,
+                                player2Wins: null,
+                                isCompleted: false,
+                                status: 'Scheduled',
+                                matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
+                                round: 'Group',
+                                division: 'div-1'
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Division 2 Fixtures:
+            // Jika mode tanpa playoff: 2x main (Home & Away).
+            // Jika menggunakan playoff: 1x main (Single Round-Robin).
+            const div2Meetings = activeSeason.division2HasPlayoff ? 1 : 2;
+            for (let i = 0; i < div2Pool.length; i++) {
+                for (let j = i + 1; j < div2Pool.length; j++) {
+                    const id1 = div2Pool[i].playerId;
+                    const id2 = div2Pool[j].playerId;
+                    for (let k = 0; k < div2Meetings; k++) {
+                        let p1Id = k === 0 ? id1 : id2;
+                        let p2Id = k === 0 ? id2 : id1;
+                        if (div2Meetings === 1 && Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
+                        batch.set(doc(matchesCollectionRef), {
+                            seasonId: activeSeasonId,
+                            player1Id: p1Id,
+                            player2Id: p2Id,
+                            player1Score: null,
+                            player2Score: null,
+                            player1Wins: null,
+                            player2Wins: null,
+                            isCompleted: false,
+                            status: 'Scheduled',
+                            matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
+                            round: 'Group',
+                            division: 'div-2'
+                        });
+                    }
+                }
+            }
+
+            await batch.commit();
+            toast({
+                title: 'Jadwal 2 Divisi Berhasil Dibuat!',
+                description: `${activeSeason.division1Name || 'Divisi 1'} (${div1Pool.length} atlet) & ${activeSeason.division2Name || 'Divisi 2'} (${div2Pool.length} atlet) siap bertanding!`
+            });
+            return;
+        } else {
+            // div2Pool is 0: all players are in Div 1
+            const meetings = seasonType === 'Single' ? 2 : (seasonType === 'Single Hybrid' || seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid' ? (activeSeason.hybridGroupMeetings || 1) : 1);
+            for (let i = 0; i < div1Pool.length; i++) {
+                for (let j = i + 1; j < div1Pool.length; j++) {
+                    const id1 = div1Pool[i].playerId;
+                    const id2 = div1Pool[j].playerId;
+                    for (let k = 0; k < meetings; k++) {
+                        let p1Id = k === 0 ? id1 : id2;
+                        let p2Id = k === 0 ? id2 : id1;
+                        if (meetings === 1 && Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
+                        batch.set(doc(matchesCollectionRef), {
+                            seasonId: activeSeasonId,
+                            player1Id: p1Id,
+                            player2Id: p2Id,
+                            player1Score: null,
+                            player2Score: null,
+                            player1Wins: null,
+                            player2Wins: null,
+                            isCompleted: false,
+                            status: 'Scheduled',
+                            matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
+                            round: 'Group',
+                            division: 'div-1'
+                        });
+                    }
+                }
+            }
+            await batch.commit();
+            toast({
+                title: t('fixtures_generated_title'),
+                description: `Jadwal pertandingan untuk ${activeSeason.name} telah dibuat.`
+            });
+            return;
+        }
+    }
+
     if (seasonType === 'Single Hybrid') {
-        // Single Hybrid: 1 Klasemen tunggal, setiap peserta bertanding tepat 1 kali (round-robin 1x main)
-        const now = Date.now();
-        let matchCounter = 0;
+        // Single Hybrid: 1 Klasemen tunggal, setiap peserta bertanding 1x atau 2x (H&A) sesuai hybridGroupMeetings
+        const meetings = activeSeason.hybridGroupMeetings || 1;
         for (let i = 0; i < tableToUse.length; i++) {
             for (let j = i + 1; j < tableToUse.length; j++) {
-                let p1Id = (tableToUse[i] as WithId<LeagueEntry>).playerId;
-                let p2Id = (tableToUse[j] as WithId<LeagueEntry>).playerId;
-                if (Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
-                batch.set(doc(matchesCollectionRef), {
-                    seasonId: activeSeasonId,
-                    player1Id: p1Id,
-                    player2Id: p2Id,
-                    player1Score: null,
-                    player2Score: null,
-                    player1Wins: null,
-                    player2Wins: null,
-                    isCompleted: false,
-                    status: 'Scheduled',
-                    matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
-                    round: 'Group'
-                });
+                const id1 = (tableToUse[i] as WithId<LeagueEntry>).playerId;
+                const id2 = (tableToUse[j] as WithId<LeagueEntry>).playerId;
+                for (let k = 0; k < meetings; k++) {
+                    let p1Id = k === 0 ? id1 : id2;
+                    let p2Id = k === 0 ? id2 : id1;
+                    if (meetings === 1 && Math.random() > 0.5) [p1Id, p2Id] = [p2Id, p1Id];
+                    batch.set(doc(matchesCollectionRef), {
+                        seasonId: activeSeasonId,
+                        player1Id: p1Id,
+                        player2Id: p2Id,
+                        player1Score: null,
+                        player2Score: null,
+                        player1Wins: null,
+                        player2Wins: null,
+                        isCompleted: false,
+                        status: 'Scheduled',
+                        matchDate: Timestamp.fromMillis(now + (matchCounter++) * 1000),
+                        round: 'Group'
+                    });
+                }
             }
         }
     } else if (seasonType === 'Co-Op Hybrid') {
         const group = tableToUse;
-        const now = Date.now();
-        let matchCounter = 0;
         const meetings = activeSeason.hybridGroupMeetings || 1;
         for (let i = 0; i < group.length; i++) {
             for (let j = i + 1; j < group.length; j++) {
@@ -407,8 +616,6 @@ export default function LeaguePage() {
         const gA = tableToUse.filter(p => p.group === 'A');
         const gB = tableToUse.filter(p => p.group === 'B');
         const generateGroupMatches = (group: any[]) => {
-            const now = Date.now();
-            let matchCounter = 0;
             for (let i = 0; i < group.length; i++) {
                 for (let j = i + 1; j < group.length; j++) {
                     const p1Id = isSeasonCoop ? group[i].id : (group[i] as WithId<LeagueEntry>).playerId;
@@ -423,12 +630,10 @@ export default function LeaguePage() {
                     }
                 }
             }
-        }
+        };
         generateGroupMatches(gA); generateGroupMatches(gB);
     } else {
         const meetings = isSeasonCoop ? 1 : ((activeSeason?.type || 'Single') === 'Single' ? 2 : 1);
-        const now = Date.now();
-        let matchCounter = 0;
         for (let i = 0; i < tableToUse.length; i++) {
           for (let j = i + 1; j < tableToUse.length; j++) {
             const id1 = isSeasonCoop ? tableToUse[i].id : (tableToUse[i] as WithId<LeagueEntry>).playerId;
@@ -532,7 +737,69 @@ export default function LeaguePage() {
         return;
     }
     
-    if (groupA.length < 6 || groupB.length < 6) { toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Masing-masing grup harus memiliki setidaknya 6 tim.' }); return; }
+    if (groupA.length < 4 || groupB.length < 4) {
+      toast({ variant: 'destructive', title: 'Grup Tidak Lengkap', description: 'Masing-masing grup harus memiliki setidaknya 4 tim untuk memulai playoff.' });
+      return;
+    }
+
+    // Opsi A: Jika salah satu grup kurang dari 6 peserta (misal 5 peserta per grup / total 10 peserta),
+    // gunakan format 8 Besar Knockout Silang (Top 4 Grup A vs Top 4 Grup B) Single Elimination (Best of 3)
+    if (groupA.length < 6 || groupB.length < 6) {
+      const qfPairings = [
+        { p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, // A1 vs B4
+        { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' }, // B2 vs A3
+        { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, // B1 vs A4
+        { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' }, // A2 vs B3
+      ];
+
+      qfPairings.forEach((p, i) => {
+        batch.set(doc(matchesColRef), {
+          seasonId: activeSeasonId,
+          player1Id: p.p1.playerId || p.p1.id,
+          player2Id: p.p2.playerId || p.p2.id,
+          player1Score: null,
+          player2Score: null,
+          player1Wins: null,
+          player2Wins: null,
+          isCompleted: false,
+          status: 'Scheduled',
+          matchDate: Timestamp.fromMillis(now + (i + 1) * 1000),
+          round: 'Quarterfinal',
+          bracketId: p.bid
+        });
+      });
+
+      const placeholders = [
+        { round: 'Semifinal', bid: 'playoff-sf1' },
+        { round: 'Semifinal', bid: 'playoff-sf2' },
+        { round: 'Grand-Final', bid: 'playoff-final' }
+      ];
+
+      placeholders.forEach((p, i) => {
+        batch.set(doc(matchesColRef), {
+          seasonId: activeSeasonId,
+          player1Id: 'TBD',
+          player2Id: 'TBD',
+          player1Score: null,
+          player2Score: null,
+          player1Wins: null,
+          player2Wins: null,
+          isCompleted: false,
+          status: 'Scheduled',
+          matchDate: Timestamp.fromMillis(now + (i + 5) * 1000),
+          round: p.round as any,
+          bracketId: p.bid
+        });
+      });
+
+      batch.commit().then(() => toast({
+        title: 'Playoff 8 Besar (Top 4 Silang) Dibuat!',
+        description: 'Bagan Knockout Single Elimination (8 Besar) telah berhasil dibuat dari peringkat 1 s/d 4 masing-masing grup.'
+      }));
+      return;
+    }
+
+    // Format Asli 12 Tim (Double Elimination jika masing-masing grup >= 6 tim)
     const ubQuarterPairings = [{ p1: groupA[0], p2: groupB[3], bid: 'playoff-m1' }, { p1: groupB[1], p2: groupA[2], bid: 'playoff-m2' }, { p1: groupB[0], p2: groupA[3], bid: 'playoff-m3' }, { p1: groupA[1], p2: groupB[2], bid: 'playoff-m4' }];
     ubQuarterPairings.forEach((p, i) => batch.set(doc(matchesColRef), { seasonId: activeSeasonId, player1Id: p.p1.playerId || p.p1.id, player2Id: p.p2.playerId || p.p2.id, player1Score: null, player2Score: null, player1Wins: null, player2Wins: null, isCompleted: false, status: 'Scheduled', matchDate: Timestamp.fromMillis(now + (i + 1) * 1000), round: 'UB-Quarter', bracketId: p.bid }));
     const lbRound1Starters = [ { p1: groupA[4], bid: 'playoff-m5' }, { p1: groupB[4], bid: 'playoff-m6' }, { p1: groupA[5], bid: 'playoff-m7' }, { p1: groupB[5], bid: 'playoff-m8' } ];
@@ -547,10 +814,26 @@ export default function LeaguePage() {
       const fee = typeof newSeasonFee === 'string' ? parseFloat(newSeasonFee) : newSeasonFee;
       const sponsorship = typeof newSponsorshipAmount === 'string' ? parseFloat(newSponsorshipAmount) : newSponsorshipAmount;
       const seasonData: Partial<Omit<Season, 'createdAt' | 'status'>> = {
-          name: newSeasonName.trim(), type: newSeasonType, ...((newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid') && { hybridGroupMeetings: newHybridMeetings }),
-          ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }), ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
-          registrationFee: isNaN(fee) ? 0 : fee, sponsorshipAmount: isNaN(sponsorship) ? 0 : sponsorship,
-      }
+          name: newSeasonName.trim(), 
+          type: newSeasonType, 
+          themeKey: newSeasonThemeKey,
+          ...((newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid' || newSeasonType === 'Single Hybrid') && { hybridGroupMeetings: newHybridMeetings }),
+          ...(dateRange.from && { startDate: Timestamp.fromDate(dateRange.from) }), 
+          ...(dateRange.to && { endDate: Timestamp.fromDate(dateRange.to) }),
+          registrationFee: isNaN(fee) ? 0 : fee, 
+          sponsorshipAmount: isNaN(sponsorship) ? 0 : sponsorship,
+          hasDivisions: newHasDivisions,
+          ...(newHasDivisions ? {
+              division1Name: newDivision1Name.trim() || 'Divisi 1',
+              division2Name: newDivision2Name.trim() || 'Divisi 2',
+              division2Format: newDivision2Format || 'Single',
+              division2HasPlayoff: newDivision2HasPlayoff,
+              promotionSpots: Number(newPromotionSpots) || 2,
+              relegationSpots: Number(newRelegationSpots) || 2,
+          } : {
+              isDiv2Merged: false
+          })
+      };
       if (editingSeason) {
         updateDocumentNonBlocking(doc(firestore, `leagues/${LEAGUE_ID}/seasons`, editingSeason.id), seasonData);
         toast({ title: t('success'), description: t('season_updated_desc', { seasonName: newSeasonName.trim() }) });
@@ -558,12 +841,63 @@ export default function LeaguePage() {
         addDocumentNonBlocking(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), { ...seasonData, status: 'Not Started', createdAt: serverTimestamp() });
         toast({ title: t('success'), description: t('season_created_desc', { seasonName: newSeasonName.trim() }) });
       }
-      setShowCreateSeason(false); setNewSeasonName(''); setNewSeasonFee(''); setNewSponsorshipAmount(''); setNewSeasonType('Single'); setNewHybridMeetings(1); setEditingSeason(null); setDateRange({ from: undefined, to: undefined });
+      setShowCreateSeason(false); 
+      setNewSeasonName(''); 
+      setNewSeasonFee(''); 
+      setNewSponsorshipAmount(''); 
+      setNewSeasonType('Single'); 
+      setNewSeasonThemeKey('auto');
+      setNewHybridMeetings(1); 
+      setNewHasDivisions(false);
+      setNewDivision1Name('Divisi 1');
+      setNewDivision2Name('Divisi 2');
+      setNewDivision2Format('Single');
+      setNewDivision2HasPlayoff(false);
+      setNewPromotionSpots(2);
+      setNewRelegationSpots(2);
+      setEditingSeason(null); 
+      setDateRange({ from: undefined, to: undefined });
     }
   };
   
-  const handleOpenEditDialog = () => { if (activeSeason) { setEditingSeason(activeSeason); setNewSeasonName(activeSeason.name); setNewSeasonFee(activeSeason.registrationFee || ''); setNewSponsorshipAmount(activeSeason.sponsorshipAmount || ''); setNewSeasonType(activeSeason.type || 'Single'); setNewHybridMeetings(activeSeason.hybridGroupMeetings || 1); setDateRange({ from: activeSeason.startDate?.toDate(), to: activeSeason.endDate?.toDate() }); setShowCreateSeason(true); } };
-  const handleOpenCreateDialog = () => { setEditingSeason(null); setNewSeasonName(''); setNewSeasonFee(''); setNewSponsorshipAmount(''); setNewSeasonType('Single'); setNewHybridMeetings(1); setDateRange({ from: undefined, to: undefined }); setShowCreateSeason(true); };
+  const handleOpenEditDialog = () => { 
+    if (activeSeason) { 
+      setEditingSeason(activeSeason); 
+      setNewSeasonName(activeSeason.name); 
+      setNewSeasonFee(activeSeason.registrationFee || ''); 
+      setNewSponsorshipAmount(activeSeason.sponsorshipAmount || ''); 
+      setNewSeasonType(activeSeason.type || 'Single'); 
+      setNewSeasonThemeKey(activeSeason.themeKey || 'auto');
+      setNewHybridMeetings(activeSeason.hybridGroupMeetings || 1); 
+      setNewHasDivisions(activeSeason.hasDivisions || false);
+      setNewDivision1Name(activeSeason.division1Name || 'Divisi 1');
+      setNewDivision2Name(activeSeason.division2Name || 'Divisi 2');
+      setNewDivision2Format(activeSeason.division2Format || 'Single');
+      setNewDivision2HasPlayoff(activeSeason.division2HasPlayoff ?? false);
+      setNewPromotionSpots(activeSeason.promotionSpots ?? 2);
+      setNewRelegationSpots(activeSeason.relegationSpots ?? 2);
+      setDateRange({ from: activeSeason.startDate?.toDate(), to: activeSeason.endDate?.toDate() }); 
+      setShowCreateSeason(true); 
+    } 
+  };
+  const handleOpenCreateDialog = () => { 
+    setEditingSeason(null); 
+    setNewSeasonName(''); 
+    setNewSeasonFee(''); 
+    setNewSponsorshipAmount(''); 
+    setNewSeasonType('Single'); 
+    setNewSeasonThemeKey('auto');
+    setNewHybridMeetings(1); 
+    setNewHasDivisions(false);
+    setNewDivision1Name('Divisi 1');
+    setNewDivision2Name('Divisi 2');
+    setNewDivision2Format('Single');
+    setNewDivision2HasPlayoff(false);
+    setNewPromotionSpots(2);
+    setNewRelegationSpots(2);
+    setDateRange({ from: undefined, to: undefined }); 
+    setShowCreateSeason(true); 
+  };
 
   const handleDeleteSeason = async () => {
     if (!firestore || !deletingSeason) return;
@@ -590,18 +924,65 @@ export default function LeaguePage() {
     setDeletingEntry(null);
   };
 
-  const handleRegisterPlayers = async (selectedPlayerIds: string[]) => {
+  const handleRegisterPlayers = async (selectedPlayerIds: string[], targetDivision: 'div-1' | 'div-2' = 'div-1') => {
     if (!firestore || !activeSeasonId || !allPlayers) return;
     const playersToReg = allPlayers.filter(p => selectedPlayerIds.includes(p.id));
     const batch = writeBatch(firestore);
     playersToReg.forEach(player => {
         batch.set(doc(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`)), {
-            playerId: player.id, teamId: player.teamId, playerName: player.name, teamName: player.teamName,
-            played: 0, win: 0, draw: 0, loss: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0, hasPaid: false,
+            playerId: player.id, 
+            teamId: player.teamId, 
+            playerName: player.name, 
+            teamName: player.teamName,
+            played: 0, 
+            win: 0, 
+            draw: 0, 
+            loss: 0, 
+            goalsFor: 0, 
+            goalsAgainst: 0, 
+            goalDifference: 0, 
+            points: 0, 
+            hasPaid: false,
+            division: targetDivision,
         });
     });
-    batch.commit().then(() => toast({ title: t('success'), description: t('players_registered_desc', { count: playersToReg.length }) }));
+    await batch.commit();
+    const divLabel = targetDivision === 'div-2' ? (activeSeason?.division2Name || 'Divisi 2') : (activeSeason?.division1Name || 'Divisi 1');
+    toast({ 
+      title: t('success'), 
+      description: `${playersToReg.length} atlet berhasil didaftarkan${activeSeason?.hasDivisions ? ` ke ${divLabel}` : ''}.` 
+    });
     setShowRegisterPlayers(false);
+  };
+
+  const handleTogglePlayerDivision = async (entry: WithId<LeagueEntry>) => {
+    if (!firestore || !activeSeasonId || activeSeason?.status !== 'Not Started') return;
+    const nextDivision: 'div-1' | 'div-2' = entry.division === 'div-2' ? 'div-1' : 'div-2';
+    try {
+        const updateData: any = {
+            division: nextDivision
+        };
+
+        // If Hybrid format, ensure player moving back to Div 1 has a group assigned (or balances groups)
+        if (activeSeason.type === 'Hybrid' && nextDivision === 'div-1') {
+          if (!entry.group) {
+            // Count current groups in div-1 to balance
+            const div1Pool = (singleLeagueTable || []).filter(p => p.id !== entry.id && p.division !== 'div-2');
+            const countA = div1Pool.filter(p => p.group === 'A').length;
+            const countB = div1Pool.filter(p => p.group === 'B').length;
+            updateData.group = countA <= countB ? 'A' : 'B';
+          }
+        }
+
+        await updateDocumentNonBlocking(doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, entry.id), updateData);
+        const divName = nextDivision === 'div-2' ? (activeSeason?.division2Name || 'Divisi 2') : (activeSeason?.division1Name || 'Divisi 1');
+        toast({
+            title: 'Divisi Diperbarui',
+            description: `${entry.playerName} dipindahkan ke ${divName}.`
+        });
+    } catch (e) {
+        console.error(e);
+    }
   };
 
   const handleSavePairs = async (pairs: { player1: PlayerWithTeam; player2: PlayerWithTeam; teamId: string; teamName: string }[]) => {
@@ -651,20 +1032,37 @@ export default function LeaguePage() {
     const targetColName = isSeasonCoop ? 'coopLeagueTable' : 'leagueTable';
     const targetCol = collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${targetColName}`);
     
-    assignments.forEach(a => {
+    // Only update valid entries that currently exist in the season
+    const validEntryIds = new Set((participantEntries || []).map(p => p.id));
+    const validAssignments = assignments.filter(a => validEntryIds.has(a.entryId));
+
+    if (validAssignments.length === 0) {
+      setShowTeamDraftDialog(false);
+      return;
+    }
+
+    validAssignments.forEach(a => {
         const entryRef = doc(targetCol, a.entryId);
         if (isSeasonCoop) {
-            batch.update(entryRef, {
+            batch.set(entryRef, {
                 player1TeamId: a.teamId,
                 player1TeamName: a.teamName,
                 player2TeamId: a.teamId,
                 player2TeamName: a.teamName
-            });
+            }, { merge: true });
         } else {
-            batch.update(entryRef, { teamId: a.teamId, teamName: a.teamName });
+            batch.set(entryRef, { teamId: a.teamId, teamName: a.teamName }, { merge: true });
         }
     });
-    batch.commit().then(() => { toast({ title: 'Draft Tim Selesai!', description: 'Data tim pemain telah diperbarui.' }); setShowTeamDraftDialog(false); });
+
+    try {
+      await batch.commit();
+      toast({ title: 'Draft Tim Selesai!', description: 'Data tim pemain telah diperbarui.' });
+      setShowTeamDraftDialog(false);
+    } catch (err: any) {
+      console.error("Error saving team draft assignments:", err);
+      toast({ variant: 'destructive', title: 'Gagal Menyimpan Tim', description: err.message || 'Terjadi kesalahan saat menyimpan draft.' });
+    }
   };
 
   const handleRemovePlayerFromRegistration = useCallback((leagueEntryId: string, playerName: string) => {
@@ -774,7 +1172,7 @@ export default function LeaguePage() {
                               className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] italic"
                               style={{ color: theme.primaryHex }}
                             >
-                              Live System Uplink
+                              Live Match Centre
                             </span>
                         </div>
                         
@@ -853,7 +1251,7 @@ export default function LeaguePage() {
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2">
                                     <Activity className="w-3.5 h-3.5 animate-pulse" style={{ color: theme.primaryHex }} />
-                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/50">Progress Matrix</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/50">Season Progress</span>
                                 </div>
                                 <span className="text-xs font-black italic" style={{ color: theme.primaryHex }} suppressHydrationWarning>
                                   [{seasonProgress.toFixed(0)}%]
@@ -1261,50 +1659,69 @@ export default function LeaguePage() {
         </div>
       </div>
 
-      <div className={cn(
-        "mx-auto px-2 sm:px-4 pb-8 transition-all duration-700 ease-in-out mt-6", 
-        activeLeagueTab === 'playoff' 
-          ? "w-full max-w-[100vw] xl:max-w-[98vw] 2xl:max-w-[96vw] px-1 sm:px-3 xl:px-6" 
-          : (!sortedTable || sortedTable.length === 0)
-            ? "max-w-xl"
-            : sortedTable.length <= 4
-              ? "max-w-3xl"
-              : sortedTable.length <= 8
-                ? "max-w-4xl"
-                : sortedTable.length <= 12
-                  ? "max-w-5xl"
-                  : "max-w-6xl"
-      )}>
-        <div className="space-y-8 sm:space-y-12">
-            <div className="w-full">
-                <LeagueTable 
-                    tableData={sortedTable} 
-                    isLoading={isLoadingTableFinal}
-                    onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
-                    onSelectPlayer={setSelectedPlayerForStats}
-                    seasonStatus={activeSeason?.status}
-                    seasonType={activeSeason?.type}
-                    isAdmin={isAdmin}
-                    defendingChampionId={defendingChampionId}
-                    matches={matches || []}
-                    playersById={playersById}
-                    teamsById={teamsById}
-                    activeSeason={activeSeason}
-                    activeTab={activeLeagueTab}
-                    onTabChange={setActiveLeagueTab}
-                />
-            </div>
-            
-            <div className="space-y-6 sm:space-y-8">
-                <div className="flex flex-col gap-1 items-center justify-center">
-                    <h2 className="font-black text-lg sm:text-2xl uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary italic pr-4 text-center">Season Insights & Management</h2>
-                    <div className="h-1 w-16 sm:w-20 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
+      {(() => {
+        const isDiv2Active = activeSeason?.hasDivisions && !activeSeason?.isDiv2Merged && selectedDivision === 'div-2';
+        const activeDivisionTable = activeSeason?.hasDivisions && !activeSeason?.isDiv2Merged
+          ? sortedTable.filter(e => selectedDivision === 'div-2' ? e.division === 'div-2' : e.division !== 'div-2')
+          : sortedTable;
+        const currentTableForWidth = (activeDivisionTable && activeDivisionTable.length > 0) ? activeDivisionTable : sortedTable;
+        const activeDivisionFormat = isDiv2Active ? (activeSeason?.division2Format || 'Single') : (activeSeason?.type || 'Single');
+        const formatHasPlayoff = isDiv2Active 
+          ? (!!activeSeason?.division2HasPlayoff && (activeDivisionFormat === 'Single Hybrid' || activeDivisionFormat === 'Hybrid' || activeDivisionFormat === 'Co-Op Hybrid'))
+          : (activeDivisionFormat === 'Single Hybrid' || activeDivisionFormat === 'Hybrid' || activeDivisionFormat === 'Co-Op Hybrid');
+        const isPlayoffActive = activeLeagueTab === 'playoff' && formatHasPlayoff;
+
+        return (
+          <div className={cn(
+            "w-full mx-auto px-2 sm:px-4 pb-8 transition-all duration-700 ease-in-out mt-6", 
+            isPlayoffActive 
+              ? "w-full max-w-[100vw] xl:max-w-[98vw] 2xl:max-w-[96vw] px-1 sm:px-3 xl:px-6" 
+              : "w-full max-w-[92rem]"
+          )}>
+            <div className="space-y-8 sm:space-y-12">
+                <div className="w-full">
+                    <LeagueTable 
+                        tableData={sortedTable} 
+                        isLoading={isLoadingTableFinal}
+                        onRemovePlayer={(entry) => withAdminCheck(() => setDeletingEntry(entry))}
+                        onToggleDivision={(entry) => withAdminCheck(() => handleTogglePlayerDivision(entry))}
+                        onSelectPlayer={setSelectedPlayerForStats}
+                        seasonStatus={activeSeason?.status}
+                        seasonType={activeSeason?.type}
+                        isAdmin={isAdmin}
+                        defendingChampionId={defendingChampionId}
+                        matches={matches || []}
+                        playersById={playersById}
+                        teamsById={teamsById}
+                        activeSeason={activeSeason}
+                        activeTab={activeLeagueTab}
+                        onTabChange={setActiveLeagueTab}
+                        selectedDivision={selectedDivision}
+                        onDivisionChange={(div) => {
+                          setSelectedDivision(div);
+                          if (div === 'div-2') {
+                            setActiveLeagueTab('standings');
+                          } else {
+                            if (activeSeason?.type === 'Hybrid') {
+                              setActiveLeagueTab('group_a');
+                            } else {
+                              setActiveLeagueTab('standings');
+                            }
+                          }
+                        }}
+                    />
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-                    <div className="lg:col-span-8"><LeagueStats tableData={sortedTable} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeSeason?.type} /></div>
-                    <div className="lg:col-span-4">
-                        {activeSeason?.registrationFee && (participantEntries || []).length > 0 && (
-                            <Card className="group relative overflow-hidden transition-all duration-700 border-2 border-yellow-500/30 bg-gradient-to-b from-[#0D111A]/98 via-[#070A12]/98 to-[#030508]/98 backdrop-blur-3xl rounded-[2.5rem] p-0 hover:border-yellow-400/60 shadow-[0_20px_60px_rgba(0,0,0,0.8)] hover:shadow-[0_0_80px_rgba(250,204,21,0.2)]">
+                
+                <div className="space-y-6 sm:space-y-8">
+                    <div className="flex flex-col gap-1 items-center justify-center">
+                        <h2 className="font-black text-lg sm:text-2xl uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary italic pr-4 text-center">Season Insights & Management</h2>
+                        <div className="h-1 w-16 sm:w-20 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+                        <div className="lg:col-span-8"><LeagueStats tableData={currentTableForWidth} isLoading={isLoadingTable || isLoadingPlayers} seasonType={activeDivisionFormat} /></div>
+                        <div className="lg:col-span-4">
+                            {activeSeason?.registrationFee && (participantEntries || []).length > 0 && (
+                                <Card className="group relative overflow-hidden transition-all duration-700 border-2 border-yellow-500/30 bg-gradient-to-b from-[#0D111A]/98 via-[#070A12]/98 to-[#030508]/98 backdrop-blur-3xl rounded-[2.5rem] p-0 hover:border-yellow-400/60 shadow-[0_20px_60px_rgba(0,0,0,0.8)] hover:shadow-[0_0_80px_rgba(250,204,21,0.2)]">
                                 
                                 {/* Top Edge Metallic Gold Tracer */}
                                 <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-80 shadow-[0_0_20px_rgba(250,204,21,0.9)] pointer-events-none" />
@@ -1317,7 +1734,7 @@ export default function LeaguePage() {
                                         </div>
                                         <div>
                                             <h3 className="text-sm sm:text-base font-black tracking-tight uppercase italic leading-none font-headline">Financial Hub</h3>
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-black/70 font-mono">TREASURY_ESCROW // PROTOCOL</span>
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-black/70 font-mono">PRIZE_POOL // OFFICIAL RECORD</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-black/15 border border-black/10 text-[8px] font-black font-mono uppercase">
@@ -1539,6 +1956,8 @@ export default function LeaguePage() {
             </div>
         </div>
       </div>
+      );
+    })()}
 
       {/* ============================================================ */}
       {/* 4. POPOUT: BUKA KUNCI ADMIN (BIOMETRIC / CYBER KEY MATRIX)    */}
@@ -1599,7 +2018,330 @@ export default function LeaguePage() {
       </Dialog>
 
       <Dialog open={showCreateSeason} onOpenChange={(isOpen) => { if (!isOpen) { setShowCreateSeason(false); setEditingSeason(null); }}}>
-        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col"><DialogHeader className="shrink-0"><DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">{editingSeason ? t('edit_season') : t('create_new_season')}</DialogTitle><DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{editingSeason ? t('edit_season_desc') : t('create_season_desc')}</DialogTitle></DialogHeader><ScrollArea className="flex-1 py-4 pr-2"><div className="space-y-4 sm:space-y-6"><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label><RadioGroup defaultValue={newSeasonType} onValueChange={(value: Season['type']) => setNewSeasonType(value)} className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single" id="single"/><Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single (1v1)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Single Hybrid" id="single-hybrid"/><Label htmlFor="single-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer text-primary">Single Hybrid (8 Besar)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op" id="co-op"/><Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op (2v2)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Hybrid" id="hybrid"/><Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid Indiv (Grup)</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="Co-Op Hybrid" id="co-op-hybrid"/><Label htmlFor="co-op-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid Co-Op</Label></div></RadioGroup></div>{(newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid') && (<div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Pertemuan Fase Grup</Label><RadioGroup defaultValue={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4"><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="1" id="meetings-1"/><Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label></div><div className="flex items-center space-x-1.5 sm:space-x-2"><RadioGroupItem value="2" id="meetings-2"/><Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label></div></RadioGroup></div>)}<div className="space-y-2 sm:space-y-3"><Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label><Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-sm sm:text-sm"/></div><div className="grid grid-cols-2 gap-3 sm:gap-4"><div className="space-y-2 sm:space-y-3"><Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label><Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div><div className="space-y-2 sm:space-y-3"><Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label><Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/></div></div><div className="space-y-2 sm:space-y-3"><Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label><Popover><PopoverTrigger asChild><Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}><CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />{dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })} numberOfMonths={1} className="rounded-xl border-white/10"/></PopoverContent></Popover></div><Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)] mt-2">{editingSeason ? t('save_changes') : t('create_season')}</Button></div></ScrollArea></DialogContent>
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">
+              {editingSeason ? t('edit_season') : t('create_new_season')}
+            </DialogTitle>
+            <DialogTitle className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">
+              {editingSeason ? t('edit_season_desc') : t('create_season_desc')}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:-mr-2 max-h-[calc(85vh-160px)]">
+            <div className="space-y-4 sm:space-y-5 pb-2">
+              {/* Competition Format */}
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Format Liga</Label>
+                <RadioGroup defaultValue={newSeasonType} onValueChange={(value) => setNewSeasonType(value as Season['type'])} className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <RadioGroupItem value="Single" id="single"/>
+                    <Label htmlFor="single" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Single (1v1)</Label>
+                  </div>
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <RadioGroupItem value="Single Hybrid" id="single-hybrid"/>
+                    <Label htmlFor="single-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer text-primary">Single Hybrid (8 Besar)</Label>
+                  </div>
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <RadioGroupItem value="Co-Op" id="co-op"/>
+                    <Label htmlFor="co-op" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Co-Op (2v2)</Label>
+                  </div>
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <RadioGroupItem value="Hybrid" id="hybrid"/>
+                    <Label htmlFor="hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid Indiv (Grup)</Label>
+                  </div>
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <RadioGroupItem value="Co-Op Hybrid" id="co-op-hybrid"/>
+                    <Label htmlFor="co-op-hybrid" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">Hybrid Co-Op</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {(newSeasonType === 'Hybrid' || newSeasonType === 'Co-Op Hybrid' || newSeasonType === 'Single Hybrid') && (
+                <div className="space-y-2 sm:space-y-3 pt-1 sm:pt-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-primary">Pertemuan Fase Grup</Label>
+                    <span className="text-[9px] font-mono text-white/50">
+                      {newHybridMeetings === 1 ? '1x Main (Single Round-Robin)' : '2x Main (Home & Away)'}
+                    </span>
+                  </div>
+                  <RadioGroup value={newHybridMeetings.toString()} onValueChange={(value) => setNewHybridMeetings(parseInt(value) as 1 | 2)} className="flex gap-2 sm:gap-4">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <RadioGroupItem value="1" id="meetings-1"/>
+                      <Label htmlFor="meetings-1" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">1x Main</Label>
+                    </div>
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <RadioGroupItem value="2" id="meetings-2"/>
+                      <Label htmlFor="meetings-2" className="text-[10px] sm:text-xs font-bold uppercase cursor-pointer">2x (H&A)</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+
+              {/* Multi-Division Tiering Section */}
+              {newSeasonType !== 'Co-Op' && newSeasonType !== 'Co-Op Hybrid' && (
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-primary/25 space-y-3.5 shadow-inner">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="division-toggle" className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-primary cursor-pointer">
+                          Sistem 2 Divisi (Tiering)
+                        </Label>
+                        <Badge className="bg-primary/20 text-primary border-primary/40 text-[8px] font-mono font-bold px-1.5 py-0">
+                          PROMOSI & DEGRADASI
+                        </Badge>
+                      </div>
+                      <p className="text-[9px] text-white/50 font-mono mt-0.5">
+                        Aktifkan untuk membagi musim kompetisi ke Divisi 1 dan Divisi 2
+                      </p>
+                    </div>
+                    <Switch
+                      id="division-toggle"
+                      checked={newHasDivisions}
+                      onCheckedChange={setNewHasDivisions}
+                    />
+                  </div>
+
+                  {newHasDivisions && (
+                    <div className="pt-2 border-t border-white/10 space-y-3 animate-in fade-in-50 duration-300">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-white/70">
+                            Nama Divisi 1
+                          </Label>
+                          <Input 
+                            value={newDivision1Name} 
+                            onChange={(e) => setNewDivision1Name(e.target.value)} 
+                            placeholder="e.g. Divisi 1 / Liga Utama" 
+                            className="h-9 font-bold text-xs uppercase"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-amber-400">
+                            Nama Divisi 2
+                          </Label>
+                          <Input 
+                            value={newDivision2Name} 
+                            onChange={(e) => setNewDivision2Name(e.target.value)} 
+                            placeholder="e.g. Divisi 2 / Challenger" 
+                            className="h-9 font-bold text-xs uppercase"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Playoff Configuration for Divisi 2 */}
+                      <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="div2-playoff-toggle" className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-400 cursor-pointer">
+                              Playoff Divisi 2
+                            </Label>
+                            <p className="text-[8px] sm:text-[9px] text-white/50 font-mono">
+                              {newDivision2HasPlayoff ? 'Gunakan Playoff (Fase grup 1x main lalu lanjut babak gugur)' : 'Tanpa Playoff (Murni liga penuh 2x main Home & Away)'}
+                            </p>
+                          </div>
+                          <Switch
+                            id="div2-playoff-toggle"
+                            checked={newDivision2HasPlayoff}
+                            onCheckedChange={setNewDivision2HasPlayoff}
+                          />
+                        </div>
+                        
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setNewDivision2HasPlayoff(false)}
+                            className={cn(
+                              "flex-1 py-1 px-2 rounded-lg text-[9px] font-mono font-bold uppercase transition-all border",
+                              !newDivision2HasPlayoff 
+                                ? "bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm" 
+                                : "bg-black/30 text-white/40 border-white/5 hover:text-white/70"
+                            )}
+                          >
+                            Tanpa Playoff (Murni Liga)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewDivision2HasPlayoff(true)}
+                            className={cn(
+                              "flex-1 py-1 px-2 rounded-lg text-[9px] font-mono font-bold uppercase transition-all border",
+                              newDivision2HasPlayoff 
+                                ? "bg-amber-400 text-black font-black border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.4)]" 
+                                : "bg-black/30 text-white/40 border-white/5 hover:text-white/70"
+                            )}
+                          >
+                            Gunakan Playoff
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-rose-400">
+                            Kuota Degradasi (Div 1)
+                          </Label>
+                          <Input 
+                            type="number"
+                            min={1}
+                            max={16}
+                            value={newRelegationSpots} 
+                            onChange={(e) => setNewRelegationSpots(parseInt(e.target.value) || 2)} 
+                            className="h-9 font-bold text-xs tabular-nums"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-emerald-400">
+                            Kuota Promosi (Div 2)
+                          </Label>
+                          <Input 
+                            type="number"
+                            min={1}
+                            max={16}
+                            value={newPromotionSpots} 
+                            onChange={(e) => setNewPromotionSpots(parseInt(e.target.value) || 2)} 
+                            className="h-9 font-bold text-xs tabular-nums"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[9px] font-mono leading-relaxed flex items-start gap-2">
+                        <span className="shrink-0 font-bold">💡 Note:</span>
+                        <span>Jika pendaftar Divisi 2 hanya 1 atau 2 pemain, sistem saat membuat jadwal akan otomatis menggabungkannya ke Divisi 1. Jika minimal 3 pemain, kompetisi terpisah tetap dijalankan.</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2 sm:space-y-3">
+                <Label htmlFor="season-name" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('season_name')}</Label>
+                <Input id="season-name" placeholder="e.g., Season 4 Elite" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} className="h-10 sm:h-12 uppercase font-bold text-sm sm:text-sm"/>
+              </div>
+
+              {/* Theme Season Selector */}
+              <div className="space-y-2.5 sm:space-y-3 p-3 sm:p-4 rounded-2xl bg-black/40 border border-white/10 shadow-inner">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                    <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white">
+                      Tema Tampilan Season
+                    </Label>
+                  </div>
+                  <Badge variant="outline" className="text-[8px] font-mono uppercase border-white/20 text-white/60">
+                    The International Style
+                  </Badge>
+                </div>
+                
+                <p className="text-[8.5px] sm:text-[9px] text-white/50 font-mono">
+                  Pilih nuansa warna neon dan aura visual The International (TI) untuk liga ini, atau gunakan Auto untuk deteksi nama otomatis.
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+                  {/* Option: Auto / Nama Season */}
+                  <button
+                    type="button"
+                    onClick={() => setNewSeasonThemeKey('auto')}
+                    className={cn(
+                      "relative p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between overflow-hidden",
+                      newSeasonThemeKey === 'auto'
+                        ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(204,253,1,0.25)] ring-1 ring-primary"
+                        : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20"
+                    )}
+                  >
+                    <div className="flex items-center justify-between w-full mb-1">
+                      <span className="text-[9.5px] font-black uppercase tracking-wider text-white">
+                        ⚡ Otomatis
+                      </span>
+                      {newSeasonThemeKey === 'auto' && (
+                        <Check className="w-3 h-3 text-primary shrink-0" />
+                      )}
+                    </div>
+                    <span className="text-[7.5px] font-mono text-white/50">
+                      Ikuti nama season
+                    </span>
+                    <div className="mt-2 h-1 w-full rounded-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 opacity-60" />
+                  </button>
+
+                  {/* Curated TI Themes */}
+                  {AVAILABLE_SEASON_THEMES.map((themeOpt) => {
+                    const isSelected = newSeasonThemeKey === themeOpt.key;
+                    return (
+                      <button
+                        key={themeOpt.key}
+                        type="button"
+                        onClick={() => setNewSeasonThemeKey(themeOpt.key)}
+                        className={cn(
+                          "relative p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between overflow-hidden group",
+                          isSelected
+                            ? "shadow-lg ring-1"
+                            : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20"
+                        )}
+                        style={{
+                          borderColor: isSelected ? themeOpt.primaryHex : undefined,
+                          backgroundColor: isSelected ? `${themeOpt.primaryHex}18` : undefined,
+                          boxShadow: isSelected ? `0 0 16px ${themeOpt.primaryHex}44` : undefined
+                        }}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span 
+                              className="w-2 h-2 rounded-full shrink-0 shadow-sm"
+                              style={{ backgroundColor: themeOpt.primaryHex }}
+                            />
+                            <span className="text-[9.5px] font-black uppercase tracking-wider truncate text-white">
+                              {themeOpt.name}
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <Check className="w-3 h-3 shrink-0" style={{ color: themeOpt.primaryHex }} />
+                          )}
+                        </div>
+                        <span className="text-[7.5px] font-mono text-white/50 truncate">
+                          {themeOpt.colorName}
+                        </span>
+                        <div 
+                          className={cn("mt-2 h-1 w-full rounded-full bg-gradient-to-r", themeOpt.previewGradient)}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-2 sm:space-y-3">
+                  <Label htmlFor="season-fee" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Biaya (IDR)</Label>
+                  <Input id="season-fee" type="number" placeholder="e.g., 15000" value={newSeasonFee} onChange={(e) => setNewSeasonFee(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/>
+                </div>
+                <div className="space-y-2 sm:space-y-3">
+                  <Label htmlFor="sponsorship-amount" className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sponsor (IDR)</Label>
+                  <Input id="sponsorship-amount" type="number" placeholder="e.g., 500000" value={newSponsorshipAmount} onChange={(e) => setNewSponsorshipAmount(e.target.value)} className="h-10 sm:h-12 font-bold tabular-nums text-xs sm:text-sm"/>
+                </div>
+              </div>
+
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">{t('date_range')}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button id="date" variant={"outline"} className={cn("w-full justify-start text-left font-bold h-10 sm:h-12 uppercase text-[10px] sm:text-xs", !dateRange.from && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      {dateRange.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd")} -{" "}{format(dateRange.to, "LLL dd, y")}</>) : (format(dateRange.from, "LLL dd, y"))) : (<span>{t('pick_a_date_range')}</span>)}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar initialFocus mode="range" defaultMonth={dateRange.from} selected={dateRange} onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })} numberOfMonths={1} className="rounded-xl border-white/10"/>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-white/10 shrink-0">
+            <Button onClick={handleSeasonDialogSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)]">
+              {editingSeason ? t('save_changes') : t('create_season')}
+            </Button>
+          </div>
+        </DialogContent>
       </Dialog>
 
       <AlertDialog open={!!deletingSeason} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}><AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl"><AlertDialogHeader><AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">{t('are_you_sure')}</AlertDialogTitle><AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">{t('delete_season_confirm_desc', { seasonName: deletingSeason?.name })}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter className="gap-2 sm:gap-3"><AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeason} className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">{t('delete')}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
@@ -1752,10 +2494,10 @@ export default function LeaguePage() {
                 </div>
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
-                    Roster Intake <span className="text-primary">Cockpit</span>
+                    Registrasi Skuad <span className="text-primary">Pemain</span>
                   </DialogTitle>
                   <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/80 font-mono">
-                    ATHLETE_RECRUITMENT // {activeSeason?.name}
+                    ROSTER_REGISTRATION // {activeSeason?.name}
                   </p>
                 </div>
               </div>
@@ -1769,6 +2511,9 @@ export default function LeaguePage() {
               registeredPlayers={individualPool || []} 
               onRegister={handleRegisterPlayers} 
               isLoading={isLoadingPlayers} 
+              hasDivisions={activeSeason?.hasDivisions}
+              division1Name={activeSeason?.division1Name}
+              division2Name={activeSeason?.division2Name}
             />
           </div>
         </DialogContent>
@@ -1776,8 +2521,42 @@ export default function LeaguePage() {
 
       <CoopDrawDialog open={showDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={individualPool || []} allPlayers={allPlayers || []} onSavePairs={handleSavePairs} isAdmin={isAdmin} onRemovePlayer={handleRemovePlayerFromRegistration} />
       <CoopManualPairingDialog open={showManualPairingDialog} onOpenChange={setShowManualPairingDialog} season={activeSeason} registeredPlayers={individualPool || []} allPlayersMap={playersById as Record<string, PlayerWithTeam>} onSavePairs={handleSavePairs} />
-      <GroupDrawDialog open={showGroupDrawDialog} onOpenChange={setShowDrawDialog} season={activeSeason} registeredPlayers={(activeSeason?.type === 'Co-Op Hybrid' ? coopLeagueTable : individualPool) || []} onSaveGroups={handleSaveGroups} />
-      <TeamDraftDialog open={showTeamDraftDialog} onOpenChange={setShowTeamDraftDialog} season={activeSeason} registeredPlayers={participantEntries || []} allTeams={allTeams || []} onSaveAssignments={handleSaveTeamDraftResults} isAdmin={isAdmin} />
+      <GroupDrawDialog 
+        open={showGroupDrawDialog} 
+        onOpenChange={setShowGroupDrawDialog} 
+        season={activeSeason} 
+        registeredPlayers={(() => {
+          const rawList = (activeSeason?.type === 'Co-Op Hybrid' ? coopLeagueTable : individualPool) || [];
+          if (activeSeason?.hasDivisions && !activeSeason?.isDiv2Merged) {
+            return rawList.filter(p => p.division !== 'div-2');
+          }
+          return rawList;
+        })()} 
+        onSaveGroups={handleSaveGroups} 
+      />
+      <TeamDraftDialog 
+        open={showTeamDraftDialog} 
+        onOpenChange={setShowTeamDraftDialog} 
+        season={activeSeason} 
+        registeredPlayers={(() => {
+          if (isSeasonCoop) return coopLeagueTable || [];
+          return (singleLeagueTable || []).map(entry => {
+            const player = playersById[entry.playerId];
+            const tid = entry.teamId || player?.teamId || '';
+            const team = teamsById[tid];
+            return {
+              ...entry,
+              teamId: tid,
+              teamName: team ? team.name : entry.teamName,
+              player,
+              team
+            };
+          });
+        })()} 
+        allTeams={allTeams || []} 
+        onSaveAssignments={handleSaveTeamDraftResults} 
+        isAdmin={isAdmin} 
+      />
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={t('share_league_participants')} shareText={shareText} />
       <PlayerPerformanceDialog player={selectedPlayerForStats} matches={matches || []} allPlayers={allPlayers || []} allTeams={allTeams || []} coopLeagueTable={coopLeagueTable || []} singleLeagueTable={singleLeagueTable || []} activeSeason={activeSeason} totalPlayersInSeason={(isSeasonCoop ? coopLeagueTable?.length : singleLeagueTable?.length) || 0} open={!!selectedPlayerForStats} onOpenChange={() => setSelectedPlayerForStats(null)} isAdmin={isAdmin} defendingChampionId={defendingChampionId} />
       

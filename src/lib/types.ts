@@ -19,6 +19,11 @@ export type Player = {
   overallLoss: number;
   overallGoalsFor: number;
   overallGoalsAgainst: number;
+  avatarUrl?: string;
+  photoUrl?: string;
+  teamLogoUrl?: string;
+  ovr?: number;
+  division?: string;
 };
 
 export type PlayerWithTeam = WithId<Player> & { teamId: string, teamName: string };
@@ -33,11 +38,21 @@ export type Season = {
   status: 'Not Started' | 'In Progress' | 'Completed';
   createdAt: Timestamp;
   type?: 'Single' | 'Co-Op' | 'Hybrid' | 'Co-Op Hybrid' | 'Single Hybrid';
+  themeKey?: 'auto' | 'emerald' | 'crimson' | 'gold' | 'azure' | 'amethyst' | 'cerulean';
   hybridGroupMeetings?: 1 | 2;
   startDate?: Timestamp;
   endDate?: Timestamp;
   registrationFee?: number;
   sponsorshipAmount?: number;
+  // Multi-Division Configuration
+  hasDivisions?: boolean;
+  division1Name?: string;
+  division2Name?: string;
+  division2Format?: 'Single' | 'Single Hybrid' | 'Hybrid';
+  division2HasPlayoff?: boolean; // For Divisi 2: apakah memakai babak playoff atau sistem liga penuh murni
+  promotionSpots?: number; // default: 2
+  relegationSpots?: number; // default: 2
+  isDiv2Merged?: boolean; // true if auto-merged into Div 1 because Div 2 had <= 2 players
 }
 
 export type LeagueEntry = {
@@ -57,6 +72,7 @@ export type LeagueEntry = {
   points: number;
   hasPaid?: boolean;
   group?: 'A' | 'B';
+  division?: 'div-1' | 'div-2';
 };
 
 export type CoOpLeagueEntry = {
@@ -82,9 +98,10 @@ export type CoOpLeagueEntry = {
   points: number;
   hasPaid?: boolean;
   group?: 'A' | 'B';
+  division?: 'div-1' | 'div-2';
 }
 
-export type MatchRound = "Group" | "UB-Quarter" | "UB-Semi" | "UB-Final" | "LB-Round 1" | "LB-Round 2" | "LB-Round 3" | "LB-Round 4" | "LB-Round 5" | "LB-Final" | "Grand-Final";
+export type MatchRound = "Group" | "Quarterfinal" | "Semifinal" | "UB-Quarter" | "UB-Semi" | "UB-Final" | "LB-Round 1" | "LB-Round 2" | "LB-Round 3" | "LB-Round 4" | "LB-Round 5" | "LB-Final" | "Grand-Final";
 
 export type MatchStatus = 'Scheduled' | 'Live' | 'Completed' | 'Postponed';
 
@@ -105,7 +122,11 @@ export type Match = {
   status?: MatchStatus;
   round?: MatchRound;
   bracketId?: string; // e.g., 'playoff-m1'
+  division?: 'div-1' | 'div-2';
 }
+
+export type CupRound = MatchRound;
+export type CupMatch = Match;
 
 export type Notice = {
   rules: string[];

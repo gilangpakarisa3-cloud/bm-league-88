@@ -289,6 +289,75 @@ export function KnockoutShareDialog({
     'SF2'
   );
 
+  // Relegation calculation including playoff losers
+  const { playoffRelegatedTeams, allRelegationSummary } = useMemo(() => {
+    if (!season?.hasDivisions || rankedTable.length === 0) {
+      return { playoffRelegatedTeams: [], allRelegationSummary: [] };
+    }
+
+    const totalP = rankedTable.length;
+    const actRel = Math.max(1, season.relegationSpots ?? 2);
+    const nonPlayoffCount = Math.max(0, totalP - 8);
+    const directCount = Math.min(actRel, nonPlayoffCount);
+    const playoffRelQuota = Math.max(0, actRel - directCount);
+    const startDirectRank = totalP - directCount + 1;
+
+    // Track QF losers
+    const qfMatches = (matches || []).filter(m => 
+      m.bracketId === 'playoff-m1' || 
+      m.bracketId === 'playoff-m2' || 
+      m.bracketId === 'playoff-m3' || 
+      m.bracketId === 'playoff-m4'
+    );
+
+    const losersInQf: { playerId: string; entry: any }[] = [];
+    qfMatches.forEach(m => {
+      if (m.isCompleted) {
+        const isBo3 = m.round && m.round !== 'Group';
+        const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+        const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
+        const loserId = s1 > s2 ? m.player2Id : (s2 > s1 ? m.player1Id : null);
+        if (loserId) {
+          const entry = rankedTable.find(e => (e.playerId || e.id) === loserId);
+          if (entry && !losersInQf.some(l => l.playerId === loserId)) {
+            losersInQf.push({ playerId: loserId, entry });
+          }
+        }
+      }
+    });
+
+    // Urutkan yang gugur di QF: rank reguler terbawah (8, 7, 6, 5) duluan
+    losersInQf.sort((a, b) => {
+      const rA = a.entry.rank ?? (rankedTable.findIndex(e => (e.playerId || e.id) === a.playerId) + 1);
+      const rB = b.entry.rank ?? (rankedTable.findIndex(e => (e.playerId || e.id) === b.playerId) + 1);
+      return rB - rA;
+    });
+
+    const playoffRelegated = losersInQf.slice(0, playoffRelQuota).map(item => ({
+      ...item.entry,
+      rank: item.entry.rank ?? (rankedTable.findIndex(e => (e.playerId || e.id) === item.playerId) + 1),
+      isFromPlayoff: true,
+      isRelegated: true,
+    }));
+
+    // Non-playoff teams (rank 9+)
+    const nonPlayoff = rankedTable.slice(8).map((entry, idx) => {
+      const r = 9 + idx;
+      const isDirect = r >= startDirectRank;
+      return {
+        ...entry,
+        rank: r,
+        isFromPlayoff: false,
+        isRelegated: isDirect,
+      };
+    });
+
+    return {
+      playoffRelegatedTeams: playoffRelegated,
+      allRelegationSummary: [...nonPlayoff, ...playoffRelegated]
+    };
+  }, [season, rankedTable, matches]);
+
   const getShareText = () => {
     const seasonTitle = season?.name || 'BM LEAGUE 88';
     const statusNotice = hasGeneratedPlayoffs ? 'STATUS RESMI (LIVE)' : 'PROYEKSI KLASEMEN (LIVE)';
@@ -311,6 +380,18 @@ export function KnockoutShareDialog({
     if (finalMatch.isCompleted) {
       const champ = finalMatch.isW1 ? finalMatch.p1Name : finalMatch.p2Name;
       text += `\n🏆 *CHAMPION:* 🥇 *${champ}* 🥇\n`;
+    }
+
+    if (season?.hasDivisions && (rankedTable.length > 8 || playoffRelegatedTeams.length > 0)) {
+      const actRel = Math.max(1, season.relegationSpots ?? 2);
+      const d2Name = season.division2Name || 'Divisi 2';
+
+      text += `\n⚠️ *STATUS DEGRADASI (${actRel} TIM KE ${d2Name.toUpperCase()}):*\n`;
+      allRelegationSummary.forEach((entry) => {
+        const pName = entry.playerName || (entry.playerId && playersById?.[entry.playerId]?.name) || 'Pemain';
+        const sourceLabel = entry.isFromPlayoff ? 'Gugur Playoff' : 'Reguler';
+        text += `• *#${entry.rank}* ${pName} (${sourceLabel}) ➔ ${entry.isRelegated ? `🔻 DEGRADASI (${d2Name})` : '🛡️ SURVIVOR'}\n`;
+      });
     }
 
     text += `\n_Pantau live bracket & statistik di BM League 88 Web App!_`;
@@ -603,7 +684,7 @@ export function KnockoutShareDialog({
               <div className="flex items-center gap-1.5" style={{ color: primaryHex }}>
                 <span className="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(204,253,1,0.8)]" style={{ backgroundColor: primaryHex }} />
                 <span>
-                  {hasGeneratedPlayoffs ? 'FASE KNOCKOUT • BEST OF 3 • KALAH = GUGUR' : 'PROYEKSI BAGAN 8 BESAR (LIVE TELEMETRY)'}
+                  {hasGeneratedPlayoffs ? 'FASE KNOCKOUT • BEST OF 3 • KALAH = GUGUR' : 'PROYEKSI BAGAN 8 BESAR (LIVE MATCH REPORT)'}
                 </span>
               </div>
               <span className="text-white/40 font-mono">ROAD TO APEX GLORY</span>
@@ -654,6 +735,49 @@ export function KnockoutShareDialog({
                 </div>
                 <MatchPod m={finalMatch} isFinal={true} />
               </div>
+
+              {/* Stage 4: Relegation / Finishing Zone Summary (If Multi-Division) */}
+              {season?.hasDivisions && allRelegationSummary.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between px-1 text-[9px] font-black uppercase tracking-wider text-rose-400 font-mono">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                      <span>ZONA DEGRADASI // {season.division2Name?.toUpperCase() || 'DIVISI 2'}</span>
+                    </div>
+                    <span className="text-[8px] text-rose-400/80">{Math.max(1, season.relegationSpots ?? 2)} SLOT</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {allRelegationSummary.map((entry: any, idx: number) => {
+                      const rank = entry.rank;
+                      const isRelegated = entry.isRelegated;
+                      const isFromPlayoff = entry.isFromPlayoff;
+                      const pName = entry.playerName || (entry.playerId && playersById?.[entry.playerId]?.name) || 'Pemain';
+
+                      return (
+                        <div 
+                          key={entry.id || `${entry.playerId}-${idx}`}
+                          className={cn(
+                            "flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-[9px] font-mono",
+                            isRelegated 
+                              ? "bg-rose-950/30 border-rose-500/40 text-rose-200" 
+                              : "bg-amber-950/20 border-amber-500/30 text-amber-200"
+                          )}
+                        >
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className={cn("font-black px-1 rounded text-[8px]", isRelegated ? "bg-rose-500 text-white" : "bg-amber-500/30 text-amber-300")}>
+                              #{rank}
+                            </span>
+                            <span className="truncate font-bold text-white max-w-[100px]">{pName}</span>
+                          </div>
+                          <span className={cn("text-[7.5px] font-black uppercase shrink-0", isRelegated ? "text-rose-400" : "text-amber-400")}>
+                            {isRelegated ? (isFromPlayoff ? 'DEGRADASI (PO)' : 'DEGRADASI') : 'SURVIVOR'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* BOTTOM FOOTER: Symmetrical Match Schedule & Branding */}

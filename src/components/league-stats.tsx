@@ -373,10 +373,10 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
                     <Radio className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-sm font-black uppercase tracking-[0.25em] text-white/90 font-headline italic">
-                    Telemetric Radar Initialized
+                    Match Analytics Radar Initialized
                 </h3>
                 <p className="text-white/40 text-[10px] font-black uppercase tracking-widest font-mono max-w-sm leading-relaxed">
-                    Awaiting match results to generate live performance telemetry and leaderboard records.
+                    Awaiting match results to generate live performance statistics and leaderboard records.
                 </p>
             </Card>
         );
@@ -387,7 +387,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {stats.mostWins.length > 0 && (
                 <StatCard 
                     title={t('fun_stats_most_wins')}
-                    subtitle="VICTORY_APEX // WIN RECORD"
+                    subtitle="MOST WINS // WIN RECORD"
                     icon={Trophy}
                     players={stats.mostWins}
                     valueKey="win"
@@ -400,7 +400,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {seasonType !== 'Co-Op' && stats.bestGD.length > 0 && (
                 <StatCard 
                     title={t('fun_stats_best_gd')}
-                    subtitle="NET_GOAL_DELTA // SUPERIORITY"
+                    subtitle="GOAL DIFFERENCE // GD LEADER"
                     icon={Gauge}
                     players={stats.bestGD}
                     valueKey="goalDifference"
@@ -413,7 +413,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {seasonType !== 'Co-Op' && stats.bestDefense.length > 0 && (
                 <StatCard 
                     title={t('fun_stats_best_defense')}
-                    subtitle="AEGIS_SHIELD // MIN CONCEDED"
+                    subtitle="BEST DEFENCE // MIN CONCEDED"
                     icon={ShieldCheck}
                     players={stats.bestDefense}
                     valueKey="goalsAgainst"
@@ -426,7 +426,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {seasonType !== 'Co-Op' && stats.bestAttacker.length > 0 && (
                 <StatCard 
                     title={t('fun_stats_best_attacker')}
-                    subtitle="KINETIC_STRIKE // GOAL MACHINE"
+                    subtitle="TOP ATTACK // GOAL MACHINE"
                     icon={Target}
                     players={stats.bestAttacker}
                     valueKey="goalsFor"
@@ -439,7 +439,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {seasonType !== 'Co-Op' && stats.kingOfDraws.length > 0 && (
                 <StatCard 
                     title={t('fun_stats_king_of_draws')}
-                    subtitle="EQUILIBRIUM // DRAW SPECIALIST"
+                    subtitle="DRAW RECORD // MOST TIED MATCHES"
                     icon={Handshake}
                     players={stats.kingOfDraws}
                     valueKey="draw"
@@ -452,7 +452,7 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
             {seasonType !== 'Co-Op' && stats.worstDefender.length > 0 && (
                 <StatCard 
                     title={t('fun_stats_worst_defense')}
-                    subtitle="DEFENSIVE_BREACH // HIGH GA"
+                    subtitle="LEAKY DEFENCE // MOST GOALS CONCEDED"
                     icon={ShieldAlert}
                     players={stats.worstDefender}
                     valueKey="goalsAgainst"

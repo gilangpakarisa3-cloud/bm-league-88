@@ -346,7 +346,7 @@ export function SeasonRecordCard({
                   style={{ color: theme.primaryHex }}
                 />
                 <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em] italic">
-                  HUD TELEMETRY MATRIX
+                  FIFA MATCH CENTRE MATRIX
                 </span>
               </div>
               <Badge 

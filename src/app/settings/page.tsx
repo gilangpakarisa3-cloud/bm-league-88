@@ -457,7 +457,7 @@ export default function SettingsPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-xs sm:text-sm font-black uppercase italic tracking-wider font-headline leading-none">
-                                        Historical Telemetry Recalibrator
+                                        Historical Match Data Recalibrator
                                     </h2>
                                     <p className="text-[8px] font-black uppercase tracking-widest font-mono text-black/70 mt-0.5">
                                         FORMAT_AGNOSTIC_DATA_ENGINE // V2.5

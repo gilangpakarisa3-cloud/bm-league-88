@@ -55,14 +55,14 @@ export function LiveClock({ className, theme }: { className?: string; theme?: TI
                           style={{ color: primaryColor }}
                         >
                             <Zap className="w-3.5 h-3.5" style={{ fill: primaryColor, color: primaryColor }} />
-                            Temporal Sync
+                            Matchday Clock
                         </span>
                     </div>
                     
                     <div className="flex items-center gap-2">
                         <span className="text-[9px] font-black uppercase tracking-wider text-white/40 bg-white/5 border border-white/10 rounded-full px-2.5 py-0.5 flex items-center gap-1">
                             <Scan className="w-2.5 h-2.5" style={{ color: primaryColor }} />
-                            CORE_NODE_88
+                            STADIUM_CLOCK_88
                         </span>
                     </div>
                 </div>

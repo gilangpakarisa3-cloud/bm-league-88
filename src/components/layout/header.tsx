@@ -49,7 +49,7 @@ export function Header() {
               BM <span className="text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]">LEAGUE 88</span>
             </span>
             <span className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30 italic hidden md:block">
-              ENGINEERING RACING HUD
+              ENGINEERING FOOTBALL HUD
             </span>
           </div>
         </Link>

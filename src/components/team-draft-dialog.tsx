@@ -70,18 +70,29 @@ export function TeamDraftDialog({
   // Synchronize pre-existing assignments from registeredPlayers when opened
   useEffect(() => {
     if (open && registeredPlayers && registeredPlayers.length > 0) {
-      setAssignments(prev => {
-        if (Object.keys(prev).length === 0) {
-          const initial: Record<string, string> = {};
-          registeredPlayers.forEach(p => {
-            if (p.teamId && p.teamId !== '' && p.teamId !== 'TBD') {
-              initial[p.id] = p.teamId;
-            }
-          });
-          return initial;
+      const initial: Record<string, string> = {};
+      const validEntryIds = new Set(registeredPlayers.map(p => p.id));
+      
+      // First populate with actual team assignments from registeredPlayers
+      registeredPlayers.forEach(p => {
+        const tid = p.teamId || (p as any).team?.id || (p as any).player?.teamId;
+        if (tid && tid !== '' && tid !== 'TBD') {
+          initial[p.id] = tid;
         }
-        return prev;
       });
+
+      // Preserve any in-dialog draft picks that are still valid
+      setAssignments(prev => {
+        const merged = { ...initial };
+        Object.entries(prev).forEach(([id, tid]) => {
+          if (validEntryIds.has(id)) {
+            merged[id] = tid;
+          }
+        });
+        return merged;
+      });
+    } else if (!open) {
+      setAssignments({});
     }
   }, [open, registeredPlayers]);
 

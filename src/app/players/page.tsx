@@ -95,7 +95,7 @@ export default function PlayersPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-primary italic">
-                    ELITE ROSTER DATABASE // RACING HUD
+                    ELITE ROSTER DATABASE // FIFA SQUAD HUB
                   </span>
                   <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 </div>

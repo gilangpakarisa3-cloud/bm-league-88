@@ -73,25 +73,108 @@ export interface TISeasonTheme {
   searchIconBg: string;
 }
 
+export interface ThemeOption {
+  key: TIThemeKey;
+  name: string;
+  subtitle: string;
+  colorName: string;
+  primaryHex: string;
+  secondaryHex: string;
+  badgeClass: string;
+  previewGradient: string;
+}
+
+export const AVAILABLE_SEASON_THEMES: ThemeOption[] = [
+  {
+    key: 'emerald',
+    name: 'Jade Emerald',
+    subtitle: 'The International Jade Nephrite',
+    colorName: 'Hijau Neon / Emerald',
+    primaryHex: '#10B981',
+    secondaryHex: '#CCFD01',
+    badgeClass: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+    previewGradient: 'from-emerald-400 via-teal-400 to-lime-300'
+  },
+  {
+    key: 'crimson',
+    name: 'Crimson Ruby',
+    subtitle: 'The International Red Bloodstone',
+    colorName: 'Merah Bara / Crimson',
+    primaryHex: '#EF4444',
+    secondaryHex: '#F59E0B',
+    badgeClass: 'bg-rose-500/20 text-rose-400 border-rose-500/40',
+    previewGradient: 'from-rose-500 via-red-500 to-amber-400'
+  },
+  {
+    key: 'gold',
+    name: 'Golden Aegis',
+    subtitle: 'The International 24K Sunfire',
+    colorName: 'Emas Mewah / Gold',
+    primaryHex: '#F59E0B',
+    secondaryHex: '#FBBF24',
+    badgeClass: 'bg-amber-400/20 text-amber-300 border-amber-400/40',
+    previewGradient: 'from-yellow-300 via-amber-400 to-yellow-500'
+  },
+  {
+    key: 'cerulean',
+    name: 'Sunken Cerulean',
+    subtitle: 'The International Sunken Reef (Co-Op)',
+    colorName: 'Cyan Biru Laut / Cerulean',
+    primaryHex: '#06B6D4',
+    secondaryHex: '#22D3EE',
+    badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-400/40',
+    previewGradient: 'from-cyan-400 via-teal-400 to-emerald-400'
+  },
+  {
+    key: 'azure',
+    name: 'Arcane Azure',
+    subtitle: 'The International Cobalt Frost',
+    colorName: 'Biru Langit / Sky Azure',
+    primaryHex: '#38BDF8',
+    secondaryHex: '#2563EB',
+    badgeClass: 'bg-sky-500/20 text-sky-300 border-sky-400/40',
+    previewGradient: 'from-sky-400 via-blue-500 to-indigo-500'
+  },
+  {
+    key: 'amethyst',
+    name: 'Royal Amethyst',
+    subtitle: 'The International Cosmic Violet',
+    colorName: 'Ungu Mistis / Amethyst',
+    primaryHex: '#A855F7',
+    secondaryHex: '#C084FC',
+    badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-400/40',
+    previewGradient: 'from-fuchsia-400 via-purple-500 to-indigo-500'
+  }
+];
+
 export function getSeasonTheme(season: WithId<Season> | null | undefined): TISeasonTheme {
   const name = season?.name || 'BM LEAGUE 88';
   const type = season?.type || 'Single';
+  const explicitThemeKey = season?.themeKey && season.themeKey !== 'auto' ? season.themeKey : null;
   const lowerName = name.toLowerCase();
 
   // Extract season number if available (e.g. "Season 5", "SEASON 4", "s3")
   const numMatch = lowerName.match(/season\s*(\d+)/i) || lowerName.match(/s(\d+)/i);
   const seasonNum = numMatch ? parseInt(numMatch[1], 10) : 5;
 
-  const isS5 = lowerName.includes('season 5') || lowerName.includes('up skill') || seasonNum === 5;
-  const isS4 = lowerName.includes('season 4') || lowerName.includes('penebusan dosa') || lowerName.includes('fokusgame3') || seasonNum === 4;
-  const isS3 = lowerName.includes('season 3') || lowerName.includes('para raja') || lowerName.includes('king') || seasonNum === 3;
-  const isS2 = lowerName.includes('season 2') || seasonNum === 2;
-  const isS1 = lowerName.includes('season 1') || seasonNum === 1;
-  const isCoop = type === 'Co-Op' || type === 'Co-Op Hybrid' || lowerName.includes('co-op') || lowerName.includes('2v2');
+  const isS5 = explicitThemeKey === 'emerald' || (!explicitThemeKey && (lowerName.includes('season 5') || lowerName.includes('up skill') || seasonNum === 5));
+  const isS4 = explicitThemeKey === 'crimson' || (!explicitThemeKey && (lowerName.includes('season 4') || lowerName.includes('penebusan dosa') || lowerName.includes('fokusgame3') || seasonNum === 4));
+  const isS3 = explicitThemeKey === 'gold' || (!explicitThemeKey && (lowerName.includes('season 3') || lowerName.includes('para raja') || lowerName.includes('king') || seasonNum === 3));
+  const isS2 = explicitThemeKey === 'azure' || (!explicitThemeKey && (lowerName.includes('season 2') || seasonNum === 2));
+  const isS1 = !explicitThemeKey && (lowerName.includes('season 1') || seasonNum === 1);
+  const isCoop = explicitThemeKey === 'cerulean' || (!explicitThemeKey && (type === 'Co-Op' || type === 'Co-Op Hybrid' || lowerName.includes('co-op') || lowerName.includes('2v2')));
+  const isAmethyst = explicitThemeKey === 'amethyst' || (!explicitThemeKey && (seasonNum === 6 || lowerName.includes('amethyst') || lowerName.includes('violet') || lowerName.includes('purple')));
   const isSingleHybrid = type === 'Single Hybrid';
 
+  // Explicit priority routing if themeKey is provided
+  if (explicitThemeKey) {
+    if (explicitThemeKey === 'crimson') {
+      // route to crimson block
+    }
+  }
+
   // 1. CRIMSON RUBY / MAGMA FLAME (The International TI1 / TI6 / TI11 - Red Bloodstone Edition)
-  if (isS4 || (!isS5 && !isS3 && !isS2 && !isCoop && isS1)) {
+  if (explicitThemeKey === 'crimson' || (!explicitThemeKey && (isS4 || (!isS5 && !isS3 && !isS2 && !isCoop && !isAmethyst && isS1)))) {
     return {
       seasonNumber: seasonNum,
       tiTitle: 'THE INTERNATIONAL • CRIMSON RUBY',
@@ -276,7 +359,7 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
       gfSubtitle: 'THE PINNACLE OF 2v2 CO-OP GLORY // DUAL MASTERS',
       seriesBadge: '2v2 CO-OP DUO • BO3',
       trophyCrownText: 'CO-OP APEX',
-      upperTitle: 'UPPER BRACKET // DUO PILOT ARENA',
+      upperTitle: 'UPPER BRACKET // DUO SQUAD ARENA',
       upperSubtitle: 'DUAL LIFE PROTOCOL (2 NYAWA) • 2v2 CO-OP DUO BATTLE',
       lowerTitle: 'LOWER BRACKET // REBOOT DOCK',
       lowerSubtitle: 'SUDDEN DEATH ELIMINATION • KALAH = GUGUR',
@@ -359,7 +442,7 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
   }
 
   // 5. ROYAL AMETHYST / COSMIC VIOLET (The International TI4 / TI9 / TI12 / TI13 - Violet Edition)
-  if (seasonNum === 6 || lowerName.includes('amethyst') || lowerName.includes('violet') || lowerName.includes('purple')) {
+  if (explicitThemeKey === 'amethyst' || (!explicitThemeKey && isAmethyst)) {
     return {
       seasonNumber: seasonNum,
       tiTitle: 'THE INTERNATIONAL • ROYAL AMETHYST',
@@ -469,7 +552,7 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
     secondaryConnectorColor: 'cyan',
     lowerConnectorColor: 'cyan',
 
-    sysTag: isS5 ? 'SYS//S5_UP_SKILL_SOLO' : `SYS//TI_S${seasonNum}_EMERALD`,
+    sysTag: isS5 ? 'S5_SOLO_CHAMPIONSHIP' : `TI_S${seasonNum}_EMERALD`,
     seasonBadge: isS5 ? 'SEASON 5 • JADE EMERALD KNOCKOUT' : `${name} • JADE EDITION`,
     pedestalText: isS5 ? 'SEASON 5 • JADE AEGIS CUP' : `${name.toUpperCase()} • JADE AEGIS`,
     gfTitle: isS5 ? 'SEASON 5 GRAND FINAL' : (isSingleHybrid ? 'SOLO GRAND FINAL' : 'GRAND FINAL'),

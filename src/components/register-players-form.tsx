@@ -8,7 +8,7 @@ import type { Player, LeagueEntry, WithId, Team } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Skeleton } from './ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { User, Search, Check, Users, Shield, Zap, Sparkles, CheckCheck, X } from 'lucide-react';
+import { User, Search, Check, Users, Shield, Zap, Sparkles, CheckCheck, X, Trophy, Award } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
@@ -20,8 +20,11 @@ import { resolveLogo } from '@/lib/logo-utils';
 interface RegisterPlayersFormProps {
   allPlayers: WithId<Player>[];
   registeredPlayers: WithId<LeagueEntry>[];
-  onRegister: (selectedPlayerIds: string[]) => void;
+  onRegister: (selectedPlayerIds: string[], targetDivision?: 'div-1' | 'div-2') => void;
   isLoading?: boolean;
+  hasDivisions?: boolean;
+  division1Name?: string;
+  division2Name?: string;
 }
 
 export function RegisterPlayersForm({
@@ -29,9 +32,13 @@ export function RegisterPlayersForm({
   registeredPlayers,
   onRegister,
   isLoading = false,
+  hasDivisions = false,
+  division1Name = 'Divisi 1',
+  division2Name = 'Divisi 2',
 }: RegisterPlayersFormProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [targetDivision, setTargetDivision] = useState<'div-1' | 'div-2'>('div-1');
   const [searchQuery, setSearchQuery] = useState('');
   const firestore = useFirestore();
 
@@ -102,7 +109,7 @@ export function RegisterPlayersForm({
   const handleSubmit = () => {
     const selectedIds = Object.keys(selected).filter(id => selected[id]);
     if (selectedIds.length === 0) return;
-    onRegister(selectedIds);
+    onRegister(selectedIds, hasDivisions ? targetDivision : undefined);
   };
   
   if (isLoading || isLoadingTeams) {
@@ -150,6 +157,49 @@ export function RegisterPlayersForm({
           />
         </div>
       </div>
+
+      {/* Multi-Division Target Allocation */}
+      {hasDivisions && (
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-white/[0.04] to-white/[0.01] border border-white/10 space-y-2">
+          <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider font-mono px-1">
+            <span className="text-white/50 flex items-center gap-1.5">
+              <Zap className="w-3 h-3 text-primary animate-pulse" />
+              TARGET ALOKASI DIVISI:
+            </span>
+            <span className={cn("font-bold px-2 py-0.5 rounded-full text-[8px]", targetDivision === 'div-1' ? "bg-primary/20 text-primary border border-primary/40" : "bg-cyan-400/20 text-cyan-300 border border-cyan-400/40")}>
+              {targetDivision === 'div-1' ? division1Name : division2Name}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setTargetDivision('div-1')}
+              className={cn(
+                "h-10 px-3 rounded-xl font-headline font-black text-xs uppercase tracking-wide italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
+                targetDivision === 'div-1'
+                  ? "bg-primary text-black border-primary shadow-[0_0_20px_rgba(204,253,1,0.35)]"
+                  : "bg-black/40 text-white/50 border-white/10 hover:text-white hover:border-white/20"
+              )}
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span className="truncate">{division1Name}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTargetDivision('div-2')}
+              className={cn(
+                "h-10 px-3 rounded-xl font-headline font-black text-xs uppercase tracking-wide italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
+                targetDivision === 'div-2'
+                  ? "bg-cyan-400 text-black border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.35)]"
+                  : "bg-black/40 text-white/50 border-white/10 hover:text-white hover:border-white/20"
+              )}
+            >
+              <Award className="w-3.5 h-3.5" />
+              <span className="truncate">{division2Name}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Search & Bulk Select Toolbar */}
       <div className="flex items-center gap-2">
@@ -283,12 +333,18 @@ export function RegisterPlayersForm({
         className={cn(
           "w-full h-12 font-headline font-black uppercase italic tracking-wider text-xs rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2",
           selectedCount > 0 
-            ? "bg-primary text-black hover:bg-primary/90 shadow-[0_0_30px_rgba(204,253,1,0.5)] cursor-pointer" 
+            ? hasDivisions && targetDivision === 'div-2'
+              ? "bg-cyan-400 text-black hover:bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.5)] cursor-pointer"
+              : "bg-primary text-black hover:bg-primary/90 shadow-[0_0_30px_rgba(204,253,1,0.5)] cursor-pointer" 
             : "bg-white/10 text-white/30 border border-white/5 cursor-not-allowed"
         )}
       >
         <Sparkles className="w-4 h-4" />
-        <span>DAFTARKAN {selectedCount} ATLET // ROSTER CONFIRMED</span>
+        {hasDivisions ? (
+          <span>DAFTARKAN {selectedCount} ATLET KE {targetDivision === 'div-1' ? division1Name : division2Name}</span>
+        ) : (
+          <span>DAFTARKAN {selectedCount} ATLET // ROSTER CONFIRMED</span>
+        )}
       </Button>
     </div>
   );

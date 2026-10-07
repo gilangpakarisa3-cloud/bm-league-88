@@ -25,7 +25,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Engineering EightyEight Liga Tarkam',
   description: 'League and cup tracking for the Engineering EightyEight amateur football league.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'BM LEAGUE 88',
+  },
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/apple-touch-icon.png',
+  },
 };
+
+import { PwaRegister } from '@/components/pwa-register';
 
 export default function RootLayout({
   children,
@@ -36,6 +48,11 @@ export default function RootLayout({
     <html lang="id" className={cn('dark', inter.className)}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#0a0a0c" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="BM LEAGUE 88" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
       </head>
       <body className={cn('font-body antialiased')}>
         <LanguageProvider>
@@ -52,6 +69,7 @@ export default function RootLayout({
                   <MobileBottomNav />
                 </div>
                 <Toaster />
+                <PwaRegister />
               </DeactivatedGuard>
             </PasswordProvider>
           </FirebaseClientProvider>

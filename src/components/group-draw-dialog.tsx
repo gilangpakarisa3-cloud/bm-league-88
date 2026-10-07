@@ -46,6 +46,7 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
   // Reveal state
   const [revealedCount, setRevealedCount] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [drawMode, setDrawMode] = useState<'seeded' | 'random'>('random');
 
   const isCoop = season?.type === 'Co-Op Hybrid';
 
@@ -111,21 +112,35 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
   }, [isLoading, previousSeasonTable, registeredPlayers, isCoop]);
 
   const handleDraw = useCallback(() => {
-    const shuffledPot1 = shuffleArray(pot1);
-    const shuffledPot2 = shuffleArray(pot2);
-
     const groupA: PlayerInPot[] = [];
     const groupB: PlayerInPot[] = [];
-    
-    shuffledPot1.forEach((player, index) => {
+
+    if (drawMode === 'seeded') {
+      const shuffledPot1 = shuffleArray(pot1);
+      const shuffledPot2 = shuffleArray(pot2);
+      
+      shuffledPot1.forEach((player, index) => {
+          if (index % 2 === 0) groupA.push(player);
+          else groupB.push(player);
+      });
+
+      shuffledPot2.forEach((player, index) => {
+           if (groupA.length <= groupB.length) groupA.push(player);
+           else groupB.push(player);
+      });
+    } else {
+      // Pure Random Draw (Acak Murni langsung dari semua unit terdaftar)
+      const allPlayersFormatted: PlayerInPot[] = registeredPlayers.map(entry => ({
+        ...entry,
+        displayName: isCoop ? (entry as CoOpLeagueEntry).teamName : (entry as LeagueEntry).playerName,
+        prevRank: Infinity
+      }));
+      const shuffledAll = shuffleArray(allPlayersFormatted);
+      shuffledAll.forEach((player, index) => {
         if (index % 2 === 0) groupA.push(player);
         else groupB.push(player);
-    });
-
-    shuffledPot2.forEach((player, index) => {
-         if (groupA.length <= groupB.length) groupA.push(player);
-         else groupB.push(player);
-    });
+      });
+    }
 
     setDrawnGroups({ groupA, groupB });
     setRevealedCount(0);
@@ -177,12 +192,78 @@ export function GroupDrawDialog({ season, registeredPlayers, open, onOpenChange,
                     <p className="font-bold tracking-widest text-primary animate-pulse uppercase text-xs">Menganalisis performa musim lalu...</p>
                 </div>
             ) : (
-                 <div className="space-y-8">
-                    {!drawnGroups ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-500">
-                            <PotDisplay title="Pot 1" subtitle="Unggulan utama" players={pot1} variant="primary" />
-                            <PotDisplay title="Pot 2" subtitle="Penantang" players={pot2} variant="gold" />
+                 <div className="space-y-6">
+                    {/* Selector Mode Undian: Acak Bebas vs Seeded Pot */}
+                    {!drawnGroups && (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                        <div className="flex items-center gap-2.5">
+                          <Shuffle className="w-4 h-4 text-primary" />
+                          <div>
+                            <div className="text-xs font-black uppercase tracking-wider text-white">Metode Pengundian Grup</div>
+                            <div className="text-[10px] text-white/50 font-mono">
+                              {drawMode === 'random' 
+                                ? 'Acak Murni: Semua unit diundi bebas tanpa pot unggulan' 
+                                : 'Sistem Pot: Unit dibagi ke Pot 1 (unggulan) & Pot 2 (penantang)'}
+                            </div>
+                          </div>
                         </div>
+
+                        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setDrawMode('random')}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
+                              drawMode === 'random' 
+                                ? "bg-primary text-black shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
+                                : "text-white/50 hover:text-white"
+                            )}
+                          >
+                            Acak Bebas (Rekomendasi)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDrawMode('seeded')}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
+                              drawMode === 'seeded' 
+                                ? "bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.4)]" 
+                                : "text-white/50 hover:text-white"
+                            )}
+                          >
+                            Sistem Pot (Pot 1 & 2)
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {!drawnGroups ? (
+                        drawMode === 'seeded' ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-500">
+                              <PotDisplay title="Pot 1" subtitle="Unggulan utama" players={pot1} variant="primary" />
+                              <PotDisplay title="Pot 2" subtitle="Penantang" players={pot2} variant="gold" />
+                          </div>
+                        ) : (
+                          <Card className="border-2 border-primary/30 bg-primary/5 p-6 rounded-2xl animate-in fade-in duration-300">
+                            <div className="flex items-center justify-between mb-4">
+                              <div>
+                                <h3 className="text-lg font-black uppercase tracking-tight text-primary">Daftar Atlet Yang Akan Diundi</h3>
+                                <p className="text-[10px] text-white/50 uppercase font-mono tracking-wider">Seluruh atlet akan diundi acak secara adil ke Grup A dan Grup B</p>
+                              </div>
+                              <Badge className="bg-primary/20 text-primary border-primary/40 font-mono font-bold text-xs">{registeredPlayers.length} Atlet</Badge>
+                            </div>
+                            <ScrollArea className="h-[280px] pr-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                {registeredPlayers.map((player, idx) => (
+                                  <div key={player.id || idx} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-black/40 border border-white/5">
+                                    <span className="text-[10px] font-mono text-white/40">#{idx + 1}</span>
+                                    <span className="text-xs font-bold text-white truncate" suppressHydrationWarning>{player.playerName || player.teamName}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </ScrollArea>
+                          </Card>
+                        )
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                              <GroupDisplay 

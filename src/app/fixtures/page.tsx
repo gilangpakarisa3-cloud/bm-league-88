@@ -314,6 +314,21 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                         <span suppressHydrationWarning>{displayDate}</span>
                     </div>
 
+                    {activeSeason?.hasDivisions && match.division && (
+                        <Badge 
+                            className={cn(
+                                "text-[7px] sm:text-[9px] h-4.5 sm:h-5 font-black px-2.5 italic rounded-full uppercase tracking-wider border shadow-sm",
+                                match.division === 'div-2' 
+                                    ? "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]" 
+                                    : "bg-emerald-500/15 text-emerald-400 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                            )}
+                        >
+                            {match.division === 'div-2' 
+                                ? (activeSeason.division2Name || 'Divisi 2') 
+                                : (activeSeason.division1Name || 'Divisi 1')}
+                        </Badge>
+                    )}
+
                     {match.round && match.round !== 'Group' && (
                         <Badge 
                             className="text-[7px] sm:text-[9px] h-4.5 sm:h-5 font-black px-2.5 italic rounded-full uppercase tracking-wider border shadow-sm"
@@ -552,7 +567,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
             <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-2.5 sm:py-3 bg-black/60 border-t border-white/5">
                 <div className="flex items-center gap-2">
                     <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-white/30 italic">
-                        BM-ARENA // NODE-{match.id.substring(0, 4).toUpperCase()}
+                        STADIUM PITCH // FIXTURE-{match.id.substring(0, 4).toUpperCase()}
                     </span>
                 </div>
                 
@@ -619,6 +634,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
     const firestore = useFirestore();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
+    const [divisionFilter, setDivisionFilter] = useState<'all' | 'div-1' | 'div-2'>('all');
     const theme = useMemo(() => getSeasonTheme(activeSeason), [activeSeason]);
     
     const isSeasonCoop = activeSeason?.type === 'Co-Op' || activeSeason?.type === 'Co-Op Hybrid';
@@ -632,6 +648,9 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
     const leagueTableByPlayerId = useMemo(() => (singleLeagueTable || []).reduce((acc, entry) => { acc[entry.playerId] = entry; return acc; }, {} as Record<string, LeagueEntry>), [singleLeagueTable]);
     const coopTableById = useMemo(() => (coopLeagueTable || []).reduce((acc, e) => { acc[e.id] = e; return acc; }, {} as Record<string, WithId<CoOpLeagueEntry>>), [coopLeagueTable]);
     
+    const div1MatchCount = useMemo(() => matches?.filter(m => m.division !== 'div-2').length || 0, [matches]);
+    const div2MatchCount = useMemo(() => matches?.filter(m => m.division === 'div-2').length || 0, [matches]);
+
     const { groupedMatches, upcomingCount, completedCount, liveCount } = useMemo(() => {
         if (!matches || !activeSeason) return { groupedMatches: { upcoming: {}, completed: {}, live: {} }, upcomingCount: 0, completedCount: 0, liveCount: 0 };
         const isCoop = activeSeason.type === 'Co-Op' || activeSeason.type === 'Co-Op Hybrid';
@@ -663,6 +682,10 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
         }).filter(Boolean) as any[];
 
         const filtered = enrichedMatches.filter(m => {
+            if (activeSeason?.hasDivisions && divisionFilter !== 'all') {
+                if (divisionFilter === 'div-1' && m.division === 'div-2') return false;
+                if (divisionFilter === 'div-2' && m.division !== 'div-2') return false;
+            }
             if (searchTerm.trim()) {
                 const terms = searchTerm.toLowerCase().split(' ').filter(Boolean);
                 const pn1 = m.player1?.name.toLowerCase() || '';
@@ -710,7 +733,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
             completedCount: Object.values(grouped.completed).flat().length,
             liveCount: Object.values(grouped.live).flat().length
         };
-    }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId, hasPlayoffs]);
+    }, [matches, playersById, teamsById, searchTerm, activeSeason, coopTableById, leagueTableByPlayerId, hasPlayoffs, divisionFilter]);
 
     const roundNames: Record<string, string> = { 
         'Group': 'Fase Grup', 
@@ -749,7 +772,53 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
     );
     
     return (
-        <div className="space-y-12">
+        <div className="space-y-8 sm:space-y-12">
+            {/* MULTI-DIVISION FILTER SWITCHER */}
+            {activeSeason?.hasDivisions && (
+                <div className="flex justify-center -mb-2 sm:-mb-4 animate-in fade-in zoom-in-95 duration-500">
+                    <div className="inline-flex p-1.5 rounded-full bg-black/70 border border-white/10 backdrop-blur-2xl gap-1.5 sm:gap-2 shadow-[0_15px_40px_rgba(0,0,0,0.8)]">
+                        <button
+                            type="button"
+                            onClick={() => setDivisionFilter('all')}
+                            className={cn(
+                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 italic",
+                                divisionFilter === 'all'
+                                    ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                                    : "text-white/50 hover:text-white"
+                            )}
+                        >
+                            Semua ({matches?.length || 0})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setDivisionFilter('div-1')}
+                            className={cn(
+                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 italic flex items-center gap-1.5",
+                                divisionFilter === 'div-1'
+                                    ? "bg-emerald-400 text-black shadow-[0_0_20px_rgba(52,211,153,0.4)]"
+                                    : "text-emerald-400/70 hover:text-emerald-300"
+                            )}
+                        >
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                            {activeSeason.division1Name || 'Divisi 1'} ({div1MatchCount})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setDivisionFilter('div-2')}
+                            className={cn(
+                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 italic flex items-center gap-1.5",
+                                divisionFilter === 'div-2'
+                                    ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.4)]"
+                                    : "text-amber-400/70 hover:text-amber-300"
+                            )}
+                        >
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 inline-block animate-pulse" />
+                            {activeSeason.division2Name || 'Divisi 2'} ({div2MatchCount})
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* AERODYNAMIC COCKPIT SEARCH HUB */}
             <div className="relative max-w-3xl mx-auto group/search">
                 <div 
@@ -906,7 +975,7 @@ const FixtureContent = memo(function FixtureContent({ activeSeasonId, onEditMatc
                                                     backgroundColor: `${theme.primaryHex}15`
                                                   }}
                                                 >
-                                                  QUEUE_MANIFEST
+                                                  UPCOMING_FIXTURES
                                                 </Badge>
                                             </div>
                                             <div 
@@ -1066,7 +1135,7 @@ export default function FixturesPage() {
                 const sData = sSnap.data() as Season;
                 const isSeasonCoop = sData.type === 'Co-Op' || sData.type === 'Co-Op Hybrid';
                 const isGroupMatch = orig.round === 'Group' || !orig.round;
-                const succMap = getPlayoffSuccessorMap(sData?.type);
+                const succMap = getPlayoffSuccessorMap(sData?.type, orig);
 
                 let winMatchRef = null;
                 let losMatchRef = null;
@@ -1238,7 +1307,7 @@ export default function FixturesPage() {
         await runTransaction(firestore, async (transaction) => {
             let winMatchRef = null;
             let losMatchRef = null;
-            const succMap = getPlayoffSuccessorMap(sData?.type);
+            const succMap = getPlayoffSuccessorMap(sData?.type, mToRev);
             if (mToRev.round && mToRev.round !== 'Group' && mToRev.bracketId) {
                 const succ = succMap[mToRev.bracketId];
                 if (succ) {
@@ -1374,7 +1443,7 @@ export default function FixturesPage() {
                               className="text-[9px] sm:text-xs font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] italic"
                               style={{ color: theme.primaryHex }}
                             >
-                              Live System Uplink
+                              Live Match Feed
                             </span>
                         </div>
 

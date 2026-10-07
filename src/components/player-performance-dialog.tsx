@@ -211,12 +211,24 @@ export function PlayerPerformanceDialog({
   const masterPlayersRanked = useMemo(() => {
     const players = Object.values(playersById);
     const withOvr = players.map(p => {
-      const poss = (p.overallPlayed || 0) * 3;
+      const played = p.overallPlayed || 0;
+      const isCalibrated = played >= 20;
+      const poss = played * 3;
       const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-      const ovrRating = poss > 0 ? (act / poss) * 100 : 0;
-      return { ...p, ovrRating };
+      const ovrRating = isCalibrated && poss > 0 ? (act / poss) * 100 : 0;
+      return { ...p, ovrRating, isCalibrated };
     });
-    return [...withOvr].sort((a, b) => b.ovrRating - a.ovrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0)).map((p, i) => ({ ...p, masterRank: i + 1 }));
+
+    const calibrated = withOvr
+      .filter(p => p.isCalibrated)
+      .sort((a, b) => b.ovrRating - a.ovrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0))
+      .map((p, i) => ({ ...p, masterRank: i + 1 }));
+
+    const notCalibrated = withOvr
+      .filter(p => !p.isCalibrated)
+      .map(p => ({ ...p, masterRank: null }));
+
+    return [...calibrated, ...notCalibrated];
   }, [playersById]);
 
   const performanceStats = useMemo(() => {
@@ -361,12 +373,39 @@ export function PlayerPerformanceDialog({
     const m1 = p1Id ? masterPlayersRanked.find(p => p.id === p1Id) : null;
     const m2 = p2Id ? masterPlayersRanked.find(p => p.id === p2Id) : null;
     
+    // Check calibration status: only show OVR if player has >= 20 official career matches
+    const isM1Calibrated = !!m1?.isCalibrated;
+    const isM2Calibrated = !!m2?.isCalibrated;
+    const isAnyCalibrated = isCoop ? (isM1Calibrated || isM2Calibrated) : isM1Calibrated;
+
+    let displayOvr = 'N/C';
+    let displayRank = 'N/C';
+
+    if (isCoop) {
+      if (isM1Calibrated && isM2Calibrated && m1 && m2) {
+        displayOvr = ((m1.ovrRating + m2.ovrRating) / 2).toFixed(0);
+        displayRank = String(Math.min(m1.masterRank ?? 999, m2.masterRank ?? 999));
+      } else if (isM1Calibrated && m1) {
+        displayOvr = m1.ovrRating.toFixed(0);
+        displayRank = String(m1.masterRank ?? 'N/C');
+      } else if (isM2Calibrated && m2) {
+        displayOvr = m2.ovrRating.toFixed(0);
+        displayRank = String(m2.masterRank ?? 'N/C');
+      }
+    } else {
+      if (isM1Calibrated && m1) {
+        displayOvr = m1.ovrRating.toFixed(0);
+        displayRank = String(m1.masterRank ?? 'N/C');
+      }
+    }
+
     const masterInfoSummary = {
-      ovr: isCoop && m1 && m2 ? ((m1.ovrRating + m2.ovrRating) / 2).toFixed(0) : (m1?.ovrRating.toFixed(0) || '0'),
-      rank: isCoop && m1 && m2 ? Math.min(m1.masterRank, m2.masterRank) : (m1?.masterRank || '?'),
+      ovr: displayOvr,
+      rank: displayRank,
+      isCalibrated: isAnyCalibrated,
       isCoop: isCoop,
-      p1Ovr: m1?.ovrRating.toFixed(0) || '0',
-      p2Ovr: m2?.ovrRating.toFixed(0) || '0'
+      p1Ovr: isM1Calibrated && m1 ? m1.ovrRating.toFixed(0) : 'N/C',
+      p2Ovr: isM2Calibrated && m2 ? m2.ovrRating.toFixed(0) : 'N/C'
     };
 
     let pST = "Balance"; 
@@ -662,7 +701,7 @@ export function PlayerPerformanceDialog({
                           SEASON PERFORMANCE HUD
                         </h3>
                         <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">
-                          {theme.sysTag} • Statistical Matrix
+                          {theme.sysTag} • Match Stats & Analytics
                         </p>
                       </div>
                     </div>
@@ -689,7 +728,7 @@ export function PlayerPerformanceDialog({
                     <div className="space-y-2">
                       <div className="flex justify-between items-center px-1">
                         <span className="text-[9px] font-black uppercase tracking-[0.25em] italic flex items-center gap-1.5" style={{ color: primaryHex }}>
-                          <Scan className="w-3.5 h-3.5" style={{ color: primaryHex }} /> Signal Completion Analysis
+                          <Scan className="w-3.5 h-3.5" style={{ color: primaryHex }} /> Match Progress & Season Completion
                         </span>
                         <span className="text-[11px] font-black italic tabular-nums" style={{ color: primaryHex }} suppressHydrationWarning>
                           {seasonProgress.toFixed(0)}% COMPLETE
@@ -758,7 +797,7 @@ export function PlayerPerformanceDialog({
                       <IntelCard 
                         icon={Star} 
                         label="Rank Global" 
-                        value={`#${masterInfoSummary.rank}`} 
+                        value={masterInfoSummary.rank === 'N/C' ? 'N/C' : `#${masterInfoSummary.rank}`} 
                         variant="gold" 
                         tooltip={masterInfoSummary.isCoop ? "Peringkat karir terbaik di antara kedua pemain." : "Peringkat elit berdasarkan OVR karir global pemain."}
                       />
@@ -925,7 +964,7 @@ export function PlayerPerformanceDialog({
                                 </div>
                                 <p className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: `${primaryHex}CC` }}>
                                   <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: primaryHex }} />
-                                  SIGNAL QUEUED • FIXTURE PENDING
+                                  JADWAL MENDATANG • FIXTURE PENDING
                                 </p>
                               </div>
                             </div>
@@ -1018,13 +1057,13 @@ export function PlayerPerformanceDialog({
                   }}
                 >
                   <p className="text-[8px] sm:text-[9px] text-white/40 font-black tracking-[0.25em] uppercase mb-1 relative z-10 italic">
-                    Technical Analysis & Telemetry Disclaimer
+                    Technical Analysis & Match Stats Disclaimer
                   </p>
                   <p 
                     className="text-[10px] sm:text-[11px] font-bold italic leading-relaxed text-center relative z-10 max-w-xl mx-auto"
                     style={{ color: `${primaryHex}CC` }}
                   >
-                    Data dikalkulasi berdasarkan performa agregat unit pemain dalam seluruh fase kompetisi. Stabilitas sinyal di atas nol menunjukkan konsistensi kemenangan taktis yang tinggi.
+                    Data dikalkulasi berdasarkan performa agregat pemain dalam seluruh pertandingan liga. Konsistensi kemenangan di atas rata-rata mencerminkan stabilitas taktis yang solid.
                   </p>
                 </div>
               </div>

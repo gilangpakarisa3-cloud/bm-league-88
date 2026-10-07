@@ -45,7 +45,19 @@ export const SINGLE_HYBRID_SUCCESSOR_MAP: Record<string, { winner: { bid: string
     'playoff-sf2': { winner: { bid: 'playoff-final', slot: 2 } },
 };
 
-export function getPlayoffSuccessorMap(seasonType?: string) {
+export function getPlayoffSuccessorMap(seasonType?: string, currentMatch?: { round?: string; bracketId?: string } | null) {
     if (seasonType === 'Single Hybrid') return SINGLE_HYBRID_SUCCESSOR_MAP;
+    if (seasonType === 'Hybrid') {
+        // Jika pertandingan playoff yang dimainkan bertipe Quarterfinal / Semifinal (8-Besar Opsi A)
+        if (currentMatch) {
+            if (currentMatch.round === 'Quarterfinal' || currentMatch.round === 'Semifinal') {
+                return SINGLE_HYBRID_SUCCESSOR_MAP;
+            }
+            if (currentMatch.bracketId === 'playoff-sf1' || currentMatch.bracketId === 'playoff-sf2') {
+                return SINGLE_HYBRID_SUCCESSOR_MAP;
+            }
+        }
+    }
     return PLAYOFF_SUCCESSOR_MAP;
 }
+
