@@ -709,21 +709,21 @@ const GrandFinalPodium = ({
         </div>
 
         {/* 3. Ultra-Sporty Championship Typography */}
-        <div className="text-center space-y-1.5 relative z-10 my-1 sm:my-2">
-          <div className="inline-flex items-center gap-1.5 px-4 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-black to-primary/20 border border-amber-400/50 text-amber-300 font-black uppercase text-[8.5px] sm:text-[9.5px] tracking-[0.25em] italic shadow-[0_0_10px_rgba(251,191,36,0.2)]">
+        <div className="text-center space-y-1 sm:space-y-1.5 relative z-10 my-1 sm:my-2 px-2">
+          <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-black to-primary/20 border border-amber-400/50 text-amber-300 font-black uppercase text-[7.5px] sm:text-[9.5px] tracking-[0.2em] sm:tracking-[0.25em] italic shadow-[0_0_10px_rgba(251,191,36,0.2)]">
             <Zap className="w-2.5 h-2.5 fill-amber-400 text-amber-400 animate-pulse" />
             <span>{seasonSeriesBadge}</span>
             <Zap className="w-2.5 h-2.5 fill-primary text-primary animate-pulse" />
           </div>
           
           <div className="relative">
-            <h3 className={cn("inline-block pr-4 pb-1 text-2xl sm:text-3xl 2xl:text-4xl font-black tracking-tight uppercase italic leading-none font-headline text-white [webkit-background-clip:text] bg-clip-text [-webkit-text-fill-color:transparent] bg-gradient-to-b", theme.gfTitleGradient)}>
+            <h3 className={cn("inline-block pr-2 sm:pr-4 pb-0.5 sm:pb-1 text-xl sm:text-3xl 2xl:text-4xl font-black tracking-tight uppercase italic leading-none font-headline text-white [webkit-background-clip:text] bg-clip-text [-webkit-text-fill-color:transparent] bg-gradient-to-b", theme.gfTitleGradient)}>
               {seasonGfTitle}
             </h3>
-            <div className="h-[2px] w-36 sm:w-48 mx-auto bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(251,191,36,0.9)] mt-1.5" />
+            <div className="h-[2px] w-28 sm:w-48 mx-auto bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(251,191,36,0.9)] mt-1 sm:mt-1.5" />
           </div>
 
-          <p className="text-[8px] font-mono font-bold tracking-[0.25em] text-white/50 uppercase">
+          <p className="text-[7.5px] sm:text-[8px] font-mono font-bold tracking-[0.2em] sm:tracking-[0.25em] text-white/50 uppercase">
             {seasonGfSubtitle}
           </p>
         </div>
@@ -759,7 +759,7 @@ const GrandFinalPodium = ({
           {/* Fighter 1 Showcase */}
           <div
             className={cn(
-              "flex items-center justify-between p-2.5 sm:p-3 rounded-xl transition-all relative",
+              "flex items-center justify-between p-2 sm:p-3 rounded-xl transition-all relative",
               isW1 ? "border shadow-lg" : "bg-white/[0.02] border border-white/5 hover:border-white/20"
             )}
             style={isW1 ? {
@@ -768,10 +768,10 @@ const GrandFinalPodium = ({
               boxShadow: `0 0 16px ${theme.primaryHex}40`
             } : undefined}
           >
-            <div className="flex items-center gap-3 overflow-hidden pr-2 min-w-0 flex-1">
+            <div className="flex items-center gap-2 sm:gap-3 overflow-hidden pr-1.5 sm:pr-2 min-w-0 flex-1">
               <div className="relative shrink-0">
                 <Avatar
-                  className="h-10 w-10 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-xl bg-black/60 overflow-hidden flex items-center justify-center p-1"
+                  className="h-8 w-8 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-lg sm:rounded-xl bg-black/60 overflow-hidden flex items-center justify-center p-0.5 sm:p-1"
                   style={isW1 ? {
                     borderColor: theme.primaryHex,
                     boxShadow: `0 0 12px ${theme.primaryHex}99`,
@@ -780,7 +780,7 @@ const GrandFinalPodium = ({
                   }}
                 >
                   <AvatarImage key={logo1} src={logo1} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
-                  <AvatarFallback className="bg-black/60 font-black text-[10px] rounded-xl"><User className="w-4 h-4"/></AvatarFallback>
+                  <AvatarFallback className="bg-black/60 font-black text-[9px] rounded-lg"><User className="w-3.5 h-3.5"/></AvatarFallback>
                 </Avatar>
               </div>
               <div className="flex flex-col min-w-0 flex-1">
@@ -866,7 +866,7 @@ const GrandFinalPodium = ({
           {/* Fighter 2 Showcase */}
           <div
             className={cn(
-              "flex items-center justify-between p-2.5 sm:p-3 rounded-xl transition-all relative",
+              "flex items-center justify-between p-2 sm:p-3 rounded-xl transition-all relative",
               isW2 ? "border shadow-lg" : "bg-white/[0.02] border border-white/5 hover:border-white/20"
             )}
             style={isW2 ? {
@@ -875,10 +875,10 @@ const GrandFinalPodium = ({
               boxShadow: `0 0 16px ${theme.primaryHex}40`
             } : undefined}
           >
-            <div className="flex items-center gap-3 overflow-hidden pr-2 min-w-0 flex-1">
+            <div className="flex items-center gap-2 sm:gap-3 overflow-hidden pr-1.5 sm:pr-2 min-w-0 flex-1">
               <div className="relative shrink-0">
                 <Avatar
-                  className="h-10 w-10 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-xl bg-black/60 overflow-hidden flex items-center justify-center p-1"
+                  className="h-8 w-8 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-lg sm:rounded-xl bg-black/60 overflow-hidden flex items-center justify-center p-0.5 sm:p-1"
                   style={isW2 ? {
                     borderColor: theme.primaryHex,
                     boxShadow: `0 0 12px ${theme.primaryHex}99`,
@@ -887,7 +887,7 @@ const GrandFinalPodium = ({
                   }}
                 >
                   <AvatarImage key={logo2} src={logo2} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
-                  <AvatarFallback className="bg-black/60 font-black text-[10px] rounded-xl"><User className="w-4 h-4"/></AvatarFallback>
+                  <AvatarFallback className="bg-black/60 font-black text-[9px] rounded-lg"><User className="w-3.5 h-3.5"/></AvatarFallback>
                 </Avatar>
               </div>
               <div className="flex flex-col min-w-0 flex-1">

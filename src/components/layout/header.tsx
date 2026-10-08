@@ -37,20 +37,20 @@ export function Header() {
         <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(204,253,1,0.4)_50%,transparent_100%)] bg-[length:200%_100%] animate-marquee" />
       </div>
       
-      <div className="max-w-[94rem] mx-auto flex h-16 sm:h-20 items-center justify-between px-3 sm:px-8 gap-3 sm:gap-6">
+      <div className="max-w-[94rem] mx-auto flex h-14 sm:h-20 items-center justify-between px-3 sm:px-8 gap-2 sm:gap-6">
         {/* Brand/Logo Section */}
-        <Link href="/" className="flex items-center gap-3 group relative shrink-0">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group relative shrink-0">
           <div className="relative">
-            <div className="absolute -inset-3 bg-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-            <div className="bg-gradient-to-br from-primary via-primary to-yellow-400 p-2 sm:p-2.5 rounded-2xl transition-all duration-500 shadow-[0_0_25px_rgba(204,253,1,0.5)] border border-black/20 relative z-10 group-hover:scale-105">
-              <Flame className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
+            <div className="absolute -inset-2 sm:-inset-3 bg-primary/20 rounded-xl sm:rounded-2xl blur-lg sm:blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            <div className="bg-gradient-to-br from-primary via-primary to-yellow-400 p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl transition-all duration-500 shadow-[0_0_20px_rgba(204,253,1,0.4)] border border-black/20 relative z-10 group-hover:scale-105">
+              <Flame className="h-4 w-4 sm:h-6 sm:w-6 text-black" />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-lg sm:text-2xl tracking-tighter uppercase italic text-white leading-none">
-              BM <span className="text-primary drop-shadow-[0_0_15px_rgba(204,253,1,0.6)]">LEAGUE 88</span>
+            <span className="font-black text-base sm:text-2xl tracking-tighter uppercase italic text-white leading-none">
+              BM <span className="text-primary drop-shadow-[0_0_12px_rgba(204,253,1,0.5)]">LEAGUE 88</span>
             </span>
-            <span className="text-[8px] font-black uppercase tracking-[0.25em] text-white/30 italic hidden md:block">
+            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white/30 italic hidden xs:block md:block">
               ENGINEERING FOOTBALL HUD
             </span>
           </div>

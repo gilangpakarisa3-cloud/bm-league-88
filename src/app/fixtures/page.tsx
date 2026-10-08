@@ -155,7 +155,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
 
                     <div 
                         className={cn(
-                            "relative z-10 h-12 w-12 sm:h-20 sm:w-20 rounded-2xl sm:rounded-3xl p-1 transition-all duration-500 flex items-center justify-center overflow-hidden border",
+                            "relative z-10 h-10 w-10 sm:h-20 sm:w-20 rounded-xl sm:rounded-3xl p-0.5 sm:p-1 transition-all duration-500 flex items-center justify-center overflow-hidden border",
                             isWinner 
                                 ? "scale-105" 
                                 : isLoser
@@ -168,7 +168,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                             boxShadow: `0 0 30px ${glowRgba}`
                         } : undefined}
                     >
-                        <Avatar className="h-full w-full rounded-xl sm:rounded-2xl bg-black/60 overflow-hidden">
+                        <Avatar className="h-full w-full rounded-lg sm:rounded-2xl bg-black/60 overflow-hidden">
                             <AvatarImage 
                                 key={logoUrl} 
                                 src={logoUrl} 
@@ -176,7 +176,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                                 className="object-contain w-full h-full p-0.5 sm:p-1" 
                                 referrerPolicy="no-referrer" 
                             />
-                            <AvatarFallback className="bg-black/60 font-black text-[9px] sm:text-xs text-white/50 flex items-center justify-center">
+                            <AvatarFallback className="bg-black/60 font-black text-[8px] sm:text-xs text-white/50 flex items-center justify-center">
                                 {name.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
@@ -191,7 +191,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                                     boxShadow: `0 0 10px ${glowRgba}`
                                 }}
                             >
-                                <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current text-current" />
+                                <Crown className="w-2 h-2 sm:w-3 sm:h-3 fill-current text-current" />
                             </div>
                         )}
                     </div>
@@ -222,7 +222,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                     {/* Club / Flag Micro-Pill */}
                     <div 
                         className={cn(
-                            "inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full border mb-1 max-w-full transition-all duration-300",
+                            "inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 rounded-full border mb-0.5 sm:mb-1 max-w-full transition-all duration-300",
                             isWinner 
                                 ? "" 
                                 : "bg-white/[0.04] border-white/10 text-white/50"
@@ -234,7 +234,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                         } : undefined}
                     >
                         <Shield className="w-2 h-2 sm:w-2.5 sm:h-2.5 shrink-0 opacity-70" />
-                        <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider truncate inline-block pr-1">
+                        <span className="text-[6.5px] sm:text-[9px] font-black uppercase tracking-wider truncate inline-block pr-0.5">
                             {team?.name || 'ATHLETE UNIT'}
                         </span>
                     </div>
@@ -243,7 +243,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                     <h4 
                         title={name}
                         className={cn(
-                            "font-headline text-xs sm:text-2xl font-black uppercase italic tracking-normal sm:tracking-tight truncate max-w-full leading-none transition-colors duration-500 inline-block pr-2 py-0.5",
+                            "font-headline text-[11px] sm:text-2xl font-black uppercase italic tracking-normal sm:tracking-tight truncate max-w-full leading-none transition-colors duration-500 inline-block pr-1.5 py-0.5",
                             isWinner 
                                 ? "drop-shadow-md" 
                                 : isLoser
@@ -397,10 +397,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                 {/* Center Battle Core (VS / Scoreboard) */}
                 <div className="flex flex-col items-center justify-center shrink-0 relative px-0.5 sm:px-4">
                     {hasValidScore ? (
-                        <div className="flex flex-col items-center gap-1.5">
+                        <div className="flex flex-col items-center gap-1">
                             {/* Scoreboard Pod */}
                             <div className={cn(
-                                "relative overflow-hidden flex items-center justify-center gap-2 sm:gap-6 px-2.5 sm:px-7 py-1 sm:py-3 rounded-xl sm:rounded-3xl border transition-all duration-500 shadow-2xl",
+                                "relative overflow-hidden flex items-center justify-center gap-1.5 sm:gap-6 px-2 sm:px-7 py-1 sm:py-3 rounded-lg sm:rounded-3xl border transition-all duration-500 shadow-xl",
                                 match.status === 'Live'
                                     ? "bg-gradient-to-b from-[#2a0808] to-black border-red-500 shadow-[0_0_35px_rgba(239,68,68,0.4)] animate-pulse"
                                     : "bg-gradient-to-b from-black/95 via-black/80 to-[#0A101D] border-white/15 shadow-[0_15px_35px_rgba(0,0,0,0.9)]"
@@ -408,7 +408,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                                 {/* Score 1 */}
                                 <span 
                                     className={cn(
-                                        "text-lg sm:text-5xl font-black italic tabular-nums font-headline leading-none transition-all duration-500",
+                                        "text-base sm:text-5xl font-black italic tabular-nums font-headline leading-none transition-all duration-500",
                                         isW1 
                                             ? "scale-110" 
                                             : match.status === 'Live' 
@@ -424,14 +424,14 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                                 </span>
 
                                 {/* Score Divider */}
-                                <div className="flex flex-col items-center gap-1">
+                                <div className="flex flex-col items-center gap-0.5 sm:gap-1">
                                     <div className={cn(
-                                        "w-1 h-1 rounded-full",
+                                        "w-0.5 sm:w-1 h-0.5 sm:h-1 rounded-full",
                                         match.status === 'Live' ? "bg-red-500 animate-ping" : "bg-white/20"
                                     )} />
-                                    <div className="w-px h-4 sm:h-8 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+                                    <div className="w-px h-3 sm:h-8 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
                                     <div className={cn(
-                                        "w-1 h-1 rounded-full",
+                                        "w-0.5 sm:w-1 h-0.5 sm:h-1 rounded-full",
                                         match.status === 'Live' ? "bg-red-500 animate-ping" : "bg-white/20"
                                     )} />
                                 </div>
@@ -439,7 +439,7 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                                 {/* Score 2 */}
                                 <span 
                                     className={cn(
-                                        "text-lg sm:text-5xl font-black italic tabular-nums font-headline leading-none transition-all duration-500",
+                                        "text-base sm:text-5xl font-black italic tabular-nums font-headline leading-none transition-all duration-500",
                                         isW2 
                                             ? "scale-110" 
                                             : match.status === 'Live' 

@@ -446,7 +446,7 @@ const SingleTable = memo(({
                 <TableRow 
                   key={entry.id} 
                   className={cn(
-                    "transition-all h-16 sm:h-20 border-b border-white/5 relative group/row overflow-hidden",
+                    "transition-all h-13 sm:h-18 border-b border-white/5 relative group/row overflow-hidden",
                     isPromotionZone ? "bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]" :
                     isFirst ? activeTheme.tableLeaderBg : 
                     isUpperBracketZone ? "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.07]" : 
@@ -456,7 +456,7 @@ const SingleTable = memo(({
                   )}
                 >
                   {/* Rank Cell with Laser Edge Tracer */}
-                  <TableCell className="relative p-0 text-center w-10 sm:w-16">
+                  <TableCell className="relative p-0 text-center w-8 sm:w-16">
                     {/* Left aerodynamic laser beam */}
                     <div 
                       className={cn(
@@ -501,9 +501,9 @@ const SingleTable = memo(({
                   </TableCell>
 
                   {/* Athlete & Team Cell */}
-                  <TableCell className="relative overflow-visible py-2 sm:py-3 pl-2 sm:pl-4">
+                  <TableCell className="relative overflow-visible py-1.5 sm:py-3 pl-1.5 sm:pl-4">
                     <div 
-                      className="flex items-center gap-2 sm:gap-4 cursor-pointer group/node" 
+                      className="flex items-center gap-2 sm:gap-3.5 cursor-pointer group/node min-w-0" 
                       onClick={() => onSelectPlayer(entry)}
                       title="Klik untuk melihat Season Performance HUD"
                     >
@@ -513,27 +513,27 @@ const SingleTable = memo(({
                           isFirst ? cn(activeTheme.tableLeaderGlow, "opacity-100") : "group-hover/node:opacity-50"
                         )} />
                         <Avatar className={cn(
-                          "h-8 w-8 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 shadow-xl relative z-10", 
+                          "h-7 w-7 sm:h-11 sm:w-11 rounded-lg sm:rounded-2xl border transition-all duration-300 shadow-md relative z-10", 
                           isFirst ? cn("border-2 scale-105", activeTheme.tagBorder) : "border-white/15 group-hover/node:scale-105"
                         )}>
                           <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
-                          <AvatarFallback className="bg-black/60 font-black text-[10px] sm:text-xs rounded-xl sm:rounded-2xl"><User className="w-4 h-4 sm:w-6 sm:h-6 text-white/30"/></AvatarFallback>
+                          <AvatarFallback className="bg-black/60 font-black text-[9px] sm:text-xs rounded-lg sm:rounded-2xl"><User className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white/30"/></AvatarFallback>
                         </Avatar>
                       </div>
 
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           <span 
                             className={cn(
-                              "font-black tracking-tight transition-colors truncate uppercase italic pr-1 font-headline", 
-                              isFirst ? cn("text-xs sm:text-base drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]", activeTheme.primaryText) : "text-xs sm:text-sm text-white group-hover/node:text-white"
+                              "font-black tracking-tight transition-colors truncate uppercase italic pr-1 font-headline leading-tight", 
+                              isFirst ? cn("text-[11px] sm:text-base drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]", activeTheme.primaryText) : "text-[11px] sm:text-sm text-white group-hover/node:text-white"
                             )} 
                             suppressHydrationWarning
                           >
                             {entry.playerName}
                           </span>
                           {isFirst && (
-                            <Badge className={cn("border-none text-[8px] px-1.5 h-4 rounded-full uppercase italic shrink-0 hidden sm:inline-flex shadow-sm", activeTheme.tableLeaderBadge)}>
+                            <Badge className={cn("border-none text-[7px] sm:text-[8px] px-1 sm:px-1.5 h-3.5 sm:h-4 rounded-full uppercase italic shrink-0 hidden sm:inline-flex shadow-sm", activeTheme.tableLeaderBadge)}>
                               LEADER
                             </Badge>
                           )}
