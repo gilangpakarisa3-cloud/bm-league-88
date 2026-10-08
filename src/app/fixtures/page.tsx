@@ -368,17 +368,17 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                 {/* Left Athlete Pod */}
                 <div className="w-full flex items-center gap-2 min-w-0">
                     {isAdmin && match.status === 'Live' && (
-                        <div className="flex flex-col gap-1 shrink-0 animate-in fade-in duration-300">
+                        <div className="flex flex-col gap-1.5 shrink-0 animate-in fade-in duration-300">
                             <Button 
                                 size="icon" 
                                 variant="outline" 
-                                className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg" 
+                                className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl active:scale-90 transition-transform" 
                                 style={{ borderColor: `${primaryHex}40`, backgroundColor: `${primaryHex}15`, color: primaryHex }}
                                 onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', 1)}
                             >
-                                <Plus className="h-3 w-3" />
+                                <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
                             </Button>
-                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-3 w-3" /></Button>
+                            <Button size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl border-white/10 bg-white/5 hover:bg-red-500 hover:text-white active:scale-90 transition-transform" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-4 w-4 sm:h-3 sm:w-3" /></Button>
                         </div>
                     )}
                     <PlayerCombatantPod 
@@ -547,48 +547,48 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                         subPlayer2={match.p2n2}
                     />
                     {isAdmin && match.status === 'Live' && (
-                        <div className="flex flex-col gap-1 shrink-0 animate-in fade-in duration-300">
+                        <div className="flex flex-col gap-1.5 shrink-0 animate-in fade-in duration-300">
                             <Button 
                                 size="icon" 
                                 variant="outline" 
-                                className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg" 
+                                className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl active:scale-90 transition-transform" 
                                 style={{ borderColor: `${primaryHex}40`, backgroundColor: `${primaryHex}15`, color: primaryHex }}
                                 onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', 1)}
                             >
-                                <Plus className="h-3 w-3" />
+                                <Plus className="h-4 w-4 sm:h-3 sm:w-3" />
                             </Button>
-                            <Button size="icon" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', -1)}><Minus className="h-3 w-3" /></Button>
+                            <Button size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl border-white/10 bg-white/5 hover:bg-red-500 hover:text-white active:scale-90 transition-transform" onClick={() => onQuickUpdate(match.id, isMatchBo3 ? 'player2Wins' : 'player2Score', -1)}><Minus className="h-4 w-4 sm:h-3 sm:w-3" /></Button>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Bottom Cockpit Action Bar inside capsule */}
-            <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-2.5 sm:py-3 bg-black/60 border-t border-white/5">
+            <div className="relative z-10 flex flex-wrap items-center justify-between gap-2.5 px-3.5 sm:px-8 py-3 bg-black/60 border-t border-white/5">
                 <div className="flex items-center gap-2">
                     <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-white/30 italic">
                         STADIUM PITCH // FIXTURE-{match.id.substring(0, 4).toUpperCase()}
                     </span>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 sm:gap-2.5 ml-auto">
                     <Button 
                         variant="ghost" 
                         size="icon"
                         title="Bagikan Kartu Pertandingan ke WhatsApp"
-                        className="h-9 w-9 sm:h-10 sm:w-10 text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 rounded-full transition-all group/share"
+                        className="h-11 w-11 sm:h-10 sm:w-10 text-white/70 hover:text-white border border-white/15 hover:border-white/30 bg-white/5 hover:bg-white/10 rounded-full transition-all group/share active:scale-95"
                         onClick={() => onShareMatch(match)}
                     >
-                        <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover/share:scale-110 transition-transform" />
+                        <Share2 className="h-4 w-4 group-hover/share:scale-110 transition-transform" />
                     </Button>
 
                     <Button 
                         variant="ghost" 
                         className={cn(
-                            "h-9 sm:h-10 px-4 sm:px-7 text-[9px] sm:text-[11px] font-black uppercase tracking-wider italic transition-all duration-300 rounded-full",
+                            "h-11 sm:h-10 px-5 sm:px-7 text-[10px] sm:text-[11px] font-black uppercase tracking-wider italic transition-all duration-300 rounded-full active:scale-95",
                             hasValidScore 
-                                ? "text-white/70 border border-white/15 bg-white/5 hover:border-white/30 hover:text-white hover:bg-white/10" 
-                                : "font-black border-none hover:scale-105 active:scale-95"
+                                ? "text-white/80 border border-white/20 bg-white/5 hover:border-white/30 hover:text-white hover:bg-white/10" 
+                                : "font-black border-none hover:scale-105"
                         )}
                         style={!hasValidScore ? {
                             background: `linear-gradient(to right, ${primaryHex}, ${secondaryHex})`,
@@ -618,10 +618,10 @@ const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMatch, onQ
                             variant="ghost" 
                             size="icon" 
                             title="Revert match result"
-                            className="h-9 w-9 sm:h-10 sm:w-10 text-amber-400/80 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/50 bg-amber-500/5 hover:bg-amber-500/10 rounded-full transition-all" 
+                            className="h-11 w-11 sm:h-10 sm:w-10 text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/20 rounded-full transition-all active:scale-95" 
                             onClick={() => onRevertMatch(match)}
                         >
-                            <Undo2 className="h-3.5 w-3.5" />
+                            <Undo2 className="h-4 w-4" />
                         </Button>
                     )}
                 </div>

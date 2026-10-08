@@ -105,9 +105,9 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                         {/* Player 1 */}
                         <div className="flex items-center gap-4 flex-1">
                             {isAdmin && (
-                                <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
-                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-xl border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', 1)}><Plus className="h-3 w-3" /></Button>
-                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-xl border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-3 w-3" /></Button>
+                                <div className="flex flex-col gap-1.5 shrink-0 animate-in fade-in slide-in-from-left-2 duration-500">
+                                    <Button size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl border-primary/30 bg-primary/10 hover:bg-primary hover:text-black active:scale-90 transition-transform" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', 1)}><Plus className="h-4 w-4 sm:h-3 sm:w-3" /></Button>
+                                    <Button size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl border-white/10 bg-white/5 hover:bg-red-500 hover:text-white active:scale-90 transition-transform" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player1Wins' : 'player1Score', -1)}><Minus className="h-4 w-4 sm:h-3 sm:w-3" /></Button>
                                 </div>
                             )}
                             <div className="flex flex-col items-center gap-3 flex-1">
@@ -177,9 +177,9 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                 <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest italic truncate max-w-[100px] text-center pr-2">{p2?.name || match.player2Id}</span>
                             </div>
                             {isAdmin && (
-                                <div className="flex flex-col gap-1 shrink-0 animate-in fade-in slide-in-from-right-2 duration-500">
-                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-primary/30 bg-primary/10 hover:bg-primary hover:text-black" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player2Wins' : 'player2Score', 1)}><Plus className="h-3 w-3" /></Button>
-                                    <Button size="icon" variant="outline" className="h-7 w-7 rounded-lg border-white/10 bg-white/5 hover:bg-red-500 hover:text-white" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player2Wins' : 'player2Score', -1)}><Minus className="h-3 w-3" /></Button>
+                                <div className="flex flex-col gap-1.5 shrink-0 animate-in fade-in slide-in-from-right-2 duration-500">
+                                    <Button size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl border-primary/30 bg-primary/10 hover:bg-primary hover:text-black active:scale-90 transition-transform" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player2Wins' : 'player2Score', 1)}><Plus className="h-4 w-4 sm:h-3 sm:w-3" /></Button>
+                                    <Button size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 rounded-xl border-white/10 bg-white/5 hover:bg-red-500 hover:text-white active:scale-90 transition-transform" onClick={() => handleQuickUpdate(match.id, isBo3 ? 'player2Wins' : 'player2Score', -1)}><Minus className="h-4 w-4 sm:h-3 sm:w-3" /></Button>
                                 </div>
                             )}
                         </div>

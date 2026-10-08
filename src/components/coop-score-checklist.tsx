@@ -122,7 +122,7 @@ export function CoopScoreChecklist({ player1Name, player2Name, winners, onWinner
                                       onClick={() => onWinnerChange(i, p.id)}
                                       disabled={isDisabled}
                                       className={cn(
-                                          "flex flex-col items-center gap-2.5 p-3.5 rounded-xl border-2 transition-all duration-500 group/btn relative overflow-hidden",
+                                          "flex flex-col items-center gap-2.5 p-3.5 min-h-[72px] rounded-2xl border-2 transition-all duration-300 group/btn relative overflow-hidden active:scale-95",
                                           !isSelected && "bg-white/[0.03] border-white/5 hover:bg-white/10 hover:border-white/30"
                                       )}
                                       style={isSelected ? {

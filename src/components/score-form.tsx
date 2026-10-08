@@ -145,26 +145,26 @@ const ScoreControl = memo(({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5 sm:gap-4">
         <Button 
           type="button" 
           variant="outline" 
           size="icon" 
           className={cn(
-            "rounded-full border border-white/15 bg-white/5 transition-all duration-300 active:scale-90 text-white/80 shrink-0",
-            size === "sm" ? "h-9 w-9" : "h-12 w-12",
+            "rounded-full border border-white/20 bg-white/10 hover:bg-white/20 transition-all duration-200 active:scale-90 text-white shrink-0 shadow-md",
+            size === "sm" ? "h-11 w-11 sm:h-10 sm:w-10" : "h-13 w-13 sm:h-14 sm:w-14",
             (disabled || readOnly) && "opacity-20 pointer-events-none"
           )}
           onClick={onDecrement}
           disabled={disabled || readOnly}
         >
-          <Minus className={cn(size === "sm" ? "h-3.5 w-3.5" : "h-5 w-5", "transition-colors")} />
+          <Minus className={cn(size === "sm" ? "h-4 w-4" : "h-6 w-6 sm:h-5 sm:w-5", "transition-colors")} />
         </Button>
         
         <div 
           className={cn(
             "relative overflow-hidden bg-gradient-to-b from-black/90 to-black/95 border rounded-2xl flex items-center justify-center transition-all group/box",
-            size === "sm" ? "w-20 h-12" : "w-28 h-20",
+            size === "sm" ? "w-20 h-12" : "w-24 sm:w-28 h-18 sm:h-20",
             disabled && "opacity-50 grayscale",
             readOnly && "border-white/10 shadow-none bg-black/60"
           )}
@@ -185,7 +185,7 @@ const ScoreControl = memo(({
           <span 
             className={cn(
               "font-black italic relative z-10 tabular-nums font-headline",
-              size === "sm" ? "text-2xl" : "text-5xl",
+              size === "sm" ? "text-2xl" : "text-4xl sm:text-5xl",
               readOnly && "text-white/60 drop-shadow-none"
             )}
             style={!readOnly ? {
@@ -202,17 +202,17 @@ const ScoreControl = memo(({
           variant="outline" 
           size="icon" 
           className={cn(
-            "rounded-full border border-white/15 bg-white/5 transition-all duration-300 active:scale-90 text-white/80 shrink-0",
-            size === "sm" ? "h-9 w-9" : "h-12 w-12",
+            "rounded-full border border-white/20 bg-white/10 hover:bg-white/20 transition-all duration-200 active:scale-90 text-white shrink-0 shadow-md",
+            size === "sm" ? "h-11 w-11 sm:h-10 sm:w-10" : "h-13 w-13 sm:h-14 sm:w-14",
             (disabled || readOnly) && "opacity-20 pointer-events-none"
           )}
           onClick={onIncrement}
           disabled={disabled || readOnly}
         >
-          <Plus className={cn(size === "sm" ? "h-3.5 w-3.5" : "h-5 w-5", "transition-colors")} />
+          <Plus className={cn(size === "sm" ? "h-4 w-4" : "h-6 w-6 sm:h-5 sm:w-5", "transition-colors")} />
         </Button>
       </div>
-      <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.25em] italic text-center max-w-[140px] mt-1">{label}</p>
+      <p className="text-[9px] sm:text-[10px] font-black text-white/50 uppercase tracking-[0.2em] sm:tracking-[0.25em] italic text-center max-w-[140px] mt-0.5">{label}</p>
     </div>
   );
 });
@@ -579,23 +579,23 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
         )}
 
         {/* Date & Time Picker */}
-        <div className={cn("bg-white/[0.02] p-5 sm:p-6 rounded-3xl border border-white/10 space-y-4 backdrop-blur-sm", isSaving && "opacity-20 pointer-events-none")}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+        <div className={cn("bg-white/[0.02] p-4 sm:p-6 rounded-3xl border border-white/10 space-y-4 backdrop-blur-sm", isSaving && "opacity-20 pointer-events-none")}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 items-start">
                 <FormField
                   control={form.control}
                   name="date"
                   render={({ field }) => (
                     <FormItem className="space-y-1.5">
                       <FormLabel 
-                        className="text-[9px] font-black uppercase tracking-[0.25em] flex items-center gap-1.5"
+                        className="text-[9.5px] font-black uppercase tracking-[0.25em] flex items-center gap-1.5"
                         style={{ color: primaryHex }}
                       >
-                        <CalendarIcon className="w-3 h-3" /> Scheduled Date
+                        <CalendarIcon className="w-3.5 h-3.5" /> Scheduled Date
                       </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild disabled={isSaving}>
                           <FormControl>
-                            <Button variant={"outline"} className={cn("w-full pl-3 text-left font-black h-12 border-white/10 bg-black/60 rounded-xl text-[11px] uppercase text-center hover:border-white/30", !field.value && "text-white/30")}>
+                            <Button variant={"outline"} className={cn("w-full pl-3 text-left font-black h-13 border-white/15 bg-black/60 rounded-2xl text-xs sm:text-sm uppercase text-center hover:border-white/30 active:scale-[0.99]", !field.value && "text-white/30")}>
                               {field.value ? format(field.value as Date, "eeee, d MMM yyyy", { locale: localeId }) : <span>Input Date</span>}
                             </Button>
                           </FormControl>
@@ -613,27 +613,27 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
                   render={({ field }) => (
                     <FormItem className="space-y-1.5">
                       <FormLabel 
-                        className="text-[9px] font-black uppercase tracking-[0.25em] flex items-center gap-1.5"
+                        className="text-[9.5px] font-black uppercase tracking-[0.25em] flex items-center gap-1.5"
                         style={{ color: primaryHex }}
                       >
-                        <Clock className="w-3 h-3" /> Kick-Off Time (24H)
+                        <Clock className="w-3.5 h-3.5" /> Kick-Off Time (24H)
                       </FormLabel>
                       <div className="flex items-center justify-center gap-2">
                         <Select value={editHour} onValueChange={(val) => field.onChange(`${val}:${editMin}`)} disabled={isSaving}>
-                            <SelectTrigger className="h-12 font-black border-white/10 bg-black/60 rounded-xl text-base tabular-nums w-full text-center hover:border-white/30">
+                            <SelectTrigger className="h-13 font-black border-white/15 bg-black/60 rounded-2xl text-lg tabular-nums w-full text-center hover:border-white/30 active:scale-[0.99]">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-black/95 border-white/20 rounded-xl backdrop-blur-2xl">
-                                {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black">{v}</SelectItem>))}
+                            <SelectContent className="bg-black/95 border-white/20 rounded-2xl backdrop-blur-2xl max-h-56">
+                                {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black text-sm py-2.5">{v}</SelectItem>))}
                             </SelectContent>
                         </Select>
-                        <span className="font-black text-xl" style={{ color: primaryHex }}>:</span>
+                        <span className="font-black text-2xl" style={{ color: primaryHex }}>:</span>
                         <Select value={editMin} onValueChange={(val) => field.onChange(`${editHour}:${val}`)} disabled={isSaving}>
-                            <SelectTrigger className="h-12 font-black border-white/10 bg-black/60 rounded-xl text-base tabular-nums w-full text-center hover:border-white/30">
+                            <SelectTrigger className="h-13 font-black border-white/15 bg-black/60 rounded-2xl text-lg tabular-nums w-full text-center hover:border-white/30 active:scale-[0.99]">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-black/95 border-white/20 rounded-xl backdrop-blur-2xl">
-                                {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black">{v}</SelectItem>))}
+                            <SelectContent className="bg-black/95 border-white/20 rounded-2xl backdrop-blur-2xl max-h-56">
+                                {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black text-sm py-2.5">{v}</SelectItem>))}
                             </SelectContent>
                         </Select>
                       </div>
@@ -644,12 +644,12 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
         </div>
 
         {/* Submit Action Button */}
-        <div className="pt-3 relative">
+        <div className="pt-2 sticky bottom-0 z-20 bg-gradient-to-t from-black via-black/95 to-transparent pb-1">
             <Button 
                 type="submit" 
                 disabled={isSaving} 
                 className={cn(
-                    "w-full h-14 text-sm sm:text-base font-black tracking-[0.2em] gap-3 rounded-full uppercase italic transition-all duration-300 relative overflow-hidden text-black hover:scale-[1.01] active:scale-[0.99]", 
+                    "w-full h-14 sm:h-15 text-sm sm:text-base font-black tracking-[0.2em] gap-3 rounded-2xl sm:rounded-full uppercase italic transition-all duration-300 relative overflow-hidden text-black hover:scale-[1.01] active:scale-[0.98] shadow-2xl", 
                     isSaving && "opacity-60 cursor-wait"
                 )}
                 style={{

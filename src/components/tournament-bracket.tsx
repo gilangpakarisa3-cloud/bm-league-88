@@ -2420,16 +2420,16 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             <div className="relative z-10 animate-in slide-in-from-top-3 duration-500">
                                 <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-3 sm:p-4 rounded-2xl relative overflow-hidden shadow-lg">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center text-center">
-                                        <div className="flex flex-col items-center space-y-1.5">
+                                        <div className="flex flex-col items-center space-y-2">
                                             <Label 
-                                                className="text-[9px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
+                                                className="text-[9.5px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
                                                 style={{ color: theme.primaryHex }}
                                             >
-                                                <CalendarIcon className="w-3 h-3" /> Tanggal Pertandingan
+                                                <CalendarIcon className="w-3.5 h-3.5" /> Tanggal Pertandingan
                                             </Label>
                                             <Popover>
                                                 <PopoverTrigger asChild disabled={!isAdmin}>
-                                                    <Button variant="outline" className="w-full h-9 bg-white/[0.03] border border-white/10 font-black text-xs uppercase rounded-xl tracking-tight transition-all px-3 text-center hover:border-white/30">
+                                                    <Button variant="outline" className="w-full h-11 bg-white/[0.04] border border-white/15 font-black text-xs uppercase rounded-xl tracking-tight transition-all px-3.5 text-center hover:border-white/30 active:scale-[0.99]">
                                                         {editDate ? format(editDate, "eeee, d MMM yyyy", { locale: localeId }) : "TBD"}
                                                     </Button>
                                                 </PopoverTrigger>
@@ -2440,54 +2440,54 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 )}
                                             </Popover>
                                         </div>
-                                        <div className="flex flex-col items-center space-y-1.5">
+                                        <div className="flex flex-col items-center space-y-2">
                                             <Label 
-                                                className="text-[9px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
+                                                className="text-[9.5px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
                                                 style={{ color: theme.primaryHex }}
                                             >
-                                                <Clock className="w-3 h-3" /> Waktu Kick-Off (24H)
+                                                <Clock className="w-3.5 h-3.5" /> Waktu Kick-Off (24H)
                                             </Label>
                                             <div className="flex items-center justify-center gap-2">
                                                 <Select value={editHour} onValueChange={(val) => setEditTime(`${val}:${editMin}`)} disabled={!isAdmin}>
-                                                    <SelectTrigger className="h-9 bg-white/[0.03] border border-white/10 focus:border-white/40 font-black text-sm tabular-nums w-20 rounded-xl text-center">
+                                                    <SelectTrigger className="h-11 bg-white/[0.04] border border-white/15 focus:border-white/40 font-black text-base tabular-nums w-24 rounded-xl text-center active:scale-[0.99]">
                                                         <SelectValue />
                                                     </SelectTrigger>
-                                                    <SelectContent className="bg-black/95 border-white/20 rounded-xl">
-                                                        {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
+                                                    <SelectContent className="bg-black/95 border-white/20 rounded-xl max-h-56">
+                                                        {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black text-sm py-2">{v}</SelectItem>))}
                                                     </SelectContent>
                                                 </Select>
-                                                <span className="font-black text-base" style={{ color: theme.primaryHex }}>:</span>
+                                                <span className="font-black text-xl" style={{ color: theme.primaryHex }}>:</span>
                                                 <Select value={editMin} onValueChange={(val) => setEditTime(`${editHour}:${val}`)} disabled={!isAdmin}>
-                                                    <SelectTrigger className="h-9 bg-white/[0.03] border border-white/10 focus:border-white/40 font-black text-sm tabular-nums w-20 rounded-xl text-center">
+                                                    <SelectTrigger className="h-11 bg-white/[0.04] border border-white/15 focus:border-white/40 font-black text-base tabular-nums w-24 rounded-xl text-center active:scale-[0.99]">
                                                         <SelectValue />
                                                     </SelectTrigger>
-                                                    <SelectContent className="bg-black/95 border-white/20 rounded-xl">
-                                                        {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
+                                                    <SelectContent className="bg-black/95 border-white/20 rounded-xl max-h-56">
+                                                        {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map(v => (<SelectItem key={v} value={v} className="font-black text-sm py-2">{v}</SelectItem>))}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                         </div>
                                     </div>
                                     {isAdmin && (
-                                        <div className="mt-3 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-center gap-2">
+                                        <div className="mt-3.5 pt-3 border-t border-white/10 flex flex-wrap items-center justify-center gap-2.5">
                                             <Button 
                                                 onClick={handleSaveManualSchedule} 
                                                 disabled={isUpdatingSchedule} 
-                                                className="h-8 px-6 font-black uppercase italic tracking-wider text-[10px] gap-1.5 rounded-lg text-black transition-all"
+                                                className="h-11 px-7 font-black uppercase italic tracking-wider text-[10px] gap-2 rounded-xl text-black transition-all active:scale-95"
                                                 style={{
                                                     backgroundColor: theme.primaryHex,
                                                     boxShadow: `0 0 15px ${theme.primaryHex}4D`
                                                 }}
                                             >
-                                                {isUpdatingSchedule ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} SIMPAN JADWAL
+                                                {isUpdatingSchedule ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} SIMPAN JADWAL
                                             </Button>
                                             {selectedMatch?.isCompleted && onRevertMatch && (
                                                 <Button 
                                                     variant="outline" 
-                                                    className="bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-wider text-[9px] h-8 px-4 rounded-lg transition-all gap-1.5" 
+                                                    className="bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-wider text-[10px] h-11 px-5 rounded-xl transition-all gap-2 active:scale-95" 
                                                     onClick={() => { onRevertMatch(selectedMatch); setSelectedMatch(null); }}
                                                 >
-                                                    <Undo2 className="w-3 h-3" /> RESET SKOR
+                                                    <Undo2 className="w-4 h-4" /> RESET SKOR
                                                 </Button>
                                             )}
                                         </div>
