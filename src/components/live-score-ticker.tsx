@@ -251,22 +251,35 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                               </div>
                             )}
 
-                            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                                {/* Crest Avatar with Neon Halo */}
+                            <div className="flex items-center gap-3.5 sm:gap-5 min-w-0 flex-1">
+                                {/* Futuristic Cyber Shield / Squircle Logo Frame */}
                                 <div className="relative shrink-0">
                                     <div 
-                                      className="absolute -inset-1.5 rounded-full blur-md opacity-30 group-hover/card:opacity-80 transition-opacity"
+                                      className="absolute -inset-1.5 rounded-2xl sm:rounded-3xl blur-md opacity-30 group-hover/card:opacity-75 transition-opacity pointer-events-none"
                                       style={{ backgroundColor: primaryHex }}
                                     />
-                                    <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 bg-black/80 shadow-2xl relative ring-2 ring-white/10 transition-transform duration-500 group-hover/card:scale-105"
-                                      style={{ borderColor: `${primaryHex}60` }}
+                                    <div 
+                                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl border-2 p-2 relative flex items-center justify-center overflow-hidden transition-all duration-500 group-hover/card:scale-105 shadow-2xl bg-[#070b14]/90 backdrop-blur-md"
+                                      style={{ 
+                                        borderColor: `${primaryHex}60`,
+                                        boxShadow: `0 0 20px ${primaryHex}25`
+                                      }}
                                     >
-                                        <AvatarImage src={logo1} className="object-contain p-2" />
-                                        <AvatarFallback className="bg-black/90 font-black text-xs text-white">P1</AvatarFallback>
-                                    </Avatar>
+                                        {/* Carbon Sub-grid highlight */}
+                                        <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
+                                        {logo1 ? (
+                                          <img 
+                                            src={logo1} 
+                                            alt={p1?.name || 'Player 1'} 
+                                            className="w-full h-full object-contain drop-shadow-md select-none"
+                                          />
+                                        ) : (
+                                          <span className="font-black text-xs text-white uppercase font-mono">P1</span>
+                                        )}
+                                    </div>
                                     {isBo3 && (
                                       <div 
-                                        className="absolute -top-1 -right-1 font-black text-[10px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#090d16] shadow-lg text-black"
+                                        className="absolute -top-1.5 -right-1.5 font-black text-[10px] w-6 h-6 rounded-lg flex items-center justify-center border-2 border-[#090d16] shadow-lg text-black"
                                         style={{ backgroundColor: primaryHex }}
                                       >
                                           {match.player1Wins}
@@ -274,16 +287,19 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                     )}
                                 </div>
 
-                                <div className="flex flex-col min-w-0">
-                                    <span className="text-[9px] font-mono uppercase tracking-[0.2em] font-black" style={{ color: primaryHex }}>
+                                <div className="flex flex-col min-w-0 pr-1">
+                                    <span 
+                                      className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.2em] font-black truncate"
+                                      style={{ color: primaryHex }}
+                                    >
                                       {t1?.name || 'HOME UNIT'}
                                     </span>
-                                    <h3 className="text-base sm:text-xl font-black text-white uppercase italic tracking-tight truncate drop-shadow-md">
+                                    <h3 className="text-lg sm:text-2xl font-black text-white uppercase italic tracking-tight truncate drop-shadow-md pr-3 pb-0.5 leading-snug">
                                       {p1?.name || match.player1Id}
                                     </h3>
                                     {isBo3 && (
-                                      <span className="text-[9px] font-mono text-white/40 tracking-wider">
-                                        WINS: <strong className="text-white">{match.player1Wins ?? 0}</strong>
+                                      <span className="text-[9px] font-mono text-white/50 tracking-wider">
+                                        SERIES WINS: <strong className="text-white font-bold">{match.player1Wins ?? 0}</strong>
                                       </span>
                                     )}
                                 </div>
@@ -349,36 +365,52 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
 
                         {/* ---------------- PLAYER 2 (AWAY) ---------------- */}
                         <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 order-3 min-w-0">
-                            <div className="flex items-center justify-end gap-3 sm:gap-4 min-w-0 flex-1 text-right sm:order-1">
-                                <div className="flex flex-col min-w-0 items-end">
-                                    <span className="text-[9px] font-mono uppercase tracking-[0.2em] font-black" style={{ color: secondaryHex }}>
+                            <div className="flex items-center justify-end gap-3.5 sm:gap-5 min-w-0 flex-1 text-right sm:order-1">
+                                <div className="flex flex-col min-w-0 items-end pl-1">
+                                    <span 
+                                      className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.2em] font-black truncate"
+                                      style={{ color: secondaryHex }}
+                                    >
                                       {t2?.name || 'AWAY UNIT'}
                                     </span>
-                                    <h3 className="text-base sm:text-xl font-black text-white uppercase italic tracking-tight truncate drop-shadow-md">
+                                    <h3 className="text-lg sm:text-2xl font-black text-white uppercase italic tracking-tight truncate drop-shadow-md pl-3 pb-0.5 leading-snug">
                                       {p2?.name || match.player2Id}
                                     </h3>
                                     {isBo3 && (
-                                      <span className="text-[9px] font-mono text-white/40 tracking-wider">
-                                        WINS: <strong className="text-white">{match.player2Wins ?? 0}</strong>
+                                      <span className="text-[9px] font-mono text-white/50 tracking-wider">
+                                        SERIES WINS: <strong className="text-white font-bold">{match.player2Wins ?? 0}</strong>
                                       </span>
                                     )}
                                 </div>
 
-                                {/* Crest Avatar with Neon Halo */}
+                                {/* Futuristic Cyber Shield / Squircle Logo Frame */}
                                 <div className="relative shrink-0">
                                     <div 
-                                      className="absolute -inset-1.5 rounded-full blur-md opacity-30 group-hover/card:opacity-80 transition-opacity"
+                                      className="absolute -inset-1.5 rounded-2xl sm:rounded-3xl blur-md opacity-30 group-hover/card:opacity-75 transition-opacity pointer-events-none"
                                       style={{ backgroundColor: secondaryHex }}
                                     />
-                                    <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 bg-black/80 shadow-2xl relative ring-2 ring-white/10 transition-transform duration-500 group-hover/card:scale-105"
-                                      style={{ borderColor: `${secondaryHex}60` }}
+                                    <div 
+                                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl border-2 p-2 relative flex items-center justify-center overflow-hidden transition-all duration-500 group-hover/card:scale-105 shadow-2xl bg-[#070b14]/90 backdrop-blur-md"
+                                      style={{ 
+                                        borderColor: `${secondaryHex}60`,
+                                        boxShadow: `0 0 20px ${secondaryHex}25`
+                                      }}
                                     >
-                                        <AvatarImage src={logo2} className="object-contain p-2" />
-                                        <AvatarFallback className="bg-black/90 font-black text-xs text-white">P2</AvatarFallback>
-                                    </Avatar>
+                                        {/* Carbon Sub-grid highlight */}
+                                        <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
+                                        {logo2 ? (
+                                          <img 
+                                            src={logo2} 
+                                            alt={p2?.name || 'Player 2'} 
+                                            className="w-full h-full object-contain drop-shadow-md select-none"
+                                          />
+                                        ) : (
+                                          <span className="font-black text-xs text-white uppercase font-mono">P2</span>
+                                        )}
+                                    </div>
                                     {isBo3 && (
                                       <div 
-                                        className="absolute -top-1 -left-1 font-black text-[10px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#090d16] shadow-lg text-black"
+                                        className="absolute -top-1.5 -left-1.5 font-black text-[10px] w-6 h-6 rounded-lg flex items-center justify-center border-2 border-[#090d16] shadow-lg text-black"
                                         style={{ backgroundColor: secondaryHex }}
                                       >
                                           {match.player2Wins}
