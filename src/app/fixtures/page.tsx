@@ -1061,6 +1061,22 @@ export default function FixturesPage() {
   
   const allTeamsCol = useMemoFirebase(() => (firestore ? collection(firestore, 'teams') : null), [firestore]);
   const { data: allTeams, isLoading: isLoadingTeams } = useCollection<Team>(allTeamsCol);
+
+  const teamsById = useMemo(() => {
+    if (!allTeams) return {};
+    return allTeams.reduce((acc, t) => {
+        acc[t.id] = t;
+        return acc;
+    }, {} as Record<string, WithId<Team>>);
+  }, [allTeams]);
+
+  const playersById = useMemo(() => {
+    if (!allPlayers) return {};
+    return allPlayers.reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+    }, {} as Record<string, WithId<Player>>);
+  }, [allPlayers]);
   
   const matchesCol = useMemoFirebase(() => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null, [firestore, activeSeasonId]);
   const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCol);
