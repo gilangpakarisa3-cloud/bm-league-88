@@ -1154,14 +1154,14 @@ export default function LeaguePage() {
       <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-6 sm:py-8 space-y-10 animate-in fade-in duration-500">
         <div className="flex flex-col lg:flex-row justify-between items-stretch gap-6">
           <div 
-            className="flex flex-col justify-between flex-1 w-full py-8 sm:py-10 px-6 sm:px-10 relative overflow-hidden bg-[#0a0d14] backdrop-blur-3xl rounded-[2rem] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+            className="flex flex-col justify-between flex-1 w-full min-w-0 py-6 sm:py-8 px-4 sm:px-8 xl:px-10 relative overflow-hidden bg-[#0a0d14] backdrop-blur-3xl rounded-2xl sm:rounded-[2rem] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
           >
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-                <div className="space-y-3">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 min-w-0">
+                <div className="space-y-3 min-w-0 flex-1">
                     {/* Top Telemetry Strip */}
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                         <div 
-                          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full backdrop-blur-md border"
+                          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full backdrop-blur-md border shrink-0"
                           style={{ backgroundColor: `${theme.primaryHex}15`, borderColor: `${theme.primaryHex}40` }}
                         >
                             <div 
@@ -1169,28 +1169,28 @@ export default function LeaguePage() {
                               style={{ backgroundColor: theme.primaryHex }}
                             />
                             <span 
-                              className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] italic"
+                              className="text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] sm:tracking-[0.3em] italic"
                               style={{ color: theme.primaryHex }}
                             >
                               Live Match Centre
                             </span>
                         </div>
                         
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-sm">
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] font-mono text-white/60">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-sm max-w-full">
+                            <span className="text-[9px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] font-mono text-white/60 truncate">
                               {theme.sysTag} • {theme.editionName}
                             </span>
                         </div>
                     </div>
                     
                     {/* Ultra Futuristic & Ultra Sport Dual-Tone Headline */}
-                    <div className="relative">
-                      <h1 className="font-headline text-[28px] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight uppercase italic leading-[1] flex flex-wrap items-baseline gap-x-2 sm:gap-x-6">
-                          <span className="inline-block pr-3 sm:pr-8 pb-0.5 sm:pb-1 headline-white-gradient">
+                    <div className="relative min-w-0">
+                      <h1 className="font-headline text-2xl xs:text-3xl sm:text-5xl lg:text-7xl font-black tracking-tight uppercase italic leading-[1] flex flex-wrap items-baseline gap-x-2 sm:gap-x-6">
+                          <span className="inline-block pb-0.5 sm:pb-1 headline-white-gradient break-words">
                               {t('league_standings_page_title').split(' ')[0]}
                           </span>
                           <span 
-                            className="inline-block pr-3 sm:pr-6 pb-0.5 sm:pb-1"
+                            className="inline-block pb-0.5 sm:pb-1 break-words"
                             style={{ 
                               color: theme.primaryHex,
                             }}
@@ -1210,9 +1210,9 @@ export default function LeaguePage() {
                 </div>
 
                 {activeSeason && (
-                    <div className="flex flex-col items-start sm:items-end gap-2.5 shrink-0">
+                    <div className="flex flex-wrap md:flex-col items-start md:items-end gap-2 shrink-0">
                         <Badge 
-                          className="font-black tracking-[0.2em] text-[10px] sm:text-xs h-8 px-5 uppercase italic rounded-full backdrop-blur-md flex items-center gap-2 border shadow-lg"
+                          className="font-black tracking-[0.15em] sm:tracking-[0.2em] text-[10px] sm:text-xs h-7 sm:h-8 px-3.5 sm:px-5 uppercase italic rounded-full backdrop-blur-md flex items-center gap-2 border shadow-lg shrink-0"
                           style={{ 
                             backgroundColor: `${theme.primaryHex}20`, 
                             color: theme.primaryHex, 
@@ -1226,32 +1226,32 @@ export default function LeaguePage() {
                             />
                             {activeSeason.status}
                         </Badge>
-                        <div className="flex items-center gap-2 bg-white/[0.04] px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-sm shadow-inner">
-                            <CalendarIcon className="w-3.5 h-3.5" style={{ color: theme.primaryHex }} />
-                            {formattedDateRange && <p className="text-[10px] sm:text-xs font-black text-white/70 uppercase tracking-widest italic">{formattedDateRange}</p>}
+                        <div className="flex items-center gap-2 bg-white/[0.04] px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border border-white/10 backdrop-blur-sm shadow-inner shrink-0">
+                            <CalendarIcon className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryHex }} />
+                            {formattedDateRange && <p className="text-[10px] sm:text-xs font-black text-white/70 uppercase tracking-wider sm:tracking-widest italic">{formattedDateRange}</p>}
                         </div>
                     </div>
                 )}
             </div>
 
             {activeSeason && (
-                <div className="relative z-10 pt-6 mt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    <div className="flex items-center gap-3 bg-white/[0.03] border border-white/10 px-4 py-2 rounded-2xl backdrop-blur-sm">
+                <div className="relative z-10 pt-4 mt-4 border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 min-w-0">
+                    <div className="flex items-center gap-3 bg-white/[0.03] border border-white/10 px-3.5 sm:px-4 py-2 rounded-2xl backdrop-blur-sm min-w-0 flex-1">
                         <div 
                           className="w-2.5 h-2.5 rounded-full shrink-0" 
                           style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 10px ${theme.glowRgba}` }}
                         />
-                        <p className="text-lg sm:text-2xl lg:text-3xl font-black text-white tracking-tight uppercase italic pr-2 drop-shadow-md">
+                        <p className="text-base sm:text-xl lg:text-2xl font-black text-white tracking-tight uppercase italic break-words min-w-0">
                           {activeSeason.name}
                         </p>
                     </div>
                     
                     {matches && matches.length > 0 && (
-                        <div className="w-full sm:w-[360px] space-y-2 bg-white/[0.02] border border-white/10 p-3.5 rounded-2xl backdrop-blur-sm">
+                        <div className="w-full md:w-[320px] lg:w-[360px] shrink-0 space-y-2 bg-white/[0.02] border border-white/10 p-3.5 rounded-2xl backdrop-blur-sm">
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2">
-                                    <Activity className="w-3.5 h-3.5 animate-pulse" style={{ color: theme.primaryHex }} />
-                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/50">Season Progress</span>
+                                    <Activity className="w-3.5 h-3.5 animate-pulse shrink-0" style={{ color: theme.primaryHex }} />
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white/50">Season Progress</span>
                                 </div>
                                 <span className="text-xs font-black italic" style={{ color: theme.primaryHex }} suppressHydrationWarning>
                                   [{seasonProgress.toFixed(0)}%]
@@ -1267,7 +1267,7 @@ export default function LeaguePage() {
                                   }} 
                                 />
                             </div>
-                            <p className="text-[8px] font-black tracking-[0.3em] uppercase text-white/30 italic text-right">
+                            <p className="text-[8px] font-black tracking-[0.2em] sm:tracking-[0.3em] uppercase text-white/30 italic text-right">
                                 {completedMatchesCount} / {matches.length} PERTANDINGAN SELESAI
                             </p>
                         </div>
@@ -1276,7 +1276,7 @@ export default function LeaguePage() {
             )}
           </div>
           
-          <div className="w-full lg:w-[420px] flex items-stretch shrink-0">
+          <div className="w-full lg:w-[380px] xl:w-[420px] flex items-stretch shrink-0">
             <LiveClock className="h-full" theme={theme} />
           </div>
         </div>
