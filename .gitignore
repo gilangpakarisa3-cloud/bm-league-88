@@ -43,3 +43,5 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

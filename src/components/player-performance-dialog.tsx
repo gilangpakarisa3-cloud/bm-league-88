@@ -5,16 +5,23 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame, BarChart3, X } from 'lucide-react';
+import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer } from 'recharts';
-import { getSeasonTheme, type TISeasonTheme } from '@/lib/season-theme';
+import { Card, CardContent } from './ui/card';
+import { getSeasonTheme } from '@/lib/season-theme';
+
+import { StatChip } from './player-performance/stat-chip';
+import { IntelCard } from './player-performance/intel-card';
+import { TrendTab } from './player-performance/trend-tab';
+import { HistoryTab, UpcomingTab } from './player-performance/match-history-tabs';
+
+export { StatChip } from './player-performance/stat-chip';
+export { IntelCard } from './player-performance/intel-card';
+export { TrendTab } from './player-performance/trend-tab';
+export { HistoryTab, UpcomingTab } from './player-performance/match-history-tabs';
 
 interface PlayerPerformanceDialogProps {
   player: WithId<LeagueEntry> | null;
@@ -30,143 +37,6 @@ interface PlayerPerformanceDialogProps {
   coopLeagueTable: WithId<CoOpLeagueEntry>[];
   singleLeagueTable: WithId<LeagueEntry>[];
 }
-
-const StatChip = ({
-  code,
-  label,
-  value,
-  variant = 'default',
-  primaryHex,
-  glowRgba,
-  isCrimson = false
-}: {
-  code: string;
-  label: string;
-  value: string | number;
-  variant?: 'default' | 'primary' | 'gold' | 'win' | 'draw' | 'loss';
-  primaryHex?: string;
-  glowRgba?: string;
-  isCrimson?: boolean;
-}) => {
-  const isPrimary = variant === 'primary';
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center py-2.5 sm:py-3 px-1.5 sm:px-2 rounded-2xl border transition-all duration-300 relative overflow-hidden backdrop-blur-md group/stat",
-        variant === "gold" ? "bg-amber-500/[0.08] border-amber-500/40 hover:border-amber-500 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]" :
-        variant === "win" ? "bg-green-500/[0.08] border-green-500/30 hover:border-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)]" :
-        variant === "loss" ? "bg-red-500/[0.08] border-red-500/30 hover:border-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]" :
-        variant === "draw" ? "bg-yellow-500/[0.08] border-yellow-500/30 hover:border-yellow-500 hover:shadow-[0_0_20px_rgba(234,179,8,0.2)]" :
-        !isPrimary ? "bg-white/[0.03] border-white/10 hover:border-white/20" : ""
-      )}
-      style={isPrimary && primaryHex ? {
-        backgroundColor: `${primaryHex}14`,
-        borderColor: `${primaryHex}50`,
-        boxShadow: `0 0 16px ${primaryHex}20`
-      } : undefined}
-    >
-      <div className="flex items-center gap-1">
-        <span className="text-[7px] font-black uppercase text-white/30 tracking-widest">{code}</span>
-        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white/60">{label}</span>
-      </div>
-      <span
-        className={cn(
-          "text-lg sm:text-2xl font-black italic tabular-nums leading-none mt-1.5 font-headline",
-          variant === "gold" ? "text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]" :
-          variant === "win" ? "text-green-400" :
-          variant === "loss" ? "text-red-400" :
-          variant === "draw" ? "text-yellow-400" :
-          !isPrimary ? "text-white" : ""
-        )}
-        style={isPrimary && primaryHex ? {
-          color: primaryHex,
-          textShadow: `0 0 12px ${glowRgba || primaryHex}`
-        } : undefined}
-        suppressHydrationWarning
-      >
-        {value}
-      </span>
-    </div>
-  );
-};
-
-const IntelCard = ({ 
-  icon: Icon, 
-  label, 
-  value, 
-  variant = "default", 
-  tooltip,
-  primaryHex,
-  glowRgba
-}: { 
-  icon: any; 
-  label: string; 
-  value: string | number; 
-  variant?: "default" | "primary" | "gold"; 
-  tooltip?: string; 
-  primaryHex?: string;
-  glowRgba?: string;
-}) => {
-  const isPrimary = variant === "primary";
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <div 
-          className={cn(
-            "flex flex-col items-center text-center gap-1.5 p-3 rounded-2xl border transition-all duration-300 relative overflow-hidden group/intel cursor-help backdrop-blur-md shadow-md hover:scale-[1.02]",
-            variant === "gold" ? "bg-amber-500/[0.07] border-amber-500/30 hover:border-amber-500 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]" : 
-            !isPrimary ? "bg-white/[0.03] border-white/10 hover:border-white/20" : ""
-          )}
-          style={isPrimary && primaryHex ? {
-            backgroundColor: `${primaryHex}12`,
-            borderColor: `${primaryHex}45`,
-            boxShadow: `0 0 15px ${primaryHex}15`
-          } : undefined}
-        >
-          <div className="flex items-center justify-center gap-1.5 relative z-10">
-            <Icon 
-              className={cn("w-3.5 h-3.5", variant === "gold" ? "text-amber-400" : !isPrimary ? "text-white/60" : "")} 
-              style={isPrimary && primaryHex ? { color: primaryHex } : undefined}
-            />
-            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.15em] text-white/60">{label}</span>
-          </div>
-          <span 
-            className={cn(
-              "font-black text-sm sm:text-base uppercase italic leading-none relative z-10 mt-0.5", 
-              variant === "gold" ? "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : 
-              !isPrimary ? "text-white" : ""
-            )} 
-            style={isPrimary && primaryHex ? { 
-              color: primaryHex,
-              textShadow: `0 0 10px ${glowRgba || primaryHex}`
-            } : undefined}
-            suppressHydrationWarning
-          >
-            {value}
-          </span>
-        </div>
-      </PopoverTrigger>
-      {tooltip && (
-        <PopoverContent 
-          className="w-60 text-center bg-black/95 backdrop-blur-2xl rounded-2xl shadow-xl z-50 border"
-          style={primaryHex ? { borderColor: `${primaryHex}50` } : undefined}
-        >
-          <p className="text-[10px] font-bold text-white/80 leading-relaxed">{tooltip}</p>
-        </PopoverContent>
-      )}
-    </Popover>
-  );
-};
-
-const formatMatchDate = (d: any) => {
-  if (!d) return '-';
-  try {
-    const dateObj = typeof d.toDate === 'function' ? d.toDate() : new Date(d);
-    return format(dateObj, "d MMM, HH:mm", { locale: localeId });
-  } catch {
-    return '-';
-  }
-};
 
 export function PlayerPerformanceDialog({ 
   player, 
@@ -827,224 +697,30 @@ export function PlayerPerformanceDialog({
                   
                   {/* TAB 1: Match History */}
                   <TabsContent value="history" className="mt-0 outline-none animate-in fade-in duration-300">
-                    {completedMatches.length > 0 ? (
-                      <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent">
-                        {completedMatches.map(match => (
-                          <div 
-                            key={match.id} 
-                            className="group/match relative overflow-hidden transition-all duration-300 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-white/30 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-lg"
-                          >
-                            {/* Result vertical neon bar */}
-                            <div 
-                              className={cn(
-                                "absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300",
-                                match.result === 'L' ? "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]" : 
-                                match.result === 'D' ? "bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.8)]" : ""
-                              )}
-                              style={match.result === 'W' ? {
-                                backgroundColor: primaryHex,
-                                boxShadow: `0 0 12px ${glowRgba}`
-                              } : undefined}
-                            />
-                            
-                            <div className="flex items-center gap-3 sm:gap-4 relative z-10 min-w-0 flex-1">
-                              {/* Result badge M / K / S */}
-                              <div 
-                                className={cn(
-                                  "w-10 h-10 rounded-xl shrink-0 flex items-center justify-center text-xs font-black border transition-transform group-hover/match:scale-105", 
-                                  match.result === 'L' ? "bg-red-500/15 text-red-400 border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.2)]" : 
-                                  match.result === 'D' ? "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]" : ""
-                                )}
-                                style={match.result === 'W' ? {
-                                  backgroundColor: `${primaryHex}20`,
-                                  color: primaryHex,
-                                  borderColor: `${primaryHex}50`,
-                                  boxShadow: `0 0 10px ${primaryHex}30`
-                                } : undefined}
-                              >
-                                {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
-                              </div>
-
-                              {/* Opponent Info */}
-                              <div className="min-w-0 flex-1 text-left space-y-0.5">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white truncate max-w-[180px] sm:max-w-none" suppressHydrationWarning>
-                                    vs {match.opponent?.name || 'TBD'}
-                                  </span>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-widest shrink-0"
-                                    style={match.isPlayer1 ? {
-                                      borderColor: `${primaryHex}40`,
-                                      color: primaryHex,
-                                      backgroundColor: `${primaryHex}10`
-                                    } : {
-                                      borderColor: 'rgba(255,255,255,0.1)',
-                                      color: 'rgba(255,255,255,0.4)',
-                                      backgroundColor: 'rgba(255,255,255,0.05)'
-                                    }}
-                                  >
-                                    {match.isPlayer1 ? 'Home' : 'Away'}
-                                  </Badge>
-                                </div>
-                                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest" suppressHydrationWarning>
-                                  {formatMatchDate(match.matchDate)}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Score Box */}
-                            <div className="shrink-0 flex items-center gap-2 sm:gap-3 relative z-10 bg-black/80 px-3.5 sm:px-4 py-2 rounded-xl border border-white/10 shadow-inner">
-                              <span 
-                                className="text-lg sm:text-xl font-black tabular-nums italic" 
-                                style={match.isPlayer1 ? (
-                                  match.result === 'W' ? { color: primaryHex, textShadow: `0 0 8px ${glowRgba}` } : 
-                                  match.result === 'L' ? { color: '#f87171' } : { color: '#fbbf24' }
-                                ) : { color: 'rgba(255,255,255,0.4)' }}
-                                suppressHydrationWarning
-                              >
-                                {match.s1}
-                              </span>
-                              <span className="text-xs font-black text-white/20">:</span>
-                              <span 
-                                className="text-lg sm:text-xl font-black tabular-nums italic"
-                                style={!match.isPlayer1 ? (
-                                  match.result === 'W' ? { color: primaryHex, textShadow: `0 0 8px ${glowRgba}` } : 
-                                  match.result === 'L' ? { color: '#f87171' } : { color: '#fbbf24' }
-                                ) : { color: 'rgba(255,255,255,0.4)' }}
-                                suppressHydrationWarning
-                              >
-                                {match.s2}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
-                        <Activity className="w-10 h-10 text-white/40"/>
-                        <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Belum Ada Pertandingan Yang Rampung</p>
-                      </div>
-                    )}
+                    <HistoryTab 
+                      completedMatches={completedMatches}
+                      primaryHex={primaryHex}
+                      glowRgba={glowRgba}
+                    />
                   </TabsContent>
                   
                   {/* TAB 2: Upcoming Matches */}
                   <TabsContent value="upcoming" className="mt-0 outline-none animate-in fade-in duration-300">
-                    {upcomingMatches.length > 0 ? (
-                      <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent">
-                        {upcomingMatches.map(match => (
-                          <div 
-                            key={match.id} 
-                            className="group/match relative overflow-hidden transition-all duration-300 border border-dashed border-white/15 bg-black/40 backdrop-blur-sm hover:border-white/30 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 opacity-80 hover:opacity-100"
-                          >
-                            <div className="flex items-center gap-3 sm:gap-4 relative z-10 min-w-0 flex-1">
-                              <div className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center bg-white/5 border border-white/10">
-                                <Activity className="w-4 h-4 animate-pulse" style={{ color: primaryHex }} />
-                              </div>
-                              <div className="min-w-0 flex-1 text-left space-y-0.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white/90 truncate" suppressHydrationWarning>
-                                    vs {match.opponent?.name || 'TBD'}
-                                  </span>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-widest shrink-0"
-                                    style={match.isPlayer1 ? {
-                                      borderColor: `${primaryHex}40`,
-                                      color: primaryHex,
-                                      backgroundColor: `${primaryHex}10`
-                                    } : {
-                                      borderColor: 'rgba(255,255,255,0.1)',
-                                      color: 'rgba(255,255,255,0.4)',
-                                      backgroundColor: 'rgba(255,255,255,0.05)'
-                                    }}
-                                  >
-                                    {match.isPlayer1 ? 'Home' : 'Away'}
-                                  </Badge>
-                                </div>
-                                <p className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: `${primaryHex}CC` }}>
-                                  <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: primaryHex }} />
-                                  JADWAL MENDATANG • FIXTURE PENDING
-                                </p>
-                              </div>
-                            </div>
-                            <Badge 
-                              variant="outline" 
-                              className="text-[9px] font-black uppercase italic px-3 h-6 shrink-0 border"
-                              style={{
-                                borderColor: `${primaryHex}40`,
-                                color: primaryHex,
-                                backgroundColor: `${primaryHex}15`
-                              }}
-                            >
-                              UPCOMING
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
-                        <Zap className="w-10 h-10 animate-pulse" style={{ color: primaryHex }} />
-                        <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Seluruh Pertandingan Musim Telah Dimainkan</p>
-                      </div>
-                    )}
+                    <UpcomingTab 
+                      upcomingMatches={upcomingMatches}
+                      primaryHex={primaryHex}
+                    />
                   </TabsContent>
                   
                   {/* TAB 3: Momentum Trend Chart */}
                   <TabsContent value="trend" className="mt-0 outline-none animate-in fade-in duration-300">
-                    <Card className="bg-black/80 backdrop-blur-3xl border border-white/10 overflow-hidden rounded-3xl shadow-2xl relative group/trend">
-                      <div 
-                        className="absolute top-0 left-0 w-full h-[2px]" 
-                        style={{
-                          background: `linear-gradient(to right, transparent, ${primaryHex}, transparent)`
-                        }}
-                      />
-                      <CardHeader className="p-4 sm:p-5 bg-white/[0.02] border-b border-white/10">
-                        <div className="flex justify-between items-center">
-                          <CardTitle className="text-xs sm:text-sm font-black tracking-[0.2em] uppercase flex items-center gap-2 italic" style={{ color: primaryHex }}>
-                            <TrendingUp className="w-4 h-4" style={{ color: primaryHex }} /> MOMENTUM STABILITY
-                          </CardTitle>
-                          <Badge 
-                            className="text-[10px] font-black italic px-3 h-6 border-none" 
-                            style={{
-                              backgroundColor: primaryHex,
-                              color: isCrimson ? '#ffffff' : '#000000',
-                              boxShadow: `0 0 10px ${glowRgba}`
-                            }}
-                            suppressHydrationWarning
-                          >
-                            {chartData.length > 1 ? chartData[chartData.length - 1].points : 0} PTS TREND
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 sm:p-6 pt-6">
-                        {isMounted && chartData.length > 1 ? (
-                          <div className="w-full h-48 sm:h-56">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart data={chartData} margin={{ left: -15, right: 10, top: 10, bottom: 0 }}>
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                                <XAxis dataKey="match" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)', fontWeight: 700 }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.4)' }} allowDecimals={false} />
-                                <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="5 5" />
-                                <Line 
-                                  type="monotone" 
-                                  dataKey="points" 
-                                  stroke={primaryHex} 
-                                  strokeWidth={3} 
-                                  dot={{ fill: primaryHex, r: 4, strokeWidth: 2, stroke: "#000" }} 
-                                  activeDot={{ r: 7, stroke: '#fff', strokeWidth: 3 }} 
-                                />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </div>
-                        ) : (
-                          <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
-                            <BarChart3 className="w-10 h-10 text-white/40"/>
-                            <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Data Pertandingan Belum Cukup Untuk Grafik Tren</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                    <TrendTab 
+                      chartData={chartData}
+                      isMounted={isMounted}
+                      primaryHex={primaryHex}
+                      glowRgba={glowRgba}
+                      isCrimson={isCrimson}
+                    />
                   </TabsContent>
                 </Tabs>
 

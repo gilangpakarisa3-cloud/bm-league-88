@@ -17,6 +17,9 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { resolveLogo } from '@/lib/logo-utils';
 import { getSeasonTheme } from '@/lib/season-theme';
+import { DraftWinnerModal } from './draft/draft-winner-modal';
+
+export { DraftWinnerModal } from './draft/draft-winner-modal';
 
 interface TeamDraftDialogProps {
   open: boolean;
@@ -1092,155 +1095,11 @@ export function TeamDraftDialog({
         </div>
 
         {/* 5. ULTRA-LIGHTWEIGHT CENTER-STAGE POPOUT WINNER MODAL */}
-        {popoutWinner && (
-          <div 
-            className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 select-none"
-            onClick={() => setPopoutWinner(null)}
-          >
-            {/* Background Radial Atmosphere Glow */}
-            <div 
-              className="absolute inset-0 pointer-events-none opacity-40 animate-pulse"
-              style={{
-                background: `radial-gradient(circle at center, ${primaryHex}4D 0%, transparent 65%)`
-              }}
-            />
-
-            {/* Main Center Popout Card */}
-            <div 
-              className="relative w-full max-w-sm sm:max-w-md bg-[#070B14]/95 border-2 rounded-3xl p-6 sm:p-7 flex flex-col items-center text-center shadow-2xl overflow-hidden animate-popout-bounce"
-              style={{
-                borderColor: primaryHex,
-                boxShadow: `0 0 50px ${primaryHex}80, inset 0 0 30px ${primaryHex}26`
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Top Accent Light Beam */}
-              <div 
-                className="absolute top-0 left-0 right-0 h-1.5"
-                style={{
-                  background: `linear-gradient(90deg, transparent, ${primaryHex}, transparent)`,
-                  boxShadow: `0 0 15px ${primaryHex}`
-                }}
-              />
-
-              {/* Close Icon Button */}
-              <button 
-                onClick={() => setPopoutWinner(null)}
-                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all z-10"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              {/* Header Badge */}
-              <div className="flex items-center gap-1.5 mb-4">
-                <span 
-                  className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.25em] italic flex items-center gap-1.5 border"
-                  style={{
-                    backgroundColor: `${primaryHex}1A`,
-                    borderColor: `${primaryHex}66`,
-                    color: primaryHex,
-                    boxShadow: `0 0 12px ${primaryHex}4D`
-                  }}
-                >
-                  <Sparkles className="w-3 h-3 animate-spin-slow" />
-                  HASIL UNDIAN ROULETTE
-                </span>
-              </div>
-
-              {/* Winner Name Banner with Radar Pulse Aura */}
-              <div className="relative mb-6">
-                <div 
-                  className="absolute -inset-4 rounded-2xl animate-radar-pulse pointer-events-none border opacity-40"
-                  style={{ borderColor: primaryHex }}
-                />
-                <div 
-                  className="relative px-5 py-2.5 rounded-2xl border"
-                  style={{
-                    backgroundColor: `${primaryHex}14`,
-                    borderColor: `${primaryHex}4D`
-                  }}
-                >
-                  <span className="text-[8px] font-black uppercase tracking-widest text-white/50 block mb-0.5">
-                    PESERTA TERPILIH
-                  </span>
-                  <h3 
-                    className="text-xl sm:text-2xl font-black uppercase italic tracking-tight font-headline"
-                    style={{
-                      color: '#ffffff',
-                      textShadow: `0 0 20px ${primaryHex}`
-                    }}
-                  >
-                    {popoutWinner.winnerName}
-                  </h3>
-                </div>
-              </div>
-
-              {/* Transition Indicator */}
-              <div className="flex items-center justify-center gap-2 mb-4 w-full px-6">
-                <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to right, transparent, ${primaryHex}66)` }} />
-                <span className="text-[8px] font-black uppercase tracking-widest italic text-white/40">
-                  MEMPEROLEH KLUB
-                </span>
-                <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to left, transparent, ${primaryHex}66)` }} />
-              </div>
-
-              {/* Assigned Team Crest and Display Card */}
-              <div 
-                className="w-full p-4 rounded-2xl border bg-black/60 flex items-center gap-3.5 mb-6 text-left"
-                style={{ borderColor: `${primaryHex}40` }}
-              >
-                <div className="relative shrink-0">
-                  <Avatar className="h-14 w-14 rounded-2xl border-2 border-white/20 bg-black shadow-xl">
-                    <AvatarImage src={popoutWinner.teamLogoUrl} className="object-cover" />
-                    <AvatarFallback className="font-black text-xs">TM</AvatarFallback>
-                  </Avatar>
-                  <div 
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center border text-black shadow-md font-black text-[9px]"
-                    style={{ backgroundColor: primaryHex, borderColor: '#ffffff' }}
-                  >
-                    <Crown className="w-3 h-3 text-black fill-black" />
-                  </div>
-                </div>
-
-                <div className="flex-1 min-w-0 pr-1">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <Badge className={cn(
-                      "text-[8px] font-black italic h-4 px-1.5 rounded",
-                      popoutWinner.teamTier === 1 
-                        ? "bg-amber-400 text-black shadow-[0_0_8px_rgba(251,191,36,0.6)]" 
-                        : popoutWinner.teamTier === 2 
-                          ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" 
-                          : "bg-white/10 text-white/60"
-                    )}>
-                      TIER {popoutWinner.teamTier}
-                    </Badge>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/30">OFFICIAL SEED</span>
-                  </div>
-                  <h4 
-                    className="text-base sm:text-lg font-black uppercase italic tracking-tight truncate font-headline"
-                    style={{ color: primaryHex }}
-                  >
-                    {popoutWinner.teamName}
-                  </h4>
-                </div>
-              </div>
-
-              {/* Confirm / Continue Button */}
-              <Button
-                type="button"
-                onClick={() => setPopoutWinner(null)}
-                className="w-full h-10 font-black uppercase italic text-xs tracking-wider rounded-xl transition-all shadow-xl font-headline text-black hover:scale-[1.02] active:scale-[0.98]"
-                style={{
-                  backgroundColor: primaryHex,
-                  boxShadow: `0 0 25px ${primaryHex}80`
-                }}
-              >
-                <CheckCircle2 className="w-4 h-4 mr-1.5 stroke-[2.5]" />
-                Lanjutkan Draft
-              </Button>
-            </div>
-          </div>
-        )}
+        <DraftWinnerModal
+          popoutWinner={popoutWinner}
+          onClose={() => setPopoutWinner(null)}
+          primaryHex={primaryHex}
+        />
 
       </DialogContent>
     </Dialog>

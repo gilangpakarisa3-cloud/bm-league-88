@@ -53,89 +53,77 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
   if (isLoading || !liveMatches || liveMatches.length === 0) return null;
 
   return (
-    <div className="w-full relative py-6 sm:py-10 mb-8 sm:mb-14 overflow-hidden animate-in fade-in slide-in-from-top-6 duration-700">
+    <div className="w-full relative py-2 sm:py-3 mb-4 sm:mb-6 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500">
       {/* Aggressive Cyber Grid Background with Pulse Radar Wave */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-25"
+        className="absolute inset-0 pointer-events-none opacity-20"
         style={{
-          background: `radial-gradient(circle at 50% 40%, ${primaryHex}25 0%, transparent 75%)`
+          background: `radial-gradient(circle at 50% 40%, ${primaryHex}20 0%, transparent 70%)`
         }}
       />
       
       {/* High-voltage strobe hazard lines across container top & bottom */}
       <div 
-        className="absolute top-0 left-0 right-0 h-[2px] opacity-90"
+        className="absolute top-0 left-0 right-0 h-[1.5px] opacity-80"
         style={{
           background: `linear-gradient(90deg, transparent 0%, #ef4444 25%, ${primaryHex} 50%, #ef4444 75%, transparent 100%)`,
-          boxShadow: `0 0 15px #ef4444`
+          boxShadow: `0 0 10px #ef4444`
         }}
       />
       <div 
-        className="absolute bottom-0 left-0 right-0 h-[2px] opacity-60"
+        className="absolute bottom-0 left-0 right-0 h-[1.5px] opacity-50"
         style={{
           background: `linear-gradient(90deg, transparent 0%, ${secondaryHex} 30%, ${primaryHex} 70%, transparent 100%)`,
-          boxShadow: `0 0 15px ${primaryHex}`
+          boxShadow: `0 0 10px ${primaryHex}`
         }}
       />
 
-      <div className="container max-w-6xl mx-auto px-2 sm:px-4 relative z-10">
+      <div className="container max-w-5xl mx-auto px-1 sm:px-3 relative z-10">
         
         {/* ============================================================ */}
-        {/* AGGRESSIVE WARZONE HEADER HUD                                */}
+        {/* COMPACT & RIGID WARZONE HEADER HUD                           */}
         {/* ============================================================ */}
-        <div className="flex flex-col items-center gap-3 mb-7 sm:mb-9">
-            
-            {/* Top Mecha Beacon */}
-            <div className="inline-flex items-center gap-3 p-1.5 px-4 sm:px-6 rounded-none [clip-path:polygon(12px_0%,100%_0%,calc(100%-12px)_100%,0%_100%)] bg-[#070b14]/95 border-x-2 border-y backdrop-blur-2xl shadow-2xl relative"
+        <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 px-1">
+            {/* Left Mecha Beacon */}
+            <div className="inline-flex items-center gap-2 p-1 px-3 sm:px-4 bg-[#070b14]/95 border border-white/10 rounded-xl backdrop-blur-xl shadow-lg"
               style={{
-                borderColor: `${primaryHex}60`,
-                boxShadow: `0 0 35px ${glowRgba}`
+                borderColor: `${primaryHex}50`,
+                boxShadow: `0 0 20px ${glowRgba}`
               }}
             >
                 {/* Red Overdrive Flashing Strobe */}
-                <div className="flex items-center gap-2 bg-red-600/90 text-white font-black text-[9px] sm:text-xs tracking-[0.25em] uppercase italic px-3 py-1 rounded-none [clip-path:polygon(6px_0%,100%_0%,calc(100%-6px)_100%,0%_100%)] shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse">
-                    <Flame className="w-3.5 h-3.5 fill-current animate-bounce text-amber-300" />
-                    WARZONE LIVE
+                <div className="flex items-center gap-1.5 bg-red-600 text-white font-black text-[8px] sm:text-[10px] tracking-widest uppercase italic px-2 py-0.5 rounded-md shadow-[0_0_12px_rgba(239,68,68,0.7)] animate-pulse">
+                    <Flame className="w-3 h-3 fill-current text-amber-300" />
+                    LIVE COMBAT
                 </div>
 
-                {/* Sub Telemetry Tag */}
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5">
                     <span 
-                      className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] font-mono italic"
+                      className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider font-mono italic"
                       style={{ color: primaryHex }}
                     >
-                      HIGH VOLTAGE COMBAT
+                      WARZONE ARENA
                     </span>
-                    <span className="text-white/20 font-mono hidden xs:inline">|</span>
-                    <span className="text-[9px] font-mono text-white/50 tracking-wider hidden xs:inline uppercase">
+                    <span className="text-white/20 font-mono hidden sm:inline">|</span>
+                    <span className="text-[8px] font-mono text-white/50 tracking-wider hidden sm:inline uppercase">
                       {sysTag}
                     </span>
                 </div>
             </div>
 
-            {/* Combat Target Crosshair Line */}
-            <div className="flex items-center gap-3 w-full max-w-lg justify-center opacity-80">
-                <div 
-                  className="h-[2px] flex-1 rounded-full"
-                  style={{ background: `linear-gradient(to right, transparent, #ef4444, ${primaryHex})` }}
-                />
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-black/80 border border-white/10 [clip-path:polygon(8px_0%,100%_0%,calc(100%-8px)_100%,0%_100%)]">
-                    <ShieldAlert className="w-3.5 h-3.5 text-red-500 animate-pulse" />
-                    <span className="text-[9px] font-black tracking-[0.25em] font-mono text-white/70 uppercase">
-                      {liveMatches.length} ARENA {liveMatches.length === 1 ? 'DUEL' : 'DUELS'} ACTIVE
-                    </span>
-                </div>
-                <div 
-                  className="h-[2px] flex-1 rounded-full"
-                  style={{ background: `linear-gradient(to left, transparent, #ef4444, ${primaryHex})` }}
-                />
+            {/* Combat Target Count Badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/80 border border-white/10 rounded-xl shadow-inner">
+                <ShieldAlert className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+                <span className="text-[8px] sm:text-[10px] font-black tracking-widest font-mono text-white/80 uppercase">
+                  {liveMatches.length} {liveMatches.length === 1 ? 'MATCH' : 'MATCHES'} IN PLAY
+                </span>
             </div>
         </div>
 
         {/* ============================================================ */}
-        {/* AGGRESSIVE MATCH CHASSIS CARDS                               */}
+        {/* COMPACT & RIGID MATCH CHASSIS CARDS                          */}
         {/* ============================================================ */}
-        <div className="grid grid-cols-1 gap-8 sm:gap-10 justify-items-center">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 justify-items-center">
           {liveMatches.map((match) => {
             const p1 = playersById[match.player1Id];
             const p2 = playersById[match.player2Id];
@@ -166,48 +154,48 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                   }}
                 />
 
-                {/* Main Mecha Hull Chassis with Aggressive Polygon Cut */}
+                {/* Main Mecha Hull Chassis with Compact Rigid Form */}
                 <div 
-                  className="relative bg-gradient-to-b from-[#0c121d]/98 via-[#060a12]/98 to-[#020306]/98 border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden p-4 xs:p-6 sm:p-8 rounded-3xl"
+                  className="relative bg-gradient-to-b from-[#0c121d]/98 via-[#060a12]/98 to-[#020306]/98 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden p-3 sm:p-5 rounded-2xl sm:rounded-3xl"
                   style={{
                     borderColor: `${primaryHex}35`
                   }}
                 >
                     {/* Top Laser Slanted Splitter Line */}
                     <div 
-                      className="absolute top-0 left-0 right-0 h-[3px]"
+                      className="absolute top-0 left-0 right-0 h-[2px]"
                       style={{
                         background: `linear-gradient(90deg, ${primaryHex}, #ef4444 50%, ${secondaryHex})`,
-                        boxShadow: `0 0 16px ${primaryHex}`
+                        boxShadow: `0 0 12px ${primaryHex}`
                       }}
                     />
 
                     {/* Corner Reticle Accents */}
                     <div className="absolute top-2 left-2 pointer-events-none">
-                        <Crosshair className="w-3.5 h-3.5 opacity-30 text-white" />
+                        <Crosshair className="w-3 h-3 opacity-30 text-white" />
                     </div>
                     <div className="absolute top-2 right-2 pointer-events-none">
-                        <Crosshair className="w-3.5 h-3.5 opacity-30 text-white" />
+                        <Crosshair className="w-3 h-3 opacity-30 text-white" />
                     </div>
 
                     {/* Background Predator Carbon Slant Stripes */}
                     <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_20px,rgba(255,255,255,0.015)_20px,rgba(255,255,255,0.015)_40px)] pointer-events-none" />
 
                     {/* Arena Division & Match Format Bar */}
-                    <div className="flex items-center justify-between gap-2 mb-5 sm:mb-7 pb-3 border-b border-white/10 relative z-10">
+                    <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 pb-2 border-b border-white/10 relative z-10">
                         <div className="flex items-center gap-2">
                             <span 
-                              className="px-3 py-1 font-mono font-black text-[9px] sm:text-[10px] uppercase tracking-[0.2em] [clip-path:polygon(6px_0%,100%_0%,calc(100%-6px)_100%,0%_100%)] border"
-                              style={{ 
-                                backgroundColor: `${primaryHex}15`,
-                                borderColor: `${primaryHex}50`,
-                                color: primaryHex
-                              }}
+                                className="px-2.5 py-0.5 font-mono font-black text-[8px] sm:text-[9px] uppercase tracking-wider rounded-md border"
+                                style={{ 
+                                  backgroundColor: `${primaryHex}15`,
+                                  borderColor: `${primaryHex}50`,
+                                  color: primaryHex
+                                }}
                             >
                               SECTOR // {match.division === 'div-2' ? 'DIVISI 2 BATTLE' : 'DIVISI 1 TITAN'}
                             </span>
                             {match.round && (
-                              <span className="text-[10px] font-mono font-bold text-white/50 uppercase tracking-widest hidden xs:inline">
+                              <span className="text-[9px] font-mono font-bold text-white/50 uppercase tracking-widest hidden xs:inline">
                                 [{match.round}]
                               </span>
                             )}
@@ -216,7 +204,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                         <div className="flex items-center gap-2">
                             {isBo3 ? (
                               <div 
-                                className="flex items-center gap-1.5 px-3 py-0.5 rounded-full border"
+                                className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border"
                                 style={{
                                   borderColor: `${secondaryHex}50`,
                                   backgroundColor: `${secondaryHex}15`,
@@ -224,28 +212,28 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                 }}
                               >
                                   <Zap className="w-3 h-3 fill-current animate-pulse" />
-                                  <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-widest">
-                                    ROUND {gameIdx} / 3 • BO3 CLASH
+                                  <span className="font-mono text-[8px] sm:text-[9px] font-black uppercase tracking-widest">
+                                    ROUND {gameIdx} / 3 • BO3
                                   </span>
                               </div>
                             ) : (
-                              <span className="font-mono text-[9px] font-black uppercase tracking-widest text-white/40 px-2.5 py-0.5 bg-white/5 border border-white/10 rounded-full">
-                                SINGLE ELIMINATION
+                              <span className="font-mono text-[8px] font-black uppercase tracking-widest text-white/40 px-2 py-0.5 bg-white/5 border border-white/10 rounded-full">
+                                SINGLE
                               </span>
                             )}
                         </div>
                     </div>
 
                     {/* ============================================================ */}
-                    {/* COMBAT ARENA: P1 WING VS OVERDRIVE TACHOMETER VS P2 WING    */}
+                    {/* COMBAT ARENA: P1 WING VS RIGID SCORE CORE VS P2 WING         */}
                     {/* ============================================================ */}
-                    <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-4 sm:gap-6 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-4 relative z-10">
                         
                         {/* ----------------- PLAYER 1 (HOME COMBATANT) ----------------- */}
                         <div className={cn(
-                          "relative p-3.5 sm:p-5 rounded-2xl border transition-all duration-500 min-w-0 flex items-center justify-between gap-3 sm:gap-4 order-1",
+                          "relative p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all duration-300 min-w-0 flex items-center justify-between gap-2.5 sm:gap-3 order-1",
                           p1Winning 
-                            ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/40 shadow-[0_0_30px_rgba(204,253,1,0.15)]" 
+                            ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/40 shadow-[0_0_20px_rgba(204,253,1,0.1)]" 
                             : "bg-white/[0.02] border-white/10 hover:border-white/20"
                         )}>
                             {/* P1 Admin Overdrive Controls */}
@@ -282,15 +270,15 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                 <div className="relative shrink-0 group/crest">
                                     {/* Neon Outer Halo */}
                                     <div 
-                                      className="absolute -inset-1 rounded-2xl blur-md opacity-40 group-hover/card:opacity-90 transition-opacity pointer-events-none"
+                                      className="absolute -inset-1 rounded-xl blur-md opacity-35 group-hover/card:opacity-80 transition-opacity pointer-events-none"
                                       style={{ backgroundColor: primaryHex }}
                                     />
                                     {/* Chamfered Box Shield */}
                                     <div 
-                                      className="w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 rounded-2xl border-2 p-2 relative flex items-center justify-center overflow-hidden transition-all duration-500 group-hover/card:scale-105 shadow-2xl bg-[#070b14]/95 backdrop-blur-md"
+                                      className="w-11 h-11 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl border-2 p-1.5 relative flex items-center justify-center overflow-hidden transition-all duration-300 group-hover/card:scale-105 shadow-xl bg-[#070b14]/95 backdrop-blur-md"
                                       style={{ 
                                         borderColor: `${primaryHex}70`,
-                                        boxShadow: `0 0 25px ${primaryHex}30`
+                                        boxShadow: `0 0 18px ${primaryHex}25`
                                       }}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
@@ -298,20 +286,20 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                           <img 
                                             src={logo1} 
                                             alt={p1?.name || 'Player 1'} 
-                                            className="w-full h-full object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] select-none"
+                                            className="w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] select-none"
                                           />
                                         ) : (
-                                          <span className="font-black text-sm text-white uppercase font-mono">P1</span>
+                                          <span className="font-black text-xs text-white uppercase font-mono">P1</span>
                                         )}
                                     </div>
 
                                     {/* Series Wins Pip Node */}
                                     {isBo3 && (
                                       <div 
-                                        className="absolute -top-2 -right-2 font-black text-[11px] w-7 h-7 rounded-lg flex items-center justify-center border-2 border-[#090d16] shadow-xl text-black font-headline italic"
+                                        className="absolute -top-1.5 -right-1.5 font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center border border-[#090d16] shadow-md text-black font-headline italic"
                                         style={{ 
                                           backgroundColor: primaryHex,
-                                          boxShadow: `0 0 12px ${primaryHex}`
+                                          boxShadow: `0 0 8px ${primaryHex}`
                                         }}
                                       >
                                           {match.player1Wins ?? 0}
@@ -321,30 +309,30 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
 
                                 <div className="flex flex-col min-w-0 pr-1">
                                     <span 
-                                      className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.2em] font-black truncate flex items-center gap-1.5"
+                                      className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider font-black truncate flex items-center gap-1.5"
                                       style={{ color: primaryHex }}
                                     >
                                       <span className="w-1.5 h-1.5 rounded-full animate-ping shrink-0" style={{ backgroundColor: primaryHex }} />
                                       <span className="truncate">{t1?.name || 'HOME COMBATANT'}</span>
                                     </span>
-                                    <h3 className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-black text-white uppercase italic tracking-tight drop-shadow-lg pr-2 pb-0.5 leading-snug break-words">
+                                    <h3 className="text-base sm:text-xl lg:text-2xl font-black text-white uppercase italic tracking-tight drop-shadow-md pr-1 leading-tight break-words">
                                       {p1?.name || match.player1Id}
                                     </h3>
                                     {isBo3 && (
-                                      <div className="flex items-center gap-1 mt-1">
+                                      <div className="flex items-center gap-1 mt-0.5">
                                           {[...Array(2)].map((_, i) => (
                                               <span 
                                                 key={i} 
                                                 className={cn(
-                                                  "w-3.5 sm:w-4 h-1.5 rounded-sm border transition-all",
+                                                  "w-3 sm:w-3.5 h-1 rounded-sm border transition-all",
                                                   i < (match.player1Wins || 0) 
-                                                    ? "bg-primary border-primary shadow-[0_0_8px_rgba(204,253,1,0.8)]" 
+                                                    ? "bg-primary border-primary shadow-[0_0_6px_rgba(204,253,1,0.8)]" 
                                                     : "bg-white/10 border-white/20"
                                                 )}
                                                 style={i < (match.player1Wins || 0) ? { backgroundColor: primaryHex, borderColor: primaryHex } : {}}
                                               />
                                           ))}
-                                          <span className="text-[8px] font-mono text-white/40 uppercase tracking-widest ml-1">SERIES</span>
+                                          <span className="text-[7.5px] font-mono text-white/40 uppercase tracking-widest ml-1">SERIES</span>
                                       </div>
                                     )}
                                 </div>
@@ -352,66 +340,62 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                         </div>
 
                         {/* ----------------- AGGRESSIVE VS & SCORE CORE ----------------- */}
-                        <div className="flex flex-col items-center justify-center order-2 px-2 py-2">
+                        <div className="flex flex-col items-center justify-center order-2 px-1">
                             {/* Mecha Aggressive Score Chassis */}
                             <div 
-                              className="relative px-6 sm:px-10 py-3.5 sm:py-5 rounded-3xl border-2 backdrop-blur-2xl shadow-2xl transition-all duration-500 overflow-hidden w-full sm:w-auto"
+                              className="relative px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl border backdrop-blur-2xl shadow-xl transition-all duration-300 overflow-hidden w-full sm:w-auto"
                               style={{
                                 background: `radial-gradient(ellipse at center, #0e1628 0%, #05070e 100%)`,
-                                borderColor: `${primaryHex}60`,
-                                boxShadow: `0 0 40px ${glowRgba}`
+                                borderColor: `${primaryHex}50`,
+                                boxShadow: `0 0 25px ${glowRgba}`
                               }}
                             >
                                 {/* Diagonal Racing Hazard Accent */}
-                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-red-500 to-secondary" />
+                                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-red-500 to-secondary" />
 
-                                <div className="flex items-center justify-center gap-5 sm:gap-8 relative z-10">
+                                <div className="flex items-center justify-center gap-4 sm:gap-6 relative z-10">
                                     
-                                    {/* P1 Huge Aggressive Score */}
+                                    {/* P1 Score */}
                                     <div className="flex flex-col items-center">
                                         <span 
                                           className={cn(
-                                            "font-headline text-5xl sm:text-7xl font-black italic tabular-nums tracking-tighter leading-none transition-all duration-300",
+                                            "font-headline text-3xl sm:text-5xl font-black italic tabular-nums tracking-tighter leading-none transition-all duration-300",
                                             p1Winning ? "scale-105" : "opacity-90"
                                           )}
                                           style={{ 
                                             color: primaryHex,
-                                            textShadow: `0 0 25px ${glowRgba}`
+                                            textShadow: `0 0 18px ${glowRgba}`
                                           }}
                                         >
                                             {p1Score}
                                         </span>
                                     </div>
 
-                                    {/* Aggressive VS Clash Center Piece */}
-                                    <div className="flex flex-col items-center gap-1.5 px-1">
+                                    {/* VS Clash Center Piece */}
+                                    <div className="flex flex-col items-center gap-1 px-1">
                                         <div 
-                                          className="font-headline font-black text-xs sm:text-sm tracking-widest italic px-2.5 py-0.5 rounded-md border text-white shadow-lg [clip-path:polygon(6px_0%,100%_0%,calc(100%-6px)_100%,0%_100%)]"
+                                          className="font-headline font-black text-[10px] sm:text-xs tracking-wider italic px-2 py-0.5 rounded border text-white shadow-md"
                                           style={{
                                             background: `linear-gradient(135deg, #ef4444, #b91c1c)`,
                                             borderColor: `#ef4444`,
-                                            boxShadow: `0 0 15px rgba(239,68,68,0.7)`
+                                            boxShadow: `0 0 10px rgba(239,68,68,0.7)`
                                           }}
                                         >
                                           VS
                                         </div>
-                                        <div className="w-[2px] h-8 sm:h-12 bg-gradient-to-b from-red-500 via-white/30 to-secondary rounded-full" />
-                                        <div 
-                                          className="w-1.5 h-1.5 rounded-full animate-ping"
-                                          style={{ backgroundColor: secondaryHex }}
-                                        />
+                                        <div className="w-[1.5px] h-5 sm:h-7 bg-gradient-to-b from-red-500 via-white/30 to-secondary rounded-full" />
                                     </div>
 
-                                    {/* P2 Huge Aggressive Score */}
+                                    {/* P2 Score */}
                                     <div className="flex flex-col items-center">
                                         <span 
                                           className={cn(
-                                            "font-headline text-5xl sm:text-7xl font-black italic tabular-nums tracking-tighter leading-none transition-all duration-300",
+                                            "font-headline text-3xl sm:text-5xl font-black italic tabular-nums tracking-tighter leading-none transition-all duration-300",
                                             p2Winning ? "scale-105" : "opacity-90"
                                           )}
                                           style={{ 
                                             color: secondaryHex,
-                                            textShadow: `0 0 25px ${secondaryHex}`
+                                            textShadow: `0 0 18px ${secondaryHex}`
                                           }}
                                         >
                                             {p2Score}
@@ -420,10 +404,10 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                 </div>
 
                                 {/* Under-score Telemetry Pill */}
-                                <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] font-mono text-white/70 italic">
-                                      WARZONE_LIVE // IN PLAY
+                                <div className="mt-1.5 pt-1.5 border-t border-white/10 flex items-center justify-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                                    <span className="text-[8px] font-black uppercase tracking-widest font-mono text-white/70 italic">
+                                      IN PLAY
                                     </span>
                                 </div>
                             </div>
@@ -431,33 +415,33 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
 
                         {/* ----------------- PLAYER 2 (AWAY COMBATANT) ----------------- */}
                         <div className={cn(
-                          "relative p-3.5 sm:p-5 rounded-2xl border transition-all duration-500 min-w-0 flex items-center justify-between gap-3 sm:gap-4 order-3",
+                          "relative p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all duration-300 min-w-0 flex items-center justify-between gap-2.5 sm:gap-3 order-3",
                           p2Winning 
-                            ? "bg-gradient-to-l from-secondary/10 via-secondary/5 to-transparent border-secondary/40 shadow-[0_0_30px_rgba(0,229,255,0.15)]" 
+                            ? "bg-gradient-to-l from-secondary/10 via-secondary/5 to-transparent border-secondary/40 shadow-[0_0_20px_rgba(0,229,255,0.1)]" 
                             : "bg-white/[0.02] border-white/10 hover:border-white/20"
                         )}>
-                            <div className="flex items-center justify-end gap-3 sm:gap-4 min-w-0 flex-1 text-right xl:order-1">
+                            <div className="flex items-center justify-end gap-2.5 sm:gap-3 min-w-0 flex-1 text-right md:order-1">
                                 <div className="flex flex-col min-w-0 items-end pl-1">
                                     <span 
-                                      className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.2em] font-black truncate flex items-center gap-1.5"
+                                      className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider font-black truncate flex items-center gap-1.5"
                                       style={{ color: secondaryHex }}
                                     >
                                       <span className="truncate">{t2?.name || 'AWAY COMBATANT'}</span>
                                       <span className="w-1.5 h-1.5 rounded-full animate-ping shrink-0" style={{ backgroundColor: secondaryHex }} />
                                     </span>
-                                    <h3 className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-black text-white uppercase italic tracking-tight drop-shadow-lg pl-2 pb-0.5 leading-snug break-words">
+                                    <h3 className="text-base sm:text-xl lg:text-2xl font-black text-white uppercase italic tracking-tight drop-shadow-md pl-1 leading-tight break-words">
                                       {p2?.name || match.player2Id}
                                     </h3>
                                     {isBo3 && (
-                                      <div className="flex items-center gap-1 mt-1">
-                                          <span className="text-[8px] font-mono text-white/40 uppercase tracking-widest mr-1">SERIES</span>
+                                      <div className="flex items-center gap-1 mt-0.5">
+                                          <span className="text-[7.5px] font-mono text-white/40 uppercase tracking-widest mr-1">SERIES</span>
                                           {[...Array(2)].map((_, i) => (
                                               <span 
                                                 key={i} 
                                                 className={cn(
-                                                  "w-3.5 sm:w-4 h-1.5 rounded-sm border transition-all",
+                                                  "w-3 sm:w-3.5 h-1 rounded-sm border transition-all",
                                                   i < (match.player2Wins || 0) 
-                                                    ? "bg-secondary border-secondary shadow-[0_0_8px_rgba(0,229,255,0.8)]" 
+                                                    ? "bg-secondary border-secondary shadow-[0_0_6px_rgba(0,229,255,0.8)]" 
                                                     : "bg-white/10 border-white/20"
                                                 )}
                                                 style={i < (match.player2Wins || 0) ? { backgroundColor: secondaryHex, borderColor: secondaryHex } : {}}
@@ -471,15 +455,15 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                 <div className="relative shrink-0 group/crest">
                                     {/* Neon Outer Halo */}
                                     <div 
-                                      className="absolute -inset-1 rounded-2xl blur-md opacity-40 group-hover/card:opacity-90 transition-opacity pointer-events-none"
+                                      className="absolute -inset-1 rounded-xl blur-md opacity-35 group-hover/card:opacity-80 transition-opacity pointer-events-none"
                                       style={{ backgroundColor: secondaryHex }}
                                     />
                                     {/* Chamfered Box Shield */}
                                     <div 
-                                      className="w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 rounded-2xl border-2 p-2 relative flex items-center justify-center overflow-hidden transition-all duration-500 group-hover/card:scale-105 shadow-2xl bg-[#070b14]/95 backdrop-blur-md"
+                                      className="w-11 h-11 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl border-2 p-1.5 relative flex items-center justify-center overflow-hidden transition-all duration-300 group-hover/card:scale-105 shadow-xl bg-[#070b14]/95 backdrop-blur-md"
                                       style={{ 
                                         borderColor: `${secondaryHex}70`,
-                                        boxShadow: `0 0 25px ${secondaryHex}30`
+                                        boxShadow: `0 0 18px ${secondaryHex}25`
                                       }}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
@@ -487,20 +471,20 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                           <img 
                                             src={logo2} 
                                             alt={p2?.name || 'Player 2'} 
-                                            className="w-full h-full object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] select-none"
+                                            className="w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] select-none"
                                           />
                                         ) : (
-                                          <span className="font-black text-sm text-white uppercase font-mono">P2</span>
+                                          <span className="font-black text-xs text-white uppercase font-mono">P2</span>
                                         )}
                                     </div>
 
                                     {/* Series Wins Pip Node */}
                                     {isBo3 && (
                                       <div 
-                                        className="absolute -top-2 -left-2 font-black text-[11px] w-7 h-7 rounded-lg flex items-center justify-center border-2 border-[#090d16] shadow-xl text-black font-headline italic"
+                                        className="absolute -top-1.5 -left-1.5 font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center border border-[#090d16] shadow-md text-black font-headline italic"
                                         style={{ 
                                           backgroundColor: secondaryHex,
-                                          boxShadow: `0 0 12px ${secondaryHex}`
+                                          boxShadow: `0 0 8px ${secondaryHex}`
                                         }}
                                       >
                                           {match.player2Wins ?? 0}
@@ -511,7 +495,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
 
                             {/* P2 Admin Overdrive Controls */}
                             {isAdmin && (
-                              <div className="flex flex-row xl:flex-col gap-1.5 shrink-0 xl:order-2 z-20">
+                              <div className="flex flex-row md:flex-col gap-1.5 shrink-0 md:order-2 z-20">
                                   <Button 
                                     size="icon" 
                                     variant="outline" 
