@@ -42,6 +42,7 @@ import { useSharedPassword } from '@/context/password-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { LiveClock } from '@/components/live-clock';
+import { LiveScoreTicker } from '@/components/live-score-ticker';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PLAYOFF_SUCCESSOR_MAP, getPlayoffSuccessorMap } from '@/lib/constants';
@@ -1547,6 +1548,8 @@ export default function FixturesPage() {
           </div>
           <div className="w-full lg:w-[380px] xl:w-[420px] flex items-stretch shrink-0"><LiveClock className="h-full" theme={theme} /></div>
         </div>
+
+        <LiveScoreTicker activeSeasonId={activeSeasonId} teamsById={teamsById} playersById={playersById} isAdmin={isAdmin} theme={theme} />
 
         {/* AERODYNAMIC CONTROLS HUB */}
         <div 

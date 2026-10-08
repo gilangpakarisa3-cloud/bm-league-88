@@ -1281,7 +1281,7 @@ export default function LeaguePage() {
           </div>
         </div>
 
-        <LiveScoreTicker activeSeasonId={activeSeasonId} teamsById={teamsById} playersById={playersById} isAdmin={isAdmin} />
+        <LiveScoreTicker activeSeasonId={activeSeasonId} teamsById={teamsById} playersById={playersById} isAdmin={isAdmin} theme={theme} />
 
         {/* ============================================================ */}
         {/* ULTRA SPORT & ULTRA FUTURISTIC COCKPIT COMMAND DECK          */}
