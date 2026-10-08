@@ -378,7 +378,7 @@ const MatchCard = ({
 
       {/* Cockpit Card Plate */}
       <div
-        className="w-full xl:min-w-[195px] sm:min-w-[215px] xl:max-w-[320px] 2xl:max-w-[340px] h-[70px] overflow-hidden border transition-all duration-300 cursor-pointer rounded-xl relative group-hover/match:scale-[1.02] backdrop-blur-2xl flex flex-col justify-center"
+        className="w-full xl:min-w-[195px] sm:min-w-[215px] xl:max-w-[320px] 2xl:max-w-[340px] h-[64px] sm:h-[70px] overflow-hidden border transition-all duration-300 cursor-pointer rounded-xl relative group-hover/match:scale-[1.02] backdrop-blur-2xl flex flex-col justify-center"
         style={
           m.isCompleted ? {
             borderColor: `${primaryHex}66`,
@@ -435,14 +435,14 @@ const MatchCard = ({
             return (
               <div
                 key={i}
-                className="flex items-center justify-between px-2.5 h-[35px] relative transition-colors"
+                className="flex items-center justify-between px-2 sm:px-2.5 h-[32px] sm:h-[35px] relative transition-colors"
                 style={isW ? {
                   backgroundColor: `${primaryHex}1A`
                 } : undefined}
               >
-                <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 pr-1.5 sm:pr-2">
                   <Avatar
-                    className="h-6 w-6 border transition-all duration-300 rounded-md shrink-0 bg-black/60 overflow-hidden flex items-center justify-center p-0.5"
+                    className="h-5 w-5 sm:h-6 sm:w-6 border transition-all duration-300 rounded-md shrink-0 bg-black/60 overflow-hidden flex items-center justify-center p-0.5"
                     style={isW ? {
                       borderColor: primaryHex,
                       boxShadow: `0 0 8px ${primaryHex}99`,
@@ -456,15 +456,15 @@ const MatchCard = ({
                       className="object-contain w-full h-full"
                       referrerPolicy="no-referrer"
                     />
-                    <AvatarFallback className="bg-black/60 font-black text-[8px] rounded-md text-white/70">
+                    <AvatarFallback className="bg-black/60 font-black text-[7.5px] rounded-md text-white/70">
                       <User className="w-2.5 h-2.5" />
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
                     <span
                       className={cn(
-                        "text-[10.5px] sm:text-[11.5px] font-black truncate uppercase italic font-headline transition-colors inline-block pr-1.5 max-w-full",
+                        "text-[10px] sm:text-[11.5px] font-black truncate uppercase italic font-headline transition-colors inline-block pr-1 max-w-full",
                         !isW && "text-white/85"
                       )}
                       style={isW ? {
@@ -478,7 +478,7 @@ const MatchCard = ({
                     </span>
                     {isW && (
                       <Crown
-                        className="w-3 h-3 shrink-0 animate-bounce"
+                        className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 animate-bounce"
                         style={{ color: primaryHex }}
                       />
                     )}
@@ -487,7 +487,7 @@ const MatchCard = ({
 
                 {/* Score Indicator Box */}
                 <div
-                  className="w-6 h-5 rounded border flex items-center justify-center transition-all shrink-0 font-mono"
+                  className="w-5 h-4.5 sm:w-6 sm:h-5 rounded border flex items-center justify-center transition-all shrink-0 font-mono"
                   style={isW ? {
                     backgroundColor: `${primaryHex}33`,
                     borderColor: `${primaryHex}B3`,
@@ -498,7 +498,7 @@ const MatchCard = ({
                   }}
                 >
                   <span
-                    className="text-[11px] font-black italic tabular-nums leading-none font-headline"
+                    className="text-[10px] sm:text-[11px] font-black italic tabular-nums leading-none font-headline"
                     style={{
                       color: isW ? primaryHex : 'rgba(255,255,255,0.4)',
                       filter: isW ? `drop-shadow(0 0 6px ${primaryHex}80)` : undefined
@@ -664,28 +664,28 @@ const GrandFinalPodium = ({
         </div>
 
         {/* 2. Concentric & Pristine Championship Trophy Crest Lockup (Adaptive & Enlarged) */}
-        <div className="relative group/trophy cursor-default flex flex-col items-center my-2 sm:my-3 z-10">
+        <div className="relative group/trophy cursor-default flex flex-col items-center my-1 sm:my-3 z-10">
           {/* Floating Golden Crown above the emblem */}
-          <div className="mb-2 sm:mb-2.5 flex items-center justify-center">
-            <div className={cn("px-3.5 sm:px-4 py-1 rounded-full bg-black/90 border shadow-lg flex items-center gap-2", theme.tagBorder)}>
-              <Crown className={cn("w-4 h-4 sm:w-5 sm:h-5", theme.trophyColor)} />
-              <span className={cn("text-[8px] sm:text-[10px] font-black tracking-[0.25em] uppercase font-mono", theme.primaryText)}>
+          <div className="mb-1 sm:mb-2.5 flex items-center justify-center">
+            <div className={cn("px-2.5 sm:px-4 py-0.5 sm:py-1 rounded-full bg-black/90 border shadow-lg flex items-center gap-1.5 sm:gap-2", theme.tagBorder)}>
+              <Crown className={cn("w-3.5 h-3.5 sm:w-5 sm:h-5", theme.trophyColor)} />
+              <span className={cn("text-[7.5px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.25em] uppercase font-mono", theme.primaryText)}>
                 {theme.trophyCrownText}
               </span>
             </div>
           </div>
 
-          {/* Concentric Geometric Orbit (Adaptive Scale: 144px -> 192px -> 224px -> 256px) */}
-          <div className="relative w-36 h-36 sm:w-48 sm:h-48 md:w-56 md:h-56 2xl:w-64 2xl:h-64 flex items-center justify-center">
+          {/* Concentric Geometric Orbit (Adaptive Scale: 112px mobile -> 192px -> 224px -> 256px) */}
+          <div className="relative w-28 h-28 sm:w-48 sm:h-48 md:w-56 md:h-56 2xl:w-64 2xl:h-64 flex items-center justify-center">
             {/* Ambient Radiance Halo */}
-            <div className={cn("absolute inset-0 rounded-full bg-gradient-to-tr blur-2xl opacity-85 pointer-events-none", theme.concentricHalo)} />
+            <div className={cn("absolute inset-0 rounded-full bg-gradient-to-tr blur-xl sm:blur-2xl opacity-85 pointer-events-none", theme.concentricHalo)} />
 
             {/* Outer Precision Orbital Ring with Cardinal Satellites */}
             <div className="absolute inset-0 m-auto w-[94%] h-[94%] rounded-full border border-amber-400/40 pointer-events-none flex items-center justify-center">
-              <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
-              <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
-              <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
+              <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
+              <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
             </div>
 
             {/* Middle Concentric Dashed Ring */}
@@ -694,15 +694,15 @@ const GrandFinalPodium = ({
             {/* Central 24K Gold Crystal Core Shield (Aegis Throneroom) */}
             <div className={cn("relative w-[60%] h-[60%] rounded-full bg-gradient-to-br border-2 flex items-center justify-center shadow-2xl backdrop-blur-md transition-transform duration-500 group-hover/trophy:scale-105 holo-shimmer-gold", theme.trophyShield)}>
               <Trophy className={cn("w-[62%] h-[62%] animate-float", theme.trophyColor)} />
-              <Sparkles className="absolute top-2.5 right-2.5 w-3 h-3 sm:w-4 sm:h-4 text-amber-200 animate-pulse" />
-              <Sparkles className="absolute bottom-2.5 left-2.5 w-3 h-3 sm:w-4 sm:h-4 text-primary animate-pulse" />
+              <Sparkles className="absolute top-2 right-2 w-2.5 h-2.5 sm:w-4 sm:h-4 text-amber-200 animate-pulse" />
+              <Sparkles className="absolute bottom-2 left-2 w-2.5 h-2.5 sm:w-4 sm:h-4 text-primary animate-pulse" />
             </div>
           </div>
 
           {/* Pedestal Base cleanly spaced below */}
-          <div className="flex flex-col items-center mt-3 sm:mt-4">
-            <div className="h-[2.5px] w-36 sm:w-52 2xl:w-64 bg-gradient-to-r from-transparent via-amber-400/90 to-transparent rounded-full shadow-[0_0_10px_rgba(251,191,36,0.9)]" />
-            <div className={cn("mt-1.5 px-4 sm:px-5 py-1 rounded-full bg-black/90 border font-mono text-[8.5px] sm:text-[10.5px] font-black tracking-[0.25em] uppercase italic shadow-sm text-center", theme.tagBorder, theme.primaryText)}>
+          <div className="flex flex-col items-center mt-2 sm:mt-4">
+            <div className="h-[2px] sm:h-[2.5px] w-28 sm:w-52 2xl:w-64 bg-gradient-to-r from-transparent via-amber-400/90 to-transparent rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
+            <div className={cn("mt-1 px-3 sm:px-5 py-0.5 sm:py-1 rounded-full bg-black/90 border font-mono text-[7.5px] sm:text-[10.5px] font-black tracking-[0.2em] sm:tracking-[0.25em] uppercase italic shadow-sm text-center", theme.tagBorder, theme.primaryText)}>
               {seasonPedestal}
             </div>
           </div>
@@ -1586,44 +1586,44 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         )}
 
         {/* Adaptive Mobile Controls Bar (Visible on screens < xl) */}
-        <div className="xl:hidden px-3 mb-3 sm:mb-4 flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2 bg-black/80 backdrop-blur-2xl border border-white/10 p-1.5 rounded-2xl shadow-xl">
-                <div className="flex items-center gap-1 bg-white/[0.05] p-1 rounded-xl border border-white/10">
+        <div className="xl:hidden px-1.5 sm:px-3 mb-2.5 sm:mb-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-1.5 bg-black/80 backdrop-blur-2xl border border-white/10 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl shadow-xl">
+                <div className="flex items-center gap-1 bg-white/[0.05] p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-white/10">
                     <button
                         type="button"
                         onClick={() => setMobileViewMode('stage')}
                         className={cn(
-                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 font-headline",
+                            "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all duration-300 font-headline",
                             mobileViewMode === 'stage' 
                                 ? "bg-primary text-black shadow-[0_0_12px_rgba(204,253,1,0.5)]" 
                                 : "text-white/60 hover:text-white"
                         )}
                     >
-                        <Layers className="w-3.5 h-3.5" />
+                        <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         <span>Per Babak</span>
                     </button>
                     <button
                         type="button"
                         onClick={() => setMobileViewMode('canvas')}
                         className={cn(
-                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-300 font-headline",
+                            "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all duration-300 font-headline",
                             mobileViewMode === 'canvas' 
                                 ? "bg-primary text-black shadow-[0_0_12px_rgba(204,253,1,0.5)]" 
                                 : "text-white/60 hover:text-white"
                         )}
                     >
-                        <Scan className="w-3.5 h-3.5" />
+                        <Scan className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         <span>Bagan Utuh</span>
                     </button>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                     <Button
                         type="button"
                         onClick={() => setIsShareDialogOpen(true)}
-                        className="h-7 px-2.5 rounded-lg text-[9px] font-black uppercase tracking-wider italic flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-sm active:scale-95 transition-all"
+                        className="h-6 sm:h-7 px-2 sm:px-2.5 rounded-md sm:rounded-lg text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider italic flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-sm active:scale-95 transition-all"
                     >
-                        <Share2 className="w-3 h-3" />
+                        <Share2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         <span>Share Bagan</span>
                     </Button>
                     <span className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-widest hidden sm:inline-block pr-2">

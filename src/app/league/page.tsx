@@ -1185,12 +1185,12 @@ export default function LeaguePage() {
                     
                     {/* Ultra Futuristic & Ultra Sport Dual-Tone Headline */}
                     <div className="relative">
-                      <h1 className="font-headline text-4xl sm:text-7xl lg:text-8xl font-black tracking-tight uppercase italic leading-[0.95] flex flex-wrap items-baseline gap-x-3 sm:gap-x-6">
-                          <span className="inline-block pr-6 sm:pr-10 pb-1 headline-white-gradient">
+                      <h1 className="font-headline text-[28px] sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight uppercase italic leading-[1] flex flex-wrap items-baseline gap-x-2 sm:gap-x-6">
+                          <span className="inline-block pr-3 sm:pr-8 pb-0.5 sm:pb-1 headline-white-gradient">
                               {t('league_standings_page_title').split(' ')[0]}
                           </span>
                           <span 
-                            className="inline-block pr-4 sm:pr-6 pb-1"
+                            className="inline-block pr-3 sm:pr-6 pb-0.5 sm:pb-1"
                             style={{ 
                               color: theme.primaryHex,
                             }}
@@ -1200,7 +1200,7 @@ export default function LeaguePage() {
                       </h1>
                       {/* Aerodynamic Speed Conduit Line */}
                       <div 
-                        className="h-[2px] w-36 sm:w-56 mt-2 rounded-full" 
+                        className="h-[2px] w-28 sm:w-56 mt-1.5 sm:mt-2 rounded-full" 
                         style={{ 
                           background: `linear-gradient(to right, ${theme.primaryHex}, ${theme.secondaryHex}, transparent)`, 
                           boxShadow: `0 0 14px ${theme.glowRgba}` 
