@@ -53,7 +53,7 @@ export default function RootLayout({
               <PwaProvider>
                 <DeactivatedGuard>
                   <VantaBackground />
-                  <div className="relative flex min-h-screen flex-col pb-20 md:pb-0">
+                  <div className="relative flex min-h-screen flex-col pb-24 md:pb-0">
                     <Header />
                     <main className="flex-1 z-10">
                       {children}

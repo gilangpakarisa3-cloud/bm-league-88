@@ -278,17 +278,17 @@ export function LeagueTable({
         
         {isSeasonCoop ? (
              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                <div className="p-3 sm:p-4 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <TabsList className={cn("grid flex-1 h-12 sm:h-14 p-1.5 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-full backdrop-blur-2xl gap-2", isCoopHybrid ? "grid-cols-3" : "grid-cols-2")}>
-                      <TabsTrigger value="standings" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveBg)}>
-                          <span className="flex items-center justify-center gap-2"><Scan className="w-4 h-4" />Klasemen</span>
+                <div className="p-2 sm:p-3.5 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
+                  <TabsList className={cn("grid flex-1 h-10 sm:h-12 p-1 bg-white/[0.03] border border-white/10 rounded-xl sm:rounded-full backdrop-blur-2xl gap-1 sm:gap-1.5", isCoopHybrid ? "grid-cols-3" : "grid-cols-2")}>
+                      <TabsTrigger value="standings" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveBg)}>
+                          <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Scan className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Klasemen</span></span>
                       </TabsTrigger>
-                      <TabsTrigger value="topskor" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveTopSkor)}>
-                          <span className="flex items-center justify-center gap-2"><Flame className="w-4 h-4" />Top Skor</span>
+                      <TabsTrigger value="topskor" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveTopSkor)}>
+                          <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Top Skor</span></span>
                       </TabsTrigger>
                       {isCoopHybrid && (
-                          <TabsTrigger value="playoff" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActivePlayoff)}>
-                              <span className="flex items-center justify-center gap-2"><Swords className="w-4 h-4" />Playoff</span>
+                          <TabsTrigger value="playoff" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActivePlayoff)}>
+                              <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Swords className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Playoff</span></span>
                           </TabsTrigger>
                       )}
                   </TabsList>
@@ -297,24 +297,24 @@ export function LeagueTable({
                       <Button
                         type="button"
                         onClick={() => setIsShareKnockoutOpen(true)}
-                        className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_20px_rgba(251,191,36,0.35)] transition-all flex items-center gap-2 border border-amber-300/60 active:scale-95"
+                        className="w-full sm:w-auto h-9 sm:h-12 px-3 sm:px-5 rounded-lg sm:rounded-full font-black text-[11px] sm:text-xs uppercase tracking-wider italic bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_15px_rgba(251,191,36,0.25)] transition-all flex items-center justify-center gap-2 border border-amber-300/60 active:scale-95"
                       >
-                        <Share2 className="w-4 h-4" />
+                        <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span>Share Bagan</span>
                       </Button>
                     ) : (
                       <Button
                         type="button"
                         onClick={() => setIsShareStandingsOpen(true)}
-                        className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 border active:scale-95"
+                        className="w-full sm:w-auto h-9 sm:h-12 px-3 sm:px-5 rounded-lg sm:rounded-full font-black text-[11px] sm:text-xs uppercase tracking-wider italic transition-all flex items-center justify-center gap-2 border active:scale-95"
                         style={{
                           backgroundColor: theme.primaryHex,
                           color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
                           borderColor: `${theme.primaryHex}60`,
-                          boxShadow: `0 0 20px ${theme.glowRgba}`,
+                          boxShadow: `0 0 15px ${theme.glowRgba}`,
                         }}
                       >
-                        <Share2 className="w-4 h-4" />
+                        <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span>Share Klasemen</span>
                       </Button>
                     )}
@@ -366,16 +366,16 @@ export function LeagueTable({
         ) : (
             isSingleHybrid ? (
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                    <div className="p-3 sm:p-4 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                      <TabsList className="grid flex-1 grid-cols-3 h-12 sm:h-14 p-1.5 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-full backdrop-blur-2xl gap-2">
-                          <TabsTrigger value="standings" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveBg)}>
-                              <span className="flex items-center justify-center gap-2"><Scan className="w-4 h-4" />Klasemen</span>
+                    <div className="p-2 sm:p-3.5 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
+                      <TabsList className="grid flex-1 grid-cols-3 h-10 sm:h-12 p-1 bg-white/[0.03] border border-white/10 rounded-xl sm:rounded-full backdrop-blur-2xl gap-1 sm:gap-1.5">
+                          <TabsTrigger value="standings" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveBg)}>
+                              <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Scan className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Klasemen</span></span>
                           </TabsTrigger>
-                          <TabsTrigger value="topskor" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveTopSkor)}>
-                              <span className="flex items-center justify-center gap-2"><Flame className="w-4 h-4" />Top Skor</span>
+                          <TabsTrigger value="topskor" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveTopSkor)}>
+                              <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Top Skor</span></span>
                           </TabsTrigger>
-                          <TabsTrigger value="playoff" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActivePlayoff)}>
-                              <span className="flex items-center justify-center gap-2"><Swords className="w-4 h-4" />Playoff</span>
+                          <TabsTrigger value="playoff" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActivePlayoff)}>
+                              <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Swords className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Playoff</span></span>
                           </TabsTrigger>
                       </TabsList>
                       <div className="flex items-center gap-2 shrink-0 justify-end">
@@ -383,24 +383,24 @@ export function LeagueTable({
                           <Button
                             type="button"
                             onClick={() => setIsShareKnockoutOpen(true)}
-                            className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_20px_rgba(251,191,36,0.35)] transition-all flex items-center gap-2 border border-amber-300/60 active:scale-95"
+                            className="w-full sm:w-auto h-9 sm:h-12 px-3 sm:px-5 rounded-lg sm:rounded-full font-black text-[11px] sm:text-xs uppercase tracking-wider italic bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_15px_rgba(251,191,36,0.25)] transition-all flex items-center justify-center gap-2 border border-amber-300/60 active:scale-95"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                             <span>Share Bagan</span>
                           </Button>
                         ) : (
                           <Button
                             type="button"
                             onClick={() => setIsShareStandingsOpen(true)}
-                            className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 border active:scale-95"
+                            className="w-full sm:w-auto h-9 sm:h-12 px-3 sm:px-5 rounded-lg sm:rounded-full font-black text-[11px] sm:text-xs uppercase tracking-wider italic transition-all flex items-center justify-center gap-2 border active:scale-95"
                             style={{
                               backgroundColor: theme.primaryHex,
                               color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
                               borderColor: `${theme.primaryHex}60`,
-                              boxShadow: `0 0 20px ${theme.glowRgba}`,
+                              boxShadow: `0 0 15px ${theme.glowRgba}`,
                             }}
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                             <span>Share Klasemen</span>
                           </Button>
                         )}
@@ -449,35 +449,35 @@ export function LeagueTable({
                 </Tabs>
             ) : isStandardHybrid ? (
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                    <div className="p-3 sm:p-4 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                      <TabsList className="grid flex-1 grid-cols-3 h-12 sm:h-14 p-1.5 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-full backdrop-blur-2xl gap-2">
-                          <TabsTrigger value="group_a" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveBg)}><span className="flex items-center justify-center gap-2">Grup A</span></TabsTrigger>
-                          <TabsTrigger value="group_b" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveBg)}><span className="flex items-center justify-center gap-2">Grup B</span></TabsTrigger>
-                          <TabsTrigger value="playoff" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActivePlayoff)}><span className="flex items-center justify-center gap-2">Playoff</span></TabsTrigger>
+                    <div className="p-2 sm:p-3.5 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
+                      <TabsList className="grid flex-1 grid-cols-3 h-10 sm:h-12 p-1 bg-white/[0.03] border border-white/10 rounded-xl sm:rounded-full backdrop-blur-2xl gap-1 sm:gap-1.5">
+                          <TabsTrigger value="group_a" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveBg)}><span className="flex items-center justify-center gap-1.5 sm:gap-2">Grup A</span></TabsTrigger>
+                          <TabsTrigger value="group_b" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveBg)}><span className="flex items-center justify-center gap-1.5 sm:gap-2">Grup B</span></TabsTrigger>
+                          <TabsTrigger value="playoff" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActivePlayoff)}><span className="flex items-center justify-center gap-1.5 sm:gap-2">Playoff</span></TabsTrigger>
                       </TabsList>
                       <div className="flex items-center gap-2 shrink-0 justify-end">
                         {activeTab === 'playoff' ? (
                           <Button
                             type="button"
                             onClick={() => setIsShareKnockoutOpen(true)}
-                            className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_20px_rgba(251,191,36,0.35)] transition-all flex items-center gap-2 border border-amber-300/60 active:scale-95"
+                            className="w-full sm:w-auto h-9 sm:h-12 px-3 sm:px-5 rounded-lg sm:rounded-full font-black text-[11px] sm:text-xs uppercase tracking-wider italic bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_15px_rgba(251,191,36,0.25)] transition-all flex items-center justify-center gap-2 border border-amber-300/60 active:scale-95"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                             <span>Share Bagan</span>
                           </Button>
                         ) : (
                           <Button
                             type="button"
                             onClick={() => setIsShareStandingsOpen(true)}
-                            className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 border active:scale-95"
+                            className="w-full sm:w-auto h-9 sm:h-12 px-3 sm:px-5 rounded-lg sm:rounded-full font-black text-[11px] sm:text-xs uppercase tracking-wider italic transition-all flex items-center justify-center gap-2 border active:scale-95"
                             style={{
                               backgroundColor: theme.primaryHex,
                               color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
                               borderColor: `${theme.primaryHex}60`,
-                              boxShadow: `0 0 20px ${theme.glowRgba}`,
+                              boxShadow: `0 0 15px ${theme.glowRgba}`,
                             }}
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                             <span>Share Klasemen</span>
                           </Button>
                         )}
@@ -548,28 +548,28 @@ export function LeagueTable({
                 </Tabs>
             ) : (
                 <Tabs value={activeTab === 'topskor' ? 'topskor' : 'standings'} onValueChange={onTabChange} className="w-full">
-                  <div className="p-3 sm:p-4 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <TabsList className="grid flex-1 grid-cols-2 h-12 sm:h-14 p-1.5 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-full backdrop-blur-2xl gap-2">
-                      <TabsTrigger value="standings" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveBg)}>
-                        <span className="flex items-center justify-center gap-2"><Scan className="w-4 h-4" />Klasemen</span>
+                  <div className="p-2 sm:p-3.5 bg-gradient-to-r from-black/95 via-black/80 to-black/95 border-b border-white/10 backdrop-blur-3xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
+                    <TabsList className="grid flex-1 grid-cols-2 h-10 sm:h-12 p-1 bg-white/[0.03] border border-white/10 rounded-xl sm:rounded-full backdrop-blur-2xl gap-1 sm:gap-1.5">
+                      <TabsTrigger value="standings" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveBg)}>
+                        <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Scan className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Klasemen</span></span>
                       </TabsTrigger>
-                      <TabsTrigger value="topskor" className={cn("relative h-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-xl sm:rounded-full text-white/50 hover:text-white", theme.tabsActiveTopSkor)}>
-                        <span className="flex items-center justify-center gap-2"><Flame className="w-4 h-4" />Top Skor</span>
+                      <TabsTrigger value="topskor" className={cn("relative h-full font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs italic transition-all duration-300 rounded-lg sm:rounded-full text-white/50 hover:text-white px-2", theme.tabsActiveTopSkor)}>
+                        <span className="flex items-center justify-center gap-1.5 sm:gap-2"><Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /><span className="truncate">Top Skor</span></span>
                       </TabsTrigger>
                     </TabsList>
                     <div className="flex items-center gap-2 shrink-0 justify-end">
                       <Button
                         type="button"
                         onClick={() => setIsShareStandingsOpen(true)}
-                        className="h-11 sm:h-14 px-4 sm:px-6 rounded-xl sm:rounded-full font-black text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 border active:scale-95"
+                        className="w-full sm:w-auto h-9 sm:h-12 px-3 sm:px-5 rounded-lg sm:rounded-full font-black text-[11px] sm:text-xs uppercase tracking-wider italic transition-all flex items-center justify-center gap-2 border active:scale-95"
                         style={{
                           backgroundColor: theme.primaryHex,
                           color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
                           borderColor: `${theme.primaryHex}60`,
-                          boxShadow: `0 0 20px ${theme.glowRgba}`,
+                          boxShadow: `0 0 15px ${theme.glowRgba}`,
                         }}
                       >
-                        <Share2 className="w-4 h-4" />
+                        <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                         <span>Share Klasemen</span>
                       </Button>
                     </div>

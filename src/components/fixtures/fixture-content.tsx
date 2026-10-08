@@ -275,50 +275,50 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                 </div>
             ) : (
                 <Tabs defaultValue={liveCount > 0 ? "live" : "upcoming"} className="w-full">
-                    <div className="flex justify-center mb-12">
-                        <TabsList className="grid grid-cols-3 w-full max-w-2xl h-16 sm:h-18 bg-black/70 p-2 border border-white/10 relative overflow-hidden backdrop-blur-3xl rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+                    <div className="flex justify-center mb-8 sm:mb-12 px-1">
+                        <TabsList className="grid grid-cols-3 w-full max-w-2xl h-12 sm:h-16 bg-black/80 p-1 sm:p-2 border border-white/15 relative overflow-hidden backdrop-blur-3xl rounded-2xl sm:rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.8)] gap-1">
                             <TabsTrigger 
                                 value="live" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.15em] text-[11px] sm:text-sm italic transition-all duration-500 rounded-full",
+                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm italic transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
                                     theme.tabsActiveBg,
-                                    "data-[state=inactive]:text-white/40 data-[state=inactive]:hover:text-white"
+                                    "data-[state=inactive]:text-white/45 data-[state=inactive]:hover:text-white"
                                 )}
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-2">
-                                    <Radio className={cn("w-4 h-4", liveCount > 0 && "animate-pulse text-red-500")} />
-                                    <span>LIVE</span>
-                                    <span className="text-xs font-black px-2 py-0.5 rounded-full bg-black/30" suppressHydrationWarning>{liveCount}</span>
+                                <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2 truncate">
+                                    <Radio className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0", liveCount > 0 && "animate-pulse text-red-500")} />
+                                    <span className="truncate">LIVE</span>
+                                    <span className="text-[9px] sm:text-xs font-black px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-black/40 shrink-0" suppressHydrationWarning>{liveCount}</span>
                                 </span>
                             </TabsTrigger>
 
                             <TabsTrigger 
                                 value="upcoming" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.15em] text-[11px] sm:text-sm italic transition-all duration-500 rounded-full",
+                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm italic transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
                                     theme.tabsActiveBg,
-                                    "data-[state=inactive]:text-white/40 data-[state=inactive]:hover:text-white"
+                                    "data-[state=inactive]:text-white/45 data-[state=inactive]:hover:text-white"
                                 )}
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-2">
-                                    <Scan className="w-4 h-4" />
-                                    <span>QUEUE</span>
-                                    <span className="text-xs font-black px-2 py-0.5 rounded-full bg-black/30" suppressHydrationWarning>{upcomingCount}</span>
+                                <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2 truncate">
+                                    <Scan className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                                    <span className="truncate">QUEUE</span>
+                                    <span className="text-[9px] sm:text-xs font-black px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-black/40 shrink-0" suppressHydrationWarning>{upcomingCount}</span>
                                 </span>
                             </TabsTrigger>
 
                             <TabsTrigger 
                                 value="completed" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-[0.15em] text-[11px] sm:text-sm italic transition-all duration-500 rounded-full",
+                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm italic transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
                                     theme.tabsActiveBg,
-                                    "data-[state=inactive]:text-white/40 data-[state=inactive]:hover:text-white"
+                                    "data-[state=inactive]:text-white/45 data-[state=inactive]:hover:text-white"
                                 )}
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    <span>HISTORY</span>
-                                    <span className="text-xs font-black px-2 py-0.5 rounded-full bg-black/30" suppressHydrationWarning>{completedCount}</span>
+                                <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2 truncate">
+                                    <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                                    <span className="truncate">HISTORY</span>
+                                    <span className="text-[9px] sm:text-xs font-black px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-black/40 shrink-0" suppressHydrationWarning>{completedCount}</span>
                                 </span>
                             </TabsTrigger>
                         </TabsList>

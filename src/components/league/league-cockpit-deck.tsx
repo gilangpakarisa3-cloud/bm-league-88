@@ -162,7 +162,7 @@ export const LeagueCockpitDeck = ({
               onValueChange={setActiveSeasonId}
               disabled={isLoadingSeasons}
             >
-              <SelectTrigger className="w-full sm:w-auto sm:min-w-[260px] max-w-full sm:max-w-[580px] lg:max-w-[700px] h-10 bg-transparent border-0 font-black uppercase italic tracking-tight text-xs text-white focus:ring-0 px-2.5 pr-8 whitespace-nowrap min-w-0">
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[240px] max-w-full sm:max-w-[420px] lg:max-w-[520px] h-10 bg-transparent border-0 font-black uppercase italic tracking-tight text-xs text-white focus:ring-0 px-2.5 pr-8 min-w-0 overflow-hidden [&>span]:truncate [&>span]:block [&>span]:min-w-0">
                 <SelectValue placeholder={t('select_a_season')} />
               </SelectTrigger>
               <SelectContent className="bg-[#070B14]/98 border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl">

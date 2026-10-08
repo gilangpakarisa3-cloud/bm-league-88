@@ -545,7 +545,7 @@ export default function FixturesPage() {
                           className="w-2 h-2 rounded-full shrink-0" 
                           style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 8px ${theme.glowRgba}` }}
                         />
-                        <p className="text-xs sm:text-sm lg:text-base font-black text-white/90 tracking-tight uppercase italic break-words min-w-0">
+                        <p className="text-xs sm:text-sm lg:text-base font-black text-white/90 tracking-tight uppercase italic truncate min-w-0 flex-1">
                           {activeSeason.name}
                         </p>
                     </div>
@@ -606,7 +606,7 @@ export default function FixturesPage() {
                     <Scan className="w-4 h-4" />
                 </div>
                 <Select value={activeSeasonId || ''} onValueChange={activeSeasonId => setActiveSeasonId(activeSeasonId)} disabled={isLoadingSeasons}>
-                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[280px] max-w-full sm:max-w-[650px] lg:max-w-[780px] h-12 sm:h-14 bg-white/5 border border-white/10 font-black uppercase italic tracking-tight text-xs sm:text-sm rounded-2xl sm:rounded-full focus:border-white/30 transition-all px-5 sm:px-8 pr-10 sm:pr-12 whitespace-nowrap min-w-0 shadow-inner">
+                    <SelectTrigger className="w-full sm:w-auto min-w-0 max-w-full sm:max-w-[340px] md:max-w-[420px] lg:max-w-[500px] h-12 sm:h-14 bg-white/5 border border-white/10 font-black uppercase italic tracking-tight text-xs sm:text-sm rounded-2xl sm:rounded-full focus:border-white/30 transition-all px-4 sm:px-6 pr-9 sm:pr-11 overflow-hidden shadow-inner text-left justify-between [&>span]:line-clamp-1 [&>span]:truncate [&>span]:min-w-0 [&>span]:w-full [&>span]:block">
                         <SelectValue placeholder={t('select_a_season')} />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0A192F]/98 border border-white/20 rounded-2xl overflow-hidden backdrop-blur-3xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.9)] max-h-[350px]">
