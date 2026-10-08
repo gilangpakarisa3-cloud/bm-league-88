@@ -89,13 +89,13 @@ export const HistoryTab = ({
             </div>
 
             <div className="min-w-0 flex-1 text-left space-y-0.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white truncate max-w-[180px] sm:max-w-none" suppressHydrationWarning>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white pr-1" suppressHydrationWarning>
                   vs {match.opponent?.name || 'TBD'}
                 </span>
                 <Badge 
                   variant="outline" 
-                  className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-widest shrink-0"
+                  className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-wider shrink-0"
                   style={match.isPlayer1 ? {
                     borderColor: `${primaryHex}40`,
                     color: primaryHex,
@@ -109,7 +109,7 @@ export const HistoryTab = ({
                   {match.isPlayer1 ? 'Home' : 'Away'}
                 </Badge>
               </div>
-              <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest" suppressHydrationWarning>
+              <p className="text-[9px] font-bold text-white/40 uppercase tracking-wider" suppressHydrationWarning>
                 {formatMatchDate(match.matchDate)}
               </p>
             </div>
@@ -172,13 +172,13 @@ export const UpcomingTab = ({
               <Activity className="w-4 h-4 animate-pulse" style={{ color: primaryHex }} />
             </div>
             <div className="min-w-0 flex-1 text-left space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white/90 truncate" suppressHydrationWarning>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white/90 pr-1" suppressHydrationWarning>
                   vs {match.opponent?.name || 'TBD'}
                 </span>
                 <Badge 
                   variant="outline" 
-                  className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-widest shrink-0"
+                  className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-wider shrink-0"
                   style={match.isPlayer1 ? {
                     borderColor: `${primaryHex}40`,
                     color: primaryHex,
@@ -192,7 +192,7 @@ export const UpcomingTab = ({
                   {match.isPlayer1 ? 'Home' : 'Away'}
                 </Badge>
               </div>
-              <p className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ color: `${primaryHex}CC` }}>
+              <p className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: `${primaryHex}CC` }}>
                 <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: primaryHex }} />
                 JADWAL MENDATANG • FIXTURE PENDING
               </p>
