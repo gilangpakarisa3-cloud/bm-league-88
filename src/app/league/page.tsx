@@ -1728,18 +1728,13 @@ export default function LeaguePage() {
 
                                 {/* Solid Cyber Header */}
                                 <div className="py-3 px-6 sm:px-7 flex items-center justify-between overflow-hidden shrink-0 bg-gradient-to-r from-yellow-400 via-yellow-300 to-amber-400 text-black shadow-md">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="bg-black/20 p-1.5 rounded-xl border border-black/15 shadow-inner">
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <div className="bg-black/20 p-1.5 rounded-xl border border-black/15 shadow-inner shrink-0">
                                             <Wallet className="h-4 w-4" />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="text-sm sm:text-base font-black tracking-tight uppercase italic leading-none font-headline">Financial Hub</h3>
-                                            <span className="text-[8px] font-black uppercase tracking-widest text-black/70 font-mono">PRIZE_POOL // OFFICIAL RECORD</span>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-black/15 border border-black/10 text-[8px] font-black font-mono uppercase">
-                                        <Scan className="w-3 h-3 animate-pulse" />
-                                        <span>LIVE INTEL</span>
                                     </div>
                                 </div>
 

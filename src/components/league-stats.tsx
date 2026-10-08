@@ -170,33 +170,15 @@ const StatCard = ({
             )}>
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
 
-                <div className="flex items-center gap-2.5 relative z-10 min-w-0">
+                <div className="flex items-center gap-2.5 relative z-10 min-w-0 flex-1">
                     <div className="bg-black/20 p-1.5 rounded-xl border border-black/10 shadow-inner shrink-0">
                         <Icon className="h-4 w-4" />
                     </div>
-                    <div className="min-w-0">
-                        <h3 className="text-xs sm:text-sm font-black tracking-[0.08em] uppercase italic leading-none truncate font-headline">
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-xs sm:text-sm font-black tracking-[0.08em] uppercase italic leading-none font-headline">
                             {title}
                         </h3>
-                        {subtitle && (
-                            <p className={cn(
-                                "text-[8px] font-black uppercase tracking-widest font-mono truncate mt-0.5",
-                                conf.headerText === "text-white" ? "text-white/70" : "text-black/70"
-                            )}>
-                                {subtitle}
-                            </p>
-                        )}
                     </div>
-                </div>
-
-                <div className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[8px] font-black font-mono uppercase tracking-widest shrink-0 relative z-10",
-                    conf.tagBorder,
-                    conf.tagBg,
-                    conf.tagText
-                )}>
-                    <Scan className="w-2.5 h-2.5 animate-pulse" />
-                    <span>INTEL // VERIFIED</span>
                 </div>
             </div>
 
