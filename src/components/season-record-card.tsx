@@ -21,7 +21,8 @@ import {
   Crown,
   Flame,
   Award,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useTranslation } from "@/hooks/use-translation";
@@ -104,11 +105,15 @@ const StatItem = ({
 export function SeasonRecordCard({ 
   record, 
   isAdmin, 
-  onDelete 
+  onDelete,
+  onResync,
+  isResyncing
 }: { 
   record: WithId<SeasonRecord>, 
   isAdmin?: boolean, 
-  onDelete?: () => void 
+  onDelete?: () => void,
+  onResync?: () => void,
+  isResyncing?: boolean
 }) {
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -118,13 +123,16 @@ export function SeasonRecordCard({
   const formattedDate = new Date(completedDate).toLocaleDateString(dateLocale, { year: 'numeric', month: 'long' });
   const yearString = new Date(completedDate).getFullYear().toString();
 
-  const totalMatches = (record.winnerStats.win || 0) + (record.winnerStats.draw || 0) + (record.winnerStats.loss || 0);
+  const totalMatches = (record.winnerStats.totalMatches && record.winnerStats.totalMatches > 0)
+    ? record.winnerStats.totalMatches
+    : (record.winnerStats.win || 0) + (record.winnerStats.draw || 0) + (record.winnerStats.loss || 0);
+
   const winPercentage = totalMatches > 0 
     ? Math.round(((record.winnerStats.win || 0) / totalMatches) * 100) 
     : 100;
 
-  // Compute theme from season name
-  const theme = getSeasonTheme({ name: record.seasonName } as any);
+  // Compute theme from season name and themeKey
+  const theme = getSeasonTheme({ name: record.seasonName, themeKey: record.themeKey } as any);
 
   return (
     <div className="group relative">
@@ -193,16 +201,32 @@ export function SeasonRecordCard({
               </Badge>
             </div>
 
-            {isAdmin && onDelete && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-9 w-9 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 border border-white/5 rounded-xl transition-all"
-                onClick={onDelete}
-                title="Hapus Rekor Juara"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+            {isAdmin && (
+              <div className="flex items-center gap-1.5">
+                {onResync && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    disabled={isResyncing}
+                    className="h-9 w-9 text-white/30 hover:text-cyan-400 hover:bg-cyan-500/10 border border-white/5 rounded-xl transition-all"
+                    onClick={onResync}
+                    title="Sinkronkan Ulang Statistik Keseluruhan (Liga + Playoff)"
+                  >
+                    <RefreshCw className={cn("w-4 h-4", isResyncing && "animate-spin text-cyan-400")} />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-9 w-9 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 border border-white/5 rounded-xl transition-all"
+                    onClick={onDelete}
+                    title="Hapus Rekor Juara"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             )}
           </div>
           
@@ -346,22 +370,35 @@ export function SeasonRecordCard({
                   style={{ color: theme.primaryHex }}
                 />
                 <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em] italic">
-                  FIFA MATCH CENTRE MATRIX
+                  OVERALL CHAMPIONSHIP MATRIX
                 </span>
               </div>
-              <Badge 
-                className="font-black text-[10px] px-3 h-6 italic rounded-full text-black shadow-md"
-                style={{
-                  backgroundColor: theme.primaryHex,
-                  boxShadow: `0 0 15px ${theme.primaryHex}80`
-                }}
-              >
-                {record.winnerStats.points} PTS AGGREGATE
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                {record.winnerStats.points > 0 && (
+                  <Badge 
+                    variant="outline"
+                    className="font-black text-[9px] px-2 h-5.5 italic rounded-full border border-white/20 text-white/70 bg-white/5"
+                  >
+                    {record.winnerStats.points} LGE PTS
+                  </Badge>
+                )}
+                <Badge 
+                  className="font-black text-[9.5px] px-2.5 h-5.5 italic rounded-full text-black shadow-md tracking-wider"
+                  style={{
+                    backgroundColor: theme.primaryHex,
+                    boxShadow: `0 0 15px ${theme.primaryHex}80`
+                  }}
+                >
+                  {totalMatches} MATCHES
+                </Badge>
+              </div>
             </div>
 
-            {/* Duel Energy Bars: Victories vs Defeats */}
-            <div className="grid grid-cols-2 gap-4 pt-1">
+            {/* Duel Energy Bars: Victories vs (Draws) vs Defeats */}
+            <div className={cn(
+              "grid gap-3 pt-1",
+              (record.winnerStats.draw && record.winnerStats.draw > 0) ? "grid-cols-3" : "grid-cols-2"
+            )}>
               <div 
                 className="flex flex-col items-center text-center p-3 rounded-2xl bg-black/50 border"
                 style={{ borderColor: `${theme.primaryHex}33` }}
@@ -377,14 +414,32 @@ export function SeasonRecordCard({
                 </span>
                 <div className="mt-2 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                   <div 
-                    className="h-full rounded-full w-full" 
+                    className="h-full rounded-full" 
                     style={{ 
+                      width: `${totalMatches > 0 ? Math.min(100, Math.max(8, ((record.winnerStats.win || 0) / totalMatches) * 100)) : 100}%`,
                       backgroundColor: theme.primaryHex,
                       boxShadow: `0 0 10px ${theme.primaryHex}CC`
                     }} 
                   />
                 </div>
               </div>
+
+              {(record.winnerStats.draw && record.winnerStats.draw > 0) ? (
+                <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-black/50 border border-amber-400/20">
+                  <span className="text-[8px] font-black text-amber-400 uppercase italic tracking-widest mb-1">
+                    DRAWS (D)
+                  </span>
+                  <span className="text-3xl font-black text-white italic tabular-nums leading-none">
+                    {record.winnerStats.draw}
+                  </span>
+                  <div className="mt-2 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)]" 
+                      style={{ width: `${totalMatches > 0 ? Math.min(100, Math.max(8, (record.winnerStats.draw / totalMatches) * 100)) : 0}%` }} 
+                    />
+                  </div>
+                </div>
+              ) : null}
 
               <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-black/50 border border-rose-500/20">
                 <span className="text-[8px] font-black text-rose-400 uppercase italic tracking-widest mb-1">
@@ -396,7 +451,7 @@ export function SeasonRecordCard({
                 <div className="mt-2 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.8)]" 
-                    style={{ width: `${Math.max(10, Math.min(100, (record.winnerStats.loss / Math.max(1, record.winnerStats.win)) * 100))}%` }} 
+                    style={{ width: `${totalMatches > 0 ? Math.min(100, Math.max(8, ((record.winnerStats.loss || 0) / totalMatches) * 100)) : 0}%` }} 
                   />
                 </div>
               </div>
@@ -414,11 +469,11 @@ export function SeasonRecordCard({
                 </span>
               </div>
               <div className="p-2 bg-white/[0.02] rounded-xl">
-                <span className="block text-[7px] font-black uppercase tracking-wider text-white/40">GOALS FOR</span>
+                <span className="block text-[7px] font-black uppercase tracking-wider text-white/40">TOTAL GOALS</span>
                 <span className="text-sm font-black font-mono text-white italic">{record.winnerStats.goalsFor || 0}</span>
               </div>
               <div className="p-2 bg-white/[0.02] rounded-xl">
-                <span className="block text-[7px] font-black uppercase tracking-wider text-white/40">DIFF</span>
+                <span className="block text-[7px] font-black uppercase tracking-wider text-white/40">GOAL DIFF</span>
                 <span className={cn(
                   "text-sm font-black font-mono italic",
                   (record.winnerStats.goalDifference || 0) >= 0 ? "" : "text-rose-400"
@@ -444,7 +499,7 @@ export function SeasonRecordCard({
             <div className="flex items-center gap-2">
               <Zap className="w-3.5 h-3.5 text-black animate-pulse" />
               <h4 className="text-[9px] font-black tracking-[0.25em] uppercase italic text-black">
-                SEASON ACCOLADES & AWARDS
+                SEASON ACCOLADES (OVERALL TOURNAMENT)
               </h4>
             </div>
             <Scan className="w-3.5 h-3.5 text-black/60" />
@@ -517,7 +572,7 @@ export function SeasonRecordCard({
                     className="text-[7px] font-mono font-black uppercase tracking-[0.2em]"
                     style={{ color: `${theme.primaryHex}CC` }}
                   >
-                    STAMP: {yearString} // ARCHIVE_SECURE
+                    OVERALL CAMPAIGN // LEAGUE + PLAYOFF
                   </span>
                 </div>
               </div>

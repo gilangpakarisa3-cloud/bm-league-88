@@ -309,9 +309,9 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const isCoopHybrid = season?.type === 'Co-Op Hybrid';
   const groupACount = rankedTable.filter(p => p.group === 'A').length;
   const groupBCount = rankedTable.filter(p => p.group === 'B').length;
-  const has8TeamKnockoutMatches = matches.some(m => m.round === 'Quarterfinal' || m.bracketId === 'playoff-sf1');
-  const isHybrid8Knockout = season?.type === 'Hybrid' && (has8TeamKnockoutMatches || (groupACount > 0 && (groupACount < 6 || groupBCount < 6)));
-  const isSingleHybrid = season?.type === 'Single Hybrid' || isHybrid8Knockout;
+  const has8TeamKnockoutMatches = matches.some(m => m.round === 'Quarterfinal' || m.bracketId === 'playoff-sf1' || m.bracketId === 'playoff-m1');
+  const isHybrid8Knockout = (season?.type === 'Hybrid' || season?.type === 'Single Hybrid') && (has8TeamKnockoutMatches || (groupACount > 0 && (groupACount < 6 || groupBCount < 6)));
+  const isSingleHybrid = season?.type === 'Single Hybrid' || isHybrid8Knockout || has8TeamKnockoutMatches;
   const is12TeamHybrid = season?.type === 'Hybrid' && !isHybrid8Knockout;
   const theme = getSeasonTheme(season);
 

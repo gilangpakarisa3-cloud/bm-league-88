@@ -11,8 +11,8 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   translations: Translations;
-  t: (key: string, options?: Record<string, string | number>) => string;
-  t_dynamic: (key: string, options?: Record<string, string | number>) => string;
+  t: (key: string, options?: Record<string, string | number | undefined>) => string;
+  t_dynamic: (key: string, options?: Record<string, string | number | undefined>) => string;
 }
 
 const translations: Record<Language, Translations> = { id, en };
@@ -36,13 +36,13 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isMounted, language]);
 
-  const t = useCallback((key: string, options?: Record<string, string | number>): string => {
+  const t = useCallback((key: string, options?: Record<string, string | number | undefined>): string => {
     const keys = key.split('.');
-    let result = translations[language];
+    let result: any = translations[language];
     for (const k of keys) {
       result = result?.[k];
       if (result === undefined) {
-        let fallbackResult = translations['en'];
+        let fallbackResult: any = translations['en'];
         for (const fk of keys) {
             fallbackResult = fallbackResult?.[fk];
              if (fallbackResult === undefined) return key;
@@ -52,23 +52,26 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    if (typeof result === 'string' && options) {
-      return Object.entries(options).reduce((acc, [key, value]) => {
-        return acc.replace(`{{${key}}}`, String(value));
-      }, result);
+    if (typeof result === 'string') {
+      if (options) {
+        return Object.entries(options).reduce((acc: string, [key, value]) => {
+          return acc.replace(`{{${key}}}`, String(value ?? ''));
+        }, result);
+      }
+      return result;
     }
     
-    return result || key;
+    return typeof result === 'string' ? result : key;
   }, [language]);
   
-   const t_dynamic = useCallback((key: string, options?: Record<string, string | number>): string => {
+   const t_dynamic = useCallback((key: string, options?: Record<string, string | number | undefined>): string => {
     const lang = typeof window !== 'undefined' ? (localStorage.getItem('language') as Language || 'id') : 'id';
     const keys = key.split('.');
-    let result = translations[lang];
+    let result: any = translations[lang];
     for (const k of keys) {
       result = result?.[k];
        if (result === undefined) {
-        let fallbackResult = translations['en'];
+        let fallbackResult: any = translations['en'];
         for (const fk of keys) {
             fallbackResult = fallbackResult?.[fk];
              if (fallbackResult === undefined) return key;
@@ -77,12 +80,15 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         break;
       }
     }
-     if (typeof result === 'string' && options) {
-      return Object.entries(options).reduce((acc, [key, value]) => {
-        return acc.replace(`{{${key}}}`, String(value));
-      }, result);
+    if (typeof result === 'string') {
+      if (options) {
+        return Object.entries(options).reduce((acc: string, [key, value]) => {
+          return acc.replace(`{{${key}}}`, String(value ?? ''));
+        }, result);
+      }
+      return result;
     }
-    return result || key;
+    return typeof result === 'string' ? result : key;
   }, []);
 
 

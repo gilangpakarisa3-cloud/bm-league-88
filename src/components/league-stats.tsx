@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from "react";
-import type { LeagueEntry, Player, Team, WithId, Season } from "@/lib/types";
+import type { LeagueEntry, Player, Team, WithId, Season, Match } from "@/lib/types";
 import { Card } from "./ui/card";
 import { 
   ShieldCheck, 
@@ -10,9 +10,10 @@ import {
   Flame, 
   Target, 
   Zap, 
-  Radio,
-  Gauge,
-  Trophy
+  Radio, 
+  Gauge, 
+  Trophy,
+  Activity
 } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { StatCard, StatCardSkeleton } from "./stats/stat-card";
@@ -22,30 +23,114 @@ export type { StatVariant, VariantConfig } from "./stats/stat-card";
 
 interface LeagueStatsProps {
   tableData: (WithId<LeagueEntry> & { player?: WithId<Player>; team?: WithId<Team> })[];
+  matches?: WithId<Match>[];
   isLoading?: boolean;
   seasonType?: Season['type'];
+  isSeasonCoop?: boolean;
 }
 
-export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsProps) {
+export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeasonCoop }: LeagueStatsProps) {
   const { t } = useTranslation();
 
-  const stats = useMemo(() => {
+  const { stats, hasCompletedPlayoffs } = useMemo(() => {
     if (!tableData || tableData.length === 0) {
       return {
-        mostWins: [],
-        unbeaten: [],
-        bestAttacker: [],
-        bestDefense: [],
-        bestGD: [],
-        worstDefender: [],
-        kingOfDraws: [],
-        championshipContenders: [],
+        stats: {
+          mostWins: [],
+          unbeaten: [],
+          bestAttacker: [],
+          bestDefense: [],
+          bestGD: [],
+          worstDefender: [],
+          kingOfDraws: [],
+          championshipContenders: [],
+        },
+        hasCompletedPlayoffs: false,
       };
     }
 
-    const playersWhoPlayed = tableData.filter(p => p.played > 0);
+    const isCoop = isSeasonCoop || seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid';
+
+    // Pertandingan playoff yang telah selesai (babak selain 'Group')
+    const completedPlayoffMatches = (matches || []).filter(
+      m => m.isCompleted && m.round && m.round !== 'Group'
+    );
+    const hasPlayoffs = completedPlayoffMatches.length > 0;
+
+    // Hitung statistik kumulatif menyeluruh (Fase Grup / Liga + Babak Playoff) untuk setiap peserta
+    const cumulativeTable = tableData.map(entry => {
+      const pId = isCoop ? entry.id : (entry.playerId || entry.id);
+
+      const pPlayoffMatches = completedPlayoffMatches.filter(
+        m => m.player1Id === pId || m.player2Id === pId
+      );
+
+      let playoffPlayed = 0;
+      let playoffWin = 0;
+      let playoffDraw = 0;
+      let playoffLoss = 0;
+      let playoffGoalsFor = 0;
+      let playoffGoalsAgainst = 0;
+
+      pPlayoffMatches.forEach(m => {
+        const isP1 = m.player1Id === pId;
+        const isBo3 = m.round && m.round !== 'Group';
+
+        let s1 = 0;
+        let s2 = 0;
+        if (
+          isBo3 &&
+          ((m.player1Wins !== null && m.player1Wins !== undefined) ||
+            (m.player2Wins !== null && m.player2Wins !== undefined))
+        ) {
+          s1 = m.player1Wins ?? 0;
+          s2 = m.player2Wins ?? 0;
+        } else {
+          s1 = m.player1Score ?? 0;
+          s2 = m.player2Score ?? 0;
+        }
+
+        const myScore = isP1 ? s1 : s2;
+        const oppScore = isP1 ? s2 : s1;
+
+        playoffPlayed++;
+        if (myScore > oppScore) playoffWin++;
+        else if (myScore < oppScore) playoffLoss++;
+        else playoffDraw++;
+
+        const myGf = isP1 ? (m.player1Score ?? 0) : (m.player2Score ?? 0);
+        const myGa = isP1 ? (m.player2Score ?? 0) : (m.player1Score ?? 0);
+        playoffGoalsFor += myGf;
+        playoffGoalsAgainst += myGa;
+      });
+
+      const totalPlayed = (entry.played || 0) + playoffPlayed;
+      const totalWin = (entry.win || 0) + playoffWin;
+      const totalDraw = (entry.draw || 0) + playoffDraw;
+      const totalLoss = (entry.loss || 0) + playoffLoss;
+      const totalGoalsFor = (entry.goalsFor || 0) + playoffGoalsFor;
+      const totalGoalsAgainst = (entry.goalsAgainst || 0) + playoffGoalsAgainst;
+      const totalGoalDifference = totalGoalsFor - totalGoalsAgainst;
+
+      return {
+        ...entry,
+        played: totalPlayed,
+        win: totalWin,
+        draw: totalDraw,
+        loss: totalLoss,
+        goalsFor: totalGoalsFor,
+        goalsAgainst: totalGoalsAgainst,
+        goalDifference: totalGoalDifference,
+        playoffMatchesCount: playoffPlayed,
+      };
+    });
+
+    const playersWhoPlayed = cumulativeTable.filter(p => p.played > 0);
     if (playersWhoPlayed.length === 0) {
-      return { mostWins: [], unbeaten: [], bestAttacker: [], bestDefense: [], bestGD: [], worstDefender: [], kingOfDraws: [], championshipContenders: [] };
+      return {
+        stats: { mostWins: [], unbeaten: [], bestAttacker: [], bestDefense: [], bestGD: [], worstDefender: [], kingOfDraws: [], championshipContenders: [] },
+        hasCompletedPlayoffs: hasPlayoffs,
+      };
     }
 
     const maxWins = Math.max(...playersWhoPlayed.map(p => p.win));
@@ -87,8 +172,11 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
       }
     }
 
-    return { mostWins, unbeaten, bestAttacker, bestDefense, bestGD, worstDefender, kingOfDraws, championshipContenders };
-  }, [tableData, seasonType]);
+    return {
+      stats: { mostWins, unbeaten, bestAttacker, bestDefense, bestGD, worstDefender, kingOfDraws, championshipContenders },
+      hasCompletedPlayoffs: hasPlayoffs,
+    };
+  }, [tableData, matches, seasonType, isSeasonCoop]);
 
   if (isLoading) {
     return (
@@ -129,110 +217,119 @@ export function LeagueStats({ tableData, isLoading, seasonType }: LeagueStatsPro
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-      {stats.mostWins.length > 0 && (
-        <StatCard 
-          title={t('fun_stats_most_wins')}
-          subtitle="MOST WINS // WIN RECORD"
-          icon={Trophy}
-          players={stats.mostWins}
-          valueKey="win"
-          valueSuffix="W"
-          variant="volt"
-          ghostText="VICTORY"
-        />
+    <div className="space-y-4">
+      {hasCompletedPlayoffs && (
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary w-fit text-[10px] font-black uppercase tracking-wider shadow-sm">
+          <Activity className="w-3.5 h-3.5 animate-pulse text-primary shrink-0" />
+          <span>Statistik Akumulatif: Fase Liga + Babak Playoff Aktif</span>
+        </div>
       )}
 
-      {seasonType !== 'Co-Op' && stats.bestGD.length > 0 && (
-        <StatCard 
-          title={t('fun_stats_best_gd')}
-          subtitle="GOAL DIFFERENCE // GD LEADER"
-          icon={Gauge}
-          players={stats.bestGD}
-          valueKey="goalDifference"
-          valueSuffix="GD"
-          variant="emerald"
-          ghostText="DELTA"
-        />
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+        {stats.mostWins.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_most_wins')}
+            subtitle={hasCompletedPlayoffs ? "MOST WINS // LEAGUE + PLAYOFF" : "MOST WINS // WIN RECORD"}
+            icon={Trophy}
+            players={stats.mostWins}
+            valueKey="win"
+            valueSuffix="W"
+            variant="volt"
+            ghostText="VICTORY"
+          />
+        )}
 
-      {seasonType !== 'Co-Op' && stats.bestDefense.length > 0 && (
-        <StatCard 
-          title={t('fun_stats_best_defense')}
-          subtitle="BEST DEFENCE // MIN CONCEDED"
-          icon={ShieldCheck}
-          players={stats.bestDefense}
-          valueKey="goalsAgainst"
-          valueSuffix="GA"
-          variant="cyan"
-          ghostText="WALL"
-        />
-      )}
+        {seasonType !== 'Co-Op' && stats.bestGD.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_best_gd')}
+            subtitle={hasCompletedPlayoffs ? "GOAL DIFFERENCE // LEAGUE + PLAYOFF" : "GOAL DIFFERENCE // GD LEADER"}
+            icon={Gauge}
+            players={stats.bestGD}
+            valueKey="goalDifference"
+            valueSuffix="GD"
+            variant="emerald"
+            ghostText="DELTA"
+          />
+        )}
 
-      {seasonType !== 'Co-Op' && stats.bestAttacker.length > 0 && (
-        <StatCard 
-          title={t('fun_stats_best_attacker')}
-          subtitle="TOP ATTACK // GOAL MACHINE"
-          icon={Target}
-          players={stats.bestAttacker}
-          valueKey="goalsFor"
-          valueSuffix="GLS"
-          variant="amber"
-          ghostText="APEX"
-        />
-      )}
+        {seasonType !== 'Co-Op' && stats.bestDefense.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_best_defense')}
+            subtitle={hasCompletedPlayoffs ? "BEST DEFENCE // LEAGUE + PLAYOFF" : "BEST DEFENCE // MIN CONCEDED"}
+            icon={ShieldCheck}
+            players={stats.bestDefense}
+            valueKey="goalsAgainst"
+            valueSuffix="GA"
+            variant="cyan"
+            ghostText="WALL"
+          />
+        )}
 
-      {seasonType !== 'Co-Op' && stats.kingOfDraws.length > 0 && (
-        <StatCard 
-          title={t('fun_stats_king_of_draws')}
-          subtitle="DRAW RECORD // MOST TIED MATCHES"
-          icon={Handshake}
-          players={stats.kingOfDraws}
-          valueKey="draw"
-          valueSuffix="DRW"
-          variant="purple"
-          ghostText="EQUIL"
-        />
-      )}
+        {seasonType !== 'Co-Op' && stats.bestAttacker.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_best_attacker')}
+            subtitle={hasCompletedPlayoffs ? "TOP ATTACK // LEAGUE + PLAYOFF" : "TOP ATTACK // GOAL MACHINE"}
+            icon={Target}
+            players={stats.bestAttacker}
+            valueKey="goalsFor"
+            valueSuffix="GLS"
+            variant="amber"
+            ghostText="APEX"
+          />
+        )}
 
-      {seasonType !== 'Co-Op' && stats.worstDefender.length > 0 && (
-        <StatCard 
-          title={t('fun_stats_worst_defense')}
-          subtitle="LEAKY DEFENCE // MOST GOALS CONCEDED"
-          icon={ShieldAlert}
-          players={stats.worstDefender}
-          valueKey="goalsAgainst"
-          valueSuffix="GA"
-          variant="destructive"
-          ghostText="BREACH"
-        />
-      )}
+        {seasonType !== 'Co-Op' && stats.kingOfDraws.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_king_of_draws')}
+            subtitle={hasCompletedPlayoffs ? "DRAW RECORD // LEAGUE + PLAYOFF" : "DRAW RECORD // MOST TIED MATCHES"}
+            icon={Handshake}
+            players={stats.kingOfDraws}
+            valueKey="draw"
+            valueSuffix="DRW"
+            variant="purple"
+            ghostText="EQUIL"
+          />
+        )}
 
-      {showUnbeaten && (
-        <StatCard 
-          title={t('fun_stats_unbeaten')}
-          subtitle="IMMORTAL_RUN // ZERO LOSS"
-          icon={Zap}
-          players={stats.unbeaten}
-          valueKey="played"
-          valueSuffix="M"
-          variant="volt"
-          ghostText="INVINCIBLE"
-        />
-      )}
+        {seasonType !== 'Co-Op' && stats.worstDefender.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_worst_defense')}
+            subtitle={hasCompletedPlayoffs ? "LEAKY DEFENCE // LEAGUE + PLAYOFF" : "LEAKY DEFENCE // MOST GOALS CONCEDED"}
+            icon={ShieldAlert}
+            players={stats.worstDefender}
+            valueKey="goalsAgainst"
+            valueSuffix="GA"
+            variant="destructive"
+            ghostText="BREACH"
+          />
+        )}
 
-      {seasonType === 'Single' && stats.championshipContenders.length > 0 && (
-        <StatCard 
-          title={t('fun_stats_championship_contender')}
-          subtitle="PODIUM_PRESSURE // TITLE CHASE"
-          icon={Flame}
-          players={stats.championshipContenders}
-          valueKey="points"
-          valueSuffix="PTS"
-          variant="amber"
-          ghostText="TITLE"
-        />
-      )}
+        {showUnbeaten && (
+          <StatCard 
+            title={t('fun_stats_unbeaten')}
+            subtitle={hasCompletedPlayoffs ? "IMMORTAL RUN // LEAGUE + PLAYOFF" : "IMMORTAL_RUN // ZERO LOSS"}
+            icon={Zap}
+            players={stats.unbeaten}
+            valueKey="played"
+            valueSuffix="M"
+            variant="volt"
+            ghostText="INVINCIBLE"
+          />
+        )}
+
+        {seasonType === 'Single' && stats.championshipContenders.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_championship_contender')}
+            subtitle="PODIUM_PRESSURE // TITLE CHASE"
+            icon={Flame}
+            players={stats.championshipContenders}
+            valueKey="points"
+            valueSuffix="PTS"
+            variant="amber"
+            ghostText="TITLE"
+          />
+        )}
+      </div>
     </div>
   );
 }

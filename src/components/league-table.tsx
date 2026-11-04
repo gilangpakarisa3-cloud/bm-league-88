@@ -75,8 +75,9 @@ export function LeagueTable({
   const setSelectedDivision = (div: 'div-1' | 'div-2') => {
     setInternalDivision(div);
     onDivisionChange?.(div);
+    const div2HasPlayoff = isMultiDivisionActive && !!activeSeason?.division2HasPlayoff;
     if (div === 'div-2') {
-      if (activeTab === 'group_a' || activeTab === 'group_b' || activeTab === 'playoff') {
+      if (activeTab === 'group_a' || activeTab === 'group_b' || (!div2HasPlayoff && activeTab === 'playoff')) {
         onTabChange?.('standings');
       }
     } else {
@@ -124,6 +125,9 @@ export function LeagueTable({
     if (isMultiDivisionActive && selectedDivision === 'div-2') {
       if (activeSeason?.division2HasPlayoff === false) {
         return 'Single';
+      }
+      if (activeSeason?.division2HasPlayoff) {
+        return activeSeason?.division2Format || (seasonType === 'Co-Op Hybrid' ? 'Co-Op Hybrid' : 'Single Hybrid');
       }
       return activeSeason?.division2Format || 'Single';
     }

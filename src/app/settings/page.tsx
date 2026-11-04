@@ -166,7 +166,7 @@ export default function SettingsPage() {
                     if (!m.isCompleted) return;
                     if (m.round === 'Group' || !m.round) return;
 
-                    const isMatchBo3 = isCoop || (m.round && m.round !== 'Group');
+                    const isMatchBo3 = isCoop || Boolean(m.round);
                     const s1 = isMatchBo3 ? (m.player1Wins ?? m.player1Score ?? 0) : (m.player1Score ?? 0);
                     const s2 = isMatchBo3 ? (m.player2Wins ?? m.player2Score ?? 0) : (m.player2Score ?? 0);
                     

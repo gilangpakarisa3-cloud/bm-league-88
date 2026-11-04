@@ -141,6 +141,7 @@ export type SeasonRecord = {
     winnerPlayerName: string;
     winnerTeamName: string;
     winnerPhotoUrl?: string;
+    themeKey?: Season['themeKey'];
     winnerStats: {
         points: number;
         win: number;
@@ -149,12 +150,30 @@ export type SeasonRecord = {
         goalsFor: number;
         goalsAgainst: number;
         goalDifference: number;
+        totalMatches?: number;
+        leaguePoints?: number;
     };
     funStats: {
         bestAttacker: { playerName: string; value: number } | null;
         worstDefender: { playerName: string; value: number } | null;
         mostWins: { playerName: string; value: number } | null;
     };
+    division2Record?: {
+        winnerPlayerId: string;
+        winnerPlayerName: string;
+        winnerTeamName: string;
+        winnerPhotoUrl?: string;
+        divisionName?: string;
+        runnerUpPlayerName?: string;
+        runnerUpTeamName?: string;
+        points: number;
+        goalsFor: number;
+        goalsAgainst: number;
+        win: number;
+        loss: number;
+        draw?: number;
+        totalMatches?: number;
+    } | null;
 }
 
 export type AdminConfig = {

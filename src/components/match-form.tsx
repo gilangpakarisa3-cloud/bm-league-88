@@ -55,9 +55,9 @@ export function MatchForm({ match, onSave }: MatchFormProps) {
   const form = useForm<MatchFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      team1Id: match?.team1?.id || '',
-      team2Id: match?.team2?.id || '',
-      date: match?.date || new Date(),
+      team1Id: match?.player1Id || '',
+      team2Id: match?.player2Id || '',
+      date: match?.matchDate ? match.matchDate.toDate() : new Date(),
     },
   });
 
