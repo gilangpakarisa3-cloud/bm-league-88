@@ -53,6 +53,7 @@ import { Input } from './ui/input';
 import { PlayerHoloCard } from './player/player-holo-card';
 import { PlayerMobilePod } from './player/player-mobile-pod';
 import { PlayerTelemetryTable } from './player/player-telemetry-table';
+import { enrichPlayersWithMmrData, TIER_STYLES } from '@/lib/mmr';
 
 export { PlayerHoloCard } from './player/player-holo-card';
 export { PlayerMobilePod } from './player/player-mobile-pod';
@@ -62,7 +63,7 @@ interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
   isAdmin: boolean;
   withAdminCheck: (action: () => void) => void;
-  onStatsUpdate?: (stats: { totalPlayers: number; avgOvr: number; totalGoals: number; activeClubs: number }) => void;
+  onStatsUpdate?: (stats: { totalPlayers: number; avgMmr: number; totalGoals: number; activeClubs: number }) => void;
 }
 
 export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps) {
@@ -93,41 +94,10 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
   );
   const { data: hallOfFame } = useCollection<SeasonRecord>(hallOfFameCollection);
   
-  // Calculate OVR and Ranks among all players
-  // RULES: Players with < 20 official matches are "Not Calibrated" (ovrRating: null / unranked OVR)
+  // Enrich all players with dynamic MMR, peak MMR, career win rate, and ranks
   const playersWithRanks = useMemo(() => {
-    if (!players) return [];
-    
-    // 1. Calculate OVR & calibration status for all
-    const withOvr = players.map(p => {
-      const played = p.overallPlayed || 0;
-      const isCalibrated = played >= 20;
-      const poss = played * 3;
-      const actualPoints = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-      const ovrRating = isCalibrated && poss > 0 ? (actualPoints / poss) * 100 : 0;
-      const winRate = played > 0 ? ((p.overallWin || 0) / played) * 100 : 0;
-      return { ...p, ovrRating, isCalibrated, winRate };
-    });
-
-    // 2. Separate calibrated vs not calibrated
-    const calibrated = withOvr
-      .filter(p => p.isCalibrated)
-      .sort((a, b) => b.ovrRating - a.ovrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0))
-      .map((p, index) => ({
-        ...p,
-        ovrRank: index + 1
-      }));
-
-    const notCalibrated = withOvr
-      .filter(p => !p.isCalibrated)
-      .sort((a, b) => (b.overallPlayed || 0) - (a.overallPlayed || 0) || b.winRate - a.winRate)
-      .map((p) => ({
-        ...p,
-        ovrRank: null // unranked
-      }));
-
-    return [...calibrated, ...notCalibrated];
-  }, [players]);
+    return enrichPlayersWithMmrData(players, hallOfFame);
+  }, [players, hallOfFame]);
 
   const teamsById = useMemo(() => {
     if (!teams) return {};
@@ -137,7 +107,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     }, {} as Record<string, WithId<Team>>);
   }, [teams]);
 
-  // Defined Tiers configuration including NOT_CALIBRATED
+  // Defined Tiers configuration based on MMR
   const tiersConfig = useMemo(() => {
     if (playersWithRanks.length === 0) return [];
     const calibratedPlayers = playersWithRanks.filter(p => p.isCalibrated);
@@ -145,67 +115,27 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
 
     const baseTiers = [
       { 
-        id: 'LEGEND',
-        title: 'Legend', 
-        players: calibratedPlayers.slice(0, 4), 
-        color: 'text-yellow-400', 
-        borderColor: 'border-yellow-400/40 hover:border-yellow-400',
-        bgPill: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/30',
-        bgBadge: 'bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)]',
-        accentGlow: 'from-yellow-400/20 via-amber-500/10 to-transparent',
-        badgeTitle: 'TITAN CLASS',
-        hudBar: 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)]'
+        ...TIER_STYLES.LEGEND,
+        players: calibratedPlayers.filter(p => p.tierId === 'LEGEND'),
       },
       { 
-        id: 'TOP_PLAYER',
-        title: 'Top Player', 
-        players: calibratedPlayers.slice(4, 8), 
-        color: 'text-primary', 
-        borderColor: 'border-primary/40 hover:border-primary',
-        bgPill: 'bg-primary/10 text-primary border-primary/30',
-        bgBadge: 'bg-primary text-black shadow-[0_0_20px_rgba(204,253,1,0.5)]',
-        accentGlow: 'from-primary/20 via-primary/5 to-transparent',
-        badgeTitle: 'PRO DIVISION',
-        hudBar: 'bg-primary shadow-[0_0_15px_rgba(204,253,1,0.8)]'
+        ...TIER_STYLES.TOP_PLAYER,
+        players: calibratedPlayers.filter(p => p.tierId === 'TOP_PLAYER'),
       },
       { 
-        id: 'REGULER',
-        title: 'Reguler', 
-        players: calibratedPlayers.slice(8, 12), 
-        color: 'text-accent', 
-        borderColor: 'border-accent/40 hover:border-accent',
-        bgPill: 'bg-accent/10 text-accent border-accent/30',
-        bgBadge: 'bg-accent text-black shadow-[0_0_20px_rgba(100,255,218,0.5)]',
-        accentGlow: 'from-accent/20 via-accent/5 to-transparent',
-        badgeTitle: 'CORE SQUAD',
-        hudBar: 'bg-accent shadow-[0_0_15px_rgba(100,255,218,0.8)]'
+        ...TIER_STYLES.REGULER,
+        players: calibratedPlayers.filter(p => p.tierId === 'REGULER'),
       },
       { 
-        id: 'AMATEUR',
-        title: 'Amateur', 
-        players: calibratedPlayers.slice(12), 
-        color: 'text-rose-400', 
-        borderColor: 'border-rose-400/40 hover:border-rose-400',
-        bgPill: 'bg-rose-400/10 text-rose-400 border-rose-400/30',
-        bgBadge: 'bg-rose-400 text-black shadow-[0_0_20px_rgba(251,113,133,0.5)]',
-        accentGlow: 'from-rose-400/20 via-rose-500/5 to-transparent',
-        badgeTitle: 'ROOKIE FIELD',
-        hudBar: 'bg-rose-400 shadow-[0_0_15px_rgba(251,113,133,0.8)]'
+        ...TIER_STYLES.AMATEUR,
+        players: calibratedPlayers.filter(p => p.tierId === 'AMATEUR'),
       },
     ];
 
     if (uncalibratedPlayers.length > 0) {
       baseTiers.push({
-        id: 'NOT_CALIBRATED',
-        title: 'Not Calibrated',
+        ...TIER_STYLES.NOT_CALIBRATED,
         players: uncalibratedPlayers,
-        color: 'text-slate-400',
-        borderColor: 'border-slate-500/40 hover:border-slate-400',
-        bgPill: 'bg-slate-500/10 text-slate-300 border-slate-500/30',
-        bgBadge: 'bg-slate-800 text-slate-300 border border-slate-600 shadow-[0_0_15px_rgba(148,163,184,0.15)]',
-        accentGlow: 'from-slate-500/15 via-slate-600/5 to-transparent',
-        badgeTitle: 'PROVISIONAL (<20 MATCH)',
-        hudBar: 'bg-slate-500 shadow-[0_0_10px_rgba(148,163,184,0.4)]'
       });
     }
 
@@ -215,17 +145,17 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
   // Overall league quick stats
   const leagueMetrics = useMemo(() => {
     const totalPlayers = playersWithRanks.length;
-    if (totalPlayers === 0) return { totalPlayers: 0, avgOvr: 0, totalGoals: 0, activeClubs: 0, highestOvr: 0 };
+    if (totalPlayers === 0) return { totalPlayers: 0, avgMmr: 0, totalGoals: 0, activeClubs: 0, highestMmr: 0 };
     
     const calibratedPlayers = playersWithRanks.filter(p => p.isCalibrated);
-    const avgOvr = calibratedPlayers.length > 0 
-      ? Math.round(calibratedPlayers.reduce((acc, p) => acc + p.ovrRating, 0) / calibratedPlayers.length)
+    const avgMmr = calibratedPlayers.length > 0 
+      ? Math.round(calibratedPlayers.reduce((acc, p) => acc + p.mmrRating, 0) / calibratedPlayers.length)
       : 0;
     const totalGoals = playersWithRanks.reduce((acc, p) => acc + (p.overallGoalsFor || 0), 0);
     const uniqueTeams = new Set(playersWithRanks.map(p => p.teamId).filter(Boolean)).size;
-    const highestOvr = calibratedPlayers.length > 0 ? Math.round(calibratedPlayers[0]?.ovrRating || 0) : 0;
+    const highestMmr = calibratedPlayers.length > 0 ? Math.round(calibratedPlayers[0]?.mmrRating || 0) : 0;
 
-    return { totalPlayers, avgOvr, totalGoals, activeClubs: uniqueTeams, highestOvr };
+    return { totalPlayers, avgMmr, totalGoals, activeClubs: uniqueTeams, highestMmr };
   }, [playersWithRanks]);
 
   // Filtered players based on search query and selected tier
@@ -325,17 +255,17 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
         <div className="relative overflow-hidden rounded-2xl border border-yellow-400/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-yellow-400 transition-all">
           <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-400/10 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
-            <span>PEAK_OVR_RATING</span>
+            <span>PEAK_MMR_RATING</span>
             <Trophy className="w-3.5 h-3.5 text-yellow-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl sm:text-4xl font-black italic text-yellow-400 tracking-tighter tabular-nums leading-none drop-shadow-[0_0_15px_rgba(250,204,21,0.4)]">
-              {leagueMetrics.highestOvr}
+              {leagueMetrics.highestMmr}
             </span>
-            <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">/ 100</span>
+            <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">MMR PTS</span>
           </div>
           <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.8)]" style={{ width: `${leagueMetrics.highestOvr}%` }} />
+            <div className="h-full bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.8)]" style={{ width: `${Math.min(100, (leagueMetrics.highestMmr / 2000) * 100)}%` }} />
           </div>
         </div>
 
@@ -347,12 +277,12 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
-              {leagueMetrics.avgOvr}
+              {leagueMetrics.avgMmr}
             </span>
-            <span className="text-[10px] font-black uppercase text-accent tracking-widest">OVR MEAN</span>
+            <span className="text-[10px] font-black uppercase text-accent tracking-widest">MMR MEAN</span>
           </div>
           <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full bg-accent rounded-full shadow-[0_0_10px_rgba(100,255,218,0.8)]" style={{ width: `${leagueMetrics.avgOvr}%` }} />
+            <div className="h-full bg-accent rounded-full shadow-[0_0_10px_rgba(100,255,218,0.8)]" style={{ width: `${Math.min(100, (leagueMetrics.avgMmr / 2000) * 100)}%` }} />
           </div>
         </div>
 

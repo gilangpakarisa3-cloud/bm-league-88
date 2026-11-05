@@ -123,6 +123,9 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         overallLoss: player?.overallLoss ?? 0,
         overallGoalsFor: player?.overallGoalsFor ?? 0,
         overallGoalsAgainst: player?.overallGoalsAgainst ?? 0,
+        mmr: player?.mmr ?? 700,
+        peakMmr: player?.peakMmr ?? 700,
+        legacyOvr: player?.legacyOvr ?? 0,
     };
 
     if (player) {

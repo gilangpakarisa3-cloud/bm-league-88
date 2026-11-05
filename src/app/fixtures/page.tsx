@@ -41,6 +41,7 @@ import { id as localeId } from 'date-fns/locale';
 import { useSharedPassword } from '@/context/password-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { calculateMmrDelta } from '@/lib/mmr';
 import { LiveClock } from '@/components/live-clock';
 import { LiveScoreTicker } from '@/components/live-score-ticker';
 import { Badge } from '@/components/ui/badge';
@@ -231,16 +232,29 @@ export default function FixturesPage() {
                         if (p2EntryRef) e2Data = (await transaction.get(p2EntryRef)).data();
                     }
 
-                    const updateOverallStats = (pId: string, change: any) => {
+                    let p1PlayerSnap = null;
+                    let p2PlayerSnap = null;
+                    const isSingleMatch = !isSeasonCoop && orig.player1Id && orig.player2Id && orig.player1Id !== 'TBD' && orig.player2Id !== 'TBD' && !orig.player1Id.includes('TBD') && !orig.player2Id.includes('TBD');
+                    if (isSingleMatch) {
+                        p1PlayerSnap = await transaction.get(doc(firestore, 'players', orig.player1Id));
+                        p2PlayerSnap = await transaction.get(doc(firestore, 'players', orig.player2Id));
+                    }
+
+                    const updateOverallStats = (pId: string, change: any, mmrUpdate?: { mmr: number; peakMmr: number } | null) => {
                         if (!pId || pId === 'TBD' || pId.includes('TBD')) return;
-                        transaction.update(doc(firestore, 'players', pId), {
+                        const payload: any = {
                             overallPlayed: increment(change.played || 0),
                             overallWin: increment(change.win || 0),
                             overallDraw: increment(change.draw || 0),
                             overallLoss: increment(change.loss || 0),
                             overallGoalsFor: increment(change.gf || 0),
                             overallGoalsAgainst: increment(change.ga || 0),
-                        });
+                        };
+                        if (mmrUpdate) {
+                            payload.mmr = mmrUpdate.mmr;
+                            payload.peakMmr = mmrUpdate.peakMmr;
+                        }
+                        transaction.update(doc(firestore, 'players', pId), payload);
                     };
 
                     if (orig.isCompleted) {
@@ -283,8 +297,35 @@ export default function FixturesPage() {
                         });
                     } else {
                         const res = newS1 > newS2 ? 'W' : (newS1 < newS2 ? 'L' : 'D');
-                        updateOverallStats(orig.player1Id, { played: 1, win: res === 'W' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'L' ? 1 : 0, gf: values.player1Score, ga: values.player2Score });
-                        updateOverallStats(orig.player2Id, { played: 1, win: res === 'L' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'W' ? 1 : 0, gf: values.player2Score, ga: values.player1Score });
+
+                        let p1MmrUpdate: { mmr: number; peakMmr: number } | null = null;
+                        let p2MmrUpdate: { mmr: number; peakMmr: number } | null = null;
+
+                        if (isSingleMatch && p1PlayerSnap?.exists() && p2PlayerSnap?.exists()) {
+                            const p1Data = p1PlayerSnap.data() as Player;
+                            const p2Data = p2PlayerSnap.data() as Player;
+
+                            let curP1Mmr = p1Data.mmr ?? 800;
+                            let curP2Mmr = p2Data.mmr ?? 800;
+
+                            if (orig.isCompleted) {
+                                if (typeof orig.player1MmrDelta === 'number') curP1Mmr -= orig.player1MmrDelta;
+                                if (typeof orig.player2MmrDelta === 'number') curP2Mmr -= orig.player2MmrDelta;
+                            }
+
+                            const delta = calculateMmrDelta(curP1Mmr, curP2Mmr, res);
+                            const newP1Mmr = Math.max(100, curP1Mmr + delta.delta1);
+                            const newP2Mmr = Math.max(100, curP2Mmr + delta.delta2);
+
+                            p1MmrUpdate = { mmr: newP1Mmr, peakMmr: Math.max(newP1Mmr, p1Data.peakMmr ?? newP1Mmr) };
+                            p2MmrUpdate = { mmr: newP2Mmr, peakMmr: Math.max(newP2Mmr, p2Data.peakMmr ?? newP2Mmr) };
+
+                            matchUpdateData.player1MmrDelta = delta.delta1;
+                            matchUpdateData.player2MmrDelta = delta.delta2;
+                        }
+
+                        updateOverallStats(orig.player1Id, { played: 1, win: res === 'W' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'L' ? 1 : 0, gf: values.player1Score, ga: values.player2Score }, p1MmrUpdate);
+                        updateOverallStats(orig.player2Id, { played: 1, win: res === 'L' ? 1 : 0, draw: res === 'D' ? 1 : 0, loss: res === 'W' ? 1 : 0, gf: values.player2Score, ga: values.player1Score }, p2MmrUpdate);
                     }
 
                     if (winMatchRef) {
@@ -461,6 +502,19 @@ export default function FixturesPage() {
                     const res = os1 > os2 ? 'W' : (os1 < os2 ? 'L' : 'D');
                     updateOverallStats(mToRev.player1Id, { played: -1, win: res === 'W' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'L' ? -1 : 0, gf: -(mToRev.player1Score || 0), ga: -(mToRev.player2Score || 0) });
                     updateOverallStats(mToRev.player2Id, { played: -1, win: res === 'L' ? -1 : 0, draw: res === 'D' ? -1 : 0, loss: res === 'W' ? -1 : 0, gf: -(mToRev.player2Score || 0), ga: -(mToRev.player1Score || 0) });
+
+                    if (!isSeasonCoop) {
+                        if (mToRev.player1Id && typeof mToRev.player1MmrDelta === 'number') {
+                            transaction.update(doc(firestore, 'players', mToRev.player1Id), {
+                                mmr: increment(-mToRev.player1MmrDelta)
+                            });
+                        }
+                        if (mToRev.player2Id && typeof mToRev.player2MmrDelta === 'number') {
+                            transaction.update(doc(firestore, 'players', mToRev.player2Id), {
+                                mmr: increment(-mToRev.player2MmrDelta)
+                            });
+                        }
+                    }
                 }
 
                 if (p1EntryRef && p2EntryRef && e1Data && e2Data) {
@@ -483,7 +537,20 @@ export default function FixturesPage() {
                 if (winMatchRef) transaction.update(winMatchRef, { [`player${succMap[mToRev.bracketId!].winner.slot}Id`]: 'TBD' });
                 if (losMatchRef && succMap[mToRev.bracketId!].loser) transaction.update(losMatchRef, { [`player${succMap[mToRev.bracketId!].loser!.slot}Id`]: 'TBD' });
 
-                transaction.update(matchRef, { player1Wins: null, player2Wins: null, player1Score: null, player2Score: null, player1p1Goals: null, player1p2Goals: null, player2p1Goals: null, player2p2Goals: null, isCompleted: false, status: 'Scheduled' });
+                transaction.update(matchRef, { 
+                    player1Wins: null, 
+                    player2Wins: null, 
+                    player1Score: null, 
+                    player2Score: null, 
+                    player1p1Goals: null, 
+                    player1p2Goals: null, 
+                    player2p1Goals: null, 
+                    player2p2Goals: null, 
+                    player1MmrDelta: null,
+                    player2MmrDelta: null,
+                    isCompleted: false, 
+                    status: 'Scheduled' 
+                });
             });
 
             toast({ title: t('match_reverted_title') });

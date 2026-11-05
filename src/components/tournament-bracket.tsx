@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { resolveLogo } from '@/lib/logo-utils';
 import { getSeasonTheme, type TISeasonTheme as SeasonDesignTheme } from '@/lib/season-theme';
+import { enrichPlayersWithMmrData } from '@/lib/mmr';
 
 import { CyberConnectorFork, BracketConnectorFork, BracketConnectorStraight } from './bracket/bracket-connectors';
 import { MatchCard } from './bracket/match-card';
@@ -145,26 +146,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   }, [leagueTable, season]);
 
   const masterPlayersRanked = useMemo(() => {
-    const players = Object.values(playersById);
-    const withOvr = players.map(p => {
-        const played = p.overallPlayed || 0;
-        const isCalibrated = played >= 20;
-        const poss = played * 3;
-        const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-        const ovrRating = isCalibrated && poss > 0 ? (act / poss) * 100 : 0;
-        return { ...p, ovrRating, isCalibrated };
-    });
-
-    const calibrated = withOvr
-        .filter(p => p.isCalibrated)
-        .sort((a, b) => b.ovrRating - a.ovrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0))
-        .map((p, i) => ({ ...p, masterRank: i + 1 }));
-
-    const notCalibrated = withOvr
-        .filter(p => !p.isCalibrated)
-        .map(p => ({ ...p, masterRank: null }));
-
-    return [...calibrated, ...notCalibrated];
+    return enrichPlayersWithMmrData(Object.values(playersById), null);
   }, [playersById]);
 
   const getPlayerAnalysis = (playerId: string) => {
@@ -1446,7 +1428,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                              { label: 'MATCH LOGS', v1: analysis1.stats.played, v2: analysis2.stats.played },
                                              { label: 'TOTAL VICTORIES', v1: analysis1.stats.win, v2: analysis2.stats.win, customColor: theme.primaryHex },
                                              { label: 'UNIT GOALS', v1: analysis1.stats.gf, v2: analysis2.stats.gf, customColor: theme.secondaryHex || theme.primaryHex },
-                                             { label: 'MASTER OVR', v1: analysis1.masterInfo?.isCalibrated ? analysis1.masterInfo.ovrRating.toFixed(0) : 'N/C', v2: analysis2.masterInfo?.isCalibrated ? analysis2.masterInfo.ovrRating.toFixed(0) : 'N/C', customColor: '#F59E0B' }
+                                             { label: 'MMR RATING', v1: analysis1.masterInfo?.isCalibrated ? (analysis1.masterInfo.mmrRating || analysis1.masterInfo.mmr || 800) : 'N/C', v2: analysis2.masterInfo?.isCalibrated ? (analysis2.masterInfo.mmrRating || analysis2.masterInfo.mmr || 800) : 'N/C', customColor: '#F59E0B' }
                                          ].map((stat, i) => (
                                              <div key={i} className="space-y-1">
                                                  <div className="flex justify-between items-center text-[7.5px] sm:text-[8px] font-black uppercase tracking-widest text-white/30">

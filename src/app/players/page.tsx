@@ -109,7 +109,7 @@ export default function PlayersPage() {
               </h1>
 
               <p className="text-xs sm:text-sm font-bold text-white/50 uppercase tracking-[0.2em] max-w-xl leading-relaxed">
-                {t('players_page_subtitle', { defaultValue: "Daftar atlet elit profesional Engineering EightyEight dengan sistem penilaian OVR dan statistik performa real-time."})}
+                {t('players_page_subtitle', { defaultValue: "Daftar atlet elit profesional Engineering EightyEight dengan sistem penilaian peringkat MMR dinamis dan statistik performa real-time."})}
               </p>
             </div>
 

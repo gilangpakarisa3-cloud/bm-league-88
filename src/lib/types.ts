@@ -9,6 +9,8 @@ export type Team = {
   tier?: number;
 };
 
+export type MMRTierId = 'LEGEND' | 'TOP_PLAYER' | 'REGULER' | 'AMATEUR' | 'NOT_CALIBRATED';
+
 export type Player = {
   name: string;
   teamId: string;
@@ -22,7 +24,11 @@ export type Player = {
   avatarUrl?: string;
   photoUrl?: string;
   teamLogoUrl?: string;
-  ovr?: number;
+  ovr?: number; // Deprecated legacy field
+  legacyOvr?: number; // Preserved historical OVR
+  mmr?: number; // Dynamic MMR Rating
+  peakMmr?: number; // Career Highest MMR
+  titlesCount?: number;
   division?: string;
 };
 
@@ -107,8 +113,8 @@ export type MatchStatus = 'Scheduled' | 'Live' | 'Completed' | 'Postponed';
 
 export type Match = {
   seasonId: string;
-  player1Id: string; 
-  player2Id: string; 
+  player1Id: string;
+  player2Id: string;
   player1Wins: number | null;
   player2Wins: number | null;
   player1Score: number | null;
@@ -123,6 +129,8 @@ export type Match = {
   round?: MatchRound;
   bracketId?: string; // e.g., 'playoff-m1'
   division?: 'div-1' | 'div-2';
+  player1MmrDelta?: number | null;
+  player2MmrDelta?: number | null;
 }
 
 export type CupRound = MatchRound;
@@ -134,49 +142,49 @@ export type Notice = {
 };
 
 export type SeasonRecord = {
-    seasonId: string;
-    seasonName: string;
-    completedAt: Timestamp;
+  seasonId: string;
+  seasonName: string;
+  completedAt: Timestamp;
+  winnerPlayerId: string;
+  winnerPlayerName: string;
+  winnerTeamName: string;
+  winnerPhotoUrl?: string;
+  themeKey?: Season['themeKey'];
+  winnerStats: {
+    points: number;
+    win: number;
+    draw: number;
+    loss: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDifference: number;
+    totalMatches?: number;
+    leaguePoints?: number;
+  };
+  funStats: {
+    bestAttacker: { playerName: string; value: number } | null;
+    worstDefender: { playerName: string; value: number } | null;
+    mostWins: { playerName: string; value: number } | null;
+  };
+  division2Record?: {
     winnerPlayerId: string;
     winnerPlayerName: string;
     winnerTeamName: string;
     winnerPhotoUrl?: string;
-    themeKey?: Season['themeKey'];
-    winnerStats: {
-        points: number;
-        win: number;
-        draw: number;
-        loss: number;
-        goalsFor: number;
-        goalsAgainst: number;
-        goalDifference: number;
-        totalMatches?: number;
-        leaguePoints?: number;
-    };
-    funStats: {
-        bestAttacker: { playerName: string; value: number } | null;
-        worstDefender: { playerName: string; value: number } | null;
-        mostWins: { playerName: string; value: number } | null;
-    };
-    division2Record?: {
-        winnerPlayerId: string;
-        winnerPlayerName: string;
-        winnerTeamName: string;
-        winnerPhotoUrl?: string;
-        divisionName?: string;
-        runnerUpPlayerName?: string;
-        runnerUpTeamName?: string;
-        points: number;
-        goalsFor: number;
-        goalsAgainst: number;
-        win: number;
-        loss: number;
-        draw?: number;
-        totalMatches?: number;
-    } | null;
+    divisionName?: string;
+    runnerUpPlayerName?: string;
+    runnerUpTeamName?: string;
+    points: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    win: number;
+    loss: number;
+    draw?: number;
+    totalMatches?: number;
+  } | null;
 }
 
 export type AdminConfig = {
-    password?: string;
-    isDeactivated?: boolean;
+  password?: string;
+  isDeactivated?: boolean;
 };

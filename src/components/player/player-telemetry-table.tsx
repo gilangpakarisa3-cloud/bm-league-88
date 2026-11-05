@@ -49,7 +49,7 @@ export const PlayerTelemetryTable = ({
               <th className="py-4 px-4 text-center text-primary">
                 <span className="inline-flex items-center gap-1 text-primary">
                   <Flame className="w-3.5 h-3.5 text-primary" />
-                  OVR RATING
+                  MMR RATING
                 </span>
               </th>
               <th className="py-4 px-3 text-center">MAIN</th>
@@ -82,37 +82,38 @@ export const PlayerTelemetryTable = ({
               const team = player.teamId ? teamsById[player.teamId] : null;
               const wonSeasons = hallOfFame?.filter(record => record.winnerPlayerId === player.id) || [];
               const tier = tiersConfig.find(t => t.players && t.players.some((p: any) => p.id === player.id)) || tiersConfig[3] || tiersConfig[0];
-              const isPodium1 = player.ovrRank === 1;
-              const isPodium2 = player.ovrRank === 2;
-              const isPodium3 = player.ovrRank === 3;
-              const isTopPodium = player.ovrRank !== null && player.ovrRank <= 3;
+              const playerRank = player.rank ?? player.ovrRank;
+              const isPodium1 = playerRank === 1;
+              const isPodium2 = playerRank === 2;
+              const isPodium3 = playerRank === 3;
+              const isTopPodium = playerRank !== null && playerRank <= 3;
               const winPercent = player.winRate || 0;
 
               return (
-                <tr 
+                <tr
                   key={player.id}
                   className={cn(
                     "transition-all duration-300 group/row relative",
                     isPodium1 ? "bg-gradient-to-r from-yellow-500/[0.1] via-transparent to-transparent hover:bg-yellow-500/[0.14]" :
-                    isPodium2 ? "bg-gradient-to-r from-slate-300/[0.08] via-transparent to-transparent hover:bg-slate-300/[0.12]" :
-                    isPodium3 ? "bg-gradient-to-r from-amber-600/[0.08] via-transparent to-transparent hover:bg-amber-600/[0.12]" :
-                    "hover:bg-white/[0.04]"
+                      isPodium2 ? "bg-gradient-to-r from-slate-300/[0.08] via-transparent to-transparent hover:bg-slate-300/[0.12]" :
+                        isPodium3 ? "bg-gradient-to-r from-amber-600/[0.08] via-transparent to-transparent hover:bg-amber-600/[0.12]" :
+                          "hover:bg-white/[0.04]"
                   )}
                 >
                   <td className="py-4 px-4 text-center">
                     <div className="flex items-center justify-center">
-                      {player.isCalibrated && player.ovrRank ? (
+                      {player.isCalibrated && playerRank ? (
                         <div className={cn(
                           "relative w-9 h-9 rounded-xl flex items-center justify-center font-black italic tracking-tighter text-xs transition-transform duration-300 group/row:scale-110",
                           isPodium1 ? "bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-500 text-black shadow-[0_0_20px_rgba(250,204,21,0.6)] border border-yellow-200" :
-                          isPodium2 ? "bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 text-black shadow-[0_0_15px_rgba(203,213,225,0.5)] border border-white" :
-                          isPodium3 ? "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)] border border-amber-400/40" :
-                          "bg-white/5 text-white/50 border border-white/10 group-hover/row:border-white/30 group-hover/row:text-white"
+                            isPodium2 ? "bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 text-black shadow-[0_0_15px_rgba(203,213,225,0.5)] border border-white" :
+                              isPodium3 ? "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)] border border-amber-400/40" :
+                                "bg-white/5 text-white/50 border border-white/10 group-hover/row:border-white/30 group-hover/row:text-white"
                         )}>
                           {isPodium1 ? (
                             <Crown className="w-4 h-4 fill-black" />
                           ) : (
-                            <span>#{player.ovrRank}</span>
+                            <span>#{playerRank}</span>
                           )}
                         </div>
                       ) : (
@@ -156,8 +157,8 @@ export const PlayerTelemetryTable = ({
                   </td>
 
                   <td className="py-4 px-3 text-center">
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={cn(
                         "text-[8px] font-black uppercase tracking-[0.2em] italic px-2.5 py-1 rounded-full border shadow-sm transition-all whitespace-nowrap",
                         tier.bgPill
@@ -168,18 +169,25 @@ export const PlayerTelemetryTable = ({
                   </td>
 
                   <td className="py-4 px-4 text-center">
-                    <div className="inline-flex items-center justify-center">
+                    <div className="inline-flex flex-col items-center justify-center">
                       {player.isCalibrated ? (
-                        <div className={cn(
-                          "px-3.5 py-1.5 rounded-xl bg-black/60 border font-black italic tabular-nums text-base tracking-tight shadow-inner flex items-baseline gap-1",
-                          player.ovrRating >= 70 ? "border-yellow-400/40 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]" :
-                          player.ovrRating >= 55 ? "border-primary/40 text-primary shadow-[0_0_15px_rgba(204,253,1,0.2)]" :
-                          player.ovrRating >= 45 ? "border-accent/40 text-accent shadow-[0_0_15px_rgba(100,255,218,0.2)]" :
-                          "border-white/10 text-white/70"
-                        )}>
-                          <span>{player.ovrRating.toFixed(0)}</span>
-                          <span className="text-[8px] font-mono opacity-50 not-italic">OVR</span>
-                        </div>
+                        <>
+                          <div className={cn(
+                            "px-3.5 py-1.5 rounded-xl bg-black/60 border font-black italic tabular-nums text-base tracking-tight shadow-inner flex items-baseline gap-1",
+                            tier.color.includes('yellow') ? "border-yellow-400/40 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]" :
+                              tier.color.includes('primary') ? "border-primary/40 text-primary shadow-[0_0_15px_rgba(204,253,1,0.2)]" :
+                                tier.color.includes('accent') ? "border-accent/40 text-accent shadow-[0_0_15px_rgba(100,255,218,0.2)]" :
+                                  "border-white/10 text-white/70"
+                          )}>
+                            <span>{player.mmrRating || player.mmr || 800}</span>
+                            <span className="text-[8px] font-mono opacity-50 not-italic">MMR</span>
+                          </div>
+                          {player.legacyOvrRating ? (
+                            <span className="text-[7.5px] font-mono text-white/30 uppercase tracking-wider mt-0.5">
+                              OVR {player.legacyOvrRating.toFixed(0)}
+                            </span>
+                          ) : null}
+                        </>
                       ) : (
                         <div className="px-2.5 py-1 rounded-xl bg-black/40 border border-slate-500/20 font-bold text-[10px] uppercase text-slate-400 tracking-wider">
                           N/C
@@ -218,20 +226,20 @@ export const PlayerTelemetryTable = ({
                         <span className="text-white/40 text-[8px] uppercase tracking-wider">VICTORY</span>
                         <span className={cn(
                           winPercent >= 60 ? "text-primary drop-shadow-[0_0_8px_rgba(204,253,1,0.6)]" :
-                          winPercent >= 45 ? "text-accent" : "text-white/70"
+                            winPercent >= 45 ? "text-accent" : "text-white/70"
                         )}>
                           {winPercent.toFixed(0)}%
                         </span>
                       </div>
                       <div className="h-2 w-full bg-black/70 border border-white/10 rounded-full overflow-hidden p-[1px] relative shadow-inner">
-                        <div 
+                        <div
                           className={cn(
                             "h-full rounded-full transition-all duration-700 relative",
                             winPercent >= 60 ? "bg-gradient-to-r from-primary/80 to-primary shadow-[0_0_10px_rgba(204,253,1,0.8)]" :
-                            winPercent >= 45 ? "bg-gradient-to-r from-accent/80 to-accent shadow-[0_0_10px_rgba(100,255,218,0.8)]" :
-                            "bg-gradient-to-r from-white/30 to-white/60"
-                          )} 
-                          style={{ width: `${Math.min(100, Math.max(6, winPercent))}%` }} 
+                              winPercent >= 45 ? "bg-gradient-to-r from-accent/80 to-accent shadow-[0_0_10px_rgba(100,255,218,0.8)]" :
+                                "bg-gradient-to-r from-white/30 to-white/60"
+                          )}
+                          style={{ width: `${Math.min(100, Math.max(6, winPercent))}%` }}
                         />
                       </div>
                     </div>
@@ -248,7 +256,7 @@ export const PlayerTelemetryTable = ({
                     {wonSeasons.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5 items-center">
                         {wonSeasons.map(rec => (
-                          <div 
+                          <div
                             key={rec.seasonId}
                             className="group/badge inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-transparent border border-amber-500/40 text-amber-400 rounded-lg px-2.5 py-1 shadow-[0_0_12px_rgba(245,158,11,0.15)] hover:border-amber-400 hover:shadow-[0_0_18px_rgba(245,158,11,0.3)] transition-all"
                           >

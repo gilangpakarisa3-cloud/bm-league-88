@@ -27,10 +27,11 @@ export const PlayerMobilePod = ({
   onEdit,
   onDelete
 }: PlayerMobilePodProps) => {
-  const isPodium1 = player.ovrRank === 1;
-  const isPodium2 = player.ovrRank === 2;
-  const isPodium3 = player.ovrRank === 3;
-  const isTopPodium = player.ovrRank !== null && player.ovrRank <= 3;
+  const playerRank = player.rank ?? player.ovrRank;
+  const isPodium1 = playerRank === 1;
+  const isPodium2 = playerRank === 2;
+  const isPodium3 = playerRank === 3;
+  const isTopPodium = playerRank !== null && playerRank <= 3;
   const winPercent = player.winRate || 0;
 
   return (
@@ -52,11 +53,11 @@ export const PlayerMobilePod = ({
         "bg-gradient-to-r from-transparent via-white/20 to-transparent"
       )} />
 
-      {/* Header Row: Rank Badge + Athlete Info + OVR Pod */}
+      {/* Header Row: Rank Badge + Athlete Info + MMR Pod */}
       <div className="flex items-center justify-between gap-3 pt-1">
         <div className="flex items-center gap-3 min-w-0">
           <div className="shrink-0">
-            {player.isCalibrated && player.ovrRank ? (
+            {player.isCalibrated && playerRank ? (
               <div className={cn(
                 "w-9 h-9 rounded-xl flex items-center justify-center font-black italic text-xs tracking-tighter shadow-md",
                 isPodium1 ? "bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-500 text-black shadow-[0_0_15px_rgba(250,204,21,0.6)]" :
@@ -64,7 +65,7 @@ export const PlayerMobilePod = ({
                 isPodium3 ? "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-[0_0_12px_rgba(217,119,6,0.5)]" :
                 "bg-white/10 text-white/80 border border-white/15"
               )}>
-                {isPodium1 ? <Crown className="w-4 h-4 fill-black" /> : `#${player.ovrRank}`}
+                {isPodium1 ? <Crown className="w-4 h-4 fill-black" /> : `#${playerRank}`}
               </div>
             ) : (
               <div className="w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-xs bg-slate-500/15 text-slate-400 border border-slate-500/20">
@@ -105,14 +106,14 @@ export const PlayerMobilePod = ({
         <div className="shrink-0 flex flex-col items-end">
           {player.isCalibrated ? (
             <div className={cn(
-              "px-3 py-1.5 rounded-xl bg-black/80 border font-black italic tabular-nums text-lg tracking-tight flex items-baseline gap-1 shadow-inner",
-              player.ovrRating >= 70 ? "border-yellow-400/50 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.25)]" :
-              player.ovrRating >= 55 ? "border-primary/50 text-primary shadow-[0_0_15px_rgba(204,253,1,0.25)]" :
-              player.ovrRating >= 45 ? "border-accent/50 text-accent shadow-[0_0_15px_rgba(100,255,218,0.25)]" :
+              "px-3 py-1.5 rounded-xl bg-black/80 border font-black italic tabular-nums text-base tracking-tight flex items-baseline gap-1 shadow-inner",
+              tier.color.includes('yellow') ? "border-yellow-400/50 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.25)]" :
+              tier.color.includes('primary') ? "border-primary/50 text-primary shadow-[0_0_15px_rgba(204,253,1,0.25)]" :
+              tier.color.includes('accent') ? "border-accent/50 text-accent shadow-[0_0_15px_rgba(100,255,218,0.25)]" :
               "border-white/15 text-white/80"
             )}>
-              <span>{player.ovrRating.toFixed(0)}</span>
-              <span className="text-[9px] font-mono opacity-60 not-italic">OVR</span>
+              <span>{player.mmrRating || player.mmr || 800}</span>
+              <span className="text-[8px] font-mono opacity-60 not-italic">MMR</span>
             </div>
           ) : (
             <div className="px-2.5 py-1 rounded-xl bg-black/60 border border-slate-500/25 font-bold text-[9px] uppercase text-slate-400 tracking-wider">
@@ -192,6 +193,14 @@ export const PlayerMobilePod = ({
             <span className="text-[9px] font-mono text-white/30 uppercase tracking-widest px-2">0 TROFI</span>
           )}
         </div>
+      </div>
+
+      {/* Legacy OVR & Peak MMR Footer Strip */}
+      <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[8px] font-mono text-white/40 uppercase">
+        <span>PEAK MMR: <strong className="text-white font-bold">{player.peakMmrRating || player.mmrRating || player.mmr || 800}</strong></span>
+        {player.legacyOvrRating ? (
+          <span>LEGACY OVR: <strong className="text-yellow-400 font-bold">{player.legacyOvrRating.toFixed(0)}</strong></span>
+        ) : null}
       </div>
 
       {/* Admin Action Buttons */}

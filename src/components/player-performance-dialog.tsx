@@ -5,13 +5,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { WithId, LeagueEntry, Match, Player, Team, Season, CoOpLeagueEntry } from '@/lib/types';
-import { User, Shield, Percent, Trophy, Award, TrendingUp, Zap, Activity, Scan, Binary, Star, Flame } from 'lucide-react';
+import { User, Shield, Percent, Trophy, Award, TrendingUp, TrendingDown, Minus, Zap, Activity, Scan, Binary, Star, Flame } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent } from './ui/card';
 import { getSeasonTheme } from '@/lib/season-theme';
+import { enrichPlayersWithMmrData, calculateMmrDelta, getTierFromMmr, TIER_STYLES } from '@/lib/mmr';
 
 import { StatChip } from './player-performance/stat-chip';
 import { IntelCard } from './player-performance/intel-card';
@@ -79,27 +80,8 @@ export function PlayerPerformanceDialog({
   const teamsById = useMemo(() => (allTeams || []).reduce((acc, t) => { acc[t.id] = t; return acc; }, {} as Record<string, WithId<Team>>), [allTeams]);
 
   const masterPlayersRanked = useMemo(() => {
-    const players = Object.values(playersById);
-    const withOvr = players.map(p => {
-      const played = p.overallPlayed || 0;
-      const isCalibrated = played >= 20;
-      const poss = played * 3;
-      const act = ((p.overallWin || 0) * 3) + ((p.overallDraw || 0) * 1);
-      const ovrRating = isCalibrated && poss > 0 ? (act / poss) * 100 : 0;
-      return { ...p, ovrRating, isCalibrated };
-    });
-
-    const calibrated = withOvr
-      .filter(p => p.isCalibrated)
-      .sort((a, b) => b.ovrRating - a.ovrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0))
-      .map((p, i) => ({ ...p, masterRank: i + 1 }));
-
-    const notCalibrated = withOvr
-      .filter(p => !p.isCalibrated)
-      .map(p => ({ ...p, masterRank: null }));
-
-    return [...calibrated, ...notCalibrated];
-  }, [playersById]);
+    return enrichPlayersWithMmrData(allPlayers, null);
+  }, [allPlayers]);
 
   const performanceStats = useMemo(() => {
     if (!player || !activeSeason) return null;
@@ -111,6 +93,121 @@ export function PlayerPerformanceDialog({
     const singleTableByPlayerId = (singleLeagueTable || []).reduce((acc, entry) => { acc[entry.playerId] = entry; return acc; }, {} as Record<string, WithId<LeagueEntry>>);
 
     const playerMatches = (matches || []).filter(m => (m.player1Id === playerIdToFilter || m.player2Id === playerIdToFilter));
+
+    let p1Id = null; 
+    let p2Id = null;
+    if (isCoop) {
+      const cE = coopTableById[player.id];
+      if (cE) { p1Id = cE.player1Id; p2Id = cE.player2Id; }
+    } else {
+      p1Id = player.playerId;
+    }
+
+    const m1 = p1Id ? masterPlayersRanked.find(p => p.id === p1Id) : null;
+    const m2 = p2Id ? masterPlayersRanked.find(p => p.id === p2Id) : null;
+    
+    // Check calibration status: only show MMR if player has >= 20 official career matches
+    const isM1Calibrated = !!m1?.isCalibrated;
+    const isM2Calibrated = !!m2?.isCalibrated;
+    const isAnyCalibrated = isCoop ? (isM1Calibrated || isM2Calibrated) : isM1Calibrated;
+
+    let displayMmr = 'N/C';
+    let displayRank = 'N/C';
+    let peakMmrVal = '800';
+
+    if (isCoop) {
+      if (isM1Calibrated && isM2Calibrated && m1 && m2) {
+        displayMmr = Math.round((m1.mmrRating + m2.mmrRating) / 2).toString();
+        displayRank = String(Math.min(m1.rank ?? 999, m2.rank ?? 999));
+        peakMmrVal = Math.round((m1.peakMmrRating + m2.peakMmrRating) / 2).toString();
+      } else if (isM1Calibrated && m1) {
+        displayMmr = String(m1.mmrRating);
+        displayRank = String(m1.rank ?? 'N/C');
+        peakMmrVal = String(m1.peakMmrRating);
+      } else if (isM2Calibrated && m2) {
+        displayMmr = String(m2.mmrRating);
+        displayRank = String(m2.rank ?? 'N/C');
+        peakMmrVal = String(m2.peakMmrRating);
+      }
+    } else {
+      if (isM1Calibrated && m1) {
+        displayMmr = String(m1.mmrRating);
+        displayRank = String(m1.rank ?? 'N/C');
+        peakMmrVal = String(m1.peakMmrRating);
+      }
+    }
+
+    const masterInfoSummary = {
+      mmr: displayMmr,
+      peakMmr: peakMmrVal,
+      rank: displayRank,
+      isCalibrated: isAnyCalibrated,
+      isCoop: isCoop,
+      p1Mmr: isM1Calibrated && m1 ? String(m1.mmrRating) : 'N/C',
+      p2Mmr: isM2Calibrated && m2 ? String(m2.mmrRating) : 'N/C',
+      legacyOvr: m1?.legacyOvrRating ? m1.legacyOvrRating.toFixed(0) : undefined
+    };
+
+    const numMmr = Number(masterInfoSummary.mmr) || (m1?.mmrRating ?? 800);
+    const careerPlayed = m1?.overallPlayed ?? (player as any).overallPlayed ?? player.played ?? 0;
+    const currentRank = masterInfoSummary.rank !== 'N/C' ? Number(masterInfoSummary.rank) : null;
+    const tierId = masterInfoSummary.isCalibrated ? (m1?.tierId ?? getTierFromMmr(numMmr, careerPlayed, currentRank)) : 'NOT_CALIBRATED';
+    const tierStyle = TIER_STYLES[tierId] || TIER_STYLES['REGULER'];
+
+    // Hitung pergerakan delta dan saldo MMR kronologis (dari laga tertua ke terbaru)
+    const playerCompletedMatches = playerMatches
+      .filter(m => m.isCompleted)
+      .sort((a, b) => {
+        const timeA = a.matchDate?.toMillis ? a.matchDate.toMillis() : 0;
+        const timeB = b.matchDate?.toMillis ? b.matchDate.toMillis() : 0;
+        return timeA - timeB;
+      });
+
+    const playerCurrentMmr = m1?.mmrRating ?? (player as any).mmr ?? 800;
+
+    const matchDeltas = playerCompletedMatches.map(m => {
+      const isPlayer1 = m.player1Id === playerIdToFilter;
+      const opponentId = isPlayer1 ? m.player2Id : m.player1Id;
+
+      let delta: number | null = null;
+      if (isPlayer1 && typeof m.player1MmrDelta === 'number') {
+        delta = m.player1MmrDelta;
+      } else if (!isPlayer1 && typeof m.player2MmrDelta === 'number') {
+        delta = m.player2MmrDelta;
+      }
+
+      if (delta === null && !isCoop) {
+        const opp = masterPlayersRanked.find(p => p.id === opponentId);
+        const oppMmr = opp?.mmrRating ?? 800;
+        const isBo3 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group';
+        const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+        const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
+        const playerResult = isPlayer1 ? s1 : s2;
+        const opponentResult = isPlayer1 ? s2 : s1;
+
+        let res: 'W' | 'L' | 'D' = 'D';
+        if (playerResult > opponentResult) res = 'W';
+        else if (playerResult < opponentResult) res = 'L';
+        delta = calculateMmrDelta(playerCurrentMmr, oppMmr, res).delta1;
+      }
+
+      return { matchId: m.id, delta: delta ?? 0 };
+    });
+
+    const totalSeasonMmrDelta = matchDeltas.reduce((sum, item) => sum + item.delta, 0);
+    let runningMmr = playerCurrentMmr - totalSeasonMmrDelta;
+
+    const mmrTrajectoryByMatchId: Record<string, { delta: number; mmrBefore: number; mmrAfter: number }> = {};
+    matchDeltas.forEach(item => {
+      const before = runningMmr;
+      const after = runningMmr + item.delta;
+      runningMmr = after;
+      mmrTrajectoryByMatchId[item.matchId] = {
+        delta: item.delta,
+        mmrBefore: before,
+        mmrAfter: after
+      };
+    });
 
     const completedMatches = playerMatches
       .filter(m => m.isCompleted)
@@ -136,6 +233,8 @@ export function PlayerPerformanceDialog({
           if (opponentEntry) { 
             opponent = { name: opponentEntry.playerName }; 
             opponentTeam = teamsById[opponentEntry.teamId]; 
+          } else if (opponentId === 'TBD') { 
+            opponent = { name: 'TBD' }; 
           } else { 
             const opponentPlayer = playersById[opponentId]; 
             if (opponentPlayer) { 
@@ -156,7 +255,20 @@ export function PlayerPerformanceDialog({
         else if (playerResult < opponentResult) result = 'L';
         else result = 'D';
 
-        return { ...m, isPlayer1, opponent, opponentTeam, s1, s2, result };
+        const mmrInfo = !isCoop ? mmrTrajectoryByMatchId[m.id] : undefined;
+
+        return { 
+          ...m, 
+          isPlayer1, 
+          opponent, 
+          opponentTeam, 
+          s1, 
+          s2, 
+          result,
+          mmrDelta: mmrInfo?.delta,
+          mmrBefore: mmrInfo?.mmrBefore,
+          mmrAfter: mmrInfo?.mmrAfter
+        };
       });
       
     const upcomingMatches = playerMatches
@@ -231,53 +343,6 @@ export function PlayerPerformanceDialog({
       return { match: index + 1, points: trendScore };
     })];
 
-    let p1Id = null; 
-    let p2Id = null;
-    if (isCoop) {
-      const cE = coopTableById[player.id];
-      if (cE) { p1Id = cE.player1Id; p2Id = cE.player2Id; }
-    } else {
-      p1Id = player.playerId;
-    }
-
-    const m1 = p1Id ? masterPlayersRanked.find(p => p.id === p1Id) : null;
-    const m2 = p2Id ? masterPlayersRanked.find(p => p.id === p2Id) : null;
-    
-    // Check calibration status: only show OVR if player has >= 20 official career matches
-    const isM1Calibrated = !!m1?.isCalibrated;
-    const isM2Calibrated = !!m2?.isCalibrated;
-    const isAnyCalibrated = isCoop ? (isM1Calibrated || isM2Calibrated) : isM1Calibrated;
-
-    let displayOvr = 'N/C';
-    let displayRank = 'N/C';
-
-    if (isCoop) {
-      if (isM1Calibrated && isM2Calibrated && m1 && m2) {
-        displayOvr = ((m1.ovrRating + m2.ovrRating) / 2).toFixed(0);
-        displayRank = String(Math.min(m1.masterRank ?? 999, m2.masterRank ?? 999));
-      } else if (isM1Calibrated && m1) {
-        displayOvr = m1.ovrRating.toFixed(0);
-        displayRank = String(m1.masterRank ?? 'N/C');
-      } else if (isM2Calibrated && m2) {
-        displayOvr = m2.ovrRating.toFixed(0);
-        displayRank = String(m2.masterRank ?? 'N/C');
-      }
-    } else {
-      if (isM1Calibrated && m1) {
-        displayOvr = m1.ovrRating.toFixed(0);
-        displayRank = String(m1.masterRank ?? 'N/C');
-      }
-    }
-
-    const masterInfoSummary = {
-      ovr: displayOvr,
-      rank: displayRank,
-      isCalibrated: isAnyCalibrated,
-      isCoop: isCoop,
-      p1Ovr: isM1Calibrated && m1 ? m1.ovrRating.toFixed(0) : 'N/C',
-      p2Ovr: isM2Calibrated && m2 ? m2.ovrRating.toFixed(0) : 'N/C'
-    };
-
     let pST = "Balance"; 
     let pSType: 'attacking' | 'defensive' | 'balanced' = 'balanced'; 
     let pSD = t('play_style_balanced_desc');
@@ -326,7 +391,9 @@ export function PlayerPerformanceDialog({
       playStyleText: pST, 
       playStyleType: pSType, 
       playStyleDescription: pSD, 
-      masterInfoSummary 
+      masterInfoSummary,
+      seasonNetMmr: totalSeasonMmrDelta,
+      tierStyle
     };
   }, [player, matches, playersById, teamsById, totalPlayersInSeason, activeSeason, coopLeagueTable, singleLeagueTable, t, masterPlayersRanked]);
 
@@ -355,7 +422,9 @@ export function PlayerPerformanceDialog({
     playStyleText, 
     playStyleType, 
     playStyleDescription, 
-    masterInfoSummary 
+    masterInfoSummary,
+    seasonNetMmr,
+    tierStyle
   } = performanceStats;
   
   const isTopRank = player.rank === 1;
@@ -409,133 +478,214 @@ export function PlayerPerformanceDialog({
             style={{ scrollbarColor: `${primaryHex}40 transparent` }}
           >
             <div className="relative">
-              {/* Dossier Header: Cyber Athlete Profile */}
-              <DialogHeader className="relative z-10 text-left">
-                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-6 pb-2 pr-12">
-                  {/* Avatar & Interactive Neon Ring */}
-                  <div className="relative group shrink-0">
-                    <div 
-                      className="absolute -inset-4 rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-700 animate-pulse" 
-                      style={{ backgroundColor: `${primaryHex}40` }}
-                    />
-                    
-                    {player.group && (
-                      <div className="absolute -top-2 -left-2 z-20">
-                        <Badge 
-                          className="border-2 border-black font-black text-[9px] px-2.5 h-5 rounded-full italic shadow-xl uppercase"
-                          style={{
-                            backgroundColor: primaryHex,
-                            color: isCrimson ? '#ffffff' : '#000000'
-                          }}
-                        >
-                          GRUP {player.group}
-                        </Badge>
-                      </div>
-                    )}
-
-                    <Avatar 
-                      className="h-20 w-20 sm:h-24 sm:w-24 shadow-2xl relative z-10 group-hover:scale-105 transition-all duration-500 rounded-3xl border-2"
-                      style={{
-                        borderColor: primaryHex,
-                        boxShadow: `0 0 30px ${primaryHex}40`
-                      }}
-                    >
-                      <AvatarImage src={displayLogo} alt={player.playerName} className="object-cover" referrerPolicy="no-referrer" />
-                      <AvatarFallback className="bg-black/60 font-black text-xs rounded-3xl">
-                        <User className="h-10 w-10 text-white/20" />
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div 
-                      className={cn(
-                        "absolute -bottom-2 -right-2 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-2xl border-2 border-black font-headline text-xs sm:text-sm font-black shadow-xl z-20 transition-transform group-hover:scale-110",
-                        isTopRank ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.6)]" : 
-                        isBottomRank ? "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.6)]" : ""
-                      )} 
-                      style={(!isTopRank && !isBottomRank) ? {
-                        backgroundColor: primaryHex,
-                        color: isCrimson ? '#ffffff' : '#000000',
-                        boxShadow: `0 0 20px ${glowRgba}`
-                      } : undefined}
-                      title={`Peringkat #${player.rank}`}
-                      suppressHydrationWarning
-                    >
-                      #{player.rank}
-                    </div>
-
-                    {isDefendingChampion && (
-                      <div className="absolute -top-3 -right-3 transform rotate-12 z-20 animate-bounce">
-                        <Badge className="bg-amber-500 text-black border-2 border-white p-1.5 rounded-xl shadow-2xl" title="Juara Bertahan">
-                          <Award className="w-4 h-4"/>
-                        </Badge>
-                      </div>
-                    )}
+              {/* Dossier Header: Cyber Athlete Profile with 4:3 Grid Composition */}
+              <DialogHeader className="relative z-10 text-left space-y-3 pb-2">
+                {/* Top Row: Roster Intel Tag with safe right-padding for Close button */}
+                <div className="flex items-center justify-between pr-12 sm:pr-14">
+                  <div 
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full border backdrop-blur-md"
+                    style={{
+                      backgroundColor: `${primaryHex}15`,
+                      borderColor: `${primaryHex}35`
+                    }}
+                  >
+                    <Scan className="w-3 h-3 animate-pulse" style={{ color: primaryHex }} />
+                    <span className="text-[8.5px] font-black uppercase tracking-[0.25em] italic" style={{ color: primaryHex }}>
+                      {theme.editionName} • ROSTER INTEL
+                    </span>
                   </div>
+                </div>
 
-                  {/* Player Name, Team, and Tactical Style */}
-                  <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start text-center sm:text-left space-y-1.5">
-                    <div 
-                      className="inline-flex items-center gap-2 px-3.5 py-0.5 rounded-full border backdrop-blur-md"
-                      style={{
-                        backgroundColor: `${primaryHex}15`,
-                        borderColor: `${primaryHex}35`
-                      }}
-                    >
-                      <Scan className="w-3 h-3 animate-pulse" style={{ color: primaryHex }} />
-                      <span className="text-[8px] font-black uppercase tracking-[0.25em] italic" style={{ color: primaryHex }}>
-                        {theme.editionName} • ROSTER INTEL
-                      </span>
-                    </div>
+                {/* 4:3 Grid Composition: Left (col-span-4) Athlete Identity, Right (col-span-3) MMR Telemetry Pod */}
+                <div className="grid grid-cols-1 md:grid-cols-7 gap-4 sm:gap-5 items-center">
+                  
+                  {/* Sisi Kiri (4 Bagian / ~57% lebar): Avatar + Nama + Klub + Playstyle */}
+                  <div className="md:col-span-4 flex flex-col sm:flex-row items-center sm:items-center gap-3.5 sm:gap-4 min-w-0">
+                    {/* Avatar & Interactive Neon Ring */}
+                    <div className="relative group shrink-0">
+                      <div 
+                        className="absolute -inset-4 rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-700 animate-pulse" 
+                        style={{ backgroundColor: `${primaryHex}40` }}
+                      />
+                      
+                      {player.group && (
+                        <div className="absolute -top-2 -left-2 z-20">
+                          <Badge 
+                            className="border-2 border-black font-black text-[9px] px-2.5 h-5 rounded-full italic shadow-xl uppercase"
+                            style={{
+                              backgroundColor: primaryHex,
+                              color: isCrimson ? '#ffffff' : '#000000'
+                            }}
+                          >
+                            GRUP {player.group}
+                          </Badge>
+                        </div>
+                      )}
 
-                    <DialogTitle 
-                      className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight uppercase italic text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] leading-tight font-headline" 
-                      suppressHydrationWarning
-                    >
-                      {player.playerName}
-                    </DialogTitle>
-                    <DialogDescription className="sr-only">
-                      Profil dan telemetri performa atlet {player.playerName}
-                    </DialogDescription>
-
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
-                      <div className="flex items-center gap-2 font-black text-white/80 uppercase tracking-wider text-[10px] sm:text-[11px] bg-white/[0.04] px-3.5 py-1 rounded-full border border-white/10 shadow-inner">
-                        <Avatar className="h-4 w-4 opacity-90 border border-white/10">
-                          <AvatarImage src={displayLogo} className="object-cover" referrerPolicy="no-referrer" />
-                          <AvatarFallback><Shield className="w-3 h-3"/></AvatarFallback>
-                        </Avatar>
-                        <span suppressHydrationWarning>{displayTeamName}</span>
+                      <Avatar 
+                        className="h-20 w-20 sm:h-24 sm:w-24 shadow-2xl relative z-10 group-hover:scale-105 transition-all duration-500 rounded-3xl border-2"
+                        style={{
+                          borderColor: primaryHex,
+                          boxShadow: `0 0 30px ${primaryHex}40`
+                        }}
+                      >
+                        <AvatarImage src={displayLogo} alt={player.playerName} className="object-cover" referrerPolicy="no-referrer" />
+                        <AvatarFallback className="bg-black/60 font-black text-xs rounded-3xl">
+                          <User className="h-10 w-10 text-white/20" />
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div 
+                        className={cn(
+                          "absolute -bottom-2 -right-2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-2xl border-2 border-black font-headline text-xs sm:text-sm font-black shadow-xl z-20 transition-transform group-hover:scale-110",
+                          isTopRank ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.6)]" : 
+                          isBottomRank ? "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.6)]" : ""
+                        )} 
+                        style={(!isTopRank && !isBottomRank) ? {
+                          backgroundColor: primaryHex,
+                          color: isCrimson ? '#ffffff' : '#000000',
+                          boxShadow: `0 0 20px ${glowRgba}`
+                        } : undefined}
+                        title={`Peringkat #${player.rank}`}
+                        suppressHydrationWarning
+                      >
+                        #{player.rank}
                       </div>
 
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Badge 
-                            className={cn(
-                              "text-[9px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full border cursor-help shadow-lg transition-all hover:scale-105", 
-                              playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30 shadow-red-500/20" : 
-                              playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-blue-500/20" : ""
-                            )}
-                            style={playStyleType !== 'attacking' && playStyleType !== 'defensive' ? {
-                              backgroundColor: `${primaryHex}20`,
-                              color: primaryHex,
-                              borderColor: `${primaryHex}40`,
-                              boxShadow: `0 0 15px ${primaryHex}20`
-                            } : undefined}
-                          >
-                            {playStyleText}
+                      {isDefendingChampion && (
+                        <div className="absolute -top-3 -right-3 transform rotate-12 z-20 animate-bounce">
+                          <Badge className="bg-amber-500 text-black border-2 border-white p-1.5 rounded-xl shadow-2xl" title="Juara Bertahan">
+                            <Award className="w-4 h-4"/>
                           </Badge>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-64 text-center bg-black/95 backdrop-blur-2xl rounded-2xl shadow-2xl z-50 border" style={{ borderColor: `${primaryHex}40` }}>
-                          <p className="text-[11px] font-bold leading-relaxed text-white text-center">{playStyleDescription}</p>
-                        </PopoverContent>
-                      </Popover>
-
-                      {isTopRank && (
-                        <Badge className="bg-amber-400/20 text-amber-300 border-amber-400/30 text-[9px] font-black uppercase tracking-wider px-3 py-1 rounded-full italic">
-                          Leader Klasemen
-                        </Badge>
+                        </div>
                       )}
                     </div>
+
+                    {/* Player Name, Team, and Tactical Style */}
+                    <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start text-center sm:text-left space-y-1.5">
+                      <DialogTitle 
+                        className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight uppercase italic text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] leading-tight font-headline break-words w-full" 
+                        title={player.playerName}
+                        suppressHydrationWarning
+                      >
+                        {player.playerName}
+                      </DialogTitle>
+                      <DialogDescription className="sr-only">
+                        Profil dan telemetri performa atlet {player.playerName}
+                      </DialogDescription>
+
+                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 pt-0.5">
+                        <div className="flex items-center gap-1.5 font-black text-white/80 uppercase tracking-wider text-[10px] sm:text-[10.5px] bg-white/[0.04] px-3 py-0.5 rounded-full border border-white/10 shadow-inner">
+                          <Avatar className="h-3.5 w-3.5 opacity-90 border border-white/10">
+                            <AvatarImage src={displayLogo} className="object-cover" referrerPolicy="no-referrer" />
+                            <AvatarFallback><Shield className="w-2.5 h-2.5"/></AvatarFallback>
+                          </Avatar>
+                          <span suppressHydrationWarning>{displayTeamName}</span>
+                        </div>
+
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Badge 
+                              className={cn(
+                                "text-[8.5px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full border cursor-help shadow-lg transition-all hover:scale-105", 
+                                playStyleType === 'attacking' ? "bg-red-500/20 text-red-400 border-red-500/30 shadow-red-500/20" : 
+                                playStyleType === 'defensive' ? "bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-blue-500/20" : ""
+                              )}
+                              style={playStyleType !== 'attacking' && playStyleType !== 'defensive' ? {
+                                backgroundColor: `${primaryHex}20`,
+                                color: primaryHex,
+                                borderColor: `${primaryHex}40`,
+                                boxShadow: `0 0 15px ${primaryHex}20`
+                              } : undefined}
+                            >
+                              {playStyleText}
+                            </Badge>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 text-center bg-black/95 backdrop-blur-2xl rounded-2xl shadow-2xl z-50 border" style={{ borderColor: `${primaryHex}40` }}>
+                            <p className="text-[11px] font-bold leading-relaxed text-white text-center">{playStyleDescription}</p>
+                          </PopoverContent>
+                        </Popover>
+
+                        {isTopRank && (
+                          <Badge className="bg-amber-400/20 text-amber-300 border-amber-400/30 text-[8.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full italic">
+                            Leader Klasemen
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Sisi Kanan (3 Bagian / ~43% lebar): Ultra Sport MMR Telemetry Pod */}
+                  <div className="md:col-span-3 w-full">
+                    <div 
+                      className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-black/95 via-[#0c0816]/90 to-black/95 backdrop-blur-2xl p-3.5 sm:p-4 shadow-xl transition-all duration-300 hover:border-white/30 group/mmrhud"
+                      style={{
+                        borderColor: `${primaryHex}40`,
+                        boxShadow: `0 0 25px ${glowRgba}, inset 0 1px 0 rgba(255,255,255,0.12)`
+                      }}
+                    >
+                      {/* Top Neon Laser Conduit */}
+                      <div 
+                        className="absolute top-0 left-0 right-0 h-[2px] transition-all duration-500 group-hover/mmrhud:h-[3px]"
+                        style={{
+                          background: `linear-gradient(to right, transparent, ${secondaryHex}, ${primaryHex}, transparent)`
+                        }}
+                      />
+
+                      {/* Header Pod: MMR Telemetry & Official Tier Badge */}
+                      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                        <div className="flex items-center gap-1.5">
+                          <Flame className="w-3.5 h-3.5 animate-pulse" style={{ color: primaryHex }} />
+                          <span className="text-[8.5px] font-black uppercase italic tracking-wider text-white/70">
+                            MMR TELEMETRY
+                          </span>
+                        </div>
+                        
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm shrink-0",
+                            tierStyle.id === 'LEGEND' ? "bg-yellow-400 text-black border-yellow-300 font-extrabold shadow-yellow-400/30" :
+                            tierStyle.id === 'TOP_PLAYER' ? "bg-primary text-black border-primary/50 font-extrabold shadow-primary/30" :
+                            tierStyle.id === 'REGULER' ? "bg-accent/20 text-accent border-accent/40" :
+                            tierStyle.id === 'AMATEUR' ? "bg-rose-500/20 text-rose-300 border-rose-500/40" :
+                            "bg-white/5 text-white/60 border-white/10"
+                          )}
+                        >
+                          {tierStyle.badgeTitle}
+                        </Badge>
+                      </div>
+
+                      {/* Content Pod: Skor MMR Utama & Global Ranking */}
+                      <div className="flex items-baseline justify-between pt-2.5">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl sm:text-4xl font-black italic tracking-tighter tabular-nums font-headline text-white leading-none">
+                            {masterInfoSummary.mmr}
+                          </span>
+                          <span className="text-[9px] font-black uppercase italic tracking-wider" style={{ color: primaryHex }}>
+                            MMR
+                          </span>
+                        </div>
+
+                        {/* Global Ranking Telemetry */}
+                        <div className="text-right">
+                          <div 
+                            className="text-xs sm:text-sm font-black italic uppercase tracking-wider"
+                            style={{ color: primaryHex, textShadow: `0 0 10px ${glowRgba}` }}
+                          >
+                            {masterInfoSummary.rank === 'N/C' ? 'Rank : N/C' : `Rank : ${masterInfoSummary.rank}`}{' '}
+                            <span className="text-[8px] font-normal uppercase italic tracking-widest text-white/40">
+                              Global
+                            </span>
+                          </div>
+                          <div className="text-[8px] font-bold text-white/40 tracking-wider uppercase">
+                            Peak: {masterInfoSummary.peakMmr}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </DialogHeader>
 
@@ -659,17 +809,17 @@ export function PlayerPerformanceDialog({
                       />
                       <IntelCard 
                         icon={Flame} 
-                        label={masterInfoSummary.isCoop ? "OVR Avg" : "OVR Master"} 
-                        value={masterInfoSummary.ovr} 
+                        label={masterInfoSummary.isCoop ? "MMR Avg" : "MMR Rating"} 
+                        value={masterInfoSummary.mmr} 
                         variant="gold" 
-                        tooltip={masterInfoSummary.isCoop ? `Karir gabungan: P1 (${masterInfoSummary.p1Ovr}%) & P2 (${masterInfoSummary.p2Ovr}%)` : "Performa karir kumulatif dari seluruh pertandingan sepanjang sejarah liga."}
+                        tooltip={masterInfoSummary.isCoop ? `Karir gabungan: P1 (${masterInfoSummary.p1Mmr}) & P2 (${masterInfoSummary.p2Mmr})` : `Rating MMR dinamis resmi (Peak: ${masterInfoSummary.peakMmr}${masterInfoSummary.legacyOvr ? `, Legacy OVR: ${masterInfoSummary.legacyOvr}` : ''})`}
                       />
                       <IntelCard 
                         icon={Star} 
                         label="Rank Global" 
                         value={masterInfoSummary.rank === 'N/C' ? 'N/C' : `#${masterInfoSummary.rank}`} 
                         variant="gold" 
-                        tooltip={masterInfoSummary.isCoop ? "Peringkat karir terbaik di antara kedua pemain." : "Peringkat elit berdasarkan OVR karir global pemain."}
+                        tooltip={masterInfoSummary.isCoop ? "Peringkat karir terbaik di antara kedua pemain." : "Peringkat elit berdasarkan MMR karir global pemain."}
                       />
                     </div>
                   </CardContent>

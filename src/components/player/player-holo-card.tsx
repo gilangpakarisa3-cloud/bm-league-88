@@ -44,8 +44,8 @@ export const PlayerHoloCard = ({
 }: PlayerHoloCardProps) => {
   const hasWins = wonSeasons.length > 0;
   const winRate = player.winRate || 0;
-  const goalsPerMatch = player.overallPlayed > 0 
-    ? ((player.overallGoalsFor || 0) / player.overallPlayed).toFixed(1) 
+  const goalsPerMatch = player.overallPlayed > 0
+    ? ((player.overallGoalsFor || 0) / player.overallPlayed).toFixed(1)
     : '0.0';
 
   return (
@@ -74,16 +74,16 @@ export const PlayerHoloCard = ({
           {/* Top Card Badge / Rank Pill */}
           <div className="w-full flex items-center justify-between mb-4 z-10">
             <div className="flex items-center gap-1.5">
-              {player.isCalibrated && player.ovrRank ? (
+              {player.isCalibrated && (player.rank || player.ovrRank) ? (
                 <>
                   <Badge className={cn("text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border", tier.bgPill)}>
-                    #{player.ovrRank} RANK
+                    #{player.rank || player.ovrRank} RANK
                   </Badge>
-                  {player.ovrRank <= 3 && (
+                  {(player.rank || player.ovrRank) <= 3 && (
                     <Medal className={cn(
                       "w-4 h-4",
-                      player.ovrRank === 1 ? "text-yellow-400" :
-                      player.ovrRank === 2 ? "text-slate-300" : "text-amber-600"
+                      (player.rank || player.ovrRank) === 1 ? "text-yellow-400" :
+                        (player.rank || player.ovrRank) === 2 ? "text-slate-300" : "text-amber-600"
                     )} />
                   )}
                 </>
@@ -99,7 +99,7 @@ export const PlayerHoloCard = ({
             </span>
           </div>
 
-          {/* Avatar with OVR Hex Badge */}
+          {/* Avatar with MMR Hex Badge */}
           <div className="relative z-10 mb-3">
             <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none z-20 opacity-0 group-hover:opacity-30 transition-opacity">
               <div className={cn("w-full h-1 blur-[1px] animate-scanning", tier.hudBar)} />
@@ -108,10 +108,10 @@ export const PlayerHoloCard = ({
             <Avatar className={cn(
               "h-24 w-24 border-2 transition-all duration-500 shadow-2xl scale-100 group-hover:scale-105",
               !player.isCalibrated ? "border-slate-500/40 group-hover:border-slate-400" :
-              tier.color.includes('yellow') ? "border-yellow-400/50 group-hover:border-yellow-400" :
-              tier.color.includes('primary') ? "border-primary/50 group-hover:border-primary" :
-              tier.color.includes('accent') ? "border-accent/50 group-hover:border-accent" :
-              "border-rose-400/50 group-hover:border-rose-400"
+                tier.color.includes('yellow') ? "border-yellow-400/50 group-hover:border-yellow-400" :
+                  tier.color.includes('primary') ? "border-primary/50 group-hover:border-primary" :
+                    tier.color.includes('accent') ? "border-accent/50 group-hover:border-accent" :
+                      "border-rose-400/50 group-hover:border-rose-400"
             )}>
               <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
               <AvatarFallback className="bg-black/80 font-black text-white/30 text-xl">
@@ -120,13 +120,13 @@ export const PlayerHoloCard = ({
             </Avatar>
 
             <div className={cn(
-              "absolute -bottom-2 -right-2 h-12 w-12 rounded-2xl flex flex-col items-center justify-center border-2 border-[#0A192F] shadow-2xl transition-transform duration-500 group-hover:scale-110",
+              "absolute -bottom-2 -right-3 min-w-[54px] h-12 px-1 rounded-2xl flex flex-col items-center justify-center border-2 border-[#0A192F] shadow-2xl transition-transform duration-500 group-hover:scale-110",
               tier.bgBadge
             )}>
-              <span className="text-[7px] font-black leading-none uppercase tracking-tighter opacity-70">OVR</span>
+              <span className="text-[7.5px] font-black leading-none uppercase tracking-tighter opacity-80">MMR</span>
               {player.isCalibrated ? (
-                <span className="text-base font-black leading-none italic tabular-nums tracking-tighter mt-0.5">
-                  {player.ovrRating.toFixed(0)}
+                <span className="text-sm font-black leading-none italic tabular-nums tracking-tighter mt-0.5">
+                  {player.mmrRating || player.mmr || 800}
                 </span>
               ) : (
                 <span className="text-[9px] font-black leading-none uppercase tracking-tighter text-slate-300 mt-1">
@@ -173,9 +173,9 @@ export const PlayerHoloCard = ({
               </span>
             </div>
             <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div 
-                className={cn("h-full rounded-full transition-all duration-1000", tier.hudBar)} 
-                style={{ width: `${Math.min(100, Math.max(5, winRate))}%` }} 
+              <div
+                className={cn("h-full rounded-full transition-all duration-1000", tier.hudBar)}
+                style={{ width: `${Math.min(100, Math.max(5, winRate))}%` }}
               />
             </div>
           </div>
@@ -224,8 +224,8 @@ export const PlayerHoloCard = ({
 
           <div className={cn(
             "rounded-2xl p-3 border transition-all relative overflow-hidden",
-            hasWins 
-              ? "bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_20px_rgba(250,204,21,0.05)]" 
+            hasWins
+              ? "bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_20px_rgba(250,204,21,0.05)]"
               : "bg-white/[0.02] border-white/5"
           )}>
             <div className="flex items-center justify-between mb-1.5">
@@ -246,7 +246,7 @@ export const PlayerHoloCard = ({
             <div className="flex flex-wrap gap-1 min-h-[22px] items-center">
               {hasWins ? (
                 wonSeasons.map(rec => (
-                  <Badge 
+                  <Badge
                     key={rec.seasonId}
                     className="bg-yellow-400/20 border-yellow-400/40 text-yellow-400 text-[8px] font-black uppercase tracking-tight py-0 px-2 rounded-md"
                   >
@@ -268,32 +268,40 @@ export const PlayerHoloCard = ({
                 <span className="text-white font-mono">{player.overallPlayed || 0} / 20</span>
               </div>
               <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-slate-400 rounded-full transition-all" 
-                  style={{ width: `${Math.min(100, ((player.overallPlayed || 0) / 20) * 100)}%` }} 
+                <div
+                  className="h-full bg-slate-400 rounded-full transition-all"
+                  style={{ width: `${Math.min(100, ((player.overallPlayed || 0) / 20) * 100)}%` }}
                 />
               </div>
               <span className="block text-[7.5px] font-bold text-slate-400/80 italic leading-tight">
-                Butuh {Math.max(0, 20 - (player.overallPlayed || 0))} laga resmi lagi untuk kalkulasi OVR
+                Butuh {Math.max(0, 20 - (player.overallPlayed || 0))} laga resmi lagi untuk kalibrasi MMR penuh
               </span>
             </div>
           )}
+
+          {/* Legacy OVR & Peak MMR Footer Strip */}
+          <div className="flex items-center justify-between pt-2 px-1 text-[8px] font-mono text-white/40 uppercase tracking-wider border-t border-white/5">
+            <span>PEAK MMR: <strong className="text-white font-bold">{player.peakMmrRating || player.mmrRating || player.mmr || 800}</strong></span>
+            {player.legacyOvrRating ? (
+              <span>LEGACY OVR: <strong className="text-yellow-400 font-bold">{player.legacyOvrRating.toFixed(0)}</strong></span>
+            ) : null}
+          </div>
         </CardContent>
 
         {isAdmin && (
           <CardFooter className="grid grid-cols-2 gap-2 p-3 border-t border-white/10 bg-black/80 rounded-b-[2.2rem]">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onEdit(player)}
               className="font-black text-[9px] uppercase tracking-widest h-9 rounded-xl border border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all"
             >
               <Pencil className="w-3 h-3 mr-1.5" />
               {editLabel}
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onDelete(player)}
               className="font-black text-[9px] uppercase tracking-widest h-9 rounded-xl border border-white/10 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/40 transition-all"
             >

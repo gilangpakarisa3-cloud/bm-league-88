@@ -298,9 +298,9 @@ export function RegisterPlayersForm({
                         )}>
                           {player.name}
                         </span>
-                        {player.ovr && (
+                        {(player.mmr || player.ovr) && (
                           <span className="text-[8px] font-black font-mono px-1 py-0.2 rounded bg-amber-400/10 border border-amber-400/30 text-amber-300">
-                            {player.ovr}
+                            {player.mmr ? `${player.mmr} MMR` : player.ovr}
                           </span>
                         )}
                       </div>

@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PasswordManager } from '@/components/password-manager';
 import { useTranslation } from '@/hooks/use-translation';
-import { 
-    KeyRound, 
-    RefreshCw, 
-    Loader2, 
-    AlertTriangle, 
-    Database, 
-    Scan, 
-    Binary, 
-    Zap, 
-    ShieldCheck, 
-    Power, 
+import {
+    KeyRound,
+    RefreshCw,
+    Loader2,
+    AlertTriangle,
+    Database,
+    Scan,
+    Binary,
+    Zap,
+    ShieldCheck,
+    Power,
     Activity,
     Radio,
     Sparkles,
@@ -47,7 +47,7 @@ export default function SettingsPage() {
 
     const [showPasswordManager, setShowPasswordManager] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
-    
+
     const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
     const [passwordInput, setPasswordInput] = useState('');
     const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -72,9 +72,9 @@ export default function SettingsPage() {
         try {
             const playersSnap = await getDocs(collection(firestore, 'players'));
             const currentPlayerMap: Record<string, { id: string, stats: any }> = {};
-            
+
             const normalize = (name: string) => name.toLowerCase().replace(/\s|\./g, '').trim();
-            
+
             const NAME_ALIASES: Record<string, string> = {
                 'agusm': 'aguii'
             };
@@ -84,19 +84,19 @@ export default function SettingsPage() {
                 const nameKey = normalize(data.name);
                 currentPlayerMap[nameKey] = {
                     id: d.id,
-                    stats: { 
-                        overallPlayed: 0, 
-                        overallWin: 0, 
-                        overallDraw: 0, 
-                        overallLoss: 0, 
-                        overallGoalsFor: 0, 
-                        overallGoalsAgainst: 0 
+                    stats: {
+                        overallPlayed: 0,
+                        overallWin: 0,
+                        overallDraw: 0,
+                        overallLoss: 0,
+                        overallGoalsFor: 0,
+                        overallGoalsAgainst: 0
                     }
                 };
             });
 
             const seasonsSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons`));
-            
+
             for (const seasonDoc of seasonsSnap.docs) {
                 const sId = seasonDoc.id;
                 const sData = seasonDoc.data() as Season;
@@ -109,13 +109,13 @@ export default function SettingsPage() {
                     const coopSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/coopLeagueTable`));
                     coopSnap.docs.forEach(d => {
                         const data = d.data() as CoOpLeagueEntry;
-                        
+
                         const rawP1 = normalize(data.player1Name);
                         const rawP2 = normalize(data.player2Name);
-                        
+
                         const p1NK = NAME_ALIASES[rawP1] || rawP1;
                         const p2NK = NAME_ALIASES[rawP2] || rawP2;
-                        
+
                         seasonIdToNameKeyMap[d.id] = normalize(data.teamName);
                         coopPairToNamesMap[d.id] = { p1: p1NK, p2: p2NK };
 
@@ -144,7 +144,7 @@ export default function SettingsPage() {
                         const data = d.data() as LeagueEntry;
                         const rawNK = normalize(data.playerName);
                         const nameKey = NAME_ALIASES[rawNK] || rawNK;
-                        
+
                         seasonIdToNameKeyMap[data.playerId] = nameKey;
 
                         if (currentPlayerMap[nameKey]) {
@@ -160,7 +160,7 @@ export default function SettingsPage() {
                 }
 
                 const matchesSnap = await getDocs(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${sId}/matches`));
-                
+
                 matchesSnap.docs.forEach(mDoc => {
                     const m = mDoc.data() as Match;
                     if (!m.isCompleted) return;
@@ -169,7 +169,7 @@ export default function SettingsPage() {
                     const isMatchBo3 = isCoop || Boolean(m.round);
                     const s1 = isMatchBo3 ? (m.player1Wins ?? m.player1Score ?? 0) : (m.player1Score ?? 0);
                     const s2 = isMatchBo3 ? (m.player2Wins ?? m.player2Score ?? 0) : (m.player2Score ?? 0);
-                    
+
                     const ga1 = Number(m.player2Score) || 0;
                     const ga2 = Number(m.player1Score) || 0;
 
@@ -191,17 +191,17 @@ export default function SettingsPage() {
                     if (isCoop) {
                         const pair1 = coopPairToNamesMap[m.player1Id];
                         const pair2 = coopPairToNamesMap[m.player2Id];
-                        if (pair1) { 
+                        if (pair1) {
                             const g1 = Number(m.player1p1Goals ?? m.player1Score ?? 0);
                             const g2 = Number(m.player1p2Goals ?? m.player1Score ?? 0);
-                            applyToPlayer(pair1.p1, res1, g1, ga1); 
-                            applyToPlayer(pair1.p2, res1, g2, ga1); 
+                            applyToPlayer(pair1.p1, res1, g1, ga1);
+                            applyToPlayer(pair1.p2, res1, g2, ga1);
                         }
-                        if (pair2) { 
+                        if (pair2) {
                             const g1 = Number(m.player2p1Goals ?? m.player2Score ?? 0);
                             const g2 = Number(m.player2p2Goals ?? m.player2Score ?? 0);
-                            applyToPlayer(pair2.p1, res2, g1, ga2); 
-                            applyToPlayer(pair2.p2, res2, g2, ga2); 
+                            applyToPlayer(pair2.p1, res2, g1, ga2);
+                            applyToPlayer(pair2.p2, res2, g2, ga2);
                         }
                     } else {
                         applyToPlayer(seasonIdToNameKeyMap[m.player1Id], res1, Number(m.player1Score) || 0, ga1);
@@ -210,15 +210,67 @@ export default function SettingsPage() {
                 });
             }
 
+            // Fetch Hall of Fame to calculate championship titles per player
+            const hofSnap = await getDocs(collection(firestore, 'hallOfFame'));
+            const titlesByPlayerId: Record<string, number> = {};
+            hofSnap.docs.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.winnerPlayerId) {
+                    titlesByPlayerId[data.winnerPlayerId] = (titlesByPlayerId[data.winnerPlayerId] || 0) + 1;
+                }
+            });
+
+            const playerEntries = Object.values(currentPlayerMap);
+
+            // Calculate legacy OVR & calibration for tier classification
+            const withCalib = playerEntries.map(p => {
+                const s = p.stats;
+                const played = s.overallPlayed || 0;
+                const isCalibrated = played >= 20;
+                const poss = played * 3;
+                const actualPoints = ((s.overallWin || 0) * 3) + ((s.overallDraw || 0) * 1);
+                const legacyOvr = isCalibrated && poss > 0 ? Math.round((actualPoints / poss) * 100) : 0;
+                const titlesWon = titlesByPlayerId[p.id] || 0;
+                return { ...p, isCalibrated, legacyOvr, titlesWon };
+            });
+
+            const calibrated = withCalib
+                .filter(p => p.isCalibrated)
+                .sort((a, b) => b.legacyOvr - a.legacyOvr || (b.stats.overallPlayed || 0) - (a.stats.overallPlayed || 0));
+
+            const uncalibrated = withCalib.filter(p => !p.isCalibrated);
+
+            // Assign baseline tier & starting MMR (Legend 1200, Top Player 1000, Reguler 800, Amateur 600, NC 700) + 100/gelar
+            calibrated.forEach((p, idx) => {
+                let baseMmr = 600; // Amateur
+                if (idx < 4) baseMmr = 1200; // Legend (Top 4)
+                else if (idx < 8) baseMmr = 1000; // Top Player (Next 4)
+                else if (idx < 12) baseMmr = 800; // Reguler (Next 4)
+
+                const calculatedMmr = baseMmr + (p.titlesWon * 100);
+                p.stats.legacyOvr = p.legacyOvr;
+                p.stats.titlesCount = p.titlesWon;
+                p.stats.mmr = calculatedMmr;
+                p.stats.peakMmr = calculatedMmr;
+            });
+
+            uncalibrated.forEach(p => {
+                const calculatedMmr = 700 + (p.titlesWon * 100);
+                p.stats.legacyOvr = 0;
+                p.stats.titlesCount = p.titlesWon;
+                p.stats.mmr = calculatedMmr;
+                p.stats.peakMmr = calculatedMmr;
+            });
+
             const batch = writeBatch(firestore);
             Object.values(currentPlayerMap).forEach(player => {
                 batch.update(doc(firestore, 'players', player.id), player.stats);
             });
             await batch.commit();
-            
-            toast({ 
-                title: 'Rekap Selesai!', 
-                description: 'Sinkronisasi berhasil mencakup seluruh format Single, Co-Op, dan Hybrid termasuk data gol individu.' 
+
+            toast({
+                title: 'Rekap & Sinkronisasi MMR Selesai!',
+                description: 'Berhasil menyinkronkan seluruh format match, mengarsipkan Legacy OVR, dan menginisialisasi modal MMR (Tier + 100 MMR/Gelar).'
             });
 
         } catch (error: any) {
@@ -240,7 +292,7 @@ export default function SettingsPage() {
             <div className="absolute bottom-0 left-0 -z-10 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
-                
+
                 {/* COCKPIT COMMAND HERO BANNER */}
                 <div className="flex flex-col md:flex-row justify-between items-stretch gap-6 min-h-[140px] sm:min-h-[180px]">
                     <div className="flex flex-col justify-center space-y-4 flex-1 w-full py-8 sm:py-10 px-8 sm:px-12 relative group/header overflow-hidden bg-black/60 backdrop-blur-3xl border-2 border-white/10 rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-500">
@@ -250,7 +302,7 @@ export default function SettingsPage() {
                             <div className="w-full h-[2px] bg-primary blur-[1px] absolute top-0 left-0 animate-scanning" />
                         </div>
                         <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-b from-primary via-primary/80 to-primary/30 rounded-l-[2.5rem] shadow-[0_0_30px_rgba(204,253,1,0.8)]" />
-                        
+
                         <div className="relative z-10 space-y-2">
                             <div className="flex flex-wrap items-center gap-2.5 mb-1">
                                 <div className="flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-[9px] font-mono font-black text-primary uppercase tracking-widest">
@@ -271,7 +323,7 @@ export default function SettingsPage() {
                             </p>
                         </div>
                     </div>
-                    
+
                     <div className="w-full md:w-[420px] flex items-stretch shrink-0">
                         <LiveClock className="h-full" />
                     </div>
@@ -279,12 +331,12 @@ export default function SettingsPage() {
 
                 {/* CONTROL MODULES GRID */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                    
+
                     {/* 1. WEBSITE OPERATIONAL STATUS MODULE */}
                     <div className={cn(
                         "flex flex-col group/card relative rounded-[2rem] sm:rounded-[2.3rem] overflow-hidden border-2 bg-gradient-to-b from-[#0D111A]/95 via-[#070A12]/95 to-[#030508]/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-500",
-                        isDeactivated 
-                            ? "border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.15)]" 
+                        isDeactivated
+                            ? "border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.15)]"
                             : "border-emerald-500/40 shadow-[0_0_50px_rgba(16,185,129,0.15)]"
                     )}>
                         {/* Top Laser Accent */}
@@ -296,8 +348,8 @@ export default function SettingsPage() {
                         {/* Card Header */}
                         <div className={cn(
                             "py-3.5 px-6 flex items-center justify-between overflow-hidden shrink-0 shadow-md relative z-10",
-                            isDeactivated 
-                                ? "bg-gradient-to-r from-red-600 via-rose-600 to-red-500 text-white" 
+                            isDeactivated
+                                ? "bg-gradient-to-r from-red-600 via-rose-600 to-red-500 text-white"
                                 : "bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-black"
                         )}>
                             <div className="flex items-center gap-2.5 relative z-10">
@@ -316,7 +368,7 @@ export default function SettingsPage() {
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className={cn(
                                 "flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[8px] font-black font-mono uppercase tracking-widest",
                                 isDeactivated ? "border-white/20 bg-white/10 text-white" : "border-black/20 bg-black/15 text-black"
@@ -348,12 +400,12 @@ export default function SettingsPage() {
                                     </p>
                                 </div>
 
-                                <Switch 
-                                    checked={!isDeactivated} 
+                                <Switch
+                                    checked={!isDeactivated}
                                     onCheckedChange={(checked) => {
                                         setPendingAction(() => () => updateDeactivationStatus(!checked));
                                         setPasswordPromptOpen(true);
-                                    }} 
+                                    }}
                                     className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-600 scale-125 transition-all shadow-lg"
                                 />
                             </div>
@@ -400,7 +452,7 @@ export default function SettingsPage() {
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border border-black/20 bg-black/15 text-[8px] font-black font-mono uppercase tracking-widest text-black">
                                 <ShieldCheck className="w-3 h-3" />
                                 <span>SECURE // LEVEL 4</span>
@@ -432,8 +484,8 @@ export default function SettingsPage() {
                                 </div>
                             </div>
 
-                            <Button 
-                                onClick={() => setShowPasswordManager(true)} 
+                            <Button
+                                onClick={() => setShowPasswordManager(true)}
                                 className="w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-cyan-500/20 transition-all hover:scale-[1.02] bg-gradient-to-r from-cyan-400 to-sky-500 text-black hover:from-cyan-300 hover:to-sky-400"
                             >
                                 <span className="flex items-center justify-center gap-2">
@@ -464,7 +516,7 @@ export default function SettingsPage() {
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border border-black/20 bg-black/15 text-[8px] font-black font-mono uppercase tracking-widest text-black">
                                 <Binary className="w-3 h-3" />
                                 <span>MULTI-SEASON</span>
@@ -497,23 +549,23 @@ export default function SettingsPage() {
                                         Format Agnostic Engine Sync Protocol
                                     </p>
                                     <p className="text-xs font-bold text-amber-200/80 leading-relaxed font-mono">
-                                        Mendukung sinkronisasi mendalam dari histori klasemen Season 1 hingga musim aktif. 
-                                        Secara otomatis menghitung ulang total pertandingan, menang, seri, kalah, dan akumulasi gol individu masing-masing pemain.
+                                        Mendukung sinkronisasi mendalam dari histori klasemen Season 1 hingga musim aktif.
+                                        Mengarsipkan Legacy OVR, memperbarui akumulasi gol/match, serta menginisialisasi modal awal sistem MMR (Tier + 100 MMR per Gelar Juara) ke database.
                                     </p>
                                 </div>
                             </div>
 
-                            <Button 
+                            <Button
                                 onClick={() => {
                                     setPendingAction(() => () => handleSyncCareerStats());
                                     setPasswordPromptOpen(true);
-                                }} 
-                                disabled={isSyncing || !isPasswordLoaded} 
+                                }}
+                                disabled={isSyncing || !isPasswordLoaded}
                                 className="w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-amber-500/20 transition-all bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black hover:from-amber-400 hover:to-yellow-300"
                             >
                                 <span className="flex items-center justify-center gap-3">
                                     {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5" />}
-                                    {isSyncing ? "CALIBRATING DATA MATRICES..." : "REKAP SELURUH FORMAT MUSIM (V2.5)"}
+                                    {isSyncing ? "CALIBRATING MMR MATRICES..." : "SINKRONISASI STATS & INISIALISASI MMR (V3.0)"}
                                 </span>
                             </Button>
                         </CardContent>
@@ -552,22 +604,22 @@ export default function SettingsPage() {
                                 <Label htmlFor="password-input" className="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-amber-400 italic">
                                     CIPHER_KEY_INPUT
                                 </Label>
-                                <Input 
-                                    id="password-input" 
-                                    type="password" 
-                                    value={passwordInput} 
-                                    onChange={(e) => setPasswordInput(e.target.value)} 
-                                    placeholder="••••••••" 
-                                    className="h-14 bg-black/60 border-white/10 rounded-2xl focus:border-amber-400 text-xl font-mono font-black tracking-[0.3em] text-amber-300 px-5" 
-                                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} 
+                                <Input
+                                    id="password-input"
+                                    type="password"
+                                    value={passwordInput}
+                                    onChange={(e) => setPasswordInput(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="h-14 bg-black/60 border-white/10 rounded-2xl focus:border-amber-400 text-xl font-mono font-black tracking-[0.3em] text-amber-300 px-5"
+                                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
                                     autoFocus
                                 />
                             </div>
                         </div>
 
                         <DialogFooter className="gap-2 sm:gap-0">
-                            <Button 
-                                onClick={handlePasswordCheck} 
+                            <Button
+                                onClick={handlePasswordCheck}
                                 className="w-full h-14 font-black tracking-[0.2em] text-xs uppercase italic rounded-2xl shadow-xl shadow-amber-500/25 text-black bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 transition-all flex items-center justify-center gap-2.5"
                             >
                                 <Scan className="w-4 h-4" />
