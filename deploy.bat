@@ -15,17 +15,31 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo [2/3] Mendeploy Firestore Rules dan Indexes...
+echo [2/4] Mendeploy Firestore Rules dan Indexes...
 call firebase deploy --only firestore
 if %ERRORLEVEL% NEQ 0 (
     echo [WARNING] Deploy Firestore gagal atau terdapat kendala izin.
 )
 
 echo.
+echo [3/4] Mendeploy ke Firebase App Hosting...
+call firebase deploy --only apphosting
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Deploy App Hosting gagal.
+    pause
+    exit /b %ERRORLEVEL%
+)
+
+echo.
+echo [4/4] Sinkronisasi Git repository (backup)...
+git add .
+git commit -m "chore: sync after firebase apphosting deploy"
+git push origin main
+
+echo.
 echo ========================================================
 echo Selesai!
-echo Jika Anda menggunakan Firebase App Hosting:
-echo Cukup push commit ke repository Git yang terhubung di Firebase Console.
+echo URL Live: https://studio--studio-2162727345-cf90e.us-central1.hosted.app
 echo ========================================================
 pause
 

@@ -18,7 +18,9 @@ Ketika user meminta untuk deploy ke Firebase (misal: "deploy ke firebase", "depl
    - Jalankan `firebase deploy --only firestore` (`BypassSandbox: true`).
 4. **Validasi Build**:
    - Jalankan `npm run build` (`BypassSandbox: true` untuk menghindari batasan filesystem sandbox Windows) untuk memastikan tidak ada error kompilasi.
-5. **Git Push ke App Hosting**:
-   - Cek `git status`. Jika ada file yang belum ter-commit/push, commit dan push ke remote `origin main` agar Firebase App Hosting otomatis mentrigger build dan deploy live.
-6. Berikan konfirmasi status deploy selesai beserta link console dan URL live.
+5. **Deploy ke App Hosting via CLI**:
+   - Jalankan `firebase deploy --only apphosting` (`BypassSandbox: true`) untuk mendeploy langsung source code lokal ke backend App Hosting.
+6. **Sync Source Code ke GitHub**:
+   - Cek `git status`. Commit dan push ke `origin main` untuk keperluan backup / update source code repository (GitHub bukan pemicu build deploy).
+7. Berikan konfirmasi status deploy selesai beserta link console dan URL live.
 
