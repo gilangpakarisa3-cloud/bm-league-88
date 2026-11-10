@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { LeagueEntry, Season, WithId, Player, Team, Match } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,18 +11,30 @@ import { useTranslation } from "@/hooks/use-translation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { resolveLogo } from "@/lib/logo-utils";
-import { TournamentBracket } from "./tournament-bracket";
 import { getSeasonTheme } from "@/lib/season-theme";
-import { StandingsShareDialog } from "./standings-share-dialog";
-import { KnockoutShareDialog } from "./knockout-share-dialog";
 import { SingleTable } from "./league/single-table";
-import { TopScorerTable } from "./league/top-scorer-table";
 import { LeagueTableSkeleton } from "./league/league-table-skeleton";
 import { PlayoffQualificationLegend } from "./league/playoff-qualification-legend";
 
+const TournamentBracket = dynamic(
+  () => import('./tournament-bracket').then((mod) => mod.TournamentBracket),
+  { ssr: false }
+);
+const StandingsShareDialog = dynamic(
+  () => import('./standings-share-dialog').then((mod) => mod.StandingsShareDialog),
+  { ssr: false }
+);
+const KnockoutShareDialog = dynamic(
+  () => import('./knockout-share-dialog').then((mod) => mod.KnockoutShareDialog),
+  { ssr: false }
+);
+const TopScorerTable = dynamic(
+  () => import('./league/top-scorer-table').then((mod) => mod.TopScorerTable),
+  { ssr: false }
+);
+
 export { LeagueTableSkeleton } from "./league/league-table-skeleton";
 export { SingleTable } from "./league/single-table";
-export { TopScorerTable } from "./league/top-scorer-table";
 export { PlayoffQualificationLegend } from "./league/playoff-qualification-legend";
 
 interface LeagueTableProps {
@@ -144,6 +157,10 @@ export function LeagueTable({
   const isSingleHybrid = currentFormat === 'Single Hybrid';
   const isAnyHybrid = isStandardHybrid || isCoopHybrid || isSingleHybrid;
 
+  const currentDivisionName = isMultiDivisionActive
+    ? (selectedDivision === 'div-1' ? (activeSeason?.division1Name || 'Divisi 1') : (activeSeason?.division2Name || 'Divisi 2'))
+    : undefined;
+
   const { groupA, groupB } = useMemo(() => {
     if (!isStandardHybrid) return { groupA: [], groupB: [] };
     const sortFn = (a: any, b: any) => b.points - a.points || (b.goalDifference || 0) - (a.goalDifference || 0) || (b.goalsFor || 0) - (a.goalsFor || 0) || (b.win || 0) - (a.win || 0);
@@ -215,15 +232,25 @@ export function LeagueTable({
 
         {/* Multi-Division Switcher Pill Dock (Opsi 1) */}
         {isMultiDivisionActive && (
-          <div className="p-3 sm:p-4 bg-gradient-to-r from-black via-white/[0.02] to-black border-b border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-black via-white/[0.02] to-black border-b border-white/10 flex flex-col items-center justify-center gap-2.5">
             <div className="flex items-center p-1 rounded-2xl bg-white/[0.04] border border-white/10 w-full sm:w-auto gap-1.5 shadow-inner">
               <button
                 type="button"
                 onClick={() => setSelectedDivision('div-1')}
+                style={
+                  selectedDivision === 'div-1'
+                    ? {
+                        backgroundColor: theme.primaryHex,
+                        color: '#000000',
+                        borderColor: theme.primaryHex,
+                        boxShadow: `0 0 25px ${theme.glowRgba || theme.primaryHex}`,
+                      }
+                    : undefined
+                }
                 className={cn(
                   "flex-1 sm:flex-initial h-10 sm:h-12 px-4 sm:px-6 rounded-xl font-headline font-black text-xs uppercase tracking-wider italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
                   selectedDivision === 'div-1'
-                    ? "bg-primary text-black border-primary shadow-[0_0_25px_rgba(204,253,1,0.45)]"
+                    ? ""
                     : "bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/[0.04]"
                 )}
               >
@@ -240,10 +267,20 @@ export function LeagueTable({
               <button
                 type="button"
                 onClick={() => setSelectedDivision('div-2')}
+                style={
+                  selectedDivision === 'div-2'
+                    ? {
+                        backgroundColor: theme.secondaryHex || '#22D3EE',
+                        color: '#000000',
+                        borderColor: theme.secondaryHex || '#22D3EE',
+                        boxShadow: `0 0 25px ${theme.secondaryHex ? `${theme.secondaryHex}80` : 'rgba(34,211,238,0.45)'}`,
+                      }
+                    : undefined
+                }
                 className={cn(
                   "flex-1 sm:flex-initial h-10 sm:h-12 px-4 sm:px-6 rounded-xl font-headline font-black text-xs uppercase tracking-wider italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
                   selectedDivision === 'div-2'
-                    ? "bg-cyan-400 text-black border-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.45)]"
+                    ? ""
                     : "bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/[0.04]"
                 )}
               >
@@ -258,8 +295,8 @@ export function LeagueTable({
               </button>
             </div>
 
-            <div className="flex items-center gap-2 text-[9px] font-mono text-white/40 uppercase tracking-widest px-2">
-              <Zap className="w-3 h-3 text-primary animate-pulse" />
+            <div className="flex items-center justify-center gap-2 text-[9px] font-mono text-white/40 uppercase tracking-widest px-2 text-center">
+              <Zap className={cn("w-3 h-3 animate-pulse", theme.primaryText)} />
               <span>SISTEM 2 DIVISI // {selectedDivision === 'div-1' ? (activeSeason?.division1Name || 'DIVISI 1') : (activeSeason?.division2Name || 'DIVISI 2')}</span>
             </div>
           </div>
@@ -350,7 +387,7 @@ export function LeagueTable({
                   />
                 </TabsContent>
                 <TabsContent value="topskor" className="mt-0 py-10">
-                  <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} />
+                  <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} matches={matchesForDivision} />
                 </TabsContent>
                 {isCoopHybrid && (
                     <TabsContent value="playoff" className="mt-0 p-1 sm:p-2 xl:p-4 w-full">
@@ -363,6 +400,7 @@ export function LeagueTable({
                             isAdmin={isAdmin}
                             defendingChampionId={defendingChampionId}
                             onRevertMatch={onRevertMatch}
+                            divisionName={currentDivisionName}
                         />
                     </TabsContent>
                 )}
@@ -436,7 +474,7 @@ export function LeagueTable({
                         />
                     </TabsContent>
                     <TabsContent value="topskor" className="mt-0 py-10">
-                        <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} />
+                        <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} matches={matchesForDivision} />
                     </TabsContent>
                     <TabsContent value="playoff" className="mt-0 p-1 sm:p-2 xl:p-4 w-full">
                         <TournamentBracket 
@@ -448,6 +486,7 @@ export function LeagueTable({
                             isAdmin={isAdmin}
                             defendingChampionId={defendingChampionId}
                             onRevertMatch={onRevertMatch}
+                            divisionName={currentDivisionName}
                         />
                     </TabsContent>
                 </Tabs>
@@ -547,6 +586,7 @@ export function LeagueTable({
                             isAdmin={isAdmin}
                             defendingChampionId={defendingChampionId}
                             onRevertMatch={onRevertMatch}
+                            divisionName={currentDivisionName}
                         />
                     </TabsContent>
                 </Tabs>
@@ -604,30 +644,35 @@ export function LeagueTable({
                     />
                   </TabsContent>
                   <TabsContent value="topskor" className="mt-0 py-10">
-                    <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} />
+                    <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} matches={matchesForDivision} />
                   </TabsContent>
                 </Tabs>
             )
         )}
 
-        <StandingsShareDialog 
-          open={isShareStandingsOpen} 
-          onOpenChange={setIsShareStandingsOpen} 
-          tableData={sortedCurrentData} 
-          activeSeason={activeSeason} 
-          seasonType={currentFormat}
-          divisionTitle={isMultiDivisionActive ? (selectedDivision === 'div-1' ? (activeSeason?.division1Name || 'Divisi 1') : (activeSeason?.division2Name || 'Divisi 2')) : undefined}
-        />
+        {isShareStandingsOpen && (
+          <StandingsShareDialog 
+            open={isShareStandingsOpen} 
+            onOpenChange={setIsShareStandingsOpen} 
+            tableData={sortedCurrentData} 
+            activeSeason={activeSeason} 
+            seasonType={currentFormat}
+            divisionTitle={isMultiDivisionActive ? (selectedDivision === 'div-1' ? (activeSeason?.division1Name || 'Divisi 1') : (activeSeason?.division2Name || 'Divisi 2')) : undefined}
+          />
+        )}
 
-        <KnockoutShareDialog
-          open={isShareKnockoutOpen}
-          onOpenChange={setIsShareKnockoutOpen}
-          matches={matchesForDivision}
-          playersById={playersById}
-          teamsById={teamsById}
-          leagueTable={sortedCurrentData}
-          season={activeSeason}
-        />
+        {isShareKnockoutOpen && (
+          <KnockoutShareDialog
+            open={isShareKnockoutOpen}
+            onOpenChange={setIsShareKnockoutOpen}
+            matches={matchesForDivision}
+            playersById={playersById}
+            teamsById={teamsById}
+            leagueTable={sortedCurrentData}
+            season={activeSeason}
+            divisionName={currentDivisionName}
+          />
+        )}
     </div>
   );
 }

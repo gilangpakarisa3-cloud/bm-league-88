@@ -1,14 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Swords, Trophy, Crown, Sparkles, User, Calendar as CalendarIcon, Clock, ChevronRight, Zap, Flame, Scan } from "lucide-react";
+import { User, Calendar as CalendarIcon, Clock, Zap, Flame, Scan, ChevronRight, Swords, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { resolveLogo } from "@/lib/logo-utils";
 import { getSeasonTheme, type TISeasonTheme as SeasonDesignTheme } from "@/lib/season-theme";
-import type { WithId, Team, Match, Season, LeagueEntry, Player } from "@/lib/types";
+import type { WithId, Team, Match, Season } from "@/lib/types";
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
@@ -21,6 +20,7 @@ export interface GrandFinalPodiumProps {
   teamsById: Record<string, WithId<Team>>;
   seriesLabel?: string;
   season?: WithId<Season> | null;
+  divisionName?: string;
 }
 
 export const GrandFinalPodium = ({
@@ -31,7 +31,8 @@ export const GrandFinalPodium = ({
   handleCardClick,
   teamsById,
   seriesLabel,
-  season
+  season,
+  divisionName
 }: GrandFinalPodiumProps) => {
   const m = bracketData[bid];
   const p = projections ? projections[bid] : null;
@@ -42,8 +43,9 @@ export const GrandFinalPodium = ({
 
   // Season-specific dynamic branding
   const theme = getSeasonTheme(season);
+  const primaryHex = theme.primaryHex || '#A855F7';
+  const secondaryHex = theme.secondaryHex || primaryHex;
   const seasonSysTag = theme.sysTag;
-  const seasonPedestal = theme.pedestalText;
   const seasonGfTitle = theme.gfTitle;
   const seasonGfSubtitle = theme.gfSubtitle;
   const seasonSeriesBadge = seriesLabel || theme.seriesBadge;
@@ -104,360 +106,314 @@ export const GrandFinalPodium = ({
   };
 
   return (
-    <div className="w-full xl:w-auto flex-1 2xl:flex-[1.1] min-w-0 sm:min-w-[320px] max-w-[620px] 2xl:max-w-[680px] flex flex-col relative">
-      <div className={cn(
-        "flex-1 relative flex flex-col items-center justify-between border-2 rounded-[2rem] p-4 sm:p-6 2xl:p-8 backdrop-blur-3xl cyber-carbon overflow-hidden gap-2 sm:gap-3",
-        theme.podiumBg,
-        theme.primaryBorder,
-        theme.glowShadow
-      )}>
-        {/* Top Racing Tracer */}
-        <div className={cn("absolute top-0 left-0 right-0 h-[2px]", theme.topTracer)} />
+    <div className="w-full xl:w-auto flex-1 2xl:flex-[1.15] min-w-0 sm:min-w-[340px] max-w-[640px] 2xl:max-w-[700px] flex flex-col relative select-none">
+      {/* VCT Tactical Cyber Card Chassis */}
+      <div
+        onClick={onCardClick}
+        className={cn(
+          "flex-1 relative flex flex-col justify-between border-2 rounded-[1.75rem] sm:rounded-[2rem] p-4 sm:p-6 2xl:p-7 backdrop-blur-3xl bg-gradient-to-br from-[#090C14]/98 via-[#06080D]/98 to-[#0B0E17]/98 overflow-hidden gap-3 cursor-pointer group/vct transition-all duration-300 hover:scale-[1.01] shadow-[0_20px_60px_rgba(0,0,0,0.92)]",
+          theme.primaryBorder
+        )}
+        style={{
+          boxShadow: `0 20px 60px rgba(0,0,0,0.92), 0 0 35px ${primaryHex}26`
+        }}
+      >
+        {/* Top Tracer Line with Dynamic Gradient */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[2.5px] z-20"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${primaryHex}, #FFFFFF, ${primaryHex}, transparent)`
+          }}
+        />
 
-        {/* Left Laser Power Conduit */}
-        <div className={cn("absolute left-0 top-0 bottom-0 w-[2.5px] z-20", theme.laserConduit)}>
-          <div className="w-full h-20 bg-white blur-[1px] animate-scanning" />
-        </div>
-
-        {/* Atmospheric Stage Lighting & God Rays */}
+        {/* Ambient Tactical Grid and Soft Glow Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[420px] h-[220px] bg-gradient-to-b from-amber-400/12 via-amber-500/5 to-transparent blur-[60px] -translate-y-1/3" />
-          <div className="absolute top-1/4 -left-12 w-[180px] h-[180px] bg-primary/[0.03] rounded-full blur-[80px] animate-pulse-soft" />
-          <div className="absolute bottom-4 -right-12 w-[200px] h-[200px] bg-amber-500/[0.05] rounded-full blur-[90px] animate-pulse-soft" />
-          <div className="absolute bottom-0 left-0 right-0 h-28 cyber-grid-overlay opacity-5 [mask-image:linear-gradient(to_bottom,transparent,black_70%)]" />
+          <div
+            className="absolute -top-16 left-1/2 -translate-x-1/2 w-[380px] h-[190px] rounded-full blur-[70px] opacity-25"
+            style={{ backgroundColor: primaryHex }}
+          />
+          <div
+            className="absolute -bottom-16 right-0 w-[260px] h-[180px] rounded-full blur-[80px] opacity-20"
+            style={{ backgroundColor: secondaryHex }}
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] opacity-30" />
         </div>
 
         {/* 1. HUD Telemetry Bar */}
-        <div className="w-full flex items-center justify-between gap-2 border-b border-white/10 pb-2.5 mb-1 relative z-10 font-mono text-[8px]">
-          <div className={cn("flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/60 border shadow-sm max-w-[50%] overflow-hidden", theme.tagBorder)}>
+        <div className="w-full flex items-center justify-between gap-2 border-b border-white/10 pb-2.5 relative z-10 font-mono text-[8px] sm:text-[8.5px]">
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/70 border shadow-sm max-w-[55%] overflow-hidden"
+            style={{ borderColor: `${primaryHex}4D` }}
+          >
             <span className="relative flex h-1.5 w-1.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: primaryHex }} />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: primaryHex }} />
             </span>
-            <span className={cn("font-black uppercase tracking-[0.2em] italic truncate", theme.primaryText)}>{seasonSysTag}</span>
+            <span className="font-black uppercase tracking-[0.2em] italic truncate" style={{ color: primaryHex }}>
+              {divisionName ? `${seasonSysTag} • ${divisionName}` : seasonSysTag}
+            </span>
           </div>
-          <div className="flex items-center gap-1.5 text-white/40 uppercase tracking-[0.2em] font-bold shrink-0">
-            <span>OLYMPUS</span>
-            <span className={theme.primaryText}>❯❯</span>
-            <span>GLORY</span>
+
+          <div className="flex items-center gap-1 text-[8px] font-bold text-white/50 uppercase tracking-wider">
+            {formattedDate ? (
+              <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" style={{ color: primaryHex }} /> {formattedDate}</span>
+            ) : isProjection ? (
+              <Badge variant="outline" className="h-4 text-[7px] border-cyan-500/40 text-cyan-300 py-0 px-2 font-black uppercase italic bg-cyan-500/10 rounded-full">SIMULASI PROYEKSI</Badge>
+            ) : (
+              <span className="flex items-center gap-1 text-white/40"><Clock className="w-3 h-3" /> JADWAL TBD</span>
+            )}
           </div>
+
           <div>
             {isCompleted ? (
-              <Badge className="bg-amber-400 text-black font-black uppercase tracking-widest text-[7.5px] px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.6)]">
-                🏆 CHAMPION DECIDED
+              <Badge
+                className="text-black font-black uppercase tracking-widest text-[7.5px] px-2.5 py-0.5 rounded-full shadow-md font-mono"
+                style={{ backgroundColor: primaryHex }}
+              >
+                DECIDED
               </Badge>
             ) : isBattleReady ? (
-              <Badge className="bg-primary/20 border border-primary/50 text-primary font-black uppercase tracking-widest text-[7.5px] px-2.5 py-0.5 rounded-full animate-pulse">
-                ⚡ LIVE BATTLE
+              <Badge
+                className="border font-black uppercase tracking-widest text-[7.5px] px-2.5 py-0.5 rounded-full animate-pulse font-mono"
+                style={{
+                  backgroundColor: `${primaryHex}20`,
+                  borderColor: `${primaryHex}60`,
+                  color: primaryHex
+                }}
+              >
+                ⚡ LIVE BO3
               </Badge>
             ) : (
-              <Badge className="bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-black uppercase tracking-widest text-[7.5px] px-2.5 py-0.5 rounded-full">
-                SIMULASI PROYEKSI
+              <Badge className="bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-black uppercase tracking-widest text-[7.5px] px-2 py-0.5 rounded-full font-mono">
+                PROYEKSI
               </Badge>
             )}
           </div>
         </div>
 
-        {/* 2. Concentric & Pristine Championship Trophy Crest Lockup (Adaptive & Enlarged) */}
-        <div className="relative group/trophy cursor-default flex flex-col items-center my-1 sm:my-3 z-10">
-          {/* Floating Golden Crown above the emblem */}
-          <div className="mb-1 sm:mb-2.5 flex items-center justify-center">
-            <div className={cn("px-2.5 sm:px-4 py-0.5 sm:py-1 rounded-full bg-black/90 border shadow-lg flex items-center gap-1.5 sm:gap-2", theme.tagBorder)}>
-              <Crown className={cn("w-3.5 h-3.5 sm:w-5 sm:h-5", theme.trophyColor)} />
-              <span className={cn("text-[7.5px] sm:text-[10px] font-black tracking-[0.2em] sm:tracking-[0.25em] uppercase font-mono", theme.primaryText)}>
-                {theme.trophyCrownText}
-              </span>
-            </div>
+        {/* 2. Tactical Head Title (Pure Sports Typography, No Tacky Floating Trophy) */}
+        <div className="text-center space-y-1 relative z-10 px-1 py-1">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-white/80 font-mono text-[8px] sm:text-[9px] font-black uppercase tracking-[0.25em] italic">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: primaryHex }} />
+            <span>{divisionName ? `${seasonSeriesBadge} • ${divisionName.toUpperCase()}` : seasonSeriesBadge}</span>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: secondaryHex }} />
           </div>
 
-          {/* Concentric Geometric Orbit (Adaptive Scale: 112px mobile -> 192px -> 224px -> 256px) */}
-          <div className="relative w-28 h-28 sm:w-48 sm:h-48 md:w-56 md:h-56 2xl:w-64 2xl:h-64 flex items-center justify-center">
-            {/* Ambient Radiance Halo */}
-            <div className={cn("absolute inset-0 rounded-full bg-gradient-to-tr blur-xl sm:blur-2xl opacity-85 pointer-events-none", theme.concentricHalo)} />
-
-            {/* Outer Precision Orbital Ring with Cardinal Satellites */}
-            <div className="absolute inset-0 m-auto w-[94%] h-[94%] rounded-full border border-amber-400/40 pointer-events-none flex items-center justify-center">
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
-              <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
-              <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,1)]" />
-            </div>
-
-            {/* Middle Concentric Dashed Ring */}
-            <div className="absolute inset-0 m-auto w-[78%] h-[78%] rounded-full border border-dashed border-amber-300/35 pointer-events-none" />
-
-            {/* Central 24K Gold Crystal Core Shield (Aegis Throneroom) */}
-            <div className={cn("relative w-[60%] h-[60%] rounded-full bg-gradient-to-br border-2 flex items-center justify-center shadow-2xl backdrop-blur-md transition-transform duration-500 group-hover/trophy:scale-105 holo-shimmer-gold", theme.trophyShield)}>
-              <Trophy className={cn("w-[62%] h-[62%] animate-float", theme.trophyColor)} />
-              <Sparkles className="absolute top-2 right-2 w-2.5 h-2.5 sm:w-4 sm:h-4 text-amber-200 animate-pulse" />
-              <Sparkles className="absolute bottom-2 left-2 w-2.5 h-2.5 sm:w-4 sm:h-4 text-primary animate-pulse" />
-            </div>
-          </div>
-
-          {/* Pedestal Base cleanly spaced below */}
-          <div className="flex flex-col items-center mt-2 sm:mt-4">
-            <div className="h-[2px] sm:h-[2.5px] w-28 sm:w-52 2xl:w-64 bg-gradient-to-r from-transparent via-amber-400/90 to-transparent rounded-full shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
-            <div className={cn("mt-1 px-3 sm:px-5 py-0.5 sm:py-1 rounded-full bg-black/90 border font-mono text-[7.5px] sm:text-[10.5px] font-black tracking-[0.2em] sm:tracking-[0.25em] uppercase italic shadow-sm text-center", theme.tagBorder, theme.primaryText)}>
-              {seasonPedestal}
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Ultra-Sporty Championship Typography */}
-        <div className="text-center space-y-1 sm:space-y-1.5 relative z-10 my-1 sm:my-2 px-2">
-          <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-black to-primary/20 border border-amber-400/50 text-amber-300 font-black uppercase text-[7.5px] sm:text-[9.5px] tracking-[0.2em] sm:tracking-[0.25em] italic shadow-[0_0_10px_rgba(251,191,36,0.2)]">
-            <Zap className="w-2.5 h-2.5 fill-amber-400 text-amber-400 animate-pulse" />
-            <span>{seasonSeriesBadge}</span>
-            <Zap className="w-2.5 h-2.5 fill-primary text-primary animate-pulse" />
-          </div>
-          
-          <div className="relative">
-            <h3 className={cn("inline-block pr-2 sm:pr-4 pb-0.5 sm:pb-1 text-xl sm:text-3xl 2xl:text-4xl font-black tracking-tight uppercase italic leading-none font-headline text-white [webkit-background-clip:text] bg-clip-text [-webkit-text-fill-color:transparent] bg-gradient-to-b", theme.gfTitleGradient)}>
-              {seasonGfTitle}
+          <div className="relative pt-1">
+            <h3
+              className="text-xl sm:text-2xl 2xl:text-3xl font-black tracking-tight uppercase leading-none font-headline text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
+              style={{
+                textShadow: `0 0 25px ${primaryHex}40`
+              }}
+            >
+              {divisionName ? `${seasonGfTitle} - ${divisionName.toUpperCase()}` : seasonGfTitle}
             </h3>
-            <div className="h-[2px] w-28 sm:w-48 mx-auto bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(251,191,36,0.9)] mt-1 sm:mt-1.5" />
+            <div
+              className="h-[2px] w-32 sm:w-48 mx-auto mt-1.5 rounded-full"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${primaryHex}, transparent)`
+              }}
+            />
           </div>
 
-          <p className="text-[7.5px] sm:text-[8px] font-mono font-bold tracking-[0.2em] sm:tracking-[0.25em] text-white/50 uppercase">
-            {seasonGfSubtitle}
+          <p className="text-[7.5px] sm:text-[8px] font-mono font-bold tracking-[0.22em] text-white/50 uppercase pt-0.5">
+            {divisionName ? `PENENTUAN JUARA ${divisionName.toUpperCase()} • ${seasonGfSubtitle}` : seasonGfSubtitle}
           </p>
         </div>
 
-        <div 
-          className="w-full max-w-[560px] 2xl:max-w-[620px] rounded-2xl border bg-gradient-to-br from-black/95 via-[#0d1017]/95 to-black/95 backdrop-blur-2xl p-3 sm:p-4 2xl:p-5 relative overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer group/duel shadow-[0_12px_40px_rgba(0,0,0,0.95)] z-10"
-          style={{
-            borderColor: `${theme.primaryHex}66`,
-            boxShadow: `0 12px 40px rgba(0,0,0,0.95), 0 0 25px ${theme.primaryHex}26`
-          }}
-          onClick={onCardClick}
-        >
-          {/* Holographic light sweep on hover */}
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/duel:translate-x-full transition-transform duration-700 pointer-events-none" />
-
-          {/* Top Card Banner */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2 font-mono">
-            <div className="flex items-center gap-1.5">
-              <Flame className="w-3.5 h-3.5 animate-pulse" style={{ color: theme.secondaryHex || theme.primaryHex }} />
-              <span className="text-[8.5px] font-black uppercase tracking-widest italic font-headline" style={{ color: theme.secondaryHex || theme.primaryHex }}>{label}</span>
-            </div>
-            <div className="flex items-center gap-1 text-[8px] font-bold text-white/50 uppercase tracking-wider">
-              {formattedDate ? (
-                <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" style={{ color: theme.secondaryHex || theme.primaryHex }} /> {formattedDate}</span>
-              ) : isProjection ? (
-                <Badge variant="outline" className="h-4 text-[7.5px] border-cyan-500/40 text-cyan-300 py-0 px-2 font-black uppercase italic bg-cyan-500/10 rounded-full">SIMULASI PROYEKSI</Badge>
-              ) : (
-                <span className="flex items-center gap-1 text-white/40"><Clock className="w-3 h-3" /> JADWAL TBD</span>
-              )}
-            </div>
-          </div>
-
-          {/* Fighter 1 Showcase */}
+        {/* 3. VCT Tactical Split-Poster Face-Off Layout (Clean, Sharp, High Contrast) */}
+        <div className="relative z-10 flex flex-col gap-2 my-1">
+          {/* Fighter 1 Tactical Banner (Top Slot / Seed A) */}
           <div
             className={cn(
-              "flex items-center justify-between p-2 sm:p-3 rounded-xl transition-all relative",
-              isW1 ? "border shadow-lg" : "bg-white/[0.02] border border-white/5 hover:border-white/20"
+              "flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all relative overflow-hidden group/f1",
+              isW1
+                ? "bg-white/[0.05] border-white/30 shadow-lg"
+                : "bg-black/60 border-white/10 hover:border-white/20"
             )}
             style={isW1 ? {
-              backgroundColor: `${theme.primaryHex}20`,
-              borderColor: `${theme.primaryHex}99`,
-              boxShadow: `0 0 16px ${theme.primaryHex}40`
+              borderColor: `${primaryHex}B3`,
+              boxShadow: `0 0 20px ${primaryHex}33`
             } : undefined}
           >
-            <div className="flex items-center gap-2 sm:gap-3 overflow-hidden pr-1.5 sm:pr-2 min-w-0 flex-1">
-              <div className="relative shrink-0">
-                <Avatar
-                  className="h-8 w-8 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-lg sm:rounded-xl bg-black/60 overflow-hidden flex items-center justify-center p-0.5 sm:p-1"
-                  style={isW1 ? {
-                    borderColor: theme.primaryHex,
-                    boxShadow: `0 0 12px ${theme.primaryHex}99`,
-                  } : {
-                    borderColor: 'rgba(255,255,255,0.2)'
-                  }}
-                >
-                  <AvatarImage key={logo1} src={logo1} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
-                  <AvatarFallback className="bg-black/60 font-black text-[9px] rounded-lg"><User className="w-3.5 h-3.5"/></AvatarFallback>
-                </Avatar>
-              </div>
-              <div className="flex flex-col min-w-0 flex-1">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className={cn(
-                      "text-sm sm:text-[15px] font-black uppercase italic font-headline transition-colors inline-block pr-1.5 truncate max-w-[140px] sm:max-w-[200px]",
-                      !isW1 && "text-white"
-                    )}
-                    style={isW1 ? {
-                      color: theme.secondaryHex || theme.primaryHex,
-                      filter: `drop-shadow(0 0 8px ${theme.primaryHex}99)`
-                    } : undefined}
-                    title={p1Name}
-                    suppressHydrationWarning
-                  >
-                    {p1Name}
+            {/* Left Accent Color Strip */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5"
+              style={{
+                backgroundColor: isW1 ? primaryHex : 'rgba(255,255,255,0.2)',
+                boxShadow: isW1 ? `0 0 10px ${primaryHex}` : undefined
+              }}
+            />
+
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 pl-1">
+              <Avatar
+                className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-black/80 border-2 shrink-0 p-1 transition-transform duration-300 group-hover/f1:scale-105"
+                style={{
+                  borderColor: isW1 ? primaryHex : 'rgba(255,255,255,0.2)',
+                  boxShadow: isW1 ? `0 0 14px ${primaryHex}80` : undefined
+                }}
+              >
+                <AvatarImage src={logo1} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
+                <AvatarFallback className="bg-transparent text-white/50 text-[10px] font-mono font-bold">P1</AvatarFallback>
+              </Avatar>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[7.5px] sm:text-[8px] font-mono font-black uppercase tracking-[0.2em] text-white/40">
+                    FINALIST 01 // UPPER
                   </span>
                   {isW1 && (
-                    <Badge
-                      className="text-black font-black uppercase text-[7.5px] px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 shadow-md font-sans"
-                      style={{
-                        background: `linear-gradient(to right, ${theme.secondaryHex || '#FBBF24'}, ${theme.primaryHex || '#F59E0B'})`,
-                        boxShadow: `0 0 10px ${theme.primaryHex}80`
-                      }}
+                    <span
+                      className="text-[7px] font-mono font-black uppercase px-2 py-0.2 rounded-full text-black shadow-sm"
+                      style={{ backgroundColor: primaryHex }}
                     >
-                      <Crown className="w-3 h-3 fill-current" />
-                      CHAMPION
-                    </Badge>
+                      WINNER
+                    </span>
                   )}
                 </div>
-                <span className="text-[9.5px] font-bold text-white/40 truncate uppercase tracking-wider font-mono">
+                <div
+                  className={cn(
+                    "text-base sm:text-lg font-black uppercase italic font-headline truncate tracking-wide",
+                    isW1 ? "text-white" : "text-white/90"
+                  )}
+                  style={isW1 ? {
+                    color: primaryHex,
+                    textShadow: `0 0 12px ${primaryHex}80`
+                  } : undefined}
+                >
+                  {p1Name}
+                </div>
+                <div className="text-[9px] sm:text-[10px] font-mono text-white/40 uppercase truncate">
                   {t1Name}
-                </span>
+                </div>
               </div>
             </div>
-            
-            {/* LED Score Box 1 */}
-            <div
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border flex flex-col items-center justify-center shrink-0 transition-all font-mono"
-              style={isW1 ? {
-                backgroundColor: `${theme.primaryHex}33`,
-                borderColor: `${theme.primaryHex}B3`,
-                boxShadow: `0 0 12px ${theme.primaryHex}66`,
-                color: theme.secondaryHex || theme.primaryHex
-              } : {
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                borderColor: 'rgba(255,255,255,0.1)',
-                color: 'rgba(255,255,255,0.4)'
-              }}
-            >
-              <span
-                className="text-base sm:text-lg font-black italic leading-none font-headline tabular-nums"
-                style={isW1 ? {
-                  color: theme.secondaryHex || theme.primaryHex,
-                  filter: `drop-shadow(0 0 6px ${theme.primaryHex}80)`
-                } : undefined}
-                suppressHydrationWarning
-              >
-                {m ? s1 : '-'}
-              </span>
-            </div>
-          </div>
 
-          {/* The Duel Nexus Center Divider */}
-          <div className="relative py-1.5 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
-            </div>
+            {/* Score Digit Box */}
             <div
-              className="relative px-3 py-0.5 rounded-full bg-black/95 border shadow-sm flex items-center gap-1.5"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border flex items-center justify-center font-mono text-lg sm:text-2xl font-black shrink-0 transition-all ml-2"
               style={{
-                borderColor: `${theme.primaryHex}66`,
-                boxShadow: `0 0 10px ${theme.primaryHex}40`
+                borderColor: isW1 ? primaryHex : 'rgba(255,255,255,0.15)',
+                backgroundColor: isW1 ? `${primaryHex}33` : 'rgba(0,0,0,0.6)',
+                color: isW1 ? primaryHex : 'rgba(255,255,255,0.6)',
+                boxShadow: isW1 ? `0 0 15px ${primaryHex}55` : undefined
               }}
             >
-              <Swords className="w-3 h-3 animate-pulse" style={{ color: theme.secondaryHex || theme.primaryHex }} />
-              <span className="text-[8px] font-black italic tracking-wider uppercase font-headline" style={{ color: theme.secondaryHex || theme.primaryHex }}>VS</span>
-              <Zap className="w-3 h-3 animate-pulse" style={{ color: theme.primaryHex }} />
+              {m ? s1 : '-'}
             </div>
           </div>
 
-          {/* Fighter 2 Showcase */}
+          {/* VCT Diagonal Slash Ribbon Divider (Sharp & Kinetic) */}
+          <div className="relative py-1 flex items-center justify-center">
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+            <div
+              className="absolute px-4 py-0.5 rounded-full bg-[#0B0E17] border shadow-lg flex items-center gap-2 text-[8.5px] font-mono font-black uppercase tracking-[0.25em]"
+              style={{
+                borderColor: `${primaryHex}66`,
+                boxShadow: `0 0 12px ${primaryHex}33`
+              }}
+            >
+              <span style={{ color: primaryHex }}>//</span>
+              <span className="text-white italic">BO3 GRAND FINAL</span>
+              <span style={{ color: secondaryHex }}>//</span>
+            </div>
+          </div>
+
+          {/* Fighter 2 Tactical Banner (Bottom Slot / Seed B) */}
           <div
             className={cn(
-              "flex items-center justify-between p-2 sm:p-3 rounded-xl transition-all relative",
-              isW2 ? "border shadow-lg" : "bg-white/[0.02] border border-white/5 hover:border-white/20"
+              "flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all relative overflow-hidden group/f2",
+              isW2
+                ? "bg-white/[0.05] border-white/30 shadow-lg"
+                : "bg-black/60 border-white/10 hover:border-white/20"
             )}
             style={isW2 ? {
-              backgroundColor: `${theme.primaryHex}20`,
-              borderColor: `${theme.primaryHex}99`,
-              boxShadow: `0 0 16px ${theme.primaryHex}40`
+              borderColor: `${primaryHex}B3`,
+              boxShadow: `0 0 20px ${primaryHex}33`
             } : undefined}
           >
-            <div className="flex items-center gap-2 sm:gap-3 overflow-hidden pr-1.5 sm:pr-2 min-w-0 flex-1">
-              <div className="relative shrink-0">
-                <Avatar
-                  className="h-8 w-8 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-lg sm:rounded-xl bg-black/60 overflow-hidden flex items-center justify-center p-0.5 sm:p-1"
-                  style={isW2 ? {
-                    borderColor: theme.primaryHex,
-                    boxShadow: `0 0 12px ${theme.primaryHex}99`,
-                  } : {
-                    borderColor: 'rgba(255,255,255,0.2)'
-                  }}
-                >
-                  <AvatarImage key={logo2} src={logo2} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
-                  <AvatarFallback className="bg-black/60 font-black text-[9px] rounded-lg"><User className="w-3.5 h-3.5"/></AvatarFallback>
-                </Avatar>
-              </div>
-              <div className="flex flex-col min-w-0 flex-1">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className={cn(
-                      "text-sm sm:text-[15px] font-black uppercase italic font-headline transition-colors inline-block pr-1.5 truncate max-w-[140px] sm:max-w-[200px]",
-                      !isW2 && "text-white"
-                    )}
-                    style={isW2 ? {
-                      color: theme.secondaryHex || theme.primaryHex,
-                      filter: `drop-shadow(0 0 8px ${theme.primaryHex}99)`
-                    } : undefined}
-                    title={p2Name}
-                    suppressHydrationWarning
-                  >
-                    {p2Name}
+            {/* Left Accent Color Strip */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5"
+              style={{
+                backgroundColor: isW2 ? primaryHex : 'rgba(255,255,255,0.2)',
+                boxShadow: isW2 ? `0 0 10px ${primaryHex}` : undefined
+              }}
+            />
+
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 pl-1">
+              <Avatar
+                className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-black/80 border-2 shrink-0 p-1 transition-transform duration-300 group-hover/f2:scale-105"
+                style={{
+                  borderColor: isW2 ? primaryHex : 'rgba(255,255,255,0.2)',
+                  boxShadow: isW2 ? `0 0 14px ${primaryHex}80` : undefined
+                }}
+              >
+                <AvatarImage src={logo2} className="object-contain w-full h-full" referrerPolicy="no-referrer" />
+                <AvatarFallback className="bg-transparent text-white/50 text-[10px] font-mono font-bold">P2</AvatarFallback>
+              </Avatar>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[7.5px] sm:text-[8px] font-mono font-black uppercase tracking-[0.2em] text-white/40">
+                    FINALIST 02 // LOWER
                   </span>
                   {isW2 && (
-                    <Badge
-                      className="text-black font-black uppercase text-[7.5px] px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 shadow-md font-sans"
-                      style={{
-                        background: `linear-gradient(to right, ${theme.secondaryHex || '#FBBF24'}, ${theme.primaryHex || '#F59E0B'})`,
-                        boxShadow: `0 0 10px ${theme.primaryHex}80`
-                      }}
+                    <span
+                      className="text-[7px] font-mono font-black uppercase px-2 py-0.2 rounded-full text-black shadow-sm"
+                      style={{ backgroundColor: primaryHex }}
                     >
-                      <Crown className="w-3 h-3 fill-current" />
-                      CHAMPION
-                    </Badge>
+                      WINNER
+                    </span>
                   )}
                 </div>
-                <span className="text-[9.5px] font-bold text-white/40 truncate uppercase tracking-wider font-mono">
+                <div
+                  className={cn(
+                    "text-base sm:text-lg font-black uppercase italic font-headline truncate tracking-wide",
+                    isW2 ? "text-white" : "text-white/90"
+                  )}
+                  style={isW2 ? {
+                    color: primaryHex,
+                    textShadow: `0 0 12px ${primaryHex}80`
+                  } : undefined}
+                >
+                  {p2Name}
+                </div>
+                <div className="text-[9px] sm:text-[10px] font-mono text-white/40 uppercase truncate">
                   {t2Name}
-                </span>
+                </div>
               </div>
             </div>
-            
-            {/* LED Score Box 2 */}
+
+            {/* Score Digit Box */}
             <div
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border flex flex-col items-center justify-center shrink-0 transition-all font-mono"
-              style={isW2 ? {
-                backgroundColor: `${theme.primaryHex}33`,
-                borderColor: `${theme.primaryHex}B3`,
-                boxShadow: `0 0 12px ${theme.primaryHex}66`,
-                color: theme.secondaryHex || theme.primaryHex
-              } : {
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                borderColor: 'rgba(255,255,255,0.1)',
-                color: 'rgba(255,255,255,0.4)'
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border flex items-center justify-center font-mono text-lg sm:text-2xl font-black shrink-0 transition-all ml-2"
+              style={{
+                borderColor: isW2 ? primaryHex : 'rgba(255,255,255,0.15)',
+                backgroundColor: isW2 ? `${primaryHex}33` : 'rgba(0,0,0,0.6)',
+                color: isW2 ? primaryHex : 'rgba(255,255,255,0.6)',
+                boxShadow: isW2 ? `0 0 15px ${primaryHex}55` : undefined
               }}
             >
-              <span
-                className="text-base sm:text-lg font-black italic leading-none font-headline tabular-nums"
-                style={isW2 ? {
-                  color: theme.secondaryHex || theme.primaryHex,
-                  filter: `drop-shadow(0 0 6px ${theme.primaryHex}80)`
-                } : undefined}
-                suppressHydrationWarning
-              >
-                {m ? s2 : '-'}
-              </span>
+              {m ? s2 : '-'}
             </div>
           </div>
+        </div>
 
-          {/* Card Footer HUD Action Pill */}
-          <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-white/50 font-mono transition-colors">
-            <span className="flex items-center gap-1" style={{ color: theme.primaryHex }}>
-              <Scan className="w-3 h-3" style={{ color: theme.primaryHex }} /> APEX CONTROL
-            </span>
-            <span className="flex items-center gap-1 group-hover/duel:translate-x-1 transition-transform font-bold" style={{ color: theme.secondaryHex || theme.primaryHex }}>
-              HUD ANALISIS ❯❯
-            </span>
+        {/* 4. Card Tactical Action Footer Bar */}
+        <div className="border-t border-white/10 pt-2.5 flex items-center justify-between text-[8px] sm:text-[8.5px] font-mono font-black uppercase tracking-widest relative z-10">
+          <div className="flex items-center gap-1.5" style={{ color: primaryHex }}>
+            <Scan className="w-3.5 h-3.5" />
+            <span>TACTICAL APEX CONTROL</span>
+          </div>
+
+          <div className="flex items-center gap-1 text-white/60 group-hover/vct:text-white transition-colors">
+            <span>HUD ANALISIS & H2H</span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover/vct:translate-x-1 transition-transform" style={{ color: primaryHex }} />
           </div>
         </div>
       </div>
     </div>
   );
 };
+

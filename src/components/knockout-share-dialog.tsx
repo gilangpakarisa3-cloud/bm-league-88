@@ -21,6 +21,7 @@ interface KnockoutShareDialogProps {
   teamsById?: Record<string, WithId<Team>>;
   leagueTable?: (WithId<LeagueEntry> & { player?: WithId<Player>; team?: WithId<Team> })[];
   season: WithId<Season> | null;
+  divisionName?: string;
 }
 
 // Convert any image URL into a self-contained base64 data URL
@@ -64,6 +65,7 @@ export function KnockoutShareDialog({
   teamsById = {},
   leagueTable = [],
   season,
+  divisionName,
 }: KnockoutShareDialogProps) {
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -374,12 +376,12 @@ export function KnockoutShareDialog({
     text += `• *SF 1:* ${sf1.p1Name} vs ${sf1.p2Name} ${sf1.isCompleted || sf1.isLive ? `[${sf1.s1} - ${sf1.s2}]` : ''}\n`;
     text += `• *SF 2:* ${sf2.p1Name} vs ${sf2.p2Name} ${sf2.isCompleted || sf2.isLive ? `[${sf2.s1} - ${sf2.s2}]` : ''}\n\n`;
 
-    text += `👑 *GRAND FINAL (CHAMPIONSHIP):*\n`;
+    text += `👑 *GRAND FINAL (${divisionName ? `${divisionName.toUpperCase()} - ` : ''}CHAMPIONSHIP):*\n`;
     text += `• *FINAL:* ${finalMatch.p1Name} vs ${finalMatch.p2Name} ${finalMatch.isCompleted || finalMatch.isLive ? `[${finalMatch.s1} - ${finalMatch.s2}]` : ''}\n`;
 
     if (finalMatch.isCompleted) {
       const champ = finalMatch.isW1 ? finalMatch.p1Name : finalMatch.p2Name;
-      text += `\n🏆 *CHAMPION:* 🥇 *${champ}* 🥇\n`;
+      text += `\n🏆 *CHAMPION ${divisionName ? `${divisionName.toUpperCase()}:*` : ':*'} 🥇 *${champ}* 🥇\n`;
     }
 
     if (season?.hasDivisions && (rankedTable.length > 8 || playoffRelegatedTeams.length > 0)) {
@@ -729,7 +731,7 @@ export function KnockoutShareDialog({
                 <div className="flex items-center justify-between px-1 text-[9px] font-black uppercase tracking-wider text-amber-400 font-mono">
                   <div className="flex items-center gap-1.5">
                     <Crown className="w-3 h-3 text-amber-400" />
-                    <span>STAGE 03 // GRAND FINAL CHAMPIONSHIP</span>
+                    <span>STAGE 03 // GRAND FINAL {divisionName ? `${divisionName.toUpperCase()} ` : ''}CHAMPIONSHIP</span>
                   </div>
                   <span className="text-[8px] text-amber-400/80">APEX CLASH 🏆</span>
                 </div>

@@ -120,7 +120,7 @@ export const MatchCard = ({
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <span
-                        className="text-[10.5px] sm:text-[11.5px] font-black truncate uppercase italic text-white/80 group-hover/proj:text-white transition-colors font-headline inline-block pr-1.5 max-w-full"
+                        className="text-[10.5px] sm:text-[11.5px] font-bold truncate uppercase text-white/80 group-hover/proj:text-white transition-colors font-headline inline-block pr-1.5 max-w-full"
                         title={name}
                         suppressHydrationWarning
                       >
@@ -129,7 +129,7 @@ export const MatchCard = ({
                     </div>
                   </div>
                   <div className="w-6 h-5 rounded border border-white/10 bg-white/[0.03] flex items-center justify-center text-center shrink-0">
-                    <span className="text-[10px] font-black italic text-white/30 tabular-nums leading-none font-mono">-</span>
+                    <span className="text-[10px] font-black text-white/30 tabular-nums leading-none font-mono">-</span>
                   </div>
                 </div>
               );
@@ -285,7 +285,7 @@ export const MatchCard = ({
                   <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
                     <span
                       className={cn(
-                        "text-[10px] sm:text-[11.5px] font-black truncate uppercase italic font-headline transition-colors inline-block pr-1 max-w-full",
+                        "text-[10px] sm:text-[11.5px] font-bold truncate uppercase font-headline transition-colors inline-block pr-1 max-w-full",
                         !isW && "text-white/85"
                       )}
                       style={isW ? {

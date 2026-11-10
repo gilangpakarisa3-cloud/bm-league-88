@@ -1,5 +1,3 @@
-'use client';
-
 import { Scan } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Season } from "@/lib/types";
@@ -17,8 +15,8 @@ interface PlayoffQualificationLegendProps {
   totalPlayers?: number;
 }
 
-export const PlayoffQualificationLegend = ({ 
-  seasonType, 
+export const PlayoffQualificationLegend = ({
+  seasonType,
   theme,
   hasDivisions = false,
   isDivision2 = false,
@@ -35,6 +33,73 @@ export const PlayoffQualificationLegend = ({
   const actualRelegationSpots = Math.max(1, relegationSpots || 2);
 
   if (isDivision2) {
+    if (isSingleHybrid) {
+      return (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Scan className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 italic truncate">
+              {div2Name.toUpperCase()} • PLAYOFF & PROMOTION RACE
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.12)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse shrink-0" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-emerald-400 whitespace-nowrap">
+                Playoff 8 Besar (#1 - #8 Lolos Playoff Promosi)
+              </span>
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.12)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] shrink-0" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-amber-300 whitespace-nowrap">
+                {actualPromotionSpots === 2 ? 'Finalis Playoff Promosi' : `Top ${actualPromotionSpots} Playoff Promosi`} ke {div1Name}
+              </span>
+            </div>
+
+            {totalPlayers > 8 && (
+              <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-white/[0.04] border border-white/10 shadow-[0_0_8px_rgba(255,255,255,0.05)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-white/50 whitespace-nowrap">
+                  Gugur (#9+)
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (seasonType === 'Hybrid') {
+      return (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Scan className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 italic truncate">
+              {div2Name.toUpperCase()} • PLAYOFF & PROMOTION RACE
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.12)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse shrink-0" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-emerald-400 whitespace-nowrap">
+                Playoff (#1 - #4 Tiap Grup Lolos)
+              </span>
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.12)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] shrink-0" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-amber-300 whitespace-nowrap">
+                {actualPromotionSpots === 2 ? 'Finalis Playoff Promosi' : `Top ${actualPromotionSpots} Playoff Promosi`} ke {div1Name}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
         <div className="flex items-center gap-1.5 shrink-0">
@@ -72,9 +137,9 @@ export const PlayoffQualificationLegend = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.12)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse shrink-0" />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-emerald-400 whitespace-nowrap">
+          <div className={cn("inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg border shadow-sm", currentTheme.primaryBg, currentTheme.primaryBorder)}>
+            <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse shrink-0", currentTheme.primaryHex ? "shadow-sm" : "")} style={{ backgroundColor: currentTheme.primaryHex, boxShadow: `0 0 6px ${currentTheme.primaryHex}` }} />
+            <span className={cn("text-[9px] sm:text-[10px] font-black uppercase italic whitespace-nowrap", currentTheme.primaryText)}>
               Playoff 8 Besar <span className="text-white/40 font-normal">(#1 - #8 Bertarung Gelar Juara)</span>
             </span>
           </div>

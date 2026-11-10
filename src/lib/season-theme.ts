@@ -33,6 +33,9 @@ export interface TISeasonTheme {
   tableLeaderGlow: string;
   tableLeaderBadge: string;
   tableLaserBeam: string;
+  tablePlayoffLaserBeam: string;
+  tablePlayoffRankBadge: string;
+  tablePlayoffLegendBadge: string;
   pointsBadge: string;
   pointsBadgeLeader: string;
   tabsActiveBg: string;
@@ -202,6 +205,9 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
       tableLeaderGlow: 'bg-rose-500/40',
       tableLeaderBadge: 'bg-rose-500 text-white font-black shadow-[0_0_10px_rgba(244,63,94,0.9)]',
       tableLaserBeam: 'bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,1)]',
+      tablePlayoffLaserBeam: 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.9)]',
+      tablePlayoffRankBadge: 'bg-rose-500/15 border-rose-500/40 text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.2)] group-hover/row:border-rose-400',
+      tablePlayoffLegendBadge: 'bg-rose-500/[0.08] border-rose-500/30 text-rose-400 dot-bg-rose-400 dot-shadow-[0_0_6px_rgba(251,113,133,0.9)]',
       pointsBadge: 'text-rose-300 bg-rose-950/50 border-2 border-rose-500/60 shadow-[0_0_12px_rgba(244,63,94,0.3)]',
       pointsBadgeLeader: 'text-white bg-gradient-to-r from-amber-400 via-rose-500 to-red-600 shadow-[0_0_25px_rgba(244,63,94,1)] border-2 border-white font-black',
       tabsActiveBg: 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-400 data-[state=active]:via-rose-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:font-black data-[state=active]:border data-[state=active]:border-white/60 data-[state=active]:shadow-[0_0_12px_rgba(244,63,94,0.6)]',
@@ -269,6 +275,9 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
       tableLeaderGlow: 'bg-amber-400/40',
       tableLeaderBadge: 'bg-amber-400 text-black font-black shadow-[0_0_10px_rgba(245,158,11,0.9)]',
       tableLaserBeam: 'bg-amber-400 shadow-[0_0_20px_rgba(251,191,36,1)]',
+      tablePlayoffLaserBeam: 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.9)]',
+      tablePlayoffRankBadge: 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.2)] group-hover/row:border-amber-400',
+      tablePlayoffLegendBadge: 'bg-amber-500/[0.08] border-amber-500/30 text-amber-300 dot-bg-amber-400 dot-shadow-[0_0_6px_rgba(251,191,36,0.9)]',
       pointsBadge: 'text-amber-300 bg-amber-950/50 border-2 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.3)]',
       pointsBadgeLeader: 'text-black bg-gradient-to-r from-yellow-200 via-amber-400 to-yellow-500 shadow-[0_0_25px_rgba(245,158,11,1)] border-2 border-white font-black',
       tabsActiveBg: 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-200 data-[state=active]:via-amber-400 data-[state=active]:to-yellow-500 data-[state=active]:text-black data-[state=active]:font-black data-[state=active]:border data-[state=active]:border-white/70 data-[state=active]:shadow-[0_0_12px_rgba(245,158,11,0.5)]',
@@ -336,6 +345,9 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
       tableLeaderGlow: 'bg-cyan-400/40',
       tableLeaderBadge: 'bg-cyan-400 text-black font-black shadow-[0_0_10px_rgba(6,182,212,0.9)]',
       tableLaserBeam: 'bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,1)]',
+      tablePlayoffLaserBeam: 'bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.9)]',
+      tablePlayoffRankBadge: 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)] group-hover/row:border-cyan-400',
+      tablePlayoffLegendBadge: 'bg-cyan-500/[0.08] border-cyan-500/30 text-cyan-300 dot-bg-cyan-400 dot-shadow-[0_0_6px_rgba(34,211,238,0.9)]',
       pointsBadge: 'text-cyan-300 bg-cyan-950/50 border-2 border-cyan-500/60 shadow-[0_0_12px_rgba(6,182,212,0.3)]',
       pointsBadgeLeader: 'text-black bg-gradient-to-r from-teal-200 via-cyan-400 to-emerald-400 shadow-[0_0_25px_rgba(6,182,212,1)] border-2 border-white font-black',
       tabsActiveBg: 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-200 data-[state=active]:via-cyan-400 data-[state=active]:to-emerald-400 data-[state=active]:text-black data-[state=active]:font-black data-[state=active]:border data-[state=active]:border-white/70 data-[state=active]:shadow-[0_0_12px_rgba(6,182,212,0.5)]',
@@ -403,6 +415,9 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
       tableLeaderGlow: 'bg-sky-400/40',
       tableLeaderBadge: 'bg-sky-400 text-black font-black shadow-[0_0_10px_rgba(56,189,248,0.9)]',
       tableLaserBeam: 'bg-sky-400 shadow-[0_0_20px_rgba(56,189,248,1)]',
+      tablePlayoffLaserBeam: 'bg-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.9)]',
+      tablePlayoffRankBadge: 'bg-sky-500/15 border-sky-500/40 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.2)] group-hover/row:border-sky-400',
+      tablePlayoffLegendBadge: 'bg-sky-500/[0.08] border-sky-500/30 text-sky-300 dot-bg-sky-400 dot-shadow-[0_0_6px_rgba(56,189,248,0.9)]',
       pointsBadge: 'text-sky-300 bg-sky-950/50 border-2 border-sky-500/60 shadow-[0_0_12px_rgba(56,189,248,0.3)]',
       pointsBadgeLeader: 'text-black bg-gradient-to-r from-cyan-200 via-sky-400 to-blue-500 shadow-[0_0_25px_rgba(56,189,248,1)] border-2 border-white font-black',
       tabsActiveBg: 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-200 data-[state=active]:via-sky-400 data-[state=active]:to-blue-500 data-[state=active]:text-black data-[state=active]:font-black data-[state=active]:border data-[state=active]:border-white/70 data-[state=active]:shadow-[0_0_12px_rgba(56,189,248,0.5)]',
@@ -470,6 +485,9 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
       tableLeaderGlow: 'bg-purple-400/40',
       tableLeaderBadge: 'bg-purple-400 text-black font-black shadow-[0_0_10px_rgba(168,85,247,0.9)]',
       tableLaserBeam: 'bg-purple-400 shadow-[0_0_20px_rgba(168,85,247,1)]',
+      tablePlayoffLaserBeam: 'bg-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.9)]',
+      tablePlayoffRankBadge: 'bg-purple-500/15 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)] group-hover/row:border-purple-400',
+      tablePlayoffLegendBadge: 'bg-purple-500/[0.08] border-purple-500/30 text-purple-300 dot-bg-purple-400 dot-shadow-[0_0_6px_rgba(192,132,252,0.9)]',
       pointsBadge: 'text-purple-300 bg-purple-950/50 border-2 border-purple-500/60 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
       pointsBadgeLeader: 'text-black bg-gradient-to-r from-fuchsia-200 via-purple-400 to-indigo-500 shadow-[0_0_25px_rgba(168,85,247,1)] border-2 border-white font-black',
       tabsActiveBg: 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-200 data-[state=active]:via-purple-400 data-[state=active]:to-indigo-500 data-[state=active]:text-black data-[state=active]:font-black data-[state=active]:border data-[state=active]:border-white/70 data-[state=active]:shadow-[0_0_12px_rgba(168,85,247,0.5)]',
@@ -536,6 +554,9 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
     tableLeaderGlow: 'bg-emerald-400/40',
     tableLeaderBadge: 'bg-emerald-400 text-black font-black shadow-[0_0_10px_rgba(16,185,129,0.9)]',
     tableLaserBeam: 'bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,1)]',
+    tablePlayoffLaserBeam: 'bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.9)]',
+    tablePlayoffRankBadge: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)] group-hover/row:border-emerald-400',
+    tablePlayoffLegendBadge: 'bg-emerald-500/[0.08] border-emerald-500/30 text-emerald-400 dot-bg-emerald-400 dot-shadow-[0_0_6px_rgba(52,211,153,0.9)]',
     pointsBadge: 'text-emerald-300 bg-emerald-950/50 border-2 border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.3)]',
     pointsBadgeLeader: 'text-black bg-gradient-to-r from-lime-300 via-emerald-400 to-teal-400 shadow-[0_0_25px_rgba(16,185,129,1)] border-2 border-white font-black',
     tabsActiveBg: 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-lime-300 data-[state=active]:via-emerald-400 data-[state=active]:to-teal-400 data-[state=active]:text-black data-[state=active]:font-black data-[state=active]:border data-[state=active]:border-white/70 data-[state=active]:shadow-[0_0_12px_rgba(16,185,129,0.5)]',

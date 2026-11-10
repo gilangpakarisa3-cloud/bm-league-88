@@ -111,7 +111,7 @@ export const PlayerHoloCard = ({
                 tier.color.includes('yellow') ? "border-yellow-400/50 group-hover:border-yellow-400" :
                   tier.color.includes('primary') ? "border-primary/50 group-hover:border-primary" :
                     tier.color.includes('accent') ? "border-accent/50 group-hover:border-accent" :
-                      "border-rose-400/50 group-hover:border-rose-400"
+                      "border-pink-400/50 group-hover:border-pink-400"
             )}>
               <AvatarImage src={team?.logoUrl} alt={player.name} className="object-cover" />
               <AvatarFallback className="bg-black/80 font-black text-white/30 text-xl">

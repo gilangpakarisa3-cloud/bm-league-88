@@ -180,11 +180,17 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
       </div>
     );
   }
@@ -217,7 +223,7 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 sm:space-y-5">
       {hasCompletedPlayoffs && (
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary w-fit text-[10px] font-black uppercase tracking-wider shadow-sm">
           <Activity className="w-3.5 h-3.5 animate-pulse text-primary shrink-0" />
@@ -225,24 +231,42 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+      {/* OPSI 1: BENTO SPOTLIGHT - 2 HERO CARDS DI ATAS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {stats.mostWins.length > 0 && (
           <StatCard 
             title={t('fun_stats_most_wins')}
-            subtitle={hasCompletedPlayoffs ? "MOST WINS // LEAGUE + PLAYOFF" : "MOST WINS // WIN RECORD"}
+            subtitle={hasCompletedPlayoffs ? "LEAGUE + PLAYOFF" : "WIN RECORD"}
             icon={Trophy}
             players={stats.mostWins}
             valueKey="win"
             valueSuffix="W"
             variant="volt"
             ghostText="VICTORY"
+            isHero={true}
           />
         )}
 
+        {seasonType !== 'Co-Op' && stats.bestAttacker.length > 0 && (
+          <StatCard 
+            title={t('fun_stats_best_attacker')}
+            subtitle={hasCompletedPlayoffs ? "LEAGUE + PLAYOFF" : "GOAL MACHINE"}
+            icon={Target}
+            players={stats.bestAttacker}
+            valueKey="goalsFor"
+            valueSuffix="GLS"
+            variant="amber"
+            ghostText="APEX"
+            isHero={true}
+          />
+        )}
+      </div>
+
+      {/* OPSI 1: BENTO SPOTLIGHT - 4 COMPACT TILES DI BAWAH */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {seasonType !== 'Co-Op' && stats.bestGD.length > 0 && (
           <StatCard 
             title={t('fun_stats_best_gd')}
-            subtitle={hasCompletedPlayoffs ? "GOAL DIFFERENCE // LEAGUE + PLAYOFF" : "GOAL DIFFERENCE // GD LEADER"}
             icon={Gauge}
             players={stats.bestGD}
             valueKey="goalDifference"
@@ -255,7 +279,6 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
         {seasonType !== 'Co-Op' && stats.bestDefense.length > 0 && (
           <StatCard 
             title={t('fun_stats_best_defense')}
-            subtitle={hasCompletedPlayoffs ? "BEST DEFENCE // LEAGUE + PLAYOFF" : "BEST DEFENCE // MIN CONCEDED"}
             icon={ShieldCheck}
             players={stats.bestDefense}
             valueKey="goalsAgainst"
@@ -265,23 +288,9 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
           />
         )}
 
-        {seasonType !== 'Co-Op' && stats.bestAttacker.length > 0 && (
-          <StatCard 
-            title={t('fun_stats_best_attacker')}
-            subtitle={hasCompletedPlayoffs ? "TOP ATTACK // LEAGUE + PLAYOFF" : "TOP ATTACK // GOAL MACHINE"}
-            icon={Target}
-            players={stats.bestAttacker}
-            valueKey="goalsFor"
-            valueSuffix="GLS"
-            variant="amber"
-            ghostText="APEX"
-          />
-        )}
-
         {seasonType !== 'Co-Op' && stats.kingOfDraws.length > 0 && (
           <StatCard 
             title={t('fun_stats_king_of_draws')}
-            subtitle={hasCompletedPlayoffs ? "DRAW RECORD // LEAGUE + PLAYOFF" : "DRAW RECORD // MOST TIED MATCHES"}
             icon={Handshake}
             players={stats.kingOfDraws}
             valueKey="draw"
@@ -294,7 +303,6 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
         {seasonType !== 'Co-Op' && stats.worstDefender.length > 0 && (
           <StatCard 
             title={t('fun_stats_worst_defense')}
-            subtitle={hasCompletedPlayoffs ? "LEAKY DEFENCE // LEAGUE + PLAYOFF" : "LEAKY DEFENCE // MOST GOALS CONCEDED"}
             icon={ShieldAlert}
             players={stats.worstDefender}
             valueKey="goalsAgainst"
@@ -303,33 +311,38 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
             ghostText="BREACH"
           />
         )}
-
-        {showUnbeaten && (
-          <StatCard 
-            title={t('fun_stats_unbeaten')}
-            subtitle={hasCompletedPlayoffs ? "IMMORTAL RUN // LEAGUE + PLAYOFF" : "IMMORTAL_RUN // ZERO LOSS"}
-            icon={Zap}
-            players={stats.unbeaten}
-            valueKey="played"
-            valueSuffix="M"
-            variant="volt"
-            ghostText="INVINCIBLE"
-          />
-        )}
-
-        {seasonType === 'Single' && stats.championshipContenders.length > 0 && (
-          <StatCard 
-            title={t('fun_stats_championship_contender')}
-            subtitle="PODIUM_PRESSURE // TITLE CHASE"
-            icon={Flame}
-            players={stats.championshipContenders}
-            valueKey="points"
-            valueSuffix="PTS"
-            variant="amber"
-            ghostText="TITLE"
-          />
-        )}
       </div>
+
+      {/* ADDITIONAL ACCLAIMS (JIKA ADA JUARA TAK TERKALAHKAN / PENGEJAR GELAR) */}
+      {(showUnbeaten || (seasonType === 'Single' && stats.championshipContenders.length > 0)) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {showUnbeaten && (
+            <StatCard 
+              title={t('fun_stats_unbeaten')}
+              subtitle={hasCompletedPlayoffs ? "IMMORTAL RUN // LEAGUE + PLAYOFF" : "IMMORTAL_RUN // ZERO LOSS"}
+              icon={Zap}
+              players={stats.unbeaten}
+              valueKey="played"
+              valueSuffix="M"
+              variant="volt"
+              ghostText="INVINCIBLE"
+            />
+          )}
+
+          {seasonType === 'Single' && stats.championshipContenders.length > 0 && (
+            <StatCard 
+              title={t('fun_stats_championship_contender')}
+              subtitle="PODIUM_PRESSURE // TITLE CHASE"
+              icon={Flame}
+              players={stats.championshipContenders}
+              valueKey="points"
+              valueSuffix="PTS"
+              variant="amber"
+              ghostText="TITLE"
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

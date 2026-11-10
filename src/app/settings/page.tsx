@@ -47,6 +47,7 @@ export default function SettingsPage() {
 
     const [showPasswordManager, setShowPasswordManager] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [resetMmrToBaseline, setResetMmrToBaseline] = useState(false);
 
     const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
     const [passwordInput, setPasswordInput] = useState('');
@@ -71,7 +72,7 @@ export default function SettingsPage() {
 
         try {
             const playersSnap = await getDocs(collection(firestore, 'players'));
-            const currentPlayerMap: Record<string, { id: string, stats: any }> = {};
+            const currentPlayerMap: Record<string, { id: string, existingMmr?: number, existingPeakMmr?: number, stats: any }> = {};
 
             const normalize = (name: string) => name.toLowerCase().replace(/\s|\./g, '').trim();
 
@@ -84,6 +85,8 @@ export default function SettingsPage() {
                 const nameKey = normalize(data.name);
                 currentPlayerMap[nameKey] = {
                     id: d.id,
+                    existingMmr: typeof data.mmr === 'number' ? data.mmr : undefined,
+                    existingPeakMmr: typeof data.peakMmr === 'number' ? data.peakMmr : undefined,
                     stats: {
                         overallPlayed: 0,
                         overallWin: 0,
@@ -250,27 +253,43 @@ export default function SettingsPage() {
                 const calculatedMmr = baseMmr + (p.titlesWon * 100);
                 p.stats.legacyOvr = p.legacyOvr;
                 p.stats.titlesCount = p.titlesWon;
-                p.stats.mmr = calculatedMmr;
-                p.stats.peakMmr = calculatedMmr;
+
+                // Hanya reset/inisialisasi MMR jika diperintahkan atau jika pemain belum punya nilai MMR
+                if (resetMmrToBaseline || typeof p.existingMmr !== 'number') {
+                    p.stats.mmr = calculatedMmr;
+                    p.stats.peakMmr = Math.max(calculatedMmr, p.existingPeakMmr ?? calculatedMmr);
+                }
             });
 
             uncalibrated.forEach(p => {
                 const calculatedMmr = 700 + (p.titlesWon * 100);
                 p.stats.legacyOvr = 0;
                 p.stats.titlesCount = p.titlesWon;
-                p.stats.mmr = calculatedMmr;
-                p.stats.peakMmr = calculatedMmr;
+
+                if (resetMmrToBaseline || typeof p.existingMmr !== 'number') {
+                    p.stats.mmr = calculatedMmr;
+                    p.stats.peakMmr = Math.max(calculatedMmr, p.existingPeakMmr ?? calculatedMmr);
+                }
             });
 
-            const batch = writeBatch(firestore);
-            Object.values(currentPlayerMap).forEach(player => {
-                batch.update(doc(firestore, 'players', player.id), player.stats);
-            });
-            await batch.commit();
+            // Eksekusi penyimpanan dengan CHUNKING (maks 400 pemain per batch) untuk menghindari batas 500 Firestore WriteBatch
+            const allPlayers = Object.values(currentPlayerMap);
+            const BATCH_CHUNK_SIZE = 400;
+
+            for (let i = 0; i < allPlayers.length; i += BATCH_CHUNK_SIZE) {
+                const chunk = allPlayers.slice(i, i + BATCH_CHUNK_SIZE);
+                const batch = writeBatch(firestore);
+                chunk.forEach(player => {
+                    batch.update(doc(firestore, 'players', player.id), player.stats);
+                });
+                await batch.commit();
+            }
 
             toast({
-                title: 'Rekap & Sinkronisasi MMR Selesai!',
-                description: 'Berhasil menyinkronkan seluruh format match, mengarsipkan Legacy OVR, dan menginisialisasi modal MMR (Tier + 100 MMR/Gelar).'
+                title: resetMmrToBaseline ? 'Rekap Stats & Reset Baseline MMR Selesai!' : 'Sinkronisasi Karir Stats Selesai!',
+                description: resetMmrToBaseline
+                    ? 'Berhasil menyinkronkan seluruh format match, mengarsipkan Legacy OVR, dan menginisialisasi ulang MMR ke baseline tier.'
+                    : 'Statistik pertandingan (Played/W/D/L/Gol) dan Legacy OVR berhasil disinkronkan tanpa mengubah rating MMR dinamis aktif.'
             });
 
         } catch (error: any) {
@@ -550,9 +569,35 @@ export default function SettingsPage() {
                                     </p>
                                     <p className="text-xs font-bold text-amber-200/80 leading-relaxed font-mono">
                                         Mendukung sinkronisasi mendalam dari histori klasemen Season 1 hingga musim aktif.
-                                        Mengarsipkan Legacy OVR, memperbarui akumulasi gol/match, serta menginisialisasi modal awal sistem MMR (Tier + 100 MMR per Gelar Juara) ke database.
+                                        Mengarsipkan Legacy OVR dan menyinkronkan akumulasi karir (W/D/L/Gol). Rating MMR aktif pemain tetap aman terlindungi secara default.
                                     </p>
                                 </div>
+                            </div>
+
+                            {/* ADVANCED MMR RE-INITIALIZATION TOGGLE */}
+                            <div className="p-4 rounded-2xl bg-black/50 border border-white/10 flex items-center justify-between gap-4">
+                                <div className="space-y-1 pr-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-mono font-black uppercase tracking-widest text-white/70">
+                                            MODAL AWAL MMR // HARD RESET
+                                        </span>
+                                        {resetMmrToBaseline && (
+                                            <span className="px-1.5 py-0.2 rounded text-[8px] font-mono font-black bg-red-500/20 text-red-400 border border-red-500/30 uppercase">
+                                                DANGER
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] font-mono text-white/50 leading-relaxed">
+                                        {resetMmrToBaseline
+                                            ? 'PERINGATAN: MMR dinamis aktif seluruh pemain akan di-reset ke baseline tier (1200/1000/800/600 + Trofi).'
+                                            : 'Mode Aman: Rating MMR dinamis pemain saat ini DIPERTAHANKAN (hanya mengisi MMR jika pemain belum memilikinya).'}
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={resetMmrToBaseline}
+                                    onCheckedChange={setResetMmrToBaseline}
+                                    className="data-[state=checked]:bg-red-500 data-[state=unchecked]:bg-emerald-600 scale-110 shrink-0"
+                                />
                             </div>
 
                             <Button
@@ -561,11 +606,20 @@ export default function SettingsPage() {
                                     setPasswordPromptOpen(true);
                                 }}
                                 disabled={isSyncing || !isPasswordLoaded}
-                                className="w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-amber-500/20 transition-all bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black hover:from-amber-400 hover:to-yellow-300"
+                                className={cn(
+                                    "w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl transition-all text-black",
+                                    resetMmrToBaseline
+                                        ? "bg-gradient-to-r from-red-500 via-rose-500 to-red-600 hover:from-red-400 hover:to-rose-400 shadow-red-500/20 text-white"
+                                        : "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 shadow-amber-500/20 text-black"
+                                )}
                             >
                                 <span className="flex items-center justify-center gap-3">
                                     {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5" />}
-                                    {isSyncing ? "CALIBRATING MMR MATRICES..." : "SINKRONISASI STATS & INISIALISASI MMR (V3.0)"}
+                                    {isSyncing
+                                        ? "CALIBRATING MATRICES..."
+                                        : resetMmrToBaseline
+                                            ? "SINKRONISASI STATS & RESET ULANG BASELINE MMR"
+                                            : "SINKRONISASI STATS KARIR (MMR AMAN)"}
                                 </span>
                             </Button>
                         </CardContent>

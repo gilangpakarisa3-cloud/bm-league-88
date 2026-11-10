@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useState, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/card';
 import { Award, Swords, Activity, Zap, Binary } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
@@ -10,9 +11,13 @@ import type { Season, WithId, Player, Team, Match, SeasonRecord } from '@/lib/ty
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { TournamentBracket } from '@/components/tournament-bracket';
 import { resolveLogo } from '@/lib/logo-utils';
 import { LeaderboardTable, LeaderboardSkeleton } from './leaderboard-table';
+
+const TournamentBracket = dynamic(
+  () => import('@/components/tournament-bracket').then((m) => m.TournamentBracket),
+  { ssr: false }
+);
 
 const LEAGUE_ID = 'main-league';
 

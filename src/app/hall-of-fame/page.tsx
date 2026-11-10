@@ -37,11 +37,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useGlobalSeasonTheme } from "@/context/season-theme-context";
 
 export default function HallOfFamePage() {
   const firestore = useFirestore();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { theme } = useGlobalSeasonTheme();
 
   // Admin state management
   const [isAdmin, setIsAdmin] = useState(false);
@@ -223,61 +225,87 @@ export default function HallOfFamePage() {
         }
       });
 
-      // Overall cumulative stats across participants (Liga + Playoff)
-      const playerCumulativeStats: Record<string, { playerName: string; goalsFor: number; goalsAgainst: number; wins: number; matchesCount: number }> = {};
-      rawTable.forEach(p => {
-        const pId = isSeasonCoop ? p.id : (p.playerId || p.id);
-        playerCumulativeStats[pId] = {
-          playerName: p.playerName || p.teamName || 'Unknown',
-          goalsFor: 0,
-          goalsAgainst: 0,
-          wins: 0,
-          matchesCount: 0
+      // Overall cumulative stats across participants (Liga + Playoff) dari kasta utama (div1Table)
+      // Konsisten dengan Season Insights di halaman klasemen
+      const completedPlayoffMatches = rawMatches.filter(
+        m => m.isCompleted && m.round && m.round !== 'Group'
+      );
+
+      const cumulativeDiv1Table = div1Table.map(entry => {
+        const pId = isSeasonCoop ? entry.id : (entry.playerId || entry.id);
+
+        const pPlayoffMatches = completedPlayoffMatches.filter(
+          m => m.player1Id === pId || m.player2Id === pId
+        );
+
+        let playoffPlayed = 0;
+        let playoffWin = 0;
+        let playoffDraw = 0;
+        let playoffLoss = 0;
+        let playoffGoalsFor = 0;
+        let playoffGoalsAgainst = 0;
+
+        pPlayoffMatches.forEach(m => {
+          const isP1 = m.player1Id === pId;
+          const isBo3 = m.round && m.round !== 'Group';
+
+          let s1 = 0;
+          let s2 = 0;
+          if (
+            isBo3 &&
+            ((m.player1Wins !== null && m.player1Wins !== undefined) ||
+              (m.player2Wins !== null && m.player2Wins !== undefined))
+          ) {
+            s1 = m.player1Wins ?? 0;
+            s2 = m.player2Wins ?? 0;
+          } else {
+            s1 = m.player1Score ?? 0;
+            s2 = m.player2Score ?? 0;
+          }
+
+          const myScore = isP1 ? s1 : s2;
+          const oppScore = isP1 ? s2 : s1;
+
+          playoffPlayed++;
+          if (myScore > oppScore) playoffWin++;
+          else if (myScore < oppScore) playoffLoss++;
+          else playoffDraw++;
+
+          const myGf = isP1 ? (m.player1Score ?? 0) : (m.player2Score ?? 0);
+          const myGa = isP1 ? (m.player2Score ?? 0) : (m.player1Score ?? 0);
+          playoffGoalsFor += myGf;
+          playoffGoalsAgainst += myGa;
+        });
+
+        return {
+          ...entry,
+          played: (entry.played || 0) + playoffPlayed,
+          win: (entry.win || 0) + playoffWin,
+          draw: (entry.draw || 0) + playoffDraw,
+          loss: (entry.loss || 0) + playoffLoss,
+          goalsFor: (entry.goalsFor || 0) + playoffGoalsFor,
+          goalsAgainst: (entry.goalsAgainst || 0) + playoffGoalsAgainst,
         };
       });
 
-      const completedMatches = rawMatches.filter(m => m.isCompleted);
-      completedMatches.forEach(m => {
-        const p1Id = m.player1Id;
-        const p2Id = m.player2Id;
-        const isBo3 = m.round && m.round !== 'Group';
-        const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
-        const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
-        const gf1 = m.player1Score ?? 0;
-        const gf2 = m.player2Score ?? 0;
-
-        if (p1Id && playerCumulativeStats[p1Id]) {
-          playerCumulativeStats[p1Id].matchesCount += 1;
-          playerCumulativeStats[p1Id].goalsFor += gf1;
-          playerCumulativeStats[p1Id].goalsAgainst += gf2;
-          if (s1 > s2) playerCumulativeStats[p1Id].wins += 1;
-        }
-        if (p2Id && playerCumulativeStats[p2Id]) {
-          playerCumulativeStats[p2Id].matchesCount += 1;
-          playerCumulativeStats[p2Id].goalsFor += gf2;
-          playerCumulativeStats[p2Id].goalsAgainst += gf1;
-          if (s2 > s1) playerCumulativeStats[p2Id].wins += 1;
-        }
-      });
-
-      const activeOverallPlayers = Object.values(playerCumulativeStats).filter(p => p.matchesCount > 0);
+      const activeOverallPlayers = cumulativeDiv1Table.filter(p => (p.played || 0) > 0);
       let bAtt = record.funStats?.bestAttacker || null;
       let wDef = record.funStats?.worstDefender || null;
       let mWinP = record.funStats?.mostWins || null;
 
       if (activeOverallPlayers.length > 0) {
         if (!isSeasonCoop) {
-          const maxGF = Math.max(...activeOverallPlayers.map(p => p.goalsFor));
-          const bestAttacker = activeOverallPlayers.find(p => p.goalsFor === maxGF && maxGF > 0);
+          const maxGF = Math.max(...activeOverallPlayers.map(p => p.goalsFor || 0));
+          const bestAttacker = activeOverallPlayers.find(p => (p.goalsFor || 0) === maxGF && maxGF > 0);
           if (bestAttacker) bAtt = { playerName: bestAttacker.playerName, value: bestAttacker.goalsFor };
 
-          const maxGA = Math.max(...activeOverallPlayers.map(p => p.goalsAgainst));
-          const worstDefender = activeOverallPlayers.find(p => p.goalsAgainst === maxGA && maxGA > 0);
+          const maxGA = Math.max(...activeOverallPlayers.map(p => p.goalsAgainst || 0));
+          const worstDefender = activeOverallPlayers.find(p => (p.goalsAgainst || 0) === maxGA && maxGA > 0);
           if (worstDefender) wDef = { playerName: worstDefender.playerName, value: worstDefender.goalsAgainst };
         }
-        const maxW = Math.max(...activeOverallPlayers.map(p => p.wins));
-        const mostWins = activeOverallPlayers.find(p => p.wins === maxW && maxW > 0);
-        if (mostWins) mWinP = { playerName: mostWins.playerName, value: mostWins.wins };
+        const maxW = Math.max(...activeOverallPlayers.map(p => p.win || 0));
+        const mostWins = activeOverallPlayers.find(p => (p.win || 0) === maxW && maxW > 0);
+        if (mostWins) mWinP = { playerName: mostWins.playerName, value: mostWins.win };
       }
 
       // Divisi 2 recalculation if available
@@ -396,34 +424,68 @@ export default function HallOfFamePage() {
   return (
     <div className="max-w-[94rem] mx-auto px-2 sm:px-6 py-8 relative">
       {/* Background Decorative Atmosphere Lasers */}
-      <div className="absolute top-0 right-10 -z-10 w-[550px] h-[550px] bg-yellow-400/10 rounded-full blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 -z-10 w-[550px] h-[550px] bg-amber-500/10 rounded-full blur-[150px] pointer-events-none" />
+      <div
+        className="absolute top-0 right-10 -z-10 w-[550px] h-[550px] rounded-full blur-[150px] pointer-events-none opacity-15 transition-all duration-700"
+        style={{ backgroundColor: theme.primaryHex }}
+      />
+      <div
+        className="absolute bottom-10 left-10 -z-10 w-[550px] h-[550px] rounded-full blur-[150px] pointer-events-none opacity-15 transition-all duration-700"
+        style={{ backgroundColor: theme.secondaryHex || theme.primaryHex }}
+      />
 
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
         {/* Championship Sanctuary Hero Header */}
-        <div className="relative group/header overflow-hidden bg-black/70 backdrop-blur-3xl border border-yellow-400/30 rounded-[2.5rem] shadow-[0_25px_80px_rgba(0,0,0,0.85)] p-6 sm:p-10 aero-card">
-          {/* Golden edge laser */}
-          <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-b from-yellow-300 via-yellow-400 to-amber-600 rounded-l-[2.5rem] shadow-[0_0_35px_rgba(250,204,21,0.9)]" />
+        <div
+          style={{ borderColor: `${theme.primaryHex}4d` }}
+          className="relative group/header overflow-hidden bg-black/70 backdrop-blur-3xl border rounded-[2.5rem] shadow-[0_25px_80px_rgba(0,0,0,0.85)] p-6 sm:p-10 aero-card"
+        >
+          {/* Theme edge laser */}
+          <div
+            style={{
+              background: `linear-gradient(180deg, ${theme.secondaryHex || theme.primaryHex}, ${theme.primaryHex}, transparent)`,
+              boxShadow: `0 0 35px ${theme.glowRgba || theme.primaryHex}`,
+            }}
+            className="absolute left-0 top-0 bottom-0 w-2.5 rounded-l-[2.5rem]"
+          />
 
           <div className="absolute inset-0 cyber-grid-overlay opacity-30 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-yellow-400/15 rounded-2xl text-yellow-400 border border-yellow-400/40 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+                <div
+                  style={{
+                    backgroundColor: `${theme.primaryHex}1a`,
+                    borderColor: `${theme.primaryHex}4d`,
+                    color: theme.primaryHex,
+                    boxShadow: `0 0 20px ${theme.primaryHex}33`,
+                  }}
+                  className="p-2.5 rounded-2xl border"
+                >
                   <Crown className="w-5 h-5 animate-pulse" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-yellow-400 italic">
+                  <span
+                    style={{ color: theme.primaryHex }}
+                    className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] italic"
+                  >
                     HALL OF CHAMPIONS // TROPHY SANCTUARY ARCHIVE
                   </span>
-                  <div className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+                  <div
+                    style={{ backgroundColor: theme.primaryHex }}
+                    className="w-2 h-2 rounded-full animate-ping"
+                  />
                 </div>
               </div>
 
               <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase italic leading-none drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]">
                 {t('hall_of_fame_title')}{' '}
-                <span className="text-yellow-400 drop-shadow-[0_0_25px_rgba(250,204,21,0.5)]">
+                <span
+                  style={{
+                    color: theme.primaryHex,
+                    textShadow: `0 0 25px ${theme.glowRgba || theme.primaryHex}`,
+                  }}
+                >
                   SANCTUARY
                 </span>
               </h1>
@@ -439,11 +501,21 @@ export default function HallOfFamePage() {
                 onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)}
                 variant="outline"
                 disabled={!isPasswordLoaded}
+                style={
+                  isAdmin
+                    ? {
+                        backgroundColor: theme.primaryHex,
+                        color: '#000000',
+                        borderColor: theme.primaryHex,
+                        boxShadow: `0 0 25px ${theme.glowRgba || theme.primaryHex}`,
+                      }
+                    : undefined
+                }
                 className={cn(
                   "h-12 sm:h-14 px-7 font-black tracking-widest text-xs uppercase rounded-full transition-all duration-500 relative overflow-hidden group/admin border",
                   isAdmin
-                    ? "bg-yellow-400 text-black border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.4)]"
-                    : "bg-white/5 text-white/50 border-white/10 hover:border-yellow-400/50 hover:bg-yellow-400/10 hover:text-yellow-400"
+                    ? ""
+                    : "bg-white/5 text-white/50 border-white/10 hover:border-white/30"
                 )}
               >
                 <div className="relative z-10 flex items-center">

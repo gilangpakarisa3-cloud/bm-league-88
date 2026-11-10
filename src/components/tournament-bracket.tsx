@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useRef, useEffect, useCallback, memo } from 'react';
+import dynamic from 'next/dynamic';
 import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,8 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KnockoutShareDialog } from './knockout-share-dialog';
 import { Badge } from './ui/badge';
+
+const KnockoutShareDialog = dynamic(
+  () => import('./knockout-share-dialog').then((mod) => mod.KnockoutShareDialog),
+  { ssr: false }
+);
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -56,9 +61,10 @@ interface TournamentBracketProps {
   isAdmin?: boolean;
   defendingChampionId?: string;
   onRevertMatch?: (match: WithId<Match>) => void;
+  divisionName?: string;
 }
 
-export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId, onRevertMatch }: TournamentBracketProps) {
+export function TournamentBracket({ matches, playersById, teamsById, leagueTable, season, isAdmin = false, defendingChampionId, onRevertMatch, divisionName }: TournamentBracketProps) {
   const { t } = useTranslation();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -422,7 +428,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
                                 )}
                             >
-                                Grand Final 🏆
+                                {divisionName ? `Final (${divisionName}) 🏆` : "Grand Final 🏆"}
                             </button>
                             <button
                                 type="button"
@@ -486,7 +492,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
                                 )}
                             >
-                                Grand Final 🏆
+                                {divisionName ? `Final (${divisionName}) 🏆` : "Grand Final 🏆"}
                             </button>
                             <button
                                 type="button"
@@ -562,13 +568,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         {(mobileRoundTab === 'all' || mobileRoundTab === 'final') && (
                             <GrandFinalPodium
                                 bid={bracketData['playoff-final'] ? 'playoff-final' : (bracketData['playoff-m18'] ? 'playoff-m18' : 'playoff-final')}
-                                label="CHAMPIONSHIP BATTLE"
+                                label={divisionName ? `CHAMPIONSHIP BATTLE • ${divisionName.toUpperCase()}` : "CHAMPIONSHIP BATTLE"}
                                 bracketData={bracketData}
                                 projections={projections}
                                 handleCardClick={handleCardClick}
                                 teamsById={teamsById}
                                 seriesLabel={theme.seriesBadge}
                                 season={season}
+                                divisionName={divisionName}
                             />
                         )}
 
@@ -662,13 +669,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         {(mobileRoundTab === 'all' || mobileRoundTab === 'final') && (
                             <GrandFinalPodium
                                 bid="playoff-m18"
-                                label="THE ULTIMATE BATTLE"
+                                label={divisionName ? `THE ULTIMATE BATTLE • ${divisionName.toUpperCase()}` : "THE ULTIMATE BATTLE"}
                                 bracketData={bracketData}
                                 projections={projections}
                                 handleCardClick={handleCardClick}
                                 teamsById={teamsById}
                                 seriesLabel={theme.seriesBadge}
                                 season={season}
+                                divisionName={divisionName}
                             />
                         )}
 
@@ -786,8 +794,8 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                       className="flex items-center gap-1.5 font-bold uppercase"
                                       style={{ color: theme.secondaryHex || theme.primaryHex }}
                                     >
-                                        <Trophy className="w-3 h-3" style={{ color: theme.secondaryHex || theme.primaryHex }} />
-                                        <span>APEX GRAND FINAL</span>
+                                        <Zap className="w-3 h-3" style={{ color: theme.secondaryHex || theme.primaryHex }} />
+                                        <span>{divisionName ? `APEX GRAND FINAL • ${divisionName.toUpperCase()}` : "APEX GRAND FINAL"}</span>
                                     </div>
                                 </div>
 
@@ -850,13 +858,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     {/* GRAND FINAL PODIUM */}
                     <GrandFinalPodium
                         bid={bracketData['playoff-final'] ? 'playoff-final' : (bracketData['playoff-m18'] ? 'playoff-m18' : 'playoff-final')}
-                        label="CHAMPIONSHIP BATTLE"
+                        label={divisionName ? `CHAMPIONSHIP BATTLE • ${divisionName.toUpperCase()}` : "CHAMPIONSHIP BATTLE"}
                         bracketData={bracketData}
                         projections={projections}
                         handleCardClick={handleCardClick}
                         teamsById={teamsById}
                         seriesLabel={theme.seriesBadge}
                         season={season}
+                        divisionName={divisionName}
                     />
                 </div>
 
@@ -1062,13 +1071,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     {/* GRAND FINAL PODIUM */}
                     <GrandFinalPodium
                         bid="playoff-m18"
-                        label="THE ULTIMATE BATTLE"
+                        label={divisionName ? `THE ULTIMATE BATTLE • ${divisionName.toUpperCase()}` : "THE ULTIMATE BATTLE"}
                         bracketData={bracketData}
                         projections={projections}
                         handleCardClick={handleCardClick}
                         teamsById={teamsById}
                         seriesLabel={theme.seriesBadge}
                         season={season}
+                        divisionName={divisionName}
                     />
                 </div>
 
@@ -1581,15 +1591,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         </Dialog>
 
         {/* Playoff Knockout Share Dialog */}
-        <KnockoutShareDialog
-          open={isShareDialogOpen}
-          onOpenChange={setIsShareDialogOpen}
-          matches={matches || []}
-          playersById={playersById}
-          teamsById={teamsById}
-          leagueTable={leagueTable}
-          season={season}
-        />
+        {isShareDialogOpen && (
+          <KnockoutShareDialog
+            open={isShareDialogOpen}
+            onOpenChange={setIsShareDialogOpen}
+            matches={matches || []}
+            playersById={playersById}
+            teamsById={teamsById}
+            leagueTable={leagueTable}
+            season={season}
+            divisionName={divisionName}
+          />
+        )}
     </div>
   );
 }

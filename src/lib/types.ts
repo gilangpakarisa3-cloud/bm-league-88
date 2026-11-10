@@ -9,7 +9,7 @@ export type Team = {
   tier?: number;
 };
 
-export type MMRTierId = 'LEGEND' | 'TOP_PLAYER' | 'REGULER' | 'AMATEUR' | 'NOT_CALIBRATED';
+export type MMRTierId = 'LEGEND' | 'TOP_PLAYER' | 'REGULER' | 'AMATEUR';
 
 export type Player = {
   name: string;
@@ -107,7 +107,7 @@ export type CoOpLeagueEntry = {
   division?: 'div-1' | 'div-2';
 }
 
-export type MatchRound = "Group" | "Quarterfinal" | "Semifinal" | "UB-Quarter" | "UB-Semi" | "UB-Final" | "LB-Round 1" | "LB-Round 2" | "LB-Round 3" | "LB-Round 4" | "LB-Round 5" | "LB-Final" | "Grand-Final";
+export type MatchRound = "Group" | "Quarterfinal" | "Semifinal" | "UB-Quarter" | "UB-Semi" | "UB-Final" | "LB-Round 1" | "LB-Round 2" | "LB-Round 3" | "LB-Round 4" | "LB-Round 5" | "LB-Semifinal" | "LB-Final" | "Grand-Final";
 
 export type MatchStatus = 'Scheduled' | 'Live' | 'Completed' | 'Postponed';
 

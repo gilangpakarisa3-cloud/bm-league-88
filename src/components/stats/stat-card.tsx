@@ -116,123 +116,224 @@ export interface StatCardProps {
   valueKey: string;
   variant?: StatVariant;
   ghostText?: string;
+  isHero?: boolean;
 }
 
 export const StatCard = ({ 
   title, 
+  subtitle,
   icon: Icon, 
   players, 
   valueSuffix, 
   valueKey, 
   variant = "volt",
-  ghostText
+  ghostText,
+  isHero = false
 }: StatCardProps) => {
   const conf = VARIANT_CONFIGS[variant] || VARIANT_CONFIGS.volt;
 
+  // HERO SPOTLIGHT DISPLAY (Opsi 1: Hero Cards di baris atas)
+  if (isHero) {
+    return (
+      <Card className={cn(
+        "group relative overflow-hidden transition-all duration-500 border-2 bg-gradient-to-br from-[#0D111A]/95 via-[#070A12]/98 to-[#030508]/98 backdrop-blur-3xl rounded-[2.2rem] p-0 shadow-[0_20px_60px_rgba(0,0,0,0.8)]",
+        conf.border,
+        conf.glow
+      )}>
+        <div className={cn(
+          "absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r opacity-90 pointer-events-none z-20",
+          conf.laserGlow
+        )} />
+
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:22px_22px] pointer-events-none opacity-50" />
+
+        <span className="absolute -bottom-3 -right-3 text-8xl sm:text-9xl font-black text-white/[0.035] uppercase tracking-tighter italic pointer-events-none select-none leading-none z-0">
+          {ghostText || title.split(' ')[0]}
+        </span>
+
+        {/* Hero Top Bar */}
+        <div className="pt-4 px-5 sm:px-6 pb-2 flex items-center justify-between relative z-10">
+          <div className="inline-flex items-center gap-2">
+            <span className={cn(
+              "px-3 py-1 rounded-xl text-[10px] sm:text-[11px] font-black uppercase italic tracking-wider flex items-center gap-1.5 shadow-md",
+              conf.headerBg
+            )}>
+              <Icon className="h-3.5 w-3.5 shrink-0" />
+              {title}
+            </span>
+          </div>
+          {subtitle && (
+            <span className="text-[8px] sm:text-[9px] font-mono font-bold tracking-widest uppercase text-white/40 truncate max-w-[140px] sm:max-w-none">
+              {subtitle}
+            </span>
+          )}
+        </div>
+
+        {/* Hero Body */}
+        <div className="p-5 sm:p-6 space-y-4 relative z-10">
+          {players.map((player, pIdx) => {
+            const rawVal = player[valueKey];
+            const numVal = typeof rawVal === 'number' ? rawVal : 0;
+            const teamLogo = resolveLogo(player.teamLogoUrl || player.logoUrl || player.team?.logoUrl, player.teamId || player.team?.id, player.playerName);
+            const matchesPlayed = player.played || 0;
+            const winRate = matchesPlayed > 0 && player.win !== undefined ? Math.round((player.win / matchesPlayed) * 100) : null;
+            const goalsPerMatch = matchesPlayed > 0 && player.goalsFor !== undefined ? (player.goalsFor / matchesPlayed).toFixed(2) : null;
+
+            return (
+              <div key={player.id || pIdx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+                  <div className="relative shrink-0">
+                    <Avatar className={cn(
+                      "h-14 w-14 sm:h-16 sm:w-16 rounded-2xl border-2 shadow-2xl transition-transform duration-300 group-hover:scale-105",
+                      conf.border
+                    )}>
+                      <AvatarImage 
+                        src={teamLogo} 
+                        alt={player.playerName} 
+                        className="object-cover" 
+                        referrerPolicy="no-referrer"
+                      />
+                      <AvatarFallback className="bg-black/60 font-black text-sm text-white/50">
+                        {player.playerName ? player.playerName.substring(0, 2).toUpperCase() : 'P'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[9px] sm:text-[10px] font-mono font-black uppercase tracking-wider text-white/40 block truncate">
+                      {player.teamName || 'Independent'}
+                    </span>
+                    <h4 className="text-base sm:text-xl font-black uppercase italic tracking-tight text-white group-hover:text-primary transition-colors font-headline truncate">
+                      {player.playerName}
+                    </h4>
+
+                    {/* Performance Indicator / Mini Metric */}
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      {winRate !== null && (
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 text-[9px] font-mono text-emerald-400 font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span>{winRate}% WIN RATE</span>
+                        </div>
+                      )}
+                      {goalsPerMatch !== null && (
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 text-[9px] font-mono text-amber-400 font-bold">
+                          <span>{goalsPerMatch} GOL / LAGA</span>
+                        </div>
+                      )}
+                      {matchesPlayed > 0 && (
+                        <span className="text-[8px] font-mono text-white/30 uppercase">
+                          ({matchesPlayed} LAGA DIMAINKAN)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0 flex flex-col items-end justify-center pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                  <div className="flex items-baseline gap-1">
+                    <span className={cn(
+                      "text-4xl sm:text-6xl font-black italic tabular-nums tracking-tighter leading-none font-headline drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]",
+                      conf.accentText
+                    )}>
+                      {numVal > 0 && valueKey === 'goalDifference' ? `+${numVal}` : numVal}
+                    </span>
+                    {valueSuffix && (
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider font-mono text-white/40">
+                        {valueSuffix}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-white/30 mt-1">
+                    METRIC LOGGED
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    );
+  }
+
+  // COMPACT BENTO TILE (Opsi 1: Compact Grid di baris bawah)
   return (
     <Card className={cn(
-      "group relative overflow-hidden transition-all duration-500 border-2 bg-gradient-to-b from-[#0D111A]/95 via-[#070A12]/95 to-[#030508]/95 backdrop-blur-3xl rounded-[2rem] sm:rounded-[2.3rem] p-0 shadow-[0_20px_60px_rgba(0,0,0,0.8)]",
+      "group relative overflow-hidden transition-all duration-300 border-2 bg-gradient-to-b from-[#0D111A]/95 via-[#070A12]/95 to-[#030508]/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 flex flex-col justify-between shadow-lg",
       conf.border,
       conf.glow
     )}>
       <div className={cn(
-        "absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r opacity-80 pointer-events-none z-20",
+        "absolute top-0 left-4 right-4 h-[1.5px] bg-gradient-to-r opacity-70 pointer-events-none z-20",
         conf.laserGlow
       )} />
 
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-40" />
-
-      <span className="absolute -bottom-2 -right-3 text-7xl sm:text-9xl font-black text-white/[0.025] uppercase tracking-tighter italic pointer-events-none select-none leading-none z-0">
-        {ghostText || title.split(' ')[0]}
-      </span>
-
-      <div className={cn(
-        "py-3 px-5 sm:px-6 flex items-center justify-between overflow-hidden shrink-0 shadow-md relative z-10",
-        conf.headerBg
-      )}>
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-black/10 -skew-x-[25deg] translate-x-1/4 pointer-events-none" />
-
-        <div className="flex items-center gap-2.5 relative z-10 min-w-0 flex-1">
-          <div className="bg-black/20 p-1.5 rounded-xl border border-black/10 shadow-inner shrink-0">
-            <Icon className="h-4 w-4" />
+      {/* Card Header Tag */}
+      <div className="flex items-center justify-between gap-2 mb-2 relative z-10">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="p-1 rounded-lg bg-black/40 border border-white/10 shrink-0">
+            <Icon className="h-3 w-3 text-white/80" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-xs sm:text-sm font-black tracking-[0.08em] uppercase italic leading-none font-headline">
-              {title}
-            </h3>
-          </div>
+          <h4 className="text-[10px] sm:text-[11px] font-black uppercase italic tracking-wider truncate text-white/90">
+            {title}
+          </h4>
         </div>
+        {players.length > 1 && (
+          <Badge variant="outline" className="text-[7px] font-mono px-1 py-0 border-white/20 text-white/60 shrink-0">
+            {players.length} TIED
+          </Badge>
+        )}
       </div>
 
-      <div className="p-4 sm:p-5 space-y-3 relative z-10">
-        {players.map((player, pIdx) => {
-          const rawVal = player[valueKey];
-          const numVal = typeof rawVal === 'number' ? rawVal : 0;
+      {/* Main Metric Value */}
+      <div className="my-1.5 flex items-baseline justify-between relative z-10">
+        <div className="flex items-baseline gap-1">
+          <span className={cn(
+            "text-2xl sm:text-3xl font-black italic tabular-nums tracking-tighter leading-none font-headline",
+            conf.accentText
+          )}>
+            {players[0] && typeof players[0][valueKey] === 'number' 
+              ? (players[0][valueKey] > 0 && valueKey === 'goalDifference' ? `+${players[0][valueKey]}` : players[0][valueKey]) 
+              : 0}
+          </span>
+          {valueSuffix && (
+            <span className="text-[9px] font-black uppercase tracking-wider font-mono text-white/40">
+              {valueSuffix}
+            </span>
+          )}
+        </div>
+        <span className="text-[7px] font-mono uppercase tracking-widest text-white/30">
+          BEST
+        </span>
+      </div>
+
+      {/* Player Footnote / Avatar List */}
+      <div className="pt-2 border-t border-white/5 space-y-1.5 relative z-10">
+        {players.slice(0, 2).map((player, pIdx) => {
           const teamLogo = resolveLogo(player.teamLogoUrl || player.logoUrl || player.team?.logoUrl, player.teamId || player.team?.id, player.playerName);
-
           return (
-            <div 
-              key={player.id || pIdx} 
-              className="group/item flex items-center justify-between bg-black/50 hover:bg-white/[0.04] p-3 sm:p-3.5 rounded-2xl border border-white/5 hover:border-white/20 transition-all duration-300 relative overflow-hidden shadow-sm"
-            >
-              <div className={cn(
-                "absolute left-0 top-0 bottom-0 w-1 opacity-40 group-hover/item:opacity-100 transition-opacity",
-                conf.progressBg
-              )} />
-
-              <div className="flex items-center gap-3 overflow-hidden pl-1 min-w-0">
-                <Avatar className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl border border-white/10 shadow-lg group-hover/item:scale-105 transition-transform shrink-0">
-                  <AvatarImage 
-                    src={teamLogo} 
-                    alt={player.playerName} 
-                    className="object-cover" 
-                    referrerPolicy="no-referrer"
-                  />
-                  <AvatarFallback className="bg-black/60 font-black text-xs text-white/50">
-                    {player.playerName ? player.playerName.substring(0, 2).toUpperCase() : 'P'}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs sm:text-sm font-black truncate uppercase italic text-white group-hover/item:text-primary transition-colors font-headline">
-                      {player.playerName}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[8px] font-mono font-black text-white/40 uppercase tracking-wider truncate">
-                      {player.teamName || 'Independent'}
-                    </span>
-                    {player.pointsBehind !== undefined && (
-                      <Badge variant="outline" className="text-[7px] font-mono uppercase px-1.5 py-0 border-amber-500/40 text-amber-400 bg-amber-500/10">
-                        -{player.pointsBehind} PTS GAP
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-right shrink-0 ml-3 flex flex-col items-end">
-                <div className="flex items-baseline gap-1">
-                  <span className={cn(
-                    "text-3xl sm:text-4xl font-black italic tabular-nums tracking-tighter leading-none font-headline drop-shadow-md",
-                    conf.accentText
-                  )}>
-                    {numVal > 0 && valueKey === 'goalDifference' ? `+${numVal}` : numVal}
-                  </span>
-                  {valueSuffix && (
-                    <span className="text-[9px] font-black uppercase tracking-wider font-mono text-white/40">
-                      {valueSuffix}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[7px] font-mono uppercase tracking-widest text-white/30">
-                  METRIC LOGGED
-                </span>
+            <div key={player.id || pIdx} className="flex items-center gap-2 min-w-0">
+              <Avatar className="h-6 w-6 rounded-lg border border-white/10 shrink-0">
+                <AvatarImage src={teamLogo} alt={player.playerName} className="object-cover" referrerPolicy="no-referrer" />
+                <AvatarFallback className="bg-black/60 text-[8px] font-bold text-white/50">
+                  {player.playerName ? player.playerName.substring(0, 1) : 'P'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1 truncate">
+                <p className="text-[11px] font-black uppercase italic leading-tight text-white truncate">
+                  {player.playerName}
+                </p>
+                <p className="text-[8px] font-mono text-white/40 uppercase truncate">
+                  {player.teamName || 'Independent'}
+                </p>
               </div>
             </div>
           );
         })}
+        {players.length > 2 && (
+          <p className="text-[8px] font-mono text-white/30 text-right">
+            +{players.length - 2} pemain lain
+          </p>
+        )}
       </div>
     </Card>
   );

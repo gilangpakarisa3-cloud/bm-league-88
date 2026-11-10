@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { resolveLogo } from "@/lib/logo-utils";
 import { useTranslation } from "@/hooks/use-translation";
 import { getSeasonTheme, type TISeasonTheme } from "@/lib/season-theme";
-import type { WithId, Team, Season, CoOpLeagueEntry, LeagueEntry } from "@/lib/types";
+import type { WithId, Team, Season, CoOpLeagueEntry, LeagueEntry, Match } from "@/lib/types";
 import { LeagueTableSkeleton } from "./league-table-skeleton";
 
 export const TopScorerTable = memo(({ 
@@ -17,13 +17,15 @@ export const TopScorerTable = memo(({
     isLoading, 
     seasonType,
     teamsById,
-    theme
+    theme,
+    matches = []
 }: { 
     tableData: any[], 
     isLoading: boolean, 
     seasonType?: Season['type'],
     teamsById: Record<string, WithId<Team>>,
-    theme?: TISeasonTheme
+    theme?: TISeasonTheme,
+    matches?: WithId<Match>[]
 }) => {
     const { t } = useTranslation();
     const currentTheme = theme || getSeasonTheme(null);
@@ -34,26 +36,84 @@ export const TopScorerTable = memo(({
     const topScorers = useMemo(() => {
         if (!tableData || tableData.length === 0) return [];
         const scorers: { name: string, goals: number, teamId: string, teamName: string, id: string, played: number, logoUrl: string }[] = [];
+        const isCoop = seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid';
+
+        // Filter pertandingan playoff yang telah selesai (selain babak "Group")
+        const completedPlayoffMatches = (matches || []).filter(
+            m => m.isCompleted && m.round && m.round !== 'Group'
+        );
         
         tableData.forEach(entry => {
-            if (seasonType === 'Co-Op' || seasonType === 'Co-Op Hybrid') {
+            if (isCoop) {
                 const coop = entry as CoOpLeagueEntry;
+                const coopTeamId = coop.id;
+                
+                // Cari pertandingan playoff untuk tim coop ini
+                const teamPlayoffMatches = completedPlayoffMatches.filter(
+                    m => m.player1Id === coopTeamId || m.player2Id === coopTeamId
+                );
+
+                let p1PlayoffGoals = 0;
+                let p2PlayoffGoals = 0;
+                let teamPlayoffMatchesCount = teamPlayoffMatches.length;
+
+                teamPlayoffMatches.forEach(m => {
+                    const isP1 = m.player1Id === coopTeamId;
+                    if (isP1) {
+                        p1PlayoffGoals += m.player1p1Goals ?? 0;
+                        p2PlayoffGoals += m.player1p2Goals ?? 0;
+                    } else {
+                        p1PlayoffGoals += m.player2p1Goals ?? 0;
+                        p2PlayoffGoals += m.player2p2Goals ?? 0;
+                    }
+                });
+
                 const t1 = teamsById[coop.player1TeamId];
                 scorers.push({ 
-                    id: coop.player1Id, name: coop.player1Name, goals: coop.player1Goals || 0, teamId: coop.player1TeamId, teamName: coop.player1TeamName, played: coop.played,
+                    id: coop.player1Id, 
+                    name: coop.player1Name, 
+                    goals: (coop.player1Goals || 0) + p1PlayoffGoals, 
+                    teamId: coop.player1TeamId, 
+                    teamName: coop.player1TeamName, 
+                    played: (coop.played || 0) + teamPlayoffMatchesCount,
                     logoUrl: resolveLogo(t1?.logoUrl, coop.player1Id, coop.player1Name)
                 });
+
                 const t2 = teamsById[coop.player2TeamId];
                 scorers.push({ 
-                    id: coop.player2Id, name: coop.player2Name, goals: coop.player2Goals || 0, teamId: coop.player2TeamId, teamName: coop.player2TeamName, played: coop.played,
+                    id: coop.player2Id, 
+                    name: coop.player2Name, 
+                    goals: (coop.player2Goals || 0) + p2PlayoffGoals, 
+                    teamId: coop.player2TeamId, 
+                    teamName: coop.player2TeamName, 
+                    played: (coop.played || 0) + teamPlayoffMatchesCount,
                     logoUrl: resolveLogo(t2?.logoUrl, coop.player2Id, coop.player2Name)
                 });
             } else {
                 const single = entry as LeagueEntry;
+                const pId = single.playerId || single.id;
+
+                // Cari pertandingan playoff untuk pemain single ini
+                const pPlayoffMatches = completedPlayoffMatches.filter(
+                    m => m.player1Id === pId || m.player2Id === pId
+                );
+
+                let playoffGoals = 0;
+                pPlayoffMatches.forEach(m => {
+                    const isP1 = m.player1Id === pId;
+                    const myGf = isP1 ? (m.player1Score ?? 0) : (m.player2Score ?? 0);
+                    playoffGoals += myGf;
+                });
+
                 const t = teamsById[single.teamId];
                 scorers.push({ 
-                    id: single.playerId, name: single.playerName, goals: single.goalsFor || 0, teamId: single.teamId, teamName: single.teamName, played: single.played,
-                    logoUrl: resolveLogo(t?.logoUrl, single.playerId, single.playerName)
+                    id: pId, 
+                    name: single.playerName, 
+                    goals: (single.goalsFor || 0) + playoffGoals, 
+                    teamId: single.teamId, 
+                    teamName: single.teamName, 
+                    played: (single.played || 0) + pPlayoffMatches.length,
+                    logoUrl: resolveLogo(t?.logoUrl, pId, single.playerName)
                 });
             }
         });
@@ -65,7 +125,7 @@ export const TopScorerTable = memo(({
         }, [] as typeof scorers);
 
         return uniqueScorers.sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).map((s, i) => ({ ...s, rank: i + 1 }));
-    }, [tableData, seasonType, teamsById]);
+    }, [tableData, seasonType, teamsById, matches]);
 
     const predator = useMemo(() => topScorers.find(s => s.goals > 0), [topScorers]);
     
@@ -142,7 +202,7 @@ export const TopScorerTable = memo(({
                                 </Avatar>
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 className="text-lg sm:text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{predator.name}</h4>
+                                <h4 className="text-lg sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{predator.name}</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: primaryHex }} />
                                     <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest truncate" style={{ color: `${primaryHex}CC` }} suppressHydrationWarning>{predator.teamName}</p>
@@ -151,7 +211,7 @@ export const TopScorerTable = memo(({
                             <div className="text-right flex flex-col items-end shrink-0">
                                 <div className="relative">
                                     <span 
-                                        className="text-4xl sm:text-7xl font-black italic tabular-nums leading-none" 
+                                        className="text-4xl sm:text-7xl font-black tabular-nums leading-none" 
                                         style={{ 
                                             color: primaryHex,
                                             textShadow: `0 0 20px ${glowRgba}`
@@ -289,7 +349,7 @@ export const TopScorerTable = memo(({
                 >
                     <div className="flex items-center gap-2">
                         <Binary className="w-4 h-4" style={{ color: primaryHex }} />
-                        <h4 className="text-xs font-black uppercase tracking-widest italic" style={{ color: primaryHex }}>DAFTAR PENCETAK GOL LIGA</h4>
+                        <h4 className="text-xs font-black uppercase tracking-widest" style={{ color: primaryHex }}>DAFTAR PENCETAK GOL LIGA</h4>
                     </div>
                     <span className="text-[9px] font-bold text-white/30">URUTKAN: JUMLAH GOL TERBANYAK</span>
                 </div>
@@ -314,7 +374,7 @@ export const TopScorerTable = memo(({
                                             backgroundColor: `${primaryHex}10`
                                         } : undefined}
                                     >
-                                        <TableCell className="text-center font-black text-base sm:text-xl italic">
+                                        <TableCell className="text-center font-black text-base sm:text-xl">
                                             <span 
                                                 className="inline-flex items-center justify-center w-8 h-8 rounded-xl transition-all" 
                                                 style={isRank1 && hasGoals ? {
@@ -338,7 +398,7 @@ export const TopScorerTable = memo(({
                                                 </Avatar>
                                                 <div className="flex flex-col">
                                                     <span 
-                                                        className="font-black uppercase italic tracking-tight text-sm transition-colors" 
+                                                        className="font-bold uppercase tracking-wide text-sm transition-colors font-headline" 
                                                         style={isRank1 && hasGoals ? { color: primaryHex } : undefined}
                                                         suppressHydrationWarning
                                                     >
@@ -355,7 +415,7 @@ export const TopScorerTable = memo(({
                                             </div>
                                         </TableCell>
                                         <TableCell 
-                                            className="text-center font-black text-2xl sm:text-4xl italic tabular-nums transition-all" 
+                                            className="text-center font-black text-2xl sm:text-4xl tabular-nums transition-all" 
                                             style={isRank1 && hasGoals ? { 
                                                 color: primaryHex,
                                                 textShadow: `0 0 20px ${glowRgba}`

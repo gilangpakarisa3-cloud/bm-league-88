@@ -7,10 +7,11 @@ import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase';
-import { VantaBackground } from '@/components/vanta-background';
 import { LanguageProvider } from '@/context/language-context';
 import { PasswordProvider } from '@/context/password-context';
+import { SeasonThemeProvider } from '@/context/season-theme-context';
 import { DeactivatedGuard } from '@/components/layout/deactivated-guard';
+import { VantaBackground } from '@/components/vanta-background';
 
 
 export const metadata: Metadata = {
@@ -50,21 +51,23 @@ export default function RootLayout({
         <LanguageProvider>
           <FirebaseClientProvider>
             <PasswordProvider>
-              <PwaProvider>
-                <DeactivatedGuard>
-                  <VantaBackground />
-                  <div className="relative flex min-h-screen flex-col pb-24 md:pb-0">
-                    <Header />
-                    <main className="flex-1 z-10">
-                      {children}
-                    </main>
-                    <Footer />
-                    <MobileBottomNav />
-                  </div>
-                  <Toaster />
-                  <PwaRegister />
-                </DeactivatedGuard>
-              </PwaProvider>
+              <SeasonThemeProvider>
+                <PwaProvider>
+                  <DeactivatedGuard>
+                    <VantaBackground />
+                    <div className="relative flex min-h-screen flex-col pb-24 md:pb-0">
+                      <Header />
+                      <main className="flex-1 z-10">
+                        {children}
+                      </main>
+                      <Footer />
+                      <MobileBottomNav />
+                    </div>
+                    <Toaster />
+                    <PwaRegister />
+                  </DeactivatedGuard>
+                </PwaProvider>
+              </SeasonThemeProvider>
             </PasswordProvider>
           </FirebaseClientProvider>
         </LanguageProvider>

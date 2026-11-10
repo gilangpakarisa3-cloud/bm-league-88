@@ -107,39 +107,28 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     }, {} as Record<string, WithId<Team>>);
   }, [teams]);
 
-  // Defined Tiers configuration based on MMR
+  // Defined Tiers configuration based on MMR (Tier N/C dihapus)
   const tiersConfig = useMemo(() => {
     if (playersWithRanks.length === 0) return [];
-    const calibratedPlayers = playersWithRanks.filter(p => p.isCalibrated);
-    const uncalibratedPlayers = playersWithRanks.filter(p => !p.isCalibrated);
 
-    const baseTiers = [
+    return [
       { 
         ...TIER_STYLES.LEGEND,
-        players: calibratedPlayers.filter(p => p.tierId === 'LEGEND'),
+        players: playersWithRanks.filter(p => p.tierId === 'LEGEND'),
       },
       { 
         ...TIER_STYLES.TOP_PLAYER,
-        players: calibratedPlayers.filter(p => p.tierId === 'TOP_PLAYER'),
+        players: playersWithRanks.filter(p => p.tierId === 'TOP_PLAYER'),
       },
       { 
         ...TIER_STYLES.REGULER,
-        players: calibratedPlayers.filter(p => p.tierId === 'REGULER'),
+        players: playersWithRanks.filter(p => p.tierId === 'REGULER'),
       },
       { 
         ...TIER_STYLES.AMATEUR,
-        players: calibratedPlayers.filter(p => p.tierId === 'AMATEUR'),
+        players: playersWithRanks.filter(p => p.tierId === 'AMATEUR'),
       },
     ];
-
-    if (uncalibratedPlayers.length > 0) {
-      baseTiers.push({
-        ...TIER_STYLES.NOT_CALIBRATED,
-        players: uncalibratedPlayers,
-      });
-    }
-
-    return baseTiers;
   }, [playersWithRanks]);
 
   // Overall league quick stats

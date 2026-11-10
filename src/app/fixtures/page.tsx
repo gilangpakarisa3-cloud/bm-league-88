@@ -49,6 +49,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { PLAYOFF_SUCCESSOR_MAP, getPlayoffSuccessorMap } from '@/lib/constants';
 import { resolveLogo } from '@/lib/logo-utils';
 import { getSeasonTheme } from '@/lib/season-theme';
+import { useGlobalSeasonTheme } from '@/context/season-theme-context';
 
 
 const LEAGUE_ID = 'main-league';
@@ -61,7 +62,7 @@ export default function FixturesPage() {
     const { toast } = useToast();
     const { t } = useTranslation();
     const { password: ADMIN_PASSWORD, isLoaded: isPasswordLoaded } = useSharedPassword();
-    const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
+    const { activeSeasonId, setActiveSeasonId, seasons, isLoading: isLoadingSeasons, activeSeason, theme } = useGlobalSeasonTheme();
     const [editingMatch, setEditingMatch] = useState<any | null>(null);
     const [sharingMatch, setSharingMatch] = useState<any | null>(null);
     const [revertingMatch, setRevertingMatch] = useState<WithId<Match> | null>(null);
@@ -69,9 +70,6 @@ export default function FixturesPage() {
     const [passwordPromptOpen, setPasswordPromptOpen] = useState(false);
     const [passwordInput, setPasswordInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
-
-    const seasonsCol = useMemoFirebase(() => (firestore ? query(collection(firestore, `leagues/${LEAGUE_ID}/seasons`), orderBy('createdAt', 'desc')) : null), [firestore]);
-    const { data: seasons, isLoading: isLoadingSeasons } = useCollection<Season>(seasonsCol);
 
     const playersCol = useMemoFirebase(() => (firestore ? collection(firestore, 'players') : null), [firestore]);
     const { data: allPlayers, isLoading: isLoadingPlayers } = useCollection<Player>(playersCol);
@@ -98,9 +96,6 @@ export default function FixturesPage() {
     const matchesCol = useMemoFirebase(() => firestore && activeSeasonId ? collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`) : null, [firestore, activeSeasonId]);
     const { data: matches, isLoading: isLoadingMatches } = useCollection<Match>(matchesCol);
 
-    const activeSeason = useMemo(() => seasons?.find((s) => s.id === activeSeasonId) || null, [seasons, activeSeasonId]);
-    const theme = useMemo(() => getSeasonTheme(activeSeason), [activeSeason]);
-
     const formattedDateRange = useMemo(() => {
         if (!activeSeason || !activeSeason.startDate || !activeSeason.endDate) return null;
         return `${format(activeSeason.startDate.toDate(), 'd LLL')} - ${format(activeSeason.endDate.toDate(), 'd LLL yyyy')}`;
@@ -113,8 +108,6 @@ export default function FixturesPage() {
         const comp = matches.filter(m => m.isCompleted).length;
         return { progressPercentage: (comp / matches.length) * 100, totalMatchesForDisplay: matches.length, completedMatchesForDisplay: comp };
     }, [matches]);
-
-    useEffect(() => { if (seasons && !activeSeasonId && seasons.length > 0) setActiveSeasonId(seasons[0].id); }, [seasons, activeSeasonId]);
 
     const handlePasswordCheck = () => {
         if (!isPasswordLoaded) return;

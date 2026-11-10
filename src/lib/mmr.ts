@@ -4,11 +4,10 @@ export const CALIBRATION_MIN_MATCHES = 20;
 export const TITLE_BONUS_MMR = 100;
 
 export const BASE_MMR_BY_TIER: Record<MMRTierId, number> = {
-  LEGEND: 2000,
-  TOP_PLAYER: 1500,
-  REGULER: 1000,
+  LEGEND: 1200,
+  TOP_PLAYER: 1000,
+  REGULER: 800,
   AMATEUR: 600,
-  NOT_CALIBRATED: 700,
 };
 
 export interface PlayerTierStyle {
@@ -61,23 +60,12 @@ export const TIER_STYLES: Record<MMRTierId, PlayerTierStyle> = {
     id: 'AMATEUR',
     title: 'Amateur',
     badgeTitle: 'RANK 13+ GLOBAL',
-    color: 'text-rose-400',
-    borderColor: 'border-rose-400/40 hover:border-rose-400',
-    bgPill: 'bg-rose-400/10 text-rose-400 border-rose-400/30',
-    bgBadge: 'bg-rose-400 text-black shadow-[0_0_20px_rgba(251,113,133,0.5)]',
-    accentGlow: 'from-rose-400/20 via-rose-500/5 to-transparent',
-    hudBar: 'bg-rose-400 shadow-[0_0_15px_rgba(251,113,133,0.8)]',
-  },
-  NOT_CALIBRATED: {
-    id: 'NOT_CALIBRATED',
-    title: 'Not Calibrated',
-    badgeTitle: 'UNRANKED (<20 LAGA)',
-    color: 'text-slate-400',
-    borderColor: 'border-slate-500/40 hover:border-slate-400',
-    bgPill: 'bg-slate-500/10 text-slate-300 border-slate-500/30',
-    bgBadge: 'bg-slate-800 text-slate-300 border border-slate-600 shadow-[0_0_15px_rgba(148,163,184,0.15)]',
-    accentGlow: 'from-slate-500/15 via-slate-600/5 to-transparent',
-    hudBar: 'bg-slate-500 shadow-[0_0_10px_rgba(148,163,184,0.4)]',
+    color: 'text-pink-400',
+    borderColor: 'border-pink-400/40 hover:border-pink-400',
+    bgPill: 'bg-pink-400/10 text-pink-400 border-pink-400/30',
+    bgBadge: 'bg-pink-400 text-black shadow-[0_0_20px_rgba(244,114,182,0.5)]',
+    accentGlow: 'from-pink-400/20 via-pink-500/5 to-transparent',
+    hudBar: 'bg-pink-400 shadow-[0_0_15px_rgba(244,114,182,0.8)]',
   },
 };
 
@@ -95,11 +83,7 @@ export function calculateLegacyOvr(player: { overallPlayed?: number; overallWin?
 /**
  * Tentukan Tier pemain berdasarkan peringkat (Rank) global atau nilai MMR jika rank belum diketahui
  */
-export function getTierFromMmr(mmr: number, played: number, rank?: number | null): MMRTierId {
-  if (played < CALIBRATION_MIN_MATCHES) {
-    return 'NOT_CALIBRATED';
-  }
-
+export function getTierFromMmr(mmr: number, played?: number, rank?: number | null, division?: string): MMRTierId {
   // Jika rank tersedia (Sistem Slot Kompetitif)
   if (typeof rank === 'number' && rank > 0) {
     if (rank <= 4) return 'LEGEND';       // 4 Besar MMR Teratas
@@ -108,10 +92,7 @@ export function getTierFromMmr(mmr: number, played: number, rank?: number | null
     return 'AMATEUR';                     // Rank 13+
   }
 
-  // Fallback jika rank belum dihitung
-  if (mmr >= 2000) return 'LEGEND';
-  if (mmr >= 1500) return 'TOP_PLAYER';
-  if (mmr >= 1000) return 'REGULER';
+  // Fallback jika rank belum dihitung / standalone
   return 'AMATEUR';
 }
 
@@ -238,40 +219,37 @@ export function enrichPlayersWithMmrData(
   // 1. Hitung baseline / MMR untuk setiap pemain
   const mapped = players.map(p => {
     const played = p.overallPlayed || 0;
-    const isCalibrated = played >= CALIBRATION_MIN_MATCHES;
+    const isCalibrated = true; // Tier N/C dihapus: seluruh player aktif masuk kalibrasi
     const winRate = played > 0 ? ((p.overallWin || 0) / played) * 100 : 0;
     const titlesWon = titlesByPlayerId[p.id] || [];
     const titlesCount = p.titlesCount ?? titlesWon.length;
 
     const legacyOvrRating = p.legacyOvr ?? calculateLegacyOvr(p);
 
-    // Jika belum tersimpan di DB, hitung modal awal
+    // Jika belum tersimpan di DB atau sebelumnya N/C / uncalibrated (< 20 match)
     let mmrRating = p.mmr;
-    if (typeof mmrRating !== 'number') {
-      // Tentukan baseline awal jika data belum termigrasi di Firestore
-      let baselineTier: MMRTierId = 'AMATEUR';
-      if (legacyOvrRating >= 70) baselineTier = 'LEGEND';
-      else if (legacyOvrRating >= 55) baselineTier = 'TOP_PLAYER';
-      else if (legacyOvrRating >= 45) baselineTier = 'REGULER';
-      else if (!isCalibrated) baselineTier = 'NOT_CALIBRATED';
+    const isLegacyNC = played < CALIBRATION_MIN_MATCHES;
 
-      mmrRating = calculateInitialMmr({
-        tierId: baselineTier,
-        division: p.division,
-        titlesCount,
-        played,
-      });
+    if (typeof mmrRating !== 'number' || isLegacyNC) {
+      // Aturan Khusus:
+      // Player N/C di divisi 1 -> 800 MMR (Reguler)
+      // Player N/C di divisi 2 (atau default) -> 600 MMR (Amateur)
+      if (p.division === 'div-1' || (!p.division && legacyOvrRating >= 45)) {
+        mmrRating = 800 + (titlesCount * TITLE_BONUS_MMR);
+      } else {
+        mmrRating = 600 + (titlesCount * TITLE_BONUS_MMR);
+      }
     }
 
     const peakMmrRating = Math.max(mmrRating, p.peakMmr ?? mmrRating);
-    const tierId = getTierFromMmr(mmrRating, played);
+    const tierId = getTierFromMmr(mmrRating, played, null, p.division);
 
     return {
       ...p,
       mmrRating,
       peakMmrRating,
       legacyOvrRating,
-      isCalibrated,
+      isCalibrated: true,
       tierId,
       winRate,
       titlesWon,
@@ -279,13 +257,12 @@ export function enrichPlayersWithMmrData(
     };
   });
 
-  // 2. Pisahkan calibrated vs uncalibrated untuk penentuan peringkat leaderboard
-  const calibrated = mapped
-    .filter(p => p.isCalibrated)
-    .sort((a, b) => b.mmrRating - a.mmrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0))
+  // 2. Seluruh player langsung masuk ranking leaderboard kompetitif (tanpa uncalibrated pool)
+  const rankedPlayers = mapped
+    .sort((a, b) => b.mmrRating - a.mmrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0) || b.winRate - a.winRate)
     .map((p, idx) => {
       const rank = idx + 1;
-      const tierId = getTierFromMmr(p.mmrRating, p.overallPlayed || 0, rank);
+      const tierId = getTierFromMmr(p.mmrRating, p.overallPlayed || 0, rank, p.division);
       return {
         ...p,
         rank,
@@ -293,15 +270,6 @@ export function enrichPlayersWithMmrData(
       };
     });
 
-  const uncalibrated = mapped
-    .filter(p => !p.isCalibrated)
-    .sort((a, b) => (b.overallPlayed || 0) - (a.overallPlayed || 0) || b.winRate - a.winRate)
-    .map(p => ({
-      ...p,
-      rank: null,
-      tierId: 'NOT_CALIBRATED' as MMRTierId,
-    }));
-
-  return [...calibrated, ...uncalibrated];
+  return rankedPlayers;
 }
 
