@@ -96,6 +96,16 @@ export function KnockoutShareDialog({
     });
   }, [leagueTable]);
 
+  const hasDoubleElimMatches = useMemo(() => {
+    return (matches || []).some(m => 
+      m.round === 'UB-Quarter' ||
+      m.round === 'UB-Semi' ||
+      m.round === 'UB-Final' ||
+      m.round?.startsWith('LB-') ||
+      ['playoff-m5', 'playoff-m6', 'playoff-m7', 'playoff-m8', 'playoff-m9', 'playoff-m10', 'playoff-m11', 'playoff-m12', 'playoff-m13', 'playoff-m14', 'playoff-m15', 'playoff-m16', 'playoff-m17'].includes(m.bracketId || '')
+    );
+  }, [matches]);
+
   // Dynamic bracket projection when playoff matches are not generated yet
   const projections = useMemo(() => {
     const proj: Record<string, any> = {};
@@ -113,9 +123,29 @@ export function KnockoutShareDialog({
         p1: { playerName: 'Pemenang QF 3', teamName: 'Seed #2/#7', id: 'TBD-W3' },
         p2: { playerName: 'Pemenang QF 4', teamName: 'Seed #3/#6', id: 'TBD-W4' },
       };
+      proj['playoff-m9'] = {
+        p1: { playerName: 'Pemenang UB QF 1', teamName: 'Seed #1/#8', id: 'TBD-W1' },
+        p2: { playerName: 'Pemenang UB QF 2', teamName: 'Seed #4/#5', id: 'TBD-W2' },
+      };
+      proj['playoff-m10'] = {
+        p1: { playerName: 'Pemenang UB QF 3', teamName: 'Seed #2/#7', id: 'TBD-W3' },
+        p2: { playerName: 'Pemenang UB QF 4', teamName: 'Seed #3/#6', id: 'TBD-W4' },
+      };
+      proj['playoff-m15'] = {
+        p1: { playerName: 'Pemenang UB Semi 1', teamName: 'Finalis UB', id: 'TBD-W9' },
+        p2: { playerName: 'Pemenang UB Semi 2', teamName: 'Finalis UB', id: 'TBD-W10' },
+      };
+      proj['playoff-m17'] = {
+        p1: { playerName: 'Finalis LB', teamName: 'LB Final', id: 'TBD-LBF' },
+        p2: { playerName: 'Loser UB Final', teamName: 'LB Final', id: 'TBD-L15' },
+      };
       proj['playoff-final'] = {
         p1: { playerName: 'Finalis 1', teamName: 'Pemenang SF 1', id: 'TBD-F1' },
         p2: { playerName: 'Finalis 2', teamName: 'Pemenang SF 2', id: 'TBD-F2' },
+      };
+      proj['playoff-m18'] = {
+        p1: { playerName: 'Finalis Upper', teamName: 'Pemenang UB Final', id: 'TBD-W15' },
+        p2: { playerName: 'Finalis Lower', teamName: 'Pemenang LB Final', id: 'TBD-W17' },
       };
     }
     return proj;
@@ -276,19 +306,32 @@ export function KnockoutShareDialog({
     };
   };
 
-  const qf1 = getMatchDisplay('playoff-m1', 'QF 1', '#1', '#8');
-  const qf2 = getMatchDisplay('playoff-m2', 'QF 2', '#4', '#5');
-  const qf3 = getMatchDisplay('playoff-m3', 'QF 3', '#2', '#7');
-  const qf4 = getMatchDisplay('playoff-m4', 'QF 4', '#3', '#6');
+  const qf1 = getMatchDisplay('playoff-m1', hasDoubleElimMatches ? 'UB QF 1' : 'QF 1', '#1', '#8');
+  const qf2 = getMatchDisplay('playoff-m2', hasDoubleElimMatches ? 'UB QF 2' : 'QF 2', '#4', '#5');
+  const qf3 = getMatchDisplay('playoff-m3', hasDoubleElimMatches ? 'UB QF 3' : 'QF 3', '#2', '#7');
+  const qf4 = getMatchDisplay('playoff-m4', hasDoubleElimMatches ? 'UB QF 4' : 'QF 4', '#3', '#6');
 
-  const sf1 = getMatchDisplay('playoff-sf1', 'SEMIFINAL 1', 'QF1', 'QF2');
-  const sf2 = getMatchDisplay('playoff-sf2', 'SEMIFINAL 2', 'QF3', 'QF4');
+  const sf1 = getMatchDisplay(
+    hasDoubleElimMatches ? (bracketData['playoff-m9'] ? 'playoff-m9' : 'playoff-sf1') : 'playoff-sf1',
+    hasDoubleElimMatches ? 'UB SEMI 1' : 'SEMIFINAL 1',
+    'QF1',
+    'QF2'
+  );
+  const sf2 = getMatchDisplay(
+    hasDoubleElimMatches ? (bracketData['playoff-m10'] ? 'playoff-m10' : 'playoff-sf2') : 'playoff-sf2',
+    hasDoubleElimMatches ? 'UB SEMI 2' : 'SEMIFINAL 2',
+    'QF3',
+    'QF4'
+  );
+
+  const ubFinal = getMatchDisplay('playoff-m15', 'UPPER FINAL', 'UB-S1', 'UB-S2');
+  const lbFinal = getMatchDisplay('playoff-m17', 'LOWER FINAL', 'LB-SF', 'UB-FL');
 
   const finalMatch = getMatchDisplay(
     bracketData['playoff-final'] ? 'playoff-final' : (bracketData['playoff-m18'] ? 'playoff-m18' : 'playoff-final'),
     'GRAND FINAL',
-    'SF1',
-    'SF2'
+    hasDoubleElimMatches ? 'UPPER' : 'SF1',
+    hasDoubleElimMatches ? 'LOWER' : 'SF2'
   );
 
   // Relegation calculation including playoff losers
@@ -364,17 +407,23 @@ export function KnockoutShareDialog({
     const seasonTitle = season?.name || 'BM LEAGUE 88';
     const statusNotice = hasGeneratedPlayoffs ? 'STATUS RESMI (LIVE)' : 'PROYEKSI KLASEMEN (LIVE)';
 
-    let text = `⚔️ *BAGAN PLAYOFF KNOCKOUT - BM LEAGUE 88* ⚔️\n🏆 *${seasonTitle}* [${statusNotice}]\n📅 *Per:* ${formattedDate}\n\n`;
+    let text = `⚔️ *BAGAN PLAYOFF ${hasDoubleElimMatches ? 'DOUBLE ELIMINATION' : 'KNOCKOUT'} - BM LEAGUE 88* ⚔️\n🏆 *${seasonTitle}* [${statusNotice}]\n📅 *Per:* ${formattedDate}\n\n`;
 
-    text += `🥊 *8 BESAR (QUARTERFINALS - BO3):*\n`;
-    text += `• *QF 1:* ${qf1.p1Name} vs ${qf1.p2Name} ${qf1.isCompleted || qf1.isLive ? `[${qf1.s1} - ${qf1.s2}]` : ''}\n`;
-    text += `• *QF 2:* ${qf2.p1Name} vs ${qf2.p2Name} ${qf2.isCompleted || qf2.isLive ? `[${qf2.s1} - ${qf2.s2}]` : ''}\n`;
-    text += `• *QF 3:* ${qf3.p1Name} vs ${qf3.p2Name} ${qf3.isCompleted || qf3.isLive ? `[${qf3.s1} - ${qf3.s2}]` : ''}\n`;
-    text += `• *QF 4:* ${qf4.p1Name} vs ${qf4.p2Name} ${qf4.isCompleted || qf4.isLive ? `[${qf4.s1} - ${qf4.s2}]` : ''}\n\n`;
+    text += `🥊 *${hasDoubleElimMatches ? 'UPPER BRACKET - 8 BESAR (BO3):' : '8 BESAR (QUARTERFINALS - BO3):'}*\n`;
+    text += `• *${hasDoubleElimMatches ? 'UB QF 1' : 'QF 1'}:* ${qf1.p1Name} vs ${qf1.p2Name} ${qf1.isCompleted || qf1.isLive ? `[${qf1.s1} - ${qf1.s2}]` : ''}\n`;
+    text += `• *${hasDoubleElimMatches ? 'UB QF 2' : 'QF 2'}:* ${qf2.p1Name} vs ${qf2.p2Name} ${qf2.isCompleted || qf2.isLive ? `[${qf2.s1} - ${qf2.s2}]` : ''}\n`;
+    text += `• *${hasDoubleElimMatches ? 'UB QF 3' : 'QF 3'}:* ${qf3.p1Name} vs ${qf3.p2Name} ${qf3.isCompleted || qf3.isLive ? `[${qf3.s1} - ${qf3.s2}]` : ''}\n`;
+    text += `• *${hasDoubleElimMatches ? 'UB QF 4' : 'QF 4'}:* ${qf4.p1Name} vs ${qf4.p2Name} ${qf4.isCompleted || qf4.isLive ? `[${qf4.s1} - ${qf4.s2}]` : ''}\n\n`;
 
-    text += `⚡ *SEMIFINALS (BO3):*\n`;
-    text += `• *SF 1:* ${sf1.p1Name} vs ${sf1.p2Name} ${sf1.isCompleted || sf1.isLive ? `[${sf1.s1} - ${sf1.s2}]` : ''}\n`;
-    text += `• *SF 2:* ${sf2.p1Name} vs ${sf2.p2Name} ${sf2.isCompleted || sf2.isLive ? `[${sf2.s1} - ${sf2.s2}]` : ''}\n\n`;
+    text += `⚡ *${hasDoubleElimMatches ? 'UPPER SEMIFINALS (BO3):' : 'SEMIFINALS (BO3):'}*\n`;
+    text += `• *${hasDoubleElimMatches ? 'UB SEMI 1' : 'SF 1'}:* ${sf1.p1Name} vs ${sf1.p2Name} ${sf1.isCompleted || sf1.isLive ? `[${sf1.s1} - ${sf1.s2}]` : ''}\n`;
+    text += `• *${hasDoubleElimMatches ? 'UB SEMI 2' : 'SF 2'}:* ${sf2.p1Name} vs ${sf2.p2Name} ${sf2.isCompleted || sf2.isLive ? `[${sf2.s1} - ${sf2.s2}]` : ''}\n\n`;
+
+    if (hasDoubleElimMatches && (ubFinal.isCompleted || lbFinal.isCompleted || bracketData['playoff-m15'] || bracketData['playoff-m17'])) {
+      text += `🛡️ *UPPER & LOWER FINALS:*\n`;
+      text += `• *UB FINAL:* ${ubFinal.p1Name} vs ${ubFinal.p2Name} ${ubFinal.isCompleted || ubFinal.isLive ? `[${ubFinal.s1} - ${ubFinal.s2}]` : ''}\n`;
+      text += `• *LB FINAL:* ${lbFinal.p1Name} vs ${lbFinal.p2Name} ${lbFinal.isCompleted || lbFinal.isLive ? `[${lbFinal.s1} - ${lbFinal.s2}]` : ''}\n\n`;
+    }
 
     text += `👑 *GRAND FINAL (${divisionName ? `${divisionName.toUpperCase()} - ` : ''}CHAMPIONSHIP):*\n`;
     text += `• *FINAL:* ${finalMatch.p1Name} vs ${finalMatch.p2Name} ${finalMatch.isCompleted || finalMatch.isLive ? `[${finalMatch.s1} - ${finalMatch.s2}]` : ''}\n`;
@@ -686,20 +735,20 @@ export function KnockoutShareDialog({
               <div className="flex items-center gap-1.5" style={{ color: primaryHex }}>
                 <span className="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(204,253,1,0.8)]" style={{ backgroundColor: primaryHex }} />
                 <span>
-                  {hasGeneratedPlayoffs ? 'FASE KNOCKOUT • BEST OF 3 • KALAH = GUGUR' : 'PROYEKSI BAGAN 8 BESAR (LIVE MATCH REPORT)'}
+                  {hasGeneratedPlayoffs ? (hasDoubleElimMatches ? 'FASE PLAYOFF • DOUBLE ELIMINATION' : 'FASE KNOCKOUT • BEST OF 3 • KALAH = GUGUR') : 'PROYEKSI BAGAN 8 BESAR (LIVE MATCH REPORT)'}
                 </span>
               </div>
               <span className="text-white/40 font-mono">ROAD TO APEX GLORY</span>
             </div>
 
-            {/* BRACKET OVERVIEW: 3 Distinct Stages */}
+            {/* BRACKET OVERVIEW: Distinct Stages */}
             <div className="relative z-10 space-y-3">
               {/* Stage 1: 8 Besar (Quarterfinals) */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1 text-[9px] font-black uppercase tracking-wider text-white/60 font-mono">
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: primaryHex }} />
-                    <span>STAGE 01 // 8 BESAR (QUARTERFINALS)</span>
+                    <span>{hasDoubleElimMatches ? 'STAGE 01 // UPPER QUARTERFINALS' : 'STAGE 01 // 8 BESAR (QUARTERFINALS)'}</span>
                   </div>
                   <span className="text-[8px] text-white/30">BO3 SERIES</span>
                 </div>
@@ -716,7 +765,7 @@ export function KnockoutShareDialog({
                 <div className="flex items-center justify-between px-1 text-[9px] font-black uppercase tracking-wider text-cyan-400 font-mono">
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                    <span>STAGE 02 // SEMIFINALS</span>
+                    <span>{hasDoubleElimMatches ? 'STAGE 02 // UPPER SEMIFINALS' : 'STAGE 02 // SEMIFINALS'}</span>
                   </div>
                   <span className="text-[8px] text-cyan-400/60">TIER-02 BATTLE</span>
                 </div>
@@ -725,6 +774,23 @@ export function KnockoutShareDialog({
                   <MatchPod m={sf2} />
                 </div>
               </div>
+
+              {/* Optional: Upper & Lower Finals for Double Elimination */}
+              {hasDoubleElimMatches && (ubFinal.isCompleted || lbFinal.isCompleted || bracketData['playoff-m15'] || bracketData['playoff-m17']) && (
+                <div className="space-y-1.5 pt-0.5">
+                  <div className="flex items-center justify-between px-1 text-[9px] font-black uppercase tracking-wider text-purple-400 font-mono">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                      <span>ROAD TO FINAL // UPPER & LOWER FINALS</span>
+                    </div>
+                    <span className="text-[8px] text-purple-400/60">DECIDING DUELS</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <MatchPod m={ubFinal} />
+                    <MatchPod m={lbFinal} />
+                  </div>
+                </div>
+              )}
 
               {/* Stage 3: Grand Final Championship Podium */}
               <div className="space-y-1.5 pt-1">

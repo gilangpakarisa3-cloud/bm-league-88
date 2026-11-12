@@ -15,6 +15,7 @@ import { useLanguage } from '@/context/language-context';
 import { useTranslation } from '@/hooks/use-translation';
 import { usePwa } from '@/context/pwa-context';
 import { useGlobalSeasonTheme } from '@/context/season-theme-context';
+import { BackgroundMusic } from '@/components/layout/background-music';
 
 export function Header() {
   const pathname = usePathname();
@@ -127,6 +128,9 @@ export function Header() {
 
         {/* Action Tools Section */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Background Music Toggle */}
+          <BackgroundMusic />
+
           {/* Install / Download App PWA Button */}
           <Button
             variant="ghost"

@@ -6,7 +6,7 @@ import type { Match, Season, Team, Player, WithId, LeagueEntry } from '@/lib/typ
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield, Activity, Sparkles, TrendingUp, CheckCircle2, Crown, Layers, Share2, ArrowDown, ArrowUp, AlertTriangle } from 'lucide-react';
+import { Swords, Trophy, User, Award, Zap, Loader2, ChevronRight, ChevronLeft, SlidersHorizontal, Binary, BarChart3, Scan, Percent, Star, Undo2, Flame, ShieldAlert, Target, Calendar as CalendarIcon, Clock, Save, Settings2, Shield, Activity, Sparkles, TrendingUp, CheckCircle2, Crown, Layers, Share2, ArrowDown, ArrowUp, AlertTriangle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -77,6 +77,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const scrollLeft = useRef(0);
   const mouseMoved = useRef(false);
 
+  // Lower Bracket dedicated Grab & Slider Scroll
+  const lbScrollRef = useRef<HTMLDivElement>(null);
+  const isLbDragging = useRef(false);
+  const lbStartX = useRef(0);
+  const lbScrollLeft = useRef(0);
+  const lbMouseMoved = useRef(false);
+  const [lbScrollRatio, setLbScrollRatio] = useState(0); // 0 to 100
+  const [canScrollLb, setCanScrollLb] = useState(false);
+
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editTime, setEditTime] = useState<string>('00:00');
   const [isUpdatingSchedule, setIsUpdatingSchedule] = useState(false);
@@ -107,7 +116,78 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   const onMouseUp = () => { isDragging.current = false; document.body.style.userSelect = ''; };
   const onMouseLeave = () => { isDragging.current = false; document.body.style.userSelect = ''; };
-  const handleCardClick = (matchData: any) => { if (!mouseMoved.current) setSelectedMatch(matchData); };
+  const handleCardClick = (matchData: any) => { 
+    if (!mouseMoved.current && !lbMouseMoved.current) {
+      setSelectedMatch(matchData); 
+    }
+  };
+
+  // Lower Bracket horizontal scroll logic
+  const updateLbScrollRatio = useCallback(() => {
+    if (!lbScrollRef.current) return;
+    const { scrollLeft: sLeft, scrollWidth: sWidth, clientWidth: cWidth } = lbScrollRef.current;
+    const maxScroll = sWidth - cWidth;
+    setCanScrollLb(maxScroll > 10);
+    if (maxScroll > 0) {
+      const ratio = Math.min(100, Math.max(0, (sLeft / maxScroll) * 100));
+      setLbScrollRatio(Math.round(ratio));
+    } else {
+      setLbScrollRatio(0);
+    }
+  }, []);
+
+  const handleLbScroll = () => {
+    updateLbScrollRatio();
+  };
+
+  const onLbMouseDown = (e: React.MouseEvent) => {
+    if (!lbScrollRef.current) return;
+    isLbDragging.current = true;
+    lbMouseMoved.current = false;
+    lbStartX.current = e.pageX - lbScrollRef.current.offsetLeft;
+    lbScrollLeft.current = lbScrollRef.current.scrollLeft;
+  };
+
+  const onLbMouseMove = (e: React.MouseEvent) => {
+    if (!isLbDragging.current || !lbScrollRef.current) return;
+    const x = e.pageX - lbScrollRef.current.offsetLeft;
+    const walk = (x - lbStartX.current);
+    if (Math.abs(walk) > 8) {
+      lbMouseMoved.current = true;
+      lbScrollRef.current.scrollLeft = lbScrollLeft.current - walk;
+      updateLbScrollRatio();
+    }
+  };
+
+  const onLbMouseUp = () => {
+    isLbDragging.current = false;
+  };
+
+  const onLbMouseLeave = () => {
+    isLbDragging.current = false;
+  };
+
+  const scrollLbToRatio = (ratio: number) => {
+    if (!lbScrollRef.current) return;
+    const { scrollWidth: sWidth, clientWidth: cWidth } = lbScrollRef.current;
+    const maxScroll = sWidth - cWidth;
+    if (maxScroll <= 0) return;
+    const target = (ratio / 100) * maxScroll;
+    lbScrollRef.current.scrollTo({ left: target, behavior: 'smooth' });
+    setLbScrollRatio(ratio);
+  };
+
+  const scrollLbBy = (delta: number) => {
+    if (!lbScrollRef.current) return;
+    lbScrollRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    updateLbScrollRatio();
+    const handleResize = () => updateLbScrollRatio();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [updateLbScrollRatio]);
 
   const handleSaveManualSchedule = async () => {
     if (!firestore || !season || !selectedMatch || !editDate || !editTime) return;
@@ -241,8 +321,15 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
         proj['playoff-m1'] = { p1: gA[0], p2: gB[3] }; proj['playoff-m2'] = { p1: gB[1], p2: gA[2] };
         proj['playoff-m3'] = { p1: gB[0], p2: gA[3] }; proj['playoff-m4'] = { p1: gA[1], p2: gB[2] };
     }
-    // Jika format 8 Besar Knockout (salah satu grup < 6 peserta):
-    if (gA.length < 6 || gB.length < 6) {
+    
+    // Deteksi apakah matches turnamen memiliki babak double elimination
+    const hasExplicitDoubleElim = matches.some(m => 
+        m.round === 'UB-Quarter' || m.round === 'UB-Semi' || m.round === 'UB-Final' || m.round?.startsWith('LB-') ||
+        ['playoff-m5', 'playoff-m6', 'playoff-m7', 'playoff-m8', 'playoff-m9', 'playoff-m10', 'playoff-m11', 'playoff-m12', 'playoff-m13', 'playoff-m14', 'playoff-m15', 'playoff-m16', 'playoff-m17'].includes(m.bracketId || '')
+    );
+
+    // Jika format 8 Besar Knockout murni (bukan double elimination):
+    if (!hasExplicitDoubleElim && (gA.length < 6 || gB.length < 6)) {
         if (gA.length >= 4 && gB.length >= 4) {
             proj['playoff-sf1'] = { p1: { playerName: 'Pemenang QF 1', teamName: 'Seed A1/B4', id: 'TBD-W1' }, p2: { playerName: 'Pemenang QF 2', teamName: 'Seed B2/A3', id: 'TBD-W2' } };
             proj['playoff-sf2'] = { p1: { playerName: 'Pemenang QF 3', teamName: 'Seed B1/A4', id: 'TBD-W3' }, p2: { playerName: 'Pemenang QF 4', teamName: 'Seed A2/B3', id: 'TBD-W4' } };
@@ -250,14 +337,24 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
             proj['playoff-m18'] = proj['playoff-final'];
         }
     } else {
-        // Double Elimination (12 tim)
-        proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', teamName: 'Unit TBD', id: 'TBD-L1' } };
-        proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', teamName: 'Unit TBD', id: 'TBD-L2' } };
-        proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', teamName: 'Unit TBD', id: 'TBD-L3' } };
-        proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', teamName: 'Unit TBD', id: 'TBD-L4' } };
+        // Double Elimination (12 tim atau 8 tim double elim)
+        if (gA.length >= 5 && gB.length >= 5) {
+            proj['playoff-m5'] = { p1: gA[4], p2: { playerName: 'Loser UB-QF 1', teamName: 'Unit TBD', id: 'TBD-L1' } };
+            proj['playoff-m6'] = { p1: gB[4], p2: { playerName: 'Loser UB-QF 2', teamName: 'Unit TBD', id: 'TBD-L2' } };
+        }
+        if (gA.length >= 6 && gB.length >= 6) {
+            proj['playoff-m7'] = { p1: gA[5], p2: { playerName: 'Loser UB-QF 3', teamName: 'Unit TBD', id: 'TBD-L3' } };
+            proj['playoff-m8'] = { p1: gB[5], p2: { playerName: 'Loser UB-QF 4', teamName: 'Unit TBD', id: 'TBD-L4' } };
+        }
+        proj['playoff-m9'] = { p1: { playerName: 'Pemenang UB-QF 1', teamName: 'Unit TBD', id: 'TBD-W1' }, p2: { playerName: 'Pemenang UB-QF 2', teamName: 'Unit TBD', id: 'TBD-W2' } };
+        proj['playoff-m10'] = { p1: { playerName: 'Pemenang UB-QF 3', teamName: 'Unit TBD', id: 'TBD-W3' }, p2: { playerName: 'Pemenang UB-QF 4', teamName: 'Unit TBD', id: 'TBD-W4' } };
+        proj['playoff-m15'] = { p1: { playerName: 'Pemenang UB-SF 1', teamName: 'Unit TBD', id: 'TBD-W9' }, p2: { playerName: 'Pemenang UB-SF 2', teamName: 'Unit TBD', id: 'TBD-W10' } };
+        proj['playoff-m16'] = { p1: { playerName: 'Semifinalis LB 1', teamName: 'Unit TBD', id: 'TBD-LB1' }, p2: { playerName: 'Semifinalis LB 2', teamName: 'Unit TBD', id: 'TBD-LB2' } };
+        proj['playoff-m17'] = { p1: { playerName: 'Finalis LB', teamName: 'Unit TBD', id: 'TBD-LBF' }, p2: { playerName: 'Loser UB Final', teamName: 'Unit TBD', id: 'TBD-L15' } };
+        proj['playoff-m18'] = { p1: { playerName: 'Pemenang Upper Final', teamName: 'Finalist 01', id: 'TBD-W15' }, p2: { playerName: 'Pemenang Lower Final', teamName: 'Finalist 02', id: 'TBD-W17' } };
     }
     return proj;
-  }, [rankedTable, season]);
+  }, [rankedTable, season, matches]);
 
   const bracketData = useMemo(() => {
     const d: Record<string, any> = {};
@@ -297,11 +394,37 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
   const isCoopHybrid = season?.type === 'Co-Op Hybrid';
   const groupACount = rankedTable.filter(p => p.group === 'A').length;
   const groupBCount = rankedTable.filter(p => p.group === 'B').length;
-  const has8TeamKnockoutMatches = matches.some(m => m.round === 'Quarterfinal' || m.bracketId === 'playoff-sf1' || m.bracketId === 'playoff-m1');
-  const isHybrid8Knockout = (season?.type === 'Hybrid' || season?.type === 'Single Hybrid') && (has8TeamKnockoutMatches || (groupACount > 0 && (groupACount < 6 || groupBCount < 6)));
-  const isSingleHybrid = season?.type === 'Single Hybrid' || isHybrid8Knockout || has8TeamKnockoutMatches;
-  const is12TeamHybrid = season?.type === 'Hybrid' && !isHybrid8Knockout;
+
+  // 1. Deteksi eksplisit apakah ada pertandingan Double Elimination di data matches
+  const hasDoubleElimMatches = matches.some(m => 
+    m.round === 'UB-Quarter' ||
+    m.round === 'UB-Semi' ||
+    m.round === 'UB-Final' ||
+    m.round?.startsWith('LB-') ||
+    ['playoff-m5', 'playoff-m6', 'playoff-m7', 'playoff-m8', 'playoff-m9', 'playoff-m10', 'playoff-m11', 'playoff-m12', 'playoff-m13', 'playoff-m14', 'playoff-m15', 'playoff-m16', 'playoff-m17'].includes(m.bracketId || '')
+  );
+
+  // 2. Deteksi eksplisit apakah ada pertandingan 8-Besar Single Elimination (Quarterfinal / Semifinal murni)
+  // PENTING: Jangan gunakan m.bracketId === 'playoff-m1' tanpa validasi round karena Double Elimination juga memakai 'playoff-m1' untuk UB-Quarter!
+  const has8TeamKnockoutMatches = !hasDoubleElimMatches && matches.some(m => 
+    m.round === 'Quarterfinal' || 
+    m.round === 'Semifinal' || 
+    m.bracketId === 'playoff-sf1' || 
+    m.bracketId === 'playoff-sf2' ||
+    m.bracketId === 'playoff-final'
+  );
+
+  const isHybrid8Knockout = !hasDoubleElimMatches && (season?.type === 'Hybrid' || season?.type === 'Single Hybrid') && (
+    has8TeamKnockoutMatches || 
+    (!matches.some(m => m.bracketId) && groupACount > 0 && (groupACount < 6 || groupBCount < 6))
+  );
+
+  const isSingleHybrid = !hasDoubleElimMatches && (season?.type === 'Single Hybrid' || isHybrid8Knockout || has8TeamKnockoutMatches);
+  const is12TeamHybrid = !isSingleHybrid && !isCoopHybrid && (season?.type === 'Hybrid' || hasDoubleElimMatches);
   const theme = getSeasonTheme(season);
+
+  const hasLbRound1 = Boolean(is12TeamHybrid || bracketData['playoff-m5'] || bracketData['playoff-m6'] || bracketData['playoff-m7'] || bracketData['playoff-m8']);
+  const hasLbRound2 = Boolean(bracketData['playoff-m11'] || bracketData['playoff-m12']);
 
   const [mobileRoundTab, setMobileRoundTab] = useState<string>('all');
   const [mobileViewMode, setMobileViewMode] = useState<'stage' | 'canvas'>('stage');
@@ -645,12 +768,18 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </Badge>
                                 </div>
                                 <div className="space-y-3">
-                                    {is12TeamHybrid && (
+                                    {hasLbRound1 && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                             <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
                                             <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
                                             <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
                                             <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                        </div>
+                                    )}
+                                    {hasLbRound2 && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                                            <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                            <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
                                         </div>
                                     )}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
@@ -717,6 +846,13 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className={cn("flex-1 relative bg-gradient-to-br from-black/95 via-[#070A0F]/95 to-black/95 border-2 rounded-[2rem] p-4 sm:p-6 2xl:p-8 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] transition-all duration-700 aero-card cyber-carbon overflow-hidden", theme.primaryBorder)}>
                             {/* Top neon racing tracer */}
                             <div className={cn("absolute top-0 left-0 right-0 h-[2px]", theme.topTracer)} />
+                            
+                            {/* TI Aegis Four Corner Filigree Accents */}
+                            <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+
                             <div className="absolute top-3 right-5 flex items-center gap-2 font-mono opacity-75">
                                 <span className={cn("text-[7.5px] font-black tracking-[0.3em] uppercase ", theme.primaryText)}>
                                     {theme.sysTag}
@@ -762,39 +898,42 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     </div>
                                 </div>
 
-                                {/* 2. Stage Progress Route Indicators */}
+                                {/* 2. Stage Progress Route Indicators (TI Aegis Chamfered Badges) */}
                                 <div className="flex items-center justify-between px-2 font-mono text-[8px] text-white/40 border-b border-white/5 pb-2">
                                     <div className="flex items-center gap-2">
                                         <span 
-                                          className="font-black uppercase px-2.5 py-0.5 rounded-full border"
+                                          className="font-black uppercase px-2.5 py-0.5 rounded-sm border shadow-sm flex items-center gap-1"
                                           style={{
-                                            color: theme.primaryHex,
+                                            color: '#FDE68A',
                                             backgroundColor: `${theme.primaryHex}1A`,
-                                            borderColor: `${theme.primaryHex}4D`
+                                            borderColor: '#FBBF2480',
+                                            boxShadow: `0 0 10px ${theme.primaryHex}33`
                                           }}
                                         >
-                                            STAGE 01 // 8 BESAR (QUARTERFINALS)
+                                            <span className="text-[#FBBF24] text-[8px]">◆</span>
+                                            <span>STAGE 01 // 8 BESAR (QUARTERFINALS)</span>
                                         </span>
-                                        <span className="text-white/20">❯❯❯</span>
+                                        <span className="text-[#FBBF24]/50">❯❯❯</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span 
-                                          className="font-black uppercase px-2.5 py-0.5 rounded-full border"
+                                          className="font-black uppercase px-2.5 py-0.5 rounded-sm border shadow-sm flex items-center gap-1"
                                           style={{
-                                            color: theme.secondaryHex || theme.primaryHex,
+                                            color: '#FDE68A',
                                             backgroundColor: `${theme.secondaryHex || theme.primaryHex}1A`,
-                                            borderColor: `${theme.secondaryHex || theme.primaryHex}4D`
+                                            borderColor: '#FBBF2480',
+                                            boxShadow: `0 0 10px ${(theme.secondaryHex || theme.primaryHex)}33`
                                           }}
                                         >
-                                            STAGE 02 // SEMIFINALS
+                                            <span className="text-[#FBBF24] text-[8px]">◆</span>
+                                            <span>STAGE 02 // SEMIFINALS</span>
                                         </span>
-                                        <span className="text-white/20">❯❯❯</span>
+                                        <span className="text-[#FBBF24]/50">❯❯❯</span>
                                     </div>
                                     <div 
-                                      className="flex items-center gap-1.5 font-bold uppercase"
-                                      style={{ color: theme.secondaryHex || theme.primaryHex }}
+                                      className="flex items-center gap-1.5 font-bold uppercase text-[#FDE68A]"
                                     >
-                                        <Zap className="w-3 h-3" style={{ color: theme.secondaryHex || theme.primaryHex }} />
+                                        <Zap className="w-3 h-3 text-[#FBBF24]" />
                                         <span>{divisionName ? `APEX GRAND FINAL • ${divisionName.toUpperCase()}` : "APEX GRAND FINAL"}</span>
                                     </div>
                                 </div>
@@ -891,6 +1030,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                         <div className={cn("flex-1 relative bg-gradient-to-br from-black/95 via-[#070A0F]/95 to-black/95 border-2 rounded-[2.5rem] p-5 sm:p-8 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] transition-all duration-700 aero-card cyber-carbon overflow-hidden", theme.primaryBorder)}>
                             {/* Top neon tracer */}
                             <div className={cn("absolute top-0 left-0 right-0 h-[2px]", theme.topTracer)} />
+
+                            {/* TI Aegis Four Corner Filigree Accents */}
+                            <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#FBBF24]/80 pointer-events-none z-20" />
                             <div className="absolute top-4 right-6 flex items-center gap-2 opacity-75 font-mono">
                                 <span className={cn("text-[7.5px] font-black tracking-[0.3em] uppercase ", theme.primaryText)}>
                                     {`${theme.sysTag}_UB`}
@@ -925,43 +1070,45 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <span>Share Bagan</span>
                                     </Button>
                                 </div>
-                                <div className="w-full flex items-center justify-between gap-2 sm:gap-4 pl-1 sm:pl-3">
-                                    {!isCoopHybrid && (
-                                      <>
-                                        <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col gap-6 relative">
-                                          <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
-                                          <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
-                                          <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
-                                          <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
-                                        </div>
-                                        <div className="shrink-0 flex flex-col gap-6 py-2">
-                                          <BracketConnectorFork 
-                                            color={theme.connectorColor} 
-                                            customHex={theme.primaryHex} 
-                                            customGlow={theme.glowRgba} 
-                                          />
-                                          <BracketConnectorFork 
-                                            color={theme.connectorColor} 
-                                            customHex={theme.primaryHex} 
-                                            customGlow={theme.glowRgba} 
-                                          />
-                                        </div>
-                                      </>
-                                    )}
-                                    <div className={cn("flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col", isCoopHybrid ? "justify-around h-[220px] py-2" : "gap-32 py-10")}>
-                                      <MatchCard bid="playoff-m9" label={isCoopHybrid ? "UB SEMI 1" : "UB SEMI 1"} bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
-                                      <MatchCard bid="playoff-m10" label={isCoopHybrid ? "UB SEMI 2" : "UB SEMI 2"} bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
-                                    </div>
-                                    <div className="shrink-0 flex flex-col justify-center">
-                                      <BracketConnectorFork 
-                                        color={theme.connectorColor} 
-                                        customHex={theme.primaryHex} 
-                                        customGlow={theme.glowRgba} 
-                                      />
-                                    </div>
-                                    <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col justify-center">
-                                      <MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
-                                    </div>
+                                <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pb-2">
+                                  <div className="min-w-[650px] sm:min-w-[700px] flex items-center justify-between gap-2 sm:gap-4 pl-1 sm:pl-3">
+                                      {!isCoopHybrid && (
+                                        <>
+                                          <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col gap-6 relative">
+                                            <MatchCard bid="playoff-m1" label="UB QF 1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
+                                            <MatchCard bid="playoff-m2" label="UB QF 2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
+                                            <MatchCard bid="playoff-m3" label="UB QF 3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
+                                            <MatchCard bid="playoff-m4" label="UB QF 4" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
+                                          </div>
+                                          <div className="shrink-0 flex flex-col gap-6 py-2">
+                                            <BracketConnectorFork 
+                                              color={theme.connectorColor} 
+                                              customHex={theme.primaryHex} 
+                                              customGlow={theme.glowRgba} 
+                                            />
+                                            <BracketConnectorFork 
+                                              color={theme.connectorColor} 
+                                              customHex={theme.primaryHex} 
+                                              customGlow={theme.glowRgba} 
+                                            />
+                                          </div>
+                                        </>
+                                      )}
+                                      <div className={cn("flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col", isCoopHybrid ? "justify-around h-[220px] py-2" : "gap-32 py-10")}>
+                                        <MatchCard bid="playoff-m9" label={isCoopHybrid ? "UB SEMI 1" : "UB SEMI 1"} bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
+                                        <MatchCard bid="playoff-m10" label={isCoopHybrid ? "UB SEMI 2" : "UB SEMI 2"} bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
+                                      </div>
+                                      <div className="shrink-0 flex flex-col justify-center">
+                                        <BracketConnectorFork 
+                                          color={theme.connectorColor} 
+                                          customHex={theme.primaryHex} 
+                                          customGlow={theme.glowRgba} 
+                                        />
+                                      </div>
+                                      <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col justify-center">
+                                        <MatchCard bid="playoff-m15" label="UPPER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} />
+                                      </div>
+                                  </div>
                                 </div>
                             </div>
                         </div>
@@ -979,6 +1126,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 boxShadow: `0 0 20px ${theme.primaryHex}`
                               }}
                             />
+
+                            {/* TI Aegis Four Corner Filigree Accents */}
+                            <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#FBBF24]/80 pointer-events-none z-20" />
+                            <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#FBBF24]/80 pointer-events-none z-20" />
                             <div className="absolute top-4 right-6 flex items-center gap-2 opacity-75 font-mono">
                                 <span
                                   className="text-[7.5px] font-black tracking-[0.3em] uppercase"
@@ -992,77 +1145,252 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 />
                             </div>
 
-                            <div className="space-y-6 relative h-full flex flex-col justify-center">
-                                <div className="flex items-center gap-3">
-                                    <div
-                                      className="h-7 w-1 rounded-full shadow-md"
-                                      style={{
-                                        backgroundColor: theme.primaryHex,
-                                        boxShadow: `0 0 15px ${theme.primaryHex}`
-                                      }}
-                                    />
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <h3
-                                              className="text-lg sm:text-xl font-black tracking-widest uppercase font-headline"
-                                              style={{ color: theme.secondaryHex || theme.primaryHex }}
-                                            >
-                                                {theme.lowerTitle}
-                                            </h3>
-                                            <Badge
-                                              className="text-[7.5px] font-black uppercase tracking-widest px-2 py-0.2 rounded-full shadow-sm"
-                                              style={{
-                                                backgroundColor: `${theme.primaryHex}26`,
-                                                borderColor: `${theme.primaryHex}66`,
-                                                color: theme.secondaryHex || theme.primaryHex
-                                              }}
-                                            >
-                                                SUDDEN DEATH PROTOCOL
-                                            </Badge>
+                            <div className="space-y-4 sm:space-y-6 relative h-full flex flex-col justify-center">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/10">
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                          className="h-7 w-1 rounded-full shadow-md"
+                                          style={{
+                                            backgroundColor: theme.primaryHex,
+                                            boxShadow: `0 0 15px ${theme.primaryHex}`
+                                          }}
+                                        />
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h3
+                                                  className="text-lg sm:text-xl font-black tracking-widest uppercase font-headline"
+                                                  style={{ color: theme.secondaryHex || theme.primaryHex }}
+                                                >
+                                                    {theme.lowerTitle}
+                                                </h3>
+                                                <Badge
+                                                  className="text-[7.5px] font-black uppercase tracking-widest px-2 py-0.2 rounded-full shadow-sm"
+                                                  style={{
+                                                    backgroundColor: `${theme.primaryHex}26`,
+                                                    borderColor: `${theme.primaryHex}66`,
+                                                    color: theme.secondaryHex || theme.primaryHex
+                                                  }}
+                                                >
+                                                    SUDDEN DEATH PROTOCOL
+                                                </Badge>
+                                            </div>
+                                            <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">
+                                                {theme.lowerSubtitle}
+                                            </span>
                                         </div>
-                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">
-                                            {theme.lowerSubtitle}
-                                        </span>
+                                    </div>
+
+                                    {/* SLIDER & INTERACTIVE NAVIGATION CONTROL */}
+                                    <div 
+                                      className="flex items-center gap-2 bg-gradient-to-r from-black/80 via-[#0a0d14]/90 to-black/80 border rounded-xl px-2.5 py-1.5 backdrop-blur-md self-start sm:self-auto shadow-lg relative group overflow-hidden"
+                                      style={{
+                                        borderColor: `${theme.primaryHex}40`,
+                                        boxShadow: `0 0 20px ${theme.primaryHex}15`
+                                      }}
+                                    >
+                                        {/* Subtle theme background laser line */}
+                                        <div 
+                                          className="absolute top-0 left-0 right-0 h-[1.5px] opacity-75"
+                                          style={{
+                                            background: `linear-gradient(to right, transparent, ${theme.secondaryHex || theme.primaryHex}, transparent)`
+                                          }}
+                                        />
+
+                                        <button
+                                          type="button"
+                                          onClick={() => scrollLbBy(-240)}
+                                          className="p-1 rounded-lg text-white/70 hover:text-white transition-all active:scale-90"
+                                          style={{
+                                            backgroundColor: `${theme.primaryHex}15`,
+                                            border: `1px solid ${theme.primaryHex}30`
+                                          }}
+                                          title="Geser ke kiri"
+                                        >
+                                          <ChevronLeft className="w-4 h-4" style={{ color: theme.secondaryHex || theme.primaryHex }} />
+                                        </button>
+
+                                        <div className="flex items-center gap-2">
+                                          <SlidersHorizontal 
+                                            className="w-3.5 h-3.5" 
+                                            style={{ color: theme.secondaryHex || theme.primaryHex }} 
+                                          />
+                                          <div className="relative flex items-center">
+                                            <input
+                                              type="range"
+                                              min="0"
+                                              max="100"
+                                              value={lbScrollRatio}
+                                              onChange={(e) => scrollLbToRatio(Number(e.target.value))}
+                                              className="w-24 sm:w-32 h-1.5 rounded-lg appearance-none cursor-pointer"
+                                              style={{
+                                                background: `linear-gradient(to right, ${theme.primaryHex} 0%, ${theme.secondaryHex || theme.primaryHex} ${lbScrollRatio}%, rgba(255,255,255,0.15) ${lbScrollRatio}%, rgba(255,255,255,0.15) 100%)`,
+                                                accentColor: theme.secondaryHex || theme.primaryHex
+                                              }}
+                                              title="Geser posisi bagan"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => scrollLbBy(240)}
+                                          className="p-1 rounded-lg text-white/70 hover:text-white transition-all active:scale-90"
+                                          style={{
+                                            backgroundColor: `${theme.primaryHex}15`,
+                                            border: `1px solid ${theme.primaryHex}30`
+                                          }}
+                                          title="Geser ke kanan"
+                                        >
+                                          <ChevronRight className="w-4 h-4" style={{ color: theme.secondaryHex || theme.primaryHex }} />
+                                        </button>
+
+                                        {/* Quick Navigation Pills */}
+                                        <div 
+                                          className="hidden sm:flex items-center gap-1 border-l pl-2"
+                                          style={{ borderColor: `${theme.primaryHex}30` }}
+                                        >
+                                          {hasLbRound1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => scrollLbToRatio(0)}
+                                              className={cn(
+                                                "text-[9px] font-mono font-bold px-1.5 py-0.5 rounded transition-all",
+                                                lbScrollRatio < 25 ? "font-black shadow-sm" : "text-white/40 hover:text-white/80"
+                                              )}
+                                              style={lbScrollRatio < 25 ? {
+                                                backgroundColor: `${theme.primaryHex}25`,
+                                                color: theme.secondaryHex || theme.primaryHex,
+                                                border: `1px solid ${theme.primaryHex}60`,
+                                                boxShadow: `0 0 10px ${theme.primaryHex}30`
+                                              } : undefined}
+                                            >
+                                              R1
+                                            </button>
+                                          )}
+                                          {hasLbRound2 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => scrollLbToRatio(35)}
+                                              className={cn(
+                                                "text-[9px] font-mono font-bold px-1.5 py-0.5 rounded transition-all",
+                                                lbScrollRatio >= 25 && lbScrollRatio < 60 ? "font-black shadow-sm" : "text-white/40 hover:text-white/80"
+                                              )}
+                                              style={lbScrollRatio >= 25 && lbScrollRatio < 60 ? {
+                                                backgroundColor: `${theme.primaryHex}25`,
+                                                color: theme.secondaryHex || theme.primaryHex,
+                                                border: `1px solid ${theme.primaryHex}60`,
+                                                boxShadow: `0 0 10px ${theme.primaryHex}30`
+                                              } : undefined}
+                                            >
+                                              R2
+                                            </button>
+                                          )}
+                                          <button
+                                            type="button"
+                                            onClick={() => scrollLbToRatio(70)}
+                                            className={cn(
+                                              "text-[9px] font-mono font-bold px-1.5 py-0.5 rounded transition-all",
+                                              lbScrollRatio >= 60 && lbScrollRatio < 90 ? "font-black shadow-sm" : "text-white/40 hover:text-white/80"
+                                            )}
+                                            style={lbScrollRatio >= 60 && lbScrollRatio < 90 ? {
+                                              backgroundColor: `${theme.primaryHex}25`,
+                                              color: theme.secondaryHex || theme.primaryHex,
+                                              border: `1px solid ${theme.primaryHex}60`,
+                                              boxShadow: `0 0 10px ${theme.primaryHex}30`
+                                            } : undefined}
+                                          >
+                                            R3
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => scrollLbToRatio(100)}
+                                            className={cn(
+                                              "text-[9px] font-mono font-bold px-1.5 py-0.5 rounded transition-all",
+                                              lbScrollRatio >= 90 ? "font-black shadow-sm" : "text-white/40 hover:text-white/80"
+                                            )}
+                                            style={lbScrollRatio >= 90 ? {
+                                              backgroundColor: `${theme.primaryHex}25`,
+                                              color: theme.secondaryHex || theme.primaryHex,
+                                              border: `1px solid ${theme.primaryHex}60`,
+                                              boxShadow: `0 0 10px ${theme.primaryHex}30`
+                                            } : undefined}
+                                          >
+                                            FINAL
+                                          </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="w-full flex items-center justify-between gap-2 sm:gap-4 pl-1 sm:pl-3">
-                                    {is12TeamHybrid && (
-                                      <>
-                                        <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col gap-6">
-                                          <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                          <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                          <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                          <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                        </div>
-                                        <div className="shrink-0 flex flex-col gap-6 py-2">
-                                          <BracketConnectorFork 
-                                            color={theme.lowerConnectorColor} 
-                                            customHex={theme.secondaryHex || theme.primaryHex} 
-                                            customGlow={theme.glowRgba} 
-                                          />
-                                          <BracketConnectorFork 
-                                            color={theme.lowerConnectorColor} 
-                                            customHex={theme.secondaryHex || theme.primaryHex} 
-                                            customGlow={theme.glowRgba} 
-                                          />
-                                        </div>
-                                      </>
-                                    )}
-                                    <div className={cn("flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col", isCoopHybrid ? "justify-around h-[220px] py-2" : "gap-32 py-10")}>
-                                      <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                      <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                    </div>
-                                    <div className="shrink-0 flex flex-col justify-center">
-                                      <BracketConnectorFork 
-                                        color={theme.lowerConnectorColor} 
-                                        customHex={theme.secondaryHex || theme.primaryHex} 
-                                        customGlow={theme.glowRgba} 
-                                      />
-                                    </div>
-                                    <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col justify-center gap-8">
-                                      <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                      <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
-                                    </div>
+
+                                {/* SCROLLABLE & DRAGGABLE LOWER BRACKET CONTAINER */}
+                                <div
+                                  ref={lbScrollRef}
+                                  onMouseDown={onLbMouseDown}
+                                  onMouseMove={onLbMouseMove}
+                                  onMouseUp={onLbMouseUp}
+                                  onMouseLeave={onLbMouseLeave}
+                                  onScroll={handleLbScroll}
+                                  className="w-full overflow-x-auto select-none cursor-grab active:cursor-grabbing pb-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent transition-all"
+                                  style={{
+                                    scrollbarColor: `${theme.primaryHex}40 transparent`
+                                  }}
+                                >
+                                  <div className={cn(
+                                    "flex items-center justify-between gap-2 sm:gap-4 pl-1 sm:pl-3",
+                                    hasLbRound1 ? "min-w-[1050px] 2xl:min-w-[1150px]" : "min-w-[850px]"
+                                  )}>
+                                      {hasLbRound1 && (
+                                        <>
+                                          <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col gap-6">
+                                            <MatchCard bid="playoff-m5" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                            <MatchCard bid="playoff-m6" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                            <MatchCard bid="playoff-m7" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                            <MatchCard bid="playoff-m8" label="LB R1" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                          </div>
+                                          <div className="shrink-0 flex flex-col gap-6 py-2">
+                                            <BracketConnectorFork 
+                                              color={theme.lowerConnectorColor} 
+                                              customHex={theme.secondaryHex || theme.primaryHex} 
+                                              customGlow={theme.glowRgba} 
+                                            />
+                                            <BracketConnectorFork 
+                                              color={theme.lowerConnectorColor} 
+                                              customHex={theme.secondaryHex || theme.primaryHex} 
+                                              customGlow={theme.glowRgba} 
+                                            />
+                                          </div>
+                                        </>
+                                      )}
+                                      {hasLbRound2 && (
+                                        <>
+                                          <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col justify-around h-[220px] py-2">
+                                            <MatchCard bid="playoff-m11" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                            <MatchCard bid="playoff-m12" label="LB R2" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                          </div>
+                                          <div className="shrink-0 flex flex-col justify-center">
+                                            <BracketConnectorFork 
+                                              color={theme.lowerConnectorColor} 
+                                              customHex={theme.secondaryHex || theme.primaryHex} 
+                                              customGlow={theme.glowRgba} 
+                                            />
+                                          </div>
+                                        </>
+                                      )}
+                                      <div className={cn("flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col", isCoopHybrid ? "justify-around h-[220px] py-2" : "gap-32 py-10")}>
+                                        <MatchCard bid="playoff-m13" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                        <MatchCard bid="playoff-m14" label="LB R3" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                      </div>
+                                      <div className="shrink-0 flex flex-col justify-center">
+                                        <BracketConnectorFork 
+                                          color={theme.lowerConnectorColor} 
+                                          customHex={theme.secondaryHex || theme.primaryHex} 
+                                          customGlow={theme.glowRgba} 
+                                        />
+                                      </div>
+                                      <div className="flex-1 min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] flex flex-col justify-center gap-8">
+                                        <MatchCard bid="playoff-m16" label="LB SEMI" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                        <MatchCard bid="playoff-m17" label="LOWER FINAL" bracketData={bracketData} projections={projections} handleCardClick={handleCardClick} teamsById={teamsById} theme={theme} isLower={true} />
+                                      </div>
+                                  </div>
                                 </div>
                             </div>
                         </div>

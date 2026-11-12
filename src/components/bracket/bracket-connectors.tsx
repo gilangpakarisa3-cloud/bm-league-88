@@ -16,7 +16,7 @@ export const CyberConnectorFork = ({ color = "primary", customHex, customGlow, h
   const strokeColor = customHex || defaultStrokeColor;
   const glowRgba = customGlow || defaultGlowRgba;
   const safeId = (customHex || color).replace(/[^a-zA-Z0-9]/g, '');
-  const gradientId = `cyber-fork-grad-${safeId}-${height}`;
+  const gradientId = `ti-fork-grad-${safeId}-${height}`;
 
   // High-precision dimensions aligned to card centers
   const w = 56;
@@ -24,14 +24,12 @@ export const CyberConnectorFork = ({ color = "primary", customHex, customGlow, h
   const y1 = isTall ? 88 : 42;
   const y2 = isTall ? 288 : 134;
   const midY = isTall ? 188 : 88;
-  const splitX = 22;
-  const joinX = 36;
+  const splitX = 18;
+  const joinX = 34;
 
-  // Path 1 (Top branch to mid)
-  const pathTop = `M 0,${y1} L ${splitX},${y1} Q ${joinX},${y1} ${joinX},${midY}`;
-  // Path 2 (Bottom branch to mid)
-  const pathBottom = `M 0,${y2} L ${splitX},${y2} Q ${joinX},${y2} ${joinX},${midY}`;
-  // Path 3 (Stem to next node)
+  // Sharp Angular Elbow Paths (TI Filigree Chamfered Geometry)
+  const pathTop = `M 0,${y1} L ${splitX},${y1} L ${joinX},${midY}`;
+  const pathBottom = `M 0,${y2} L ${splitX},${y2} L ${joinX},${midY}`;
   const pathStem = `M ${joinX},${midY} L ${w},${midY}`;
   const fullRail = `${pathTop} ${pathBottom} ${pathStem}`;
 
@@ -45,12 +43,12 @@ export const CyberConnectorFork = ({ color = "primary", customHex, customGlow, h
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={strokeColor} stopOpacity="0.4" />
-            <stop offset="70%" stopColor={strokeColor} stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#FFFFFF" stopOpacity="1" />
+            <stop offset="0%" stopColor={strokeColor} stopOpacity="0.5" />
+            <stop offset="60%" stopColor={strokeColor} stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#FDE047" stopOpacity="1" />
           </linearGradient>
           <filter id={`glow-${gradientId}`} x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -58,40 +56,71 @@ export const CyberConnectorFork = ({ color = "primary", customHex, customGlow, h
           </filter>
         </defs>
 
-        <path d={fullRail} stroke={strokeColor} strokeWidth="6" strokeOpacity="0.15" strokeLinecap="round" filter={`url(#glow-${gradientId})`} />
-        <path d={fullRail} stroke={`url(#${gradientId})`} strokeWidth="1.75" strokeLinecap="round" />
+        {/* Ambient Glow Aura */}
+        <path d={fullRail} stroke={strokeColor} strokeWidth="6" strokeOpacity="0.2" strokeLinecap="square" filter={`url(#glow-${gradientId})`} />
+        
+        {/* Base Solid Rail in Season Palette */}
+        <path d={fullRail} stroke={`url(#${gradientId})`} strokeWidth="2" strokeLinecap="square" />
 
+        {/* Dynamic Energy Flow in Aegis Gold */}
         <path
           d={fullRail}
-          stroke="#FFFFFF"
+          stroke="#FDE047"
           strokeWidth="2"
-          strokeLinecap="round"
-          strokeDasharray="6 10"
+          strokeLinecap="square"
+          strokeDasharray="6 8"
           className="animate-energy-flow"
-          opacity="0.9"
-          style={{ filter: `drop-shadow(0 0 4px ${glowRgba})` }}
+          opacity="0.95"
+          style={{ filter: `drop-shadow(0 0 5px ${glowRgba}) drop-shadow(0 0 8px #FBBF24)` }}
         />
 
+        {/* Top Branch Anchor Diamond (Aegis Gold) */}
         <g transform={`translate(0, ${y1})`}>
-          <circle cx="0" cy="0" r="4" fill={strokeColor} opacity="0.35" />
-          <circle cx="0" cy="0" r="2.5" fill="#FFFFFF" stroke={strokeColor} strokeWidth="1" />
+          <rect x="-3" y="-3" width="6" height="6" transform="rotate(45)" fill="#0B0912" stroke="#FBBF24" strokeWidth="1.2" />
+          <rect x="-1.5" y="-1.5" width="3" height="3" transform="rotate(45)" fill="#FDE047" />
         </g>
+
+        {/* Bottom Branch Anchor Diamond (Aegis Gold) */}
         <g transform={`translate(0, ${y2})`}>
-          <circle cx="0" cy="0" r="4" fill={strokeColor} opacity="0.35" />
-          <circle cx="0" cy="0" r="2.5" fill="#FFFFFF" stroke={strokeColor} strokeWidth="1" />
+          <rect x="-3" y="-3" width="6" height="6" transform="rotate(45)" fill="#0B0912" stroke="#FBBF24" strokeWidth="1.2" />
+          <rect x="-1.5" y="-1.5" width="3" height="3" transform="rotate(45)" fill="#FDE047" />
         </g>
 
+        {/* Center Aegis Relic Gem Node at Convergence */}
         <g transform={`translate(${joinX}, ${midY})`}>
-          <circle cx="0" cy="0" r="8" stroke={strokeColor} strokeWidth="1" strokeOpacity="0.6" className="animate-ping" />
-          <line x1="-7" y1="0" x2="-4" y2="0" stroke={strokeColor} strokeWidth="1" />
-          <line x1="4" y1="0" x2="7" y2="0" stroke={strokeColor} strokeWidth="1" />
-          <rect x="-4" y="-4" width="8" height="8" transform="rotate(45)" fill="#070B12" stroke={strokeColor} strokeWidth="1.5" style={{ filter: `drop-shadow(0 0 6px ${glowRgba})` }} />
-          <circle cx="0" cy="0" r="1.5" fill="#FFFFFF" />
+          {/* Subtle Ping Ring */}
+          <circle cx="0" cy="0" r="9" stroke="#FBBF24" strokeWidth="1" strokeOpacity="0.4" className="animate-ping" />
+          
+          {/* Outer Gold Diamond Relic */}
+          <rect
+            x="-6"
+            y="-6"
+            width="12"
+            height="12"
+            transform="rotate(45)"
+            fill="#090712"
+            stroke="#FBBF24"
+            strokeWidth="1.8"
+            style={{ filter: `drop-shadow(0 0 8px ${glowRgba}) drop-shadow(0 0 4px #FBBF24)` }}
+          />
+
+          {/* Inner Season Gem Inset */}
+          <rect
+            x="-3"
+            y="-3"
+            width="6"
+            height="6"
+            transform="rotate(45)"
+            fill={strokeColor}
+            stroke="#FDE047"
+            strokeWidth="0.8"
+          />
         </g>
 
+        {/* Stem End Tip Node (Next Stage Entry) */}
         <g transform={`translate(${w - 2}, ${midY})`}>
-          <circle cx="0" cy="0" r="3" fill="#FFFFFF" style={{ filter: `drop-shadow(0 0 8px ${glowRgba})` }} className="animate-pulse" />
-          <path d="M -5,-3 L -1,0 L -5,3" stroke={strokeColor} strokeWidth="1.5" strokeLinecap="round" fill="none" />
+          <rect x="-2.5" y="-2.5" width="5" height="5" transform="rotate(45)" fill="#FDE047" style={{ filter: `drop-shadow(0 0 6px #FBBF24)` }} className="animate-pulse" />
+          <path d="M -5,-3.5 L 0,0 L -5,3.5" stroke="#FBBF24" strokeWidth="1.5" strokeLinecap="square" fill="none" />
         </g>
       </svg>
     </div>
@@ -118,13 +147,17 @@ export const BracketConnectorStraight = ({
       <div 
         className="w-full h-[2px] relative"
         style={{
-          background: `linear-gradient(to right, ${strokeColor}66, ${strokeColor}, ${strokeColor}66)`,
+          background: `linear-gradient(to right, ${strokeColor}66, #FBBF24, ${strokeColor}66)`,
           boxShadow: glowShadow
         }}
       >
         <div 
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" 
-          style={{ backgroundColor: strokeColor, boxShadow: glowShadow }} 
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rotate-45 border" 
+          style={{
+            backgroundColor: strokeColor,
+            borderColor: '#FBBF24',
+            boxShadow: `0 0 8px #FBBF24, ${glowShadow}`
+          }} 
         />
       </div>
     </div>
