@@ -464,7 +464,7 @@ export default function LeaguePage() {
 
           <div className="space-y-6 sm:space-y-8">
             <div className="flex flex-col gap-1 items-center justify-center">
-              <h2 className="font-black text-lg sm:text-2xl uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary italic pr-4 text-center">
+              <h2 className="font-black text-lg sm:text-2xl uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary pr-4 text-center">
                 Season Insights & Management
               </h2>
               <div className="h-1 w-16 sm:w-20 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />

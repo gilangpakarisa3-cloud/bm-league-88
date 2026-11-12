@@ -98,7 +98,7 @@ export function MobileBottomNav() {
                   isActive ? "text-black scale-110" : "text-white/70 group-hover:scale-105"
                 )} />
                 <span className={cn(
-                  "text-[9px] font-black uppercase tracking-tight italic leading-tight truncate w-full text-center",
+                  "text-[9px] font-black uppercase tracking-tight  leading-tight truncate w-full text-center",
                   isActive ? "text-black font-black" : "text-white/60"
                 )}>
                   {item.label}

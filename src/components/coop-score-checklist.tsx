@@ -31,7 +31,7 @@ export function CoopScoreChecklist({ player1Name, player2Name, winners, onWinner
       >
         <Binary className="w-3.5 h-3.5 animate-pulse" style={{ color: primaryHex }} />
         <span 
-          className="text-[9px] font-black uppercase tracking-[0.2em] italic pr-2"
+          className="text-[9px] font-black uppercase tracking-[0.2em] pr-2"
           style={{ color: primaryHex }}
         >
           Tactical Win-Distribution Matrix
@@ -79,7 +79,7 @@ export function CoopScoreChecklist({ player1Name, player2Name, winners, onWinner
                               } : { backgroundColor: 'rgba(255,255,255,0.1)' }}
                           />
                           <CardTitle 
-                              className="text-[10px] font-black uppercase tracking-[0.3em] italic pr-2"
+                              className="text-[10px] font-black uppercase tracking-[0.3em] pr-2"
                               style={currentWinner ? { color: primaryHex } : { color: 'rgba(255,255,255,0.4)' }}
                           >
                               LOG {i + 1}
@@ -156,7 +156,7 @@ export function CoopScoreChecklist({ player1Name, player2Name, winners, onWinner
 
                                       <span 
                                           className={cn(
-                                              "text-[11px] font-black uppercase italic tracking-tight truncate w-full px-1 transition-colors pr-2",
+                                              "text-[11px] font-black uppercase  tracking-tight truncate w-full px-1 transition-colors pr-2",
                                               !isSelected && "text-white/60 group-hover/btn:text-white"
                                           )}
                                           style={isSelected ? { color: primaryHex } : undefined}
@@ -183,7 +183,7 @@ export function CoopScoreChecklist({ player1Name, player2Name, winners, onWinner
         })}
       </div>
       
-      <p className="text-center text-[8px] font-black uppercase tracking-[0.3em] text-white/20 mt-4 italic">
+      <p className="text-center text-[8px] font-black uppercase tracking-[0.3em] text-white/20 mt-4">
         User Protocol: Select node to define outcome
       </p>
     </div>

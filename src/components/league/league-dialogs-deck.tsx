@@ -327,7 +327,7 @@ export function LeagueDialogsDeck({
       <AlertDialog open={Boolean(deletingSeason)} onOpenChange={(isOpen) => !isOpen && setDeletingSeason(null)}>
         <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">
+            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase text-red-500 pr-4">
               {t('are_you_sure')}
             </AlertDialogTitle>
             <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">
@@ -335,12 +335,12 @@ export function LeagueDialogsDeck({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-3">
-            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">
+            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1">
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteSeason}
-              className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic"
+              className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1"
             >
               {t('delete')}
             </AlertDialogAction>
@@ -351,7 +351,7 @@ export function LeagueDialogsDeck({
       <AlertDialog open={Boolean(deletingEntry)} onOpenChange={(isOpen) => !isOpen && setDeletingEntry(null)}>
         <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-red-500/50 bg-card/95 backdrop-blur-xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic text-red-500 pr-4">
+            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase text-red-500 pr-4">
               {t('remove_player_from_season_title')}
             </AlertDialogTitle>
             <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">
@@ -359,12 +359,12 @@ export function LeagueDialogsDeck({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-3">
-            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">
+            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1">
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteEntry}
-              className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic"
+              className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1"
             >
               {t('remove')}
             </AlertDialogAction>
@@ -375,7 +375,7 @@ export function LeagueDialogsDeck({
       <AlertDialog open={showFinishSeasonConfirm} onOpenChange={setShowFinishSeasonConfirm}>
         <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">
+            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase pr-4">
               {t('are_you_sure')}
             </AlertDialogTitle>
             <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">
@@ -383,7 +383,7 @@ export function LeagueDialogsDeck({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-3">
-            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">
+            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1">
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
@@ -391,7 +391,7 @@ export function LeagueDialogsDeck({
                 handleUpdateSeasonStatus('Completed');
                 setShowFinishSeasonConfirm(false);
               }}
-              className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic"
+              className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1"
             >
               Ya, Selesaikan
             </AlertDialogAction>
@@ -402,7 +402,7 @@ export function LeagueDialogsDeck({
       <AlertDialog open={showFinishGroupStageConfirm} onOpenChange={setShowFinishGroupStageConfirm}>
         <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">
+            <AlertDialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase pr-4">
               Selesaikan Fase Grup?
             </AlertDialogTitle>
             <AlertDialogDescription className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">
@@ -410,12 +410,12 @@ export function LeagueDialogsDeck({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-3">
-            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic">
+            <AlertDialogCancel className="font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1">
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleGeneratePlayoffs}
-              className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1 italic"
+              className="bg-primary text-black hover:bg-primary/90 font-black tracking-widest text-[8px] sm:text-[10px] uppercase h-10 sm:h-12 flex-1"
             >
               Lanjutkan
             </AlertDialogAction>
@@ -461,7 +461,7 @@ export function LeagueDialogsDeck({
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <DialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
+                  <DialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tight font-headline text-white">
                     Registrasi Skuad <span className="text-primary">Pemain</span>
                   </DialogTitle>
                   <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/80 font-mono">

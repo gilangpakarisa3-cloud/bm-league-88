@@ -422,9 +422,9 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
               <Share2 className="w-4 h-4" style={{ color: primaryHex }} />
             </div>
             <div>
-              <DialogTitle className="text-sm sm:text-base font-black uppercase italic tracking-wider font-headline text-white flex items-center gap-2">
+              <DialogTitle className="text-sm sm:text-base font-black uppercase tracking-wider font-headline text-white flex items-center gap-2">
                 Share Kartu Pertandingan
-                <span className="text-[10px] not-italic font-mono px-2 py-0.5 rounded bg-white/10 text-white/70">
+                <span className="text-[10px] not- font-mono px-2 py-0.5 rounded bg-white/10 text-white/70">
                   ULTRA SPORT HD
                 </span>
               </DialogTitle>
@@ -473,7 +473,7 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
               {/* Left: League Badge */}
               <div className="flex items-center gap-2">
                 <div 
-                  className="px-3 py-1 rounded-md font-black text-[11px] uppercase italic tracking-wider flex items-center gap-1.5 shadow-md"
+                  className="px-3 py-1 rounded-md font-black text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-md"
                   style={{
                     backgroundColor: primaryHex,
                     color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
@@ -525,7 +525,7 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
 
                 {/* Name & Club */}
                 <div className="w-full flex flex-col items-center">
-                  <h3 className="text-base sm:text-lg font-black text-white uppercase italic tracking-tight font-headline truncate w-full text-center drop-shadow">
+                  <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight font-headline truncate w-full text-center drop-shadow">
                     {p1Name}
                   </h3>
                   <div className="mt-0.5 px-2 py-0.5 rounded-full bg-white/[0.07] border border-white/10 max-w-full">
@@ -549,11 +549,11 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
                         boxShadow: `0 0 25px ${primaryHex}35`,
                       }}
                     >
-                      <span className="text-3xl sm:text-4xl font-black italic font-headline text-white tracking-tighter">
+                      <span className="text-3xl sm:text-4xl font-black font-headline text-white tracking-tighter">
                         {match.player1Score ?? 0}
                       </span>
                       <span className="text-white/30 text-sm font-black">:</span>
-                      <span className="text-3xl sm:text-4xl font-black italic font-headline text-white tracking-tighter">
+                      <span className="text-3xl sm:text-4xl font-black font-headline text-white tracking-tighter">
                         {match.player2Score ?? 0}
                       </span>
                     </div>
@@ -582,7 +582,7 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
                     </div>
 
                     <div 
-                      className="mt-2 px-2.5 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-widest italic"
+                      className="mt-2 px-2.5 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-widest"
                       style={{
                         backgroundColor: `${primaryHex}15`,
                         borderColor: `${primaryHex}40`,
@@ -622,7 +622,7 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
 
                 {/* Name & Club */}
                 <div className="w-full flex flex-col items-center">
-                  <h3 className="text-base sm:text-lg font-black text-white uppercase italic tracking-tight font-headline truncate w-full text-center drop-shadow">
+                  <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight font-headline truncate w-full text-center drop-shadow">
                     {p2Name}
                   </h3>
                   <div className="mt-0.5 px-2 py-0.5 rounded-full bg-white/[0.07] border border-white/10 max-w-full">
@@ -653,7 +653,7 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
           <Button
             type="button"
             onClick={handleSendToWhatsApp}
-            className="flex-1 min-w-[200px] h-11 rounded-xl font-black text-xs uppercase italic tracking-wider transition-all duration-300 shadow-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/40"
+            className="flex-1 min-w-[200px] h-11 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/40"
           >
             <Share2 className="w-4 h-4 mr-2" />
             KIRIM LANGSUNG KE WA
@@ -663,7 +663,7 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
             type="button"
             onClick={handleCopyBoth}
             disabled={isCopyingImage}
-            className="flex-1 min-w-[170px] h-11 rounded-xl font-black text-xs uppercase italic tracking-wider transition-all duration-300 shadow-lg"
+            className="flex-1 min-w-[170px] h-11 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-lg"
             style={{
               backgroundColor: primaryHex,
               color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
@@ -687,7 +687,7 @@ _Pantau statistik & live update di BM League 88 Web App!_`;
             type="button"
             variant="outline"
             onClick={handleCopyText}
-            className="h-11 px-4 rounded-xl border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase italic"
+            className="h-11 px-4 rounded-xl border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase"
           >
             {isCopiedText ? (
               <>

@@ -26,8 +26,8 @@ export function LiveClock({ className, theme }: { className?: string; theme?: TI
 
   if (!currentTime) {
     return (
-        <div className={cn("flex justify-center w-full", className)}>
-            <div className="h-full min-h-[160px] bg-white/5 rounded-[2rem] w-full max-w-md animate-pulse border border-white/5" />
+        <div className={cn("flex justify-center w-full h-full", className)}>
+            <div className="h-full min-h-[160px] bg-white/5 rounded-2xl w-full animate-pulse border border-white/5" />
         </div>
     );
   }
@@ -35,13 +35,12 @@ export function LiveClock({ className, theme }: { className?: string; theme?: TI
   const formattedDate = format(currentTime, "eeee, d MMMM yyyy", { locale: id });
   const formattedTime = format(currentTime, "HH:mm:ss");
   const primaryColor = theme?.primaryHex || '#CCFD01';
-  const glowColor = theme?.glowRgba || 'rgba(204,253,1,0.8)';
 
   return (
-    <div className={cn("flex flex-col items-center justify-center w-full", className)}>
-        <div className="relative group w-full max-w-md h-full flex flex-col animate-in fade-in slide-in-from-right-8 duration-1000">
+    <div className={cn("flex flex-col items-center justify-center w-full h-full", className)}>
+        <div className="relative group w-full h-full flex flex-col">
             <div 
-              className="relative flex flex-col justify-between flex-1 h-full bg-[#0a0d14] border border-white/10 rounded-2xl sm:rounded-3xl shadow-[0_15px_45px_rgba(0,0,0,0.7)] backdrop-blur-3xl overflow-hidden"
+              className="relative flex flex-col justify-between flex-1 h-full bg-[#0a0d14]/90 border border-white/10 rounded-2xl sm:rounded-3xl shadow-[0_15px_45px_rgba(0,0,0,0.7)] backdrop-blur-3xl overflow-hidden hover:border-white/20 transition-all duration-500"
             >
                 {/* Aerodynamic Cockpit Header */}
                 <div className="px-3.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between relative z-10 border-b border-white/10 bg-white/[0.02] shrink-0">
@@ -51,7 +50,7 @@ export function LiveClock({ className, theme }: { className?: string; theme?: TI
                           style={{ backgroundColor: primaryColor }}
                         />
                         <span 
-                          className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
+                          className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5"
                           style={{ color: primaryColor }}
                         >
                             <Zap className="w-3 h-3" style={{ fill: primaryColor, color: primaryColor }} />
@@ -71,19 +70,19 @@ export function LiveClock({ className, theme }: { className?: string; theme?: TI
                     {/* Main Time Display - High Performance Clean Style */}
                     <div className="flex flex-col items-center relative mb-1.5 sm:mb-2">
                         <div className="flex items-baseline justify-center">
-                            <span className="text-4xl sm:text-6xl font-black tracking-normal text-white uppercase italic font-headline tabular-nums leading-none transition-colors duration-500 pr-0.5" suppressHydrationWarning>
+                            <span className="text-4xl sm:text-6xl font-black tracking-normal text-white uppercase font-headline tabular-nums leading-none transition-colors duration-500 pr-0.5" suppressHydrationWarning>
                                 {formattedTime.split(':')[0]}
                             </span>
                             <span 
-                                className="text-4xl sm:text-6xl font-black italic font-headline leading-none animate-pulse px-0.5 select-none" 
+                                className="text-4xl sm:text-6xl font-black font-headline leading-none animate-pulse px-0.5 select-none" 
                                 style={{ color: primaryColor }}
                             >
                                 :
                             </span>
-                            <span className="text-4xl sm:text-6xl font-black tracking-normal text-white uppercase italic font-headline tabular-nums leading-none transition-colors duration-500 pl-0.5" suppressHydrationWarning>
+                            <span className="text-4xl sm:text-6xl font-black tracking-normal text-white uppercase font-headline tabular-nums leading-none transition-colors duration-500 pl-0.5" suppressHydrationWarning>
                                 {formattedTime.split(':')[1]}
                             </span>
-                            <span className="text-base sm:text-2xl font-black italic tabular-nums leading-none ml-1 opacity-80" style={{ color: primaryColor }}>
+                            <span className="text-base sm:text-2xl font-black tabular-nums leading-none ml-1 opacity-80" style={{ color: primaryColor }}>
                                 {formattedTime.split(':')[2]}
                             </span>
                         </div>
@@ -106,7 +105,7 @@ export function LiveClock({ className, theme }: { className?: string; theme?: TI
                     <div className="mt-1 sm:mt-1.5 flex flex-col items-center w-full">
                         <div className="flex items-center justify-center gap-2 bg-white/[0.03] border border-white/10 hover:border-white/30 rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1 sm:py-1.5 w-full transition-all duration-300 group/date shadow-inner">
                             <Activity className="w-3 h-3 shrink-0 animate-pulse" style={{ color: primaryColor }} />
-                            <span className="text-[9px] sm:text-xs font-black tracking-normal uppercase italic text-white/90 text-center truncate group-hover/date:text-white" suppressHydrationWarning>
+                            <span className="text-[9px] sm:text-xs font-black tracking-normal uppercase text-white/90 text-center truncate group-hover/date:text-white" suppressHydrationWarning>
                                 {formattedDate}
                             </span>
                         </div>

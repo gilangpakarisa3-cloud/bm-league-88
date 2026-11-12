@@ -334,8 +334,8 @@ export default function SettingsPage() {
                                 </div>
                             </div>
 
-                            <h1 className="font-headline text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white uppercase italic drop-shadow-[0_0_40px_rgba(255,255,255,0.1)] leading-none">
-                                APP <span className="text-primary drop-shadow-[0_0_25px_rgba(204,253,1,0.5)]">SETTINGS</span>
+                            <h1 className="font-headline text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-none">
+                                APP <span className="text-primary drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">SETTINGS</span>
                             </h1>
                             <p className="text-white/50 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] font-mono">
                                 Central Governance Console & Multi-Format Calibrator
@@ -376,7 +376,7 @@ export default function SettingsPage() {
                                     <Power className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xs sm:text-sm font-black uppercase italic tracking-wider font-headline leading-none">
+                                    <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider font-headline leading-none">
                                         System Operations
                                     </h2>
                                     <p className={cn(
@@ -410,11 +410,11 @@ export default function SettingsPage() {
                                             BROADCAST_STATUS
                                         </p>
                                     </div>
-                                    <p className="text-base sm:text-lg font-black uppercase italic tracking-tight font-headline">
+                                    <p className="text-base sm:text-lg font-black uppercase tracking-tight font-headline">
                                         {isDeactivated ? (
-                                            <span className="text-red-400 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]">MAINTENANCE LOCKED</span>
+                                            <span className="text-red-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">MAINTENANCE LOCKED</span>
                                         ) : (
-                                            <span className="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.4)]">OPERATIONAL // LIVE</span>
+                                            <span className="text-emerald-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">OPERATIONAL // LIVE</span>
                                         )}
                                     </p>
                                 </div>
@@ -463,7 +463,7 @@ export default function SettingsPage() {
                                     <KeyRound className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xs sm:text-sm font-black uppercase italic tracking-wider font-headline leading-none">
+                                    <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider font-headline leading-none">
                                         Security Control
                                     </h2>
                                     <p className="text-[8px] font-black uppercase tracking-widest font-mono text-black/70 mt-0.5">
@@ -505,7 +505,7 @@ export default function SettingsPage() {
 
                             <Button
                                 onClick={() => setShowPasswordManager(true)}
-                                className="w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl shadow-cyan-500/20 transition-all hover:scale-[1.02] bg-gradient-to-r from-cyan-400 to-sky-500 text-black hover:from-cyan-300 hover:to-sky-400"
+                                className="w-full h-14 font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-cyan-500/20 transition-all hover:scale-[1.02] bg-gradient-to-r from-cyan-400 to-sky-500 text-black hover:from-cyan-300 hover:to-sky-400"
                             >
                                 <span className="flex items-center justify-center gap-2">
                                     <KeyRound className="w-4 h-4" />
@@ -527,7 +527,7 @@ export default function SettingsPage() {
                                     <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
                                 </div>
                                 <div>
-                                    <h2 className="text-xs sm:text-sm font-black uppercase italic tracking-wider font-headline leading-none">
+                                    <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider font-headline leading-none">
                                         Historical Match Data Recalibrator
                                     </h2>
                                     <p className="text-[8px] font-black uppercase tracking-widest font-mono text-black/70 mt-0.5">
@@ -607,7 +607,7 @@ export default function SettingsPage() {
                                 }}
                                 disabled={isSyncing || !isPasswordLoaded}
                                 className={cn(
-                                    "w-full h-14 font-black uppercase italic tracking-widest text-xs rounded-2xl shadow-xl transition-all text-black",
+                                    "w-full h-14 font-black uppercase  tracking-widest text-xs rounded-2xl shadow-xl transition-all text-black",
                                     resetMmrToBaseline
                                         ? "bg-gradient-to-r from-red-500 via-rose-500 to-red-600 hover:from-red-400 hover:to-rose-400 shadow-red-500/20 text-white"
                                         : "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 shadow-amber-500/20 text-black"
@@ -640,7 +640,7 @@ export default function SettingsPage() {
                                     <ShieldCheck className="w-7 h-7" />
                                 </div>
                                 <div className="text-left min-w-0">
-                                    <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight uppercase italic font-headline text-white leading-none">
+                                    <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight uppercase font-headline text-white leading-none">
                                         Otorisasi Rekap
                                     </DialogTitle>
                                     <p className="text-[9px] font-mono font-black uppercase tracking-[0.25em] text-amber-400/80 mt-1">
@@ -655,7 +655,7 @@ export default function SettingsPage() {
 
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="password-input" className="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-amber-400 italic">
+                                <Label htmlFor="password-input" className="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-amber-400">
                                     CIPHER_KEY_INPUT
                                 </Label>
                                 <Input
@@ -674,7 +674,7 @@ export default function SettingsPage() {
                         <DialogFooter className="gap-2 sm:gap-0">
                             <Button
                                 onClick={handlePasswordCheck}
-                                className="w-full h-14 font-black tracking-[0.2em] text-xs uppercase italic rounded-2xl shadow-xl shadow-amber-500/25 text-black bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 transition-all flex items-center justify-center gap-2.5"
+                                className="w-full h-14 font-black tracking-[0.2em] text-xs uppercase rounded-2xl shadow-xl shadow-amber-500/25 text-black bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 transition-all flex items-center justify-center gap-2.5"
                             >
                                 <Scan className="w-4 h-4" />
                                 KONFIRMASI & EKSEKUSI

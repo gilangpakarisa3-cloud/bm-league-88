@@ -1,3 +1,10 @@
+# Aturan Model & Peran Agent
+
+- **Orkestrator (Diskusi / Perencanaan / Koordinasi)**: Gunakan `Gemini Argon 4`.
+- **Eksekutor Coding (Implementasi / Penulisan Kode / Bugfix)**: Gunakan `Gemini 3.8 Flash`.
+
+---
+
 # Firebase Deployment Protocol
 
 Saat diminta untuk deploy ke Firebase:

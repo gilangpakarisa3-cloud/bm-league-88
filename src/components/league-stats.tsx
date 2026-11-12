@@ -212,7 +212,7 @@ export function LeagueStats({ tableData, matches, isLoading, seasonType, isSeaso
         <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 animate-pulse">
           <Radio className="w-8 h-8 text-primary" />
         </div>
-        <h3 className="text-sm font-black uppercase tracking-[0.25em] text-white/90 font-headline italic">
+        <h3 className="text-sm font-black uppercase tracking-[0.25em] text-white/90 font-headline">
           Match Analytics Radar Initialized
         </h3>
         <p className="text-white/40 text-[10px] font-black uppercase tracking-widest font-mono max-w-sm leading-relaxed">

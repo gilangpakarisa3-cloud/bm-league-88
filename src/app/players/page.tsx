@@ -118,7 +118,7 @@ export default function PlayersPage() {
                 <div className="flex items-center gap-2">
                   <span
                     style={{ color: theme.primaryHex }}
-                    className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] italic"
+                    className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]"
                   >
                     ELITE ROSTER DATABASE // FIFA SQUAD HUB
                   </span>
@@ -129,7 +129,7 @@ export default function PlayersPage() {
                 </div>
               </div>
 
-              <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase italic leading-none drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]">
+              <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 {t('players_page_title').split(' ')[0]}{' '}
                 <span
                   style={{
@@ -199,7 +199,7 @@ export default function PlayersPage() {
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
           <DialogContent className="border border-primary/40 bg-[#0A192F]/95 backdrop-blur-3xl rounded-3xl shadow-[0_0_80px_rgba(204,253,1,0.2)] p-6 sm:p-8">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black tracking-tight uppercase italic text-white">
+              <DialogTitle className="text-2xl font-black tracking-tight uppercase text-white">
                 {editingPlayer ? t('edit_player_title') : t('add_new_player')}
               </DialogTitle>
               <DialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[10px]">
@@ -219,7 +219,7 @@ export default function PlayersPage() {
                   <KeyRound className="w-7 h-7" />
                 </div>
                 <div className="text-left">
-                  <DialogTitle className="text-2xl font-black tracking-tight uppercase italic leading-none text-white">
+                  <DialogTitle className="text-2xl font-black tracking-tight uppercase leading-none text-white">
                     {t('admin_auth')}
                   </DialogTitle>
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70 mt-1">
@@ -234,7 +234,7 @@ export default function PlayersPage() {
 
             <div className="grid gap-6 py-6">
               <div className="space-y-2">
-                <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/70 ml-1 italic">
+                <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/70 ml-1">
                   ENCRYPTED_KEY_TRANSMISSION
                 </Label>
                 <div className="relative group/input">
@@ -252,7 +252,7 @@ export default function PlayersPage() {
 
             <Button
               onClick={handlePasswordCheck}
-              className="w-full h-14 font-black tracking-[0.25em] text-sm uppercase italic rounded-2xl shadow-xl shadow-primary/25 text-black bg-primary hover:bg-primary/90 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+              className="w-full h-14 font-black tracking-[0.25em] text-sm uppercase rounded-2xl shadow-xl shadow-primary/25 text-black bg-primary hover:bg-primary/90 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
             >
               <Scan className="w-4 h-4" />
               {t('unlock')}

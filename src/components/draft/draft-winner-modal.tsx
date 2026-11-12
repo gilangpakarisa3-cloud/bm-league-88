@@ -52,7 +52,7 @@ export const DraftWinnerModal = ({
 
         <div className="flex items-center gap-1.5 mb-4">
           <span 
-            className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.25em] italic flex items-center gap-1.5 border"
+            className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.25em] flex items-center gap-1.5 border"
             style={{
               backgroundColor: `${primaryHex}1A`,
               borderColor: `${primaryHex}66`,
@@ -81,7 +81,7 @@ export const DraftWinnerModal = ({
               PESERTA TERPILIH
             </span>
             <h3 
-              className="text-xl sm:text-2xl font-black uppercase italic tracking-tight font-headline"
+              className="text-xl sm:text-2xl font-black uppercase tracking-tight font-headline"
               style={{
                 color: '#ffffff',
                 textShadow: `0 0 20px ${primaryHex}`
@@ -94,7 +94,7 @@ export const DraftWinnerModal = ({
 
         <div className="flex items-center justify-center gap-2 mb-4 w-full px-6">
           <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to right, transparent, ${primaryHex}66)` }} />
-          <span className="text-[8px] font-black uppercase tracking-widest italic text-white/40">
+          <span className="text-[8px] font-black uppercase tracking-widest text-white/40">
             MEMPEROLEH KLUB
           </span>
           <div className="h-[1px] flex-1" style={{ background: `linear-gradient(to left, transparent, ${primaryHex}66)` }} />
@@ -120,7 +120,7 @@ export const DraftWinnerModal = ({
           <div className="flex-1 min-w-0 pr-1">
             <div className="flex items-center gap-1.5 mb-0.5">
               <Badge className={cn(
-                "text-[8px] font-black italic h-4 px-1.5 rounded",
+                "text-[8px] font-black  h-4 px-1.5 rounded",
                 popoutWinner.teamTier === 1 
                   ? "bg-amber-400 text-black shadow-[0_0_8px_rgba(251,191,36,0.6)]" 
                   : popoutWinner.teamTier === 2 
@@ -132,7 +132,7 @@ export const DraftWinnerModal = ({
               <span className="text-[8px] font-black uppercase tracking-widest text-white/30">OFFICIAL SEED</span>
             </div>
             <h4 
-              className="text-base sm:text-lg font-black uppercase italic tracking-tight truncate font-headline"
+              className="text-base sm:text-lg font-black uppercase tracking-tight truncate font-headline"
               style={{ color: primaryHex }}
             >
               {popoutWinner.teamName}
@@ -143,7 +143,7 @@ export const DraftWinnerModal = ({
         <Button
           type="button"
           onClick={onClose}
-          className="w-full h-10 font-black uppercase italic text-xs tracking-wider rounded-xl transition-all shadow-xl font-headline text-black hover:scale-[1.02] active:scale-[0.98]"
+          className="w-full h-10 font-black uppercase text-xs tracking-wider rounded-xl transition-all shadow-xl font-headline text-black hover:scale-[1.02] active:scale-[0.98]"
           style={{
             backgroundColor: primaryHex,
             boxShadow: `0 0 25px ${primaryHex}80`

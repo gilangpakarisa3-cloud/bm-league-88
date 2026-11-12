@@ -50,7 +50,7 @@ export const HistoryTab = ({
     return (
       <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
         <Activity className="w-10 h-10 text-white/40" />
-        <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Belum Ada Pertandingan Yang Rampung</p>
+        <p className="text-xs font-black uppercase tracking-[0.25em] text-center">Belum Ada Pertandingan Yang Rampung</p>
       </div>
     );
   }
@@ -93,12 +93,12 @@ export const HistoryTab = ({
 
             <div className="min-w-0 flex-1 text-left space-y-0.5">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white pr-1" suppressHydrationWarning>
+                <span className="text-xs sm:text-sm font-black tracking-tight uppercase text-white pr-1" suppressHydrationWarning>
                   vs {match.opponent?.name || 'TBD'}
                 </span>
                 <Badge
                   variant="outline"
-                  className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-wider shrink-0"
+                  className="text-[8px] h-4.5 px-2 font-black uppercase tracking-wider shrink-0"
                   style={match.isPlayer1 ? {
                     borderColor: `${primaryHex}40`,
                     color: primaryHex,
@@ -139,7 +139,7 @@ export const HistoryTab = ({
                   ) : (
                     <Minus className="w-3 h-3 text-amber-400" />
                   )}
-                  <span className="font-mono font-black italic">
+                  <span className="font-mono font-black">
                     {match.mmrDelta > 0 ? `+${match.mmrDelta}` : match.mmrDelta} MMR
                   </span>
                 </div>
@@ -156,7 +156,7 @@ export const HistoryTab = ({
             {/* Score Box */}
             <div className="shrink-0 flex items-center gap-2 sm:gap-3 bg-black/80 px-3.5 sm:px-4 py-2 rounded-xl border border-white/10 shadow-inner">
               <span
-                className="text-lg sm:text-xl font-black tabular-nums italic"
+                className="text-lg sm:text-xl font-black tabular-nums"
                 style={match.isPlayer1 ? (
                   match.result === 'W' ? { color: primaryHex, textShadow: `0 0 8px ${glowRgba}` } :
                     match.result === 'L' ? { color: '#f87171' } : { color: '#fbbf24' }
@@ -167,7 +167,7 @@ export const HistoryTab = ({
               </span>
               <span className="text-xs font-black text-white/20">:</span>
               <span
-                className="text-lg sm:text-xl font-black tabular-nums italic"
+                className="text-lg sm:text-xl font-black tabular-nums"
                 style={!match.isPlayer1 ? (
                   match.result === 'W' ? { color: primaryHex, textShadow: `0 0 8px ${glowRgba}` } :
                     match.result === 'L' ? { color: '#f87171' } : { color: '#fbbf24' }
@@ -195,7 +195,7 @@ export const UpcomingTab = ({
     return (
       <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
         <Zap className="w-10 h-10 animate-pulse" style={{ color: primaryHex }} />
-        <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Seluruh Pertandingan Musim Telah Dimainkan</p>
+        <p className="text-xs font-black uppercase tracking-[0.25em] text-center">Seluruh Pertandingan Musim Telah Dimainkan</p>
       </div>
     );
   }
@@ -213,12 +213,12 @@ export const UpcomingTab = ({
             </div>
             <div className="min-w-0 flex-1 text-left space-y-0.5">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="text-xs sm:text-sm font-black tracking-tight uppercase italic text-white/90 pr-1" suppressHydrationWarning>
+                <span className="text-xs sm:text-sm font-black tracking-tight uppercase text-white/90 pr-1" suppressHydrationWarning>
                   vs {match.opponent?.name || 'TBD'}
                 </span>
                 <Badge
                   variant="outline"
-                  className="text-[8px] h-4.5 px-2 font-black uppercase italic tracking-wider shrink-0"
+                  className="text-[8px] h-4.5 px-2 font-black uppercase tracking-wider shrink-0"
                   style={match.isPlayer1 ? {
                     borderColor: `${primaryHex}40`,
                     color: primaryHex,
@@ -240,7 +240,7 @@ export const UpcomingTab = ({
           </div>
           <Badge
             variant="outline"
-            className="text-[9px] font-black uppercase italic px-3 h-6 shrink-0 border"
+            className="text-[9px] font-black uppercase px-3 h-6 shrink-0 border"
             style={{
               borderColor: `${primaryHex}40`,
               color: primaryHex,

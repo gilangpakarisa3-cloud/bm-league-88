@@ -147,7 +147,7 @@ export const StatCard = ({
 
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:22px_22px] pointer-events-none opacity-50" />
 
-        <span className="absolute -bottom-3 -right-3 text-8xl sm:text-9xl font-black text-white/[0.035] uppercase tracking-tighter italic pointer-events-none select-none leading-none z-0">
+        <span className="absolute -bottom-3 -right-3 text-8xl sm:text-9xl font-black text-white/[0.035] uppercase tracking-tighter pointer-events-none select-none leading-none z-0">
           {ghostText || title.split(' ')[0]}
         </span>
 
@@ -155,7 +155,7 @@ export const StatCard = ({
         <div className="pt-4 px-5 sm:px-6 pb-2 flex items-center justify-between relative z-10">
           <div className="inline-flex items-center gap-2">
             <span className={cn(
-              "px-3 py-1 rounded-xl text-[10px] sm:text-[11px] font-black uppercase italic tracking-wider flex items-center gap-1.5 shadow-md",
+              "px-3 py-1 rounded-xl text-[10px] sm:text-[11px] font-black uppercase  tracking-wider flex items-center gap-1.5 shadow-md",
               conf.headerBg
             )}>
               <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -203,7 +203,7 @@ export const StatCard = ({
                     <span className="text-[9px] sm:text-[10px] font-mono font-black uppercase tracking-wider text-white/40 block truncate">
                       {player.teamName || 'Independent'}
                     </span>
-                    <h4 className="text-base sm:text-xl font-black uppercase italic tracking-tight text-white group-hover:text-primary transition-colors font-headline truncate">
+                    <h4 className="text-base sm:text-xl font-black uppercase tracking-tight text-white group-hover:text-primary transition-colors font-headline truncate">
                       {player.playerName}
                     </h4>
 
@@ -232,7 +232,7 @@ export const StatCard = ({
                 <div className="text-right shrink-0 flex flex-col items-end justify-center pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
                   <div className="flex items-baseline gap-1">
                     <span className={cn(
-                      "text-4xl sm:text-6xl font-black italic tabular-nums tracking-tighter leading-none font-headline drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]",
+                      "text-4xl sm:text-6xl font-black  tabular-nums tracking-tighter leading-none font-headline drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]",
                       conf.accentText
                     )}>
                       {numVal > 0 && valueKey === 'goalDifference' ? `+${numVal}` : numVal}
@@ -273,7 +273,7 @@ export const StatCard = ({
           <div className="p-1 rounded-lg bg-black/40 border border-white/10 shrink-0">
             <Icon className="h-3 w-3 text-white/80" />
           </div>
-          <h4 className="text-[10px] sm:text-[11px] font-black uppercase italic tracking-wider truncate text-white/90">
+          <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider truncate text-white/90">
             {title}
           </h4>
         </div>
@@ -288,7 +288,7 @@ export const StatCard = ({
       <div className="my-1.5 flex items-baseline justify-between relative z-10">
         <div className="flex items-baseline gap-1">
           <span className={cn(
-            "text-2xl sm:text-3xl font-black italic tabular-nums tracking-tighter leading-none font-headline",
+            "text-2xl sm:text-3xl font-black  tabular-nums tracking-tighter leading-none font-headline",
             conf.accentText
           )}>
             {players[0] && typeof players[0][valueKey] === 'number' 
@@ -319,7 +319,7 @@ export const StatCard = ({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 truncate">
-                <p className="text-[11px] font-black uppercase italic leading-tight text-white truncate">
+                <p className="text-[11px] font-black uppercase leading-tight text-white truncate">
                   {player.playerName}
                 </p>
                 <p className="text-[8px] font-mono text-white/40 uppercase truncate">

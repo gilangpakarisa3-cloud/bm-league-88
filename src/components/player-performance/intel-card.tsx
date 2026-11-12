@@ -48,8 +48,8 @@ export const IntelCard = ({
           </div>
           <span 
             className={cn(
-              "font-black text-sm sm:text-base uppercase italic leading-none relative z-10 mt-0.5", 
-              variant === "gold" ? "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : 
+              "font-black text-sm sm:text-base uppercase  leading-none relative z-10 mt-0.5", 
+              variant === "gold" ? "text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" : 
               !isPrimary ? "text-white" : ""
             )} 
             style={isPrimary && primaryHex ? { 

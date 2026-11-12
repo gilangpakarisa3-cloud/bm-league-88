@@ -186,11 +186,11 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                         </span>
                     </div>
 
-                    {/* Primary Name with generous padding preventing italic clipping */}
+                    {/* Primary Name with generous padding preventing  clipping */}
                     <h4 
                         title={name}
                         className={cn(
-                            "font-headline text-[11px] sm:text-2xl font-black uppercase italic tracking-normal sm:tracking-tight truncate max-w-full leading-none transition-colors duration-500 inline-block pr-1.5 py-0.5",
+                            "font-headline text-[11px] sm:text-2xl font-black uppercase  tracking-normal sm:tracking-tight truncate max-w-full leading-none transition-colors duration-500 inline-block pr-1.5 py-0.5",
                             isWinner 
                                 ? "drop-shadow-md" 
                                 : isLoser
@@ -248,7 +248,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
 
             {/* Background Angled Ghost Watermark */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.025] group-hover:opacity-[0.045] transition-opacity duration-700 overflow-hidden">
-                <span className="text-[80px] sm:text-[180px] font-black italic text-white uppercase tracking-tighter transform -skew-x-12 select-none whitespace-nowrap">
+                <span className="text-[80px] sm:text-[180px] font-black text-white uppercase tracking-tighter transform -skew-x-12 select-none whitespace-nowrap">
                     {match.isCompleted ? (isW1 || isW2 ? 'VICTORY' : 'RESULT') : match.status === 'Live' ? 'LIVE COMBAT' : 'CHAMPIONSHIP'}
                 </span>
             </div>
@@ -264,7 +264,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                     {activeSeason?.hasDivisions && match.division && (
                         <Badge 
                             className={cn(
-                                "text-[7px] sm:text-[9px] h-4.5 sm:h-5 font-black px-2.5 italic rounded-full uppercase tracking-wider border shadow-sm",
+                                "text-[7px] sm:text-[9px] h-4.5 sm:h-5 font-black px-2.5  rounded-full uppercase tracking-wider border shadow-sm",
                                 match.division === 'div-2' 
                                     ? "bg-amber-500/15 text-amber-400 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]" 
                                     : "bg-emerald-500/15 text-emerald-400 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
@@ -278,7 +278,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
 
                     {match.round && match.round !== 'Group' && (
                         <Badge 
-                            className="text-[7px] sm:text-[9px] h-4.5 sm:h-5 font-black px-2.5 italic rounded-full uppercase tracking-wider border shadow-sm"
+                            className="text-[7px] sm:text-[9px] h-4.5 sm:h-5 font-black px-2.5 rounded-full uppercase tracking-wider border shadow-sm"
                             style={{
                                 backgroundColor: `${primaryHex}18`,
                                 color: primaryHex,
@@ -355,7 +355,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                                 {/* Score 1 */}
                                 <span 
                                     className={cn(
-                                        "text-base sm:text-5xl font-black italic tabular-nums font-headline leading-none transition-all duration-500",
+                                        "text-base sm:text-5xl font-black  tabular-nums font-headline leading-none transition-all duration-500",
                                         isW1 
                                             ? "scale-110" 
                                             : match.status === 'Live' 
@@ -386,7 +386,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                                 {/* Score 2 */}
                                 <span 
                                     className={cn(
-                                        "text-base sm:text-5xl font-black italic tabular-nums font-headline leading-none transition-all duration-500",
+                                        "text-base sm:text-5xl font-black  tabular-nums font-headline leading-none transition-all duration-500",
                                         isW2 
                                             ? "scale-110" 
                                             : match.status === 'Live' 
@@ -406,7 +406,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                             {match.status === 'Live' && isMatchBo3 && (
                                 <Badge 
                                     variant="outline" 
-                                    className="text-[7px] sm:text-[8px] h-4 sm:h-5 px-2 font-black italic rounded-full border"
+                                    className="text-[7px] sm:text-[8px] h-4 sm:h-5 px-2 font-black rounded-full border"
                                     style={{
                                         backgroundColor: `${primaryHex}15`,
                                         borderColor: `${primaryHex}35`,
@@ -418,7 +418,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                             )}
                             {match.status !== 'Live' && isMatchBo3 && (
                                 <span 
-                                    className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] italic px-2 py-0.5 rounded-full border shadow-sm"
+                                    className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full border shadow-sm"
                                     style={{
                                         backgroundColor: `${primaryHex}15`,
                                         borderColor: `${primaryHex}35`,
@@ -448,7 +448,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                                     }}
                                 >
                                     <span 
-                                        className="font-headline text-xs sm:text-base font-black tracking-widest uppercase italic"
+                                        className="font-headline text-xs sm:text-base font-black tracking-widest uppercase"
                                         style={{
                                             color: primaryHex,
                                             textShadow: `0 0 10px ${glowRgba}`
@@ -472,7 +472,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                                     BO3
                                 </Badge>
                             ) : (
-                                <span className="text-[6px] sm:text-[8px] font-black uppercase tracking-[0.2em] text-white/30 italic">
+                                <span className="text-[6px] sm:text-[8px] font-black uppercase tracking-[0.2em] text-white/30">
                                     DUEL
                                 </span>
                             )}
@@ -513,7 +513,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
             {/* Bottom Cockpit Action Bar inside capsule */}
             <div className="relative z-10 flex flex-wrap items-center justify-between gap-2.5 px-3.5 sm:px-8 py-3 bg-black/60 border-t border-white/5">
                 <div className="flex items-center gap-2">
-                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-white/30 italic">
+                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
                         STADIUM PITCH // FIXTURE-{match.id.substring(0, 4).toUpperCase()}
                     </span>
                 </div>
@@ -532,7 +532,7 @@ export const MatchRow = memo(function MatchRow({ match, onEditMatch, onRevertMat
                     <Button 
                         variant="ghost" 
                         className={cn(
-                            "h-11 sm:h-10 px-5 sm:px-7 text-[10px] sm:text-[11px] font-black uppercase tracking-wider italic transition-all duration-300 rounded-full active:scale-95",
+                            "h-11 sm:h-10 px-5 sm:px-7 text-[10px] sm:text-[11px] font-black uppercase tracking-wider  transition-all duration-300 rounded-full active:scale-95",
                             hasValidScore 
                                 ? "text-white/80 border border-white/20 bg-white/5 hover:border-white/30 hover:text-white hover:bg-white/10" 
                                 : "font-black border-none hover:scale-105"

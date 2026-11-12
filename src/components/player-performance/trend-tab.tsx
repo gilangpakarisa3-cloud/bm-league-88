@@ -30,11 +30,11 @@ export const TrendTab = ({
       />
       <CardHeader className="p-4 sm:p-5 bg-white/[0.02] border-b border-white/10">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-xs sm:text-sm font-black tracking-[0.2em] uppercase flex items-center gap-2 italic" style={{ color: primaryHex }}>
+          <CardTitle className="text-xs sm:text-sm font-black tracking-[0.2em] uppercase flex items-center gap-2" style={{ color: primaryHex }}>
             <TrendingUp className="w-4 h-4" style={{ color: primaryHex }} /> MOMENTUM STABILITY
           </CardTitle>
           <Badge 
-            className="text-[10px] font-black italic px-3 h-6 border-none" 
+            className="text-[10px] font-black px-3 h-6 border-none" 
             style={{
               backgroundColor: primaryHex,
               color: isCrimson ? '#ffffff' : '#000000',
@@ -53,7 +53,7 @@ export const TrendTab = ({
               <LineChart data={chartData} margin={{ left: -15, right: 10, top: 10, bottom: 0 }}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="match" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)', fontWeight: 700 }} tickLine={false} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: 'italic', fontWeight: '900', fill: 'rgba(255,255,255,0.4)' }} allowDecimals={false} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontStyle: '', fontWeight: '900', fill: 'rgba(255,255,255,0.4)' }} allowDecimals={false} />
                 <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="5 5" />
                 <Line 
                   type="monotone" 
@@ -69,7 +69,7 @@ export const TrendTab = ({
         ) : (
           <div className="text-center py-16 opacity-30 flex flex-col items-center gap-3">
             <BarChart3 className="w-10 h-10 text-white/40"/>
-            <p className="text-xs font-black uppercase tracking-[0.25em] italic text-center">Data Pertandingan Belum Cukup Untuk Grafik Tren</p>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-center">Data Pertandingan Belum Cukup Untuk Grafik Tren</p>
           </div>
         )}
       </CardContent>

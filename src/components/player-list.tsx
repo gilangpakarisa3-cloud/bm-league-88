@@ -21,25 +21,25 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
 import { Button } from './ui/button';
-import { 
-  User, 
-  Pencil, 
-  Trash2, 
-  Shield, 
-  Trophy, 
-  Target, 
-  Zap, 
-  Activity, 
-  Users, 
-  Scan, 
-  Star, 
-  Medal, 
-  Binary, 
-  Search, 
-  LayoutGrid, 
-  ListOrdered, 
-  Flame, 
-  Gauge, 
+import {
+  User,
+  Pencil,
+  Trash2,
+  Shield,
+  Trophy,
+  Target,
+  Zap,
+  Activity,
+  Users,
+  Scan,
+  Star,
+  Medal,
+  Binary,
+  Search,
+  LayoutGrid,
+  ListOrdered,
+  Flame,
+  Gauge,
   Sparkles,
   TrendingUp,
   X,
@@ -54,10 +54,13 @@ import { PlayerHoloCard } from './player/player-holo-card';
 import { PlayerMobilePod } from './player/player-mobile-pod';
 import { PlayerTelemetryTable } from './player/player-telemetry-table';
 import { enrichPlayersWithMmrData, TIER_STYLES } from '@/lib/mmr';
+import { useGlobalSeasonTheme } from '@/context/season-theme-context';
+import type { CareerSortKey } from './player/player-telemetry-table';
 
 export { PlayerHoloCard } from './player/player-holo-card';
 export { PlayerMobilePod } from './player/player-mobile-pod';
 export { PlayerTelemetryTable } from './player/player-telemetry-table';
+export type { CareerSortKey } from './player/player-telemetry-table';
 
 interface PlayerListProps {
   onEdit: (player: WithId<Player>) => void;
@@ -69,11 +72,13 @@ interface PlayerListProps {
 export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps) {
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { theme } = useGlobalSeasonTheme();
   const [deletingPlayer, setDeletingPlayer] = useState<WithId<Player> | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState<string>('ALL');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  
+  const [careerSortKey, setCareerSortKey] = useState<CareerSortKey>('mmr');
+
   const firestore = useFirestore();
 
   const playersCollection = useMemoFirebase(
@@ -93,7 +98,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     [firestore]
   );
   const { data: hallOfFame } = useCollection<SeasonRecord>(hallOfFameCollection);
-  
+
   // Enrich all players with dynamic MMR, peak MMR, career win rate, and ranks
   const playersWithRanks = useMemo(() => {
     return enrichPlayersWithMmrData(players, hallOfFame);
@@ -112,19 +117,19 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     if (playersWithRanks.length === 0) return [];
 
     return [
-      { 
+      {
         ...TIER_STYLES.LEGEND,
         players: playersWithRanks.filter(p => p.tierId === 'LEGEND'),
       },
-      { 
+      {
         ...TIER_STYLES.TOP_PLAYER,
         players: playersWithRanks.filter(p => p.tierId === 'TOP_PLAYER'),
       },
-      { 
+      {
         ...TIER_STYLES.REGULER,
         players: playersWithRanks.filter(p => p.tierId === 'REGULER'),
       },
-      { 
+      {
         ...TIER_STYLES.AMATEUR,
         players: playersWithRanks.filter(p => p.tierId === 'AMATEUR'),
       },
@@ -135,9 +140,9 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
   const leagueMetrics = useMemo(() => {
     const totalPlayers = playersWithRanks.length;
     if (totalPlayers === 0) return { totalPlayers: 0, avgMmr: 0, totalGoals: 0, activeClubs: 0, highestMmr: 0 };
-    
+
     const calibratedPlayers = playersWithRanks.filter(p => p.isCalibrated);
-    const avgMmr = calibratedPlayers.length > 0 
+    const avgMmr = calibratedPlayers.length > 0
       ? Math.round(calibratedPlayers.reduce((acc, p) => acc + p.mmrRating, 0) / calibratedPlayers.length)
       : 0;
     const totalGoals = playersWithRanks.reduce((acc, p) => acc + (p.overallGoalsFor || 0), 0);
@@ -172,6 +177,42 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     return filteredTiers.flatMap(t => t.players);
   }, [filteredTiers]);
 
+  // Overall Career Standings sort for Table view
+  const sortedTablePlayers = useMemo(() => {
+    return [...allFilteredPlayers].sort((a, b) => {
+      if (careerSortKey === 'mmr') {
+        return (b.mmrRating || 0) - (a.mmrRating || 0) || (b.overallPlayed || 0) - (a.overallPlayed || 0) || (b.winRate || 0) - (a.winRate || 0);
+      }
+      if (careerSortKey === 'pts') {
+        const ptsA = ((a.overallWin || 0) * 3) + (a.overallDraw || 0);
+        const ptsB = ((b.overallWin || 0) * 3) + (b.overallDraw || 0);
+        const gdA = (a.overallGoalsFor || 0) - (a.overallGoalsAgainst || 0);
+        const gdB = (b.overallGoalsFor || 0) - (b.overallGoalsAgainst || 0);
+        return ptsB - ptsA || gdB - gdA || (b.overallGoalsFor || 0) - (a.overallGoalsFor || 0) || (b.mmrRating || 0) - (a.mmrRating || 0);
+      }
+      if (careerSortKey === 'goals') {
+        return (b.overallGoalsFor || 0) - (a.overallGoalsFor || 0) || (b.mmrRating || 0) - (a.mmrRating || 0);
+      }
+      if (careerSortKey === 'gd') {
+        const gdA = (a.overallGoalsFor || 0) - (a.overallGoalsAgainst || 0);
+        const gdB = (b.overallGoalsFor || 0) - (b.overallGoalsAgainst || 0);
+        return gdB - gdA || (b.overallGoalsFor || 0) - (a.overallGoalsFor || 0) || (b.mmrRating || 0) - (a.mmrRating || 0);
+      }
+      if (careerSortKey === 'winrate') {
+        return (b.winRate || 0) - (a.winRate || 0) || (b.overallWin || 0) - (a.overallWin || 0) || (b.mmrRating || 0) - (a.mmrRating || 0);
+      }
+      if (careerSortKey === 'played') {
+        return (b.overallPlayed || 0) - (a.overallPlayed || 0) || (b.mmrRating || 0) - (a.mmrRating || 0);
+      }
+      if (careerSortKey === 'titles') {
+        const titlesA = a.titlesWon?.length || 0;
+        const titlesB = b.titlesWon?.length || 0;
+        return titlesB - titlesA || (b.mmrRating || 0) - (a.mmrRating || 0);
+      }
+      return (b.mmrRating || 0) - (a.mmrRating || 0);
+    });
+  }, [allFilteredPlayers, careerSortKey]);
+
   const handleDelete = () => {
     if (!firestore || !deletingPlayer) return;
     const playerRef = doc(firestore, 'players', deletingPlayer.id);
@@ -182,7 +223,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
     });
     setDeletingPlayer(null);
   };
-  
+
   const confirmDelete = (player: WithId<Player>) => {
     withAdminCheck(() => {
       setDeletingPlayer(player);
@@ -207,7 +248,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
       </div>
     );
   }
-  
+
   if (playersWithRanks.length === 0) {
     return (
       <div className="w-full overflow-hidden rounded-3xl border border-dashed border-white/15 bg-black/60 p-16 text-center backdrop-blur-2xl">
@@ -231,7 +272,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
             <Users className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">
               {leagueMetrics.totalPlayers}
             </span>
             <span className="text-[10px] font-black uppercase text-primary tracking-widest">ACTIVE</span>
@@ -248,7 +289,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
             <Trophy className="w-3.5 h-3.5 text-yellow-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black italic text-yellow-400 tracking-tighter tabular-nums leading-none drop-shadow-[0_0_15px_rgba(250,204,21,0.4)]">
+            <span className="text-3xl sm:text-4xl font-black text-yellow-400 tracking-tighter tabular-nums leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               {leagueMetrics.highestMmr}
             </span>
             <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">MMR PTS</span>
@@ -265,7 +306,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
             <Gauge className="w-3.5 h-3.5 text-accent" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">
               {leagueMetrics.avgMmr}
             </span>
             <span className="text-[10px] font-black uppercase text-accent tracking-widest">MMR MEAN</span>
@@ -282,7 +323,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
             <Flame className="w-3.5 h-3.5 text-rose-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">
               {leagueMetrics.totalGoals}
             </span>
             <span className="text-[10px] font-black uppercase text-rose-400 tracking-widest">GOALS</span>
@@ -298,14 +339,14 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
         {/* Real-time Search Input */}
         <div className="relative flex-1 max-w-md group/search">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within/search:text-primary transition-colors" />
-          <Input 
+          <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Pencarian atlet, klub, ID divisi..." 
+            placeholder="Pencarian atlet, klub, ID divisi..."
             className="h-12 pl-11 pr-10 bg-black/50 border-white/10 focus:border-primary/60 text-xs font-bold text-white placeholder:text-white/30 rounded-2xl tracking-wider uppercase transition-all"
           />
           {searchQuery && (
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white transition-colors"
             >
@@ -366,8 +407,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
             onClick={() => setViewMode('grid')}
             className={cn(
               "p-2 rounded-xl text-xs font-black uppercase transition-all flex items-center gap-1.5",
-              viewMode === 'grid' 
-                ? "bg-primary text-black shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
+              viewMode === 'grid'
+                ? "bg-primary text-black shadow-[0_0_15px_rgba(204,253,1,0.4)]"
                 : "text-white/40 hover:text-white"
             )}
             title="Tampilan Kartu Holo"
@@ -379,8 +420,8 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
             onClick={() => setViewMode('table')}
             className={cn(
               "p-2 rounded-xl text-xs font-black uppercase transition-all flex items-center gap-1.5",
-              viewMode === 'table' 
-                ? "bg-primary text-black shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
+              viewMode === 'table'
+                ? "bg-primary text-black shadow-[0_0_15px_rgba(204,253,1,0.4)]"
                 : "text-white/40 hover:text-white"
             )}
             title="Tampilan Tabel Telemetri"
@@ -408,7 +449,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
                   <div className={cn("w-2.5 h-7 rounded-full", tier.hudBar)} />
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className={cn("text-2xl sm:text-3xl font-black uppercase italic tracking-tighter leading-none", tier.color)}>
+                      <h2 className={cn("text-2xl sm:text-3xl font-black uppercase  tracking-tighter leading-none", tier.color)}>
                         {tier.title}
                       </h2>
                       <Badge variant="outline" className={cn("text-[8px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full border", tier.bgPill)}>
@@ -447,43 +488,115 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
           ))}
         </div>
       ) : (
-        /* TABLE VIEW: Cyber Telemetry Leaderboard Matrix - Ultra Sport & Mobile Optimized */
+        /* TABLE VIEW: The International (Hall of Aegis) - Overall Career Standings Matrix */
         <div className="space-y-4">
-          {/* Matrix HUD Sub-Header Bar */}
-          <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-r from-black/90 via-[#0A192F]/90 to-black/90 backdrop-blur-2xl shadow-[0_15px_50px_rgba(0,0,0,0.85)] p-3.5 sm:p-5 relative">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_20px_rgba(204,253,1,0.8)]" />
-            <div className="flex flex-wrap items-center justify-between gap-3 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/10 border border-primary/30 text-primary shadow-[0_0_15px_rgba(204,253,1,0.2)]">
-                  <Scan className="w-4 h-4 animate-pulse" />
+          {/* TI Broadcast Stage Header Bar */}
+          <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-r from-black/95 via-[#0A192F]/90 to-black/95 backdrop-blur-2xl shadow-[0_15px_50px_rgba(0,0,0,0.85)] p-4 sm:p-6 relative">
+            {/* Top Laser Tracer */}
+            <div
+              className="absolute top-0 left-0 right-0 h-[2px]"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${theme.primaryHex}, transparent)`,
+                boxShadow: `0 0 20px ${theme.glowRgba || theme.primaryHex}`,
+              }}
+            />
+
+            {/* Ambient Spotlight */}
+            <div
+              className="absolute -top-10 left-10 w-64 h-32 rounded-full blur-[70px] pointer-events-none opacity-20"
+              style={{ backgroundColor: theme.primaryHex }}
+            />
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+              <div className="flex items-center gap-3.5">
+                <div
+                  className="p-2.5 rounded-2xl border flex items-center justify-center shrink-0"
+                  style={{
+                    backgroundColor: `${theme.primaryHex}1a`,
+                    borderColor: `${theme.primaryHex}4d`,
+                    color: theme.primaryHex,
+                    boxShadow: `0 0 20px ${theme.primaryHex}33`,
+                  }}
+                >
+                  <Trophy className="w-5 h-5 animate-pulse" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs sm:text-sm font-black uppercase italic tracking-[0.25em] text-white flex items-center gap-2 font-headline">
-                    ALL-TIME PLAYER METRICS
-                    <span className="inline-block w-2 h-2 rounded-full bg-primary animate-ping" />
-                  </span>
-                  <span className="text-[8px] sm:text-[9px] font-mono text-white/50 uppercase tracking-widest">
-                    SYS_NODE: STAT_REGISTRY_V4 // TOTAL: {allFilteredPlayers.length} ATHLETES
+                  <div className="flex items-center gap-2">
+                    <span
+                      style={{ color: theme.primaryHex }}
+                      className="text-[9px] sm:text-[10px] font-body font-semibold uppercase tracking-[0.18em]"
+                    >
+                      {theme.tiTitle || 'THE INTERNATIONAL'} // IMMORTAL CAREER ARCHIVE
+                    </span>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  </div>
+                  <h2 className="text-base sm:text-xl font-bold uppercase tracking-[0.08em] text-white font-ti drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    HALL OF AEGIS • KLASEMEN KARIR KESELURUHAN
+                  </h2>
+                  <span className="text-[8px] sm:text-[9.5px] font-body font-semibold text-white/50 uppercase tracking-[0.18em] mt-0.5">
+                    METRIC_PROTOCOL: OVERALL ALL-TIME // TOTAL: {allFilteredPlayers.length} ATHLETES
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-[9px] font-black uppercase tracking-wider text-white/60">
-                  <Gauge className="w-3.5 h-3.5 text-primary" />
-                  <span>OVR SORT: DYNAMIC</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/15 border border-primary/40 text-[9px] font-black uppercase italic tracking-wider text-primary shadow-[0_0_12px_rgba(204,253,1,0.25)]">
-                  <Zap className="w-3.5 h-3.5 fill-primary" />
-                  <span>LIVE TELEMETRY</span>
-                </div>
+              {/* Quick Sort Pill Selector */}
+              <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-black/60 border border-white/10 self-start lg:self-auto">
+                <span className="text-[9px] font-body font-bold text-white/40 uppercase tracking-[0.18em] px-2">URUTKAN:</span>
+                <button
+                  onClick={() => setCareerSortKey('mmr')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-[10px] font-body font-semibold uppercase tracking-[0.18em] transition-all",
+                    careerSortKey === 'mmr'
+                      ? "text-black shadow-md font-bold"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  )}
+                  style={careerSortKey === 'mmr' ? { backgroundColor: theme.primaryHex } : undefined}
+                >
+                  ⚡ MMR
+                </button>
+                <button
+                  onClick={() => setCareerSortKey('pts')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-[10px] font-body font-semibold uppercase tracking-[0.18em] transition-all",
+                    careerSortKey === 'pts'
+                      ? "text-black shadow-md font-bold"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  )}
+                  style={careerSortKey === 'pts' ? { backgroundColor: theme.primaryHex } : undefined}
+                >
+                  🛡️ Poin Karir
+                </button>
+                <button
+                  onClick={() => setCareerSortKey('goals')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-[10px] font-body font-semibold uppercase tracking-[0.18em] transition-all",
+                    careerSortKey === 'goals'
+                      ? "text-black shadow-md font-bold"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  )}
+                  style={careerSortKey === 'goals' ? { backgroundColor: theme.primaryHex } : undefined}
+                >
+                  ⚽ Top Skor
+                </button>
+                <button
+                  onClick={() => setCareerSortKey('titles')}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-[10px] font-body font-semibold uppercase tracking-[0.18em] transition-all",
+                    careerSortKey === 'titles'
+                      ? "text-black shadow-md font-bold"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  )}
+                  style={careerSortKey === 'titles' ? { backgroundColor: theme.primaryHex } : undefined}
+                >
+                  🏆 Trofi Aegis
+                </button>
               </div>
             </div>
           </div>
 
           {/* MOBILE VIEW: Ultra Sport Futuristic Athlete Pods (Visible on screen < lg) */}
           <div className="lg:hidden space-y-3">
-            {allFilteredPlayers.map((player) => (
+            {sortedTablePlayers.map((player) => (
               <PlayerMobilePod
                 key={player.id}
                 player={player}
@@ -499,13 +612,16 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
 
           {/* DESKTOP VIEW: Cyber Telemetry Leaderboard Matrix (Screen >= lg) */}
           <PlayerTelemetryTable
-            players={allFilteredPlayers}
+            players={sortedTablePlayers}
             teamsById={teamsById}
             hallOfFame={hallOfFame}
             tiersConfig={tiersConfig}
             isAdmin={isAdmin}
             onEdit={onEdit}
             onDelete={confirmDelete}
+            theme={theme}
+            sortKey={careerSortKey}
+            onSortChange={setCareerSortKey}
           />
         </div>
       )}
@@ -514,7 +630,7 @@ export function PlayerList({ onEdit, isAdmin, withAdminCheck }: PlayerListProps)
       <AlertDialog open={!!deletingPlayer} onOpenChange={(isOpen) => !isOpen && setDeletingPlayer(null)}>
         <AlertDialogContent className="border border-rose-500/40 bg-[#0A192F]/95 backdrop-blur-3xl rounded-3xl p-6 sm:p-8 shadow-[0_0_80px_rgba(239,68,68,0.25)]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase italic text-rose-500">
+            <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase text-rose-500">
               {t('are_you_sure')}
             </AlertDialogTitle>
             <AlertDialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[10px]">

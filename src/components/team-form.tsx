@@ -127,7 +127,7 @@ export function TeamForm({ team, onSave }: TeamFormProps) {
               <FormLabel>Team Tier (Power Level)</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value.toString()}>
                 <FormControl>
-                  <SelectTrigger className="bg-black/40 border-white/10 font-black italic uppercase">
+                  <SelectTrigger className="bg-black/40 border-white/10 font-black uppercase">
                     <SelectValue placeholder="Select Tier" />
                   </SelectTrigger>
                 </FormControl>

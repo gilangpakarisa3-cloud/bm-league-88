@@ -87,7 +87,7 @@ export const CreateSeasonDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg border-primary border-2 bg-card/95 backdrop-blur-xl rounded-2xl max-h-[90vh] flex flex-col">
         <DialogHeader className="shrink-0">
-          <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase italic pr-4">
+          <DialogTitle className="text-xl sm:text-2xl font-black tracking-tighter uppercase pr-4">
             {editingSeason ? t('edit_season') : t('create_new_season')}
           </DialogTitle>
           <div className="font-bold text-muted-foreground uppercase tracking-widest text-[8px] sm:text-[10px]">
@@ -398,7 +398,7 @@ export const CreateSeasonDialog = ({
         </div>
 
         <div className="pt-3 border-t border-white/10 shrink-0">
-          <Button onClick={onSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase italic shadow-[0_10px_20px_rgba(204,253,1,0.2)]">
+          <Button onClick={onSubmit} className="w-full h-12 sm:h-14 text-sm sm:text-lg font-black tracking-tighter uppercase shadow-[0_10px_20px_rgba(204,253,1,0.2)]">
             {editingSeason ? t('save_changes') : t('create_season')}
           </Button>
         </div>

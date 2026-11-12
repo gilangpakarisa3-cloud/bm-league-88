@@ -149,7 +149,7 @@ export const GrandFinalPodium = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: primaryHex }} />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: primaryHex }} />
             </span>
-            <span className="font-black uppercase tracking-[0.2em] italic truncate" style={{ color: primaryHex }}>
+            <span className="font-black uppercase tracking-[0.2em] truncate" style={{ color: primaryHex }}>
               {divisionName ? `${seasonSysTag} • ${divisionName}` : seasonSysTag}
             </span>
           </div>
@@ -158,7 +158,7 @@ export const GrandFinalPodium = ({
             {formattedDate ? (
               <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" style={{ color: primaryHex }} /> {formattedDate}</span>
             ) : isProjection ? (
-              <Badge variant="outline" className="h-4 text-[7px] border-cyan-500/40 text-cyan-300 py-0 px-2 font-black uppercase italic bg-cyan-500/10 rounded-full">SIMULASI PROYEKSI</Badge>
+              <Badge variant="outline" className="h-4 text-[7px] border-cyan-500/40 text-cyan-300 py-0 px-2 font-black uppercase bg-cyan-500/10 rounded-full">SIMULASI PROYEKSI</Badge>
             ) : (
               <span className="flex items-center gap-1 text-white/40"><Clock className="w-3 h-3" /> JADWAL TBD</span>
             )}
@@ -193,7 +193,7 @@ export const GrandFinalPodium = ({
 
         {/* 2. Tactical Head Title (Pure Sports Typography, No Tacky Floating Trophy) */}
         <div className="text-center space-y-1 relative z-10 px-1 py-1">
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-white/80 font-mono text-[8px] sm:text-[9px] font-black uppercase tracking-[0.25em] italic">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-white/80 font-mono text-[8px] sm:text-[9px] font-black uppercase tracking-[0.25em]">
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: primaryHex }} />
             <span>{divisionName ? `${seasonSeriesBadge} • ${divisionName.toUpperCase()}` : seasonSeriesBadge}</span>
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: secondaryHex }} />
@@ -273,7 +273,7 @@ export const GrandFinalPodium = ({
                 </div>
                 <div
                   className={cn(
-                    "text-base sm:text-lg font-black uppercase italic font-headline truncate tracking-wide",
+                    "text-base sm:text-lg font-black uppercase  font-headline truncate tracking-wide",
                     isW1 ? "text-white" : "text-white/90"
                   )}
                   style={isW1 ? {
@@ -314,7 +314,7 @@ export const GrandFinalPodium = ({
               }}
             >
               <span style={{ color: primaryHex }}>//</span>
-              <span className="text-white italic">BO3 GRAND FINAL</span>
+              <span className="text-white">BO3 GRAND FINAL</span>
               <span style={{ color: secondaryHex }}>//</span>
             </div>
           </div>
@@ -369,7 +369,7 @@ export const GrandFinalPodium = ({
                 </div>
                 <div
                   className={cn(
-                    "text-base sm:text-lg font-black uppercase italic font-headline truncate tracking-wide",
+                    "text-base sm:text-lg font-black uppercase  font-headline truncate tracking-wide",
                     isW2 ? "text-white" : "text-white/90"
                   )}
                   style={isW2 ? {

@@ -38,7 +38,7 @@ export const PlayoffQualificationLegend = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
           <div className="flex items-center gap-1.5 shrink-0">
             <Scan className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
-            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 italic truncate">
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 truncate">
               {div2Name.toUpperCase()} • PLAYOFF & PROMOTION RACE
             </span>
           </div>
@@ -46,14 +46,14 @@ export const PlayoffQualificationLegend = ({
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-emerald-400 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-400 whitespace-nowrap">
                 Playoff 8 Besar (#1 - #8 Lolos Playoff Promosi)
               </span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-amber-300 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-300 whitespace-nowrap">
                 {actualPromotionSpots === 2 ? 'Finalis Playoff Promosi' : `Top ${actualPromotionSpots} Playoff Promosi`} ke {div1Name}
               </span>
             </div>
@@ -61,7 +61,7 @@ export const PlayoffQualificationLegend = ({
             {totalPlayers > 8 && (
               <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-white/[0.04] border border-white/10 shadow-[0_0_8px_rgba(255,255,255,0.05)]">
                 <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
-                <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-white/50 whitespace-nowrap">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase text-white/50 whitespace-nowrap">
                   Gugur (#9+)
                 </span>
               </div>
@@ -76,7 +76,7 @@ export const PlayoffQualificationLegend = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
           <div className="flex items-center gap-1.5 shrink-0">
             <Scan className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
-            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 italic truncate">
+            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 truncate">
               {div2Name.toUpperCase()} • PLAYOFF & PROMOTION RACE
             </span>
           </div>
@@ -84,14 +84,14 @@ export const PlayoffQualificationLegend = ({
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-emerald-400 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-400 whitespace-nowrap">
                 Playoff (#1 - #4 Tiap Grup Lolos)
               </span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-amber-300 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-300 whitespace-nowrap">
                 {actualPromotionSpots === 2 ? 'Finalis Playoff Promosi' : `Top ${actualPromotionSpots} Playoff Promosi`} ke {div1Name}
               </span>
             </div>
@@ -104,7 +104,7 @@ export const PlayoffQualificationLegend = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
         <div className="flex items-center gap-1.5 shrink-0">
           <Scan className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
-          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 italic truncate">
+          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-cyan-400 truncate">
             {div2Name.toUpperCase()} • PROMOTION ZONE
           </span>
         </div>
@@ -112,7 +112,7 @@ export const PlayoffQualificationLegend = ({
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.12)]">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse shrink-0" />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-emerald-400 whitespace-nowrap">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-400 whitespace-nowrap">
               Zona Promosi ({actualPromotionSpots === 1 ? '#1' : `#1 - #${actualPromotionSpots}`} Promosi ke {div1Name})
             </span>
           </div>
@@ -131,7 +131,7 @@ export const PlayoffQualificationLegend = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
         <div className="flex items-center gap-1.5 shrink-0">
           <Scan className={cn("w-3.5 h-3.5 animate-pulse shrink-0", currentTheme.primaryText)} />
-          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-white/60 italic truncate">
+          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-white/60 truncate">
             {currentTheme.editionName} • LEAGUE TABLE
           </span>
         </div>
@@ -139,7 +139,7 @@ export const PlayoffQualificationLegend = ({
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <div className={cn("inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg border shadow-sm", currentTheme.primaryBg, currentTheme.primaryBorder)}>
             <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse shrink-0", currentTheme.primaryHex ? "shadow-sm" : "")} style={{ backgroundColor: currentTheme.primaryHex, boxShadow: `0 0 6px ${currentTheme.primaryHex}` }} />
-            <span className={cn("text-[9px] sm:text-[10px] font-black uppercase italic whitespace-nowrap", currentTheme.primaryText)}>
+            <span className={cn("text-[9px] sm:text-[10px] font-black uppercase  whitespace-nowrap", currentTheme.primaryText)}>
               Playoff 8 Besar <span className="text-white/40 font-normal">(#1 - #8 Bertarung Gelar Juara)</span>
             </span>
           </div>
@@ -149,7 +149,7 @@ export const PlayoffQualificationLegend = ({
               {directRelegationCount > 0 && (
                 <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.12)]">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)] shrink-0" />
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-rose-400 whitespace-nowrap">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-rose-400 whitespace-nowrap">
                     Degradasi Langsung {directRelegationCount === 1 ? `(#${totalPlayers})` : `(#${startDirectRelegationRank} - #${totalPlayers})`}
                   </span>
                 </div>
@@ -157,7 +157,7 @@ export const PlayoffQualificationLegend = ({
               {playoffRelegationCount > 0 && (
                 <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.12)]">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] shrink-0" />
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-amber-300 whitespace-nowrap">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-300 whitespace-nowrap">
                     +{playoffRelegationCount} Slot Degradasi dari Gugur Playoff
                   </span>
                 </div>
@@ -166,7 +166,7 @@ export const PlayoffQualificationLegend = ({
           ) : (
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)] shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-rose-400 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-rose-400 whitespace-nowrap">
                 Gugur <span className="text-white/40 font-normal">(#9+)</span>
               </span>
             </div>
@@ -185,7 +185,7 @@ export const PlayoffQualificationLegend = ({
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-2 sm:p-3 px-3 sm:px-6 bg-gradient-to-r from-black/95 via-white/[0.02] to-black/95 border-b border-white/10 backdrop-blur-3xl relative overflow-hidden shrink-0">
       <div className="flex items-center gap-1.5 shrink-0">
         <Scan className="w-3.5 h-3.5 text-primary animate-pulse shrink-0" />
-        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-white/60 italic truncate">
+        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-white/60 truncate">
           KLASEMEN RESMI • LEAGUE STANDINGS
         </span>
       </div>
@@ -195,14 +195,14 @@ export const PlayoffQualificationLegend = ({
           <>
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-emerald-400 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-400 whitespace-nowrap">
                 Playoff Utama <span className="text-white/40 font-normal">({ubText})</span>
               </span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-amber-500/[0.08] border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)] animate-pulse shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-amber-400 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-400 whitespace-nowrap">
                 Playoff Contender <span className="text-white/40 font-normal">({lbText})</span>
               </span>
             </div>
@@ -212,7 +212,7 @@ export const PlayoffQualificationLegend = ({
         {hasDivisions ? (
           <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.12)]">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)] shrink-0" />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-rose-400 whitespace-nowrap">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase text-rose-400 whitespace-nowrap">
               {seasonType === 'Hybrid'
                 ? `Zona Degradasi (${Math.ceil(actualRelegationSpots / 2)} Tiap Grup • Total ${actualRelegationSpots} Turun ke ${div2Name})`
                 : totalPlayers > actualRelegationSpots
@@ -225,7 +225,7 @@ export const PlayoffQualificationLegend = ({
           (seasonType === 'Hybrid' || seasonType === 'Co-Op Hybrid') && (
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg bg-rose-500/[0.08] border border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.12)]">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)] shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase italic text-rose-400 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] font-black uppercase text-rose-400 whitespace-nowrap">
                 Gugur <span className="text-white/40 font-normal">({elimText})</span>
               </span>
             </div>

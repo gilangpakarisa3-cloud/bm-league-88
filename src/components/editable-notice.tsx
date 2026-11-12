@@ -194,11 +194,11 @@ export function EditableNotice() {
                       <li key={index}>{rule}</li>
                     ))
                   ) : (
-                    <p className="text-muted-foreground italic list-none">{t('no_rules_added')}</p>
+                    <p className="text-muted-foreground list-none">{t('no_rules_added')}</p>
                   )}
                 </ul>
                 <div className="text-center bg-primary text-primary-foreground p-4 rounded-md text-sm font-semibold min-h-[50px]">
-                  {displaySchedule ? displaySchedule : <p className="italic">{t('no_schedule_set')}</p>}
+                  {displaySchedule ? displaySchedule : <p className="">{t('no_schedule_set')}</p>}
                 </div>
               </>
             )}

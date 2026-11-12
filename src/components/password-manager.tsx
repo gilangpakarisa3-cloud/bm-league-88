@@ -115,7 +115,7 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
               <KeyRound className="w-7 h-7" />
             </div>
             <div className="text-left min-w-0">
-              <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight uppercase italic font-headline text-white leading-none">
+              <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight uppercase font-headline text-white leading-none">
                 {t('manage_admin_password')}
               </DialogTitle>
               <p className="text-[9px] font-mono font-black uppercase tracking-[0.25em] text-cyan-400/80 mt-1">
@@ -200,7 +200,7 @@ export function PasswordManager({ open, onOpenChange }: PasswordManagerProps) {
               <Button 
                 type="submit" 
                 disabled={!isLoaded} 
-                className="w-full h-13 font-black tracking-widest text-xs uppercase italic font-headline rounded-2xl shadow-xl shadow-cyan-500/25 text-black bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 transition-all flex items-center justify-center gap-2"
+                className="w-full h-13 font-black tracking-widest text-xs uppercase font-headline rounded-2xl shadow-xl shadow-cyan-500/25 text-black bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 transition-all flex items-center justify-center gap-2"
               >
                 <Scan className="w-4 h-4" />
                 {isInitialSetup ? t('set_password', {defaultValue: 'Set Password'}) : t('save_changes')}

@@ -162,14 +162,14 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                 />
                 <Zap className="w-16 h-16 animate-spin" style={{ color: theme.primaryHex }} />
             </div>
-            <p className="text-xs font-black tracking-[0.5em] uppercase italic animate-pulse" style={{ color: theme.primaryHex }}>Syncing Tactical Data Hub...</p>
+            <p className="text-xs font-black tracking-[0.5em] uppercase animate-pulse" style={{ color: theme.primaryHex }}>Syncing Tactical Data Hub...</p>
         </div>
     );
 
     if (!matches || matches.length === 0) return (
         <div className="border-4 border-dashed border-white/5 rounded-none p-20 text-center bg-black/20 backdrop-blur-md animate-in fade-in zoom-in-95 duration-700 max-w-4xl mx-auto">
             <Swords className="w-24 h-24 text-white/5 mx-auto mb-8" />
-            <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic pr-4">{t('no_fixtures_generated_title')}</h2>
+            <h2 className="text-3xl font-black text-white tracking-tighter uppercase pr-4">{t('no_fixtures_generated_title')}</h2>
             <p className="text-white/40 mt-4 max-w-sm mx-auto font-bold uppercase text-[11px] tracking-[0.3em] leading-relaxed">{t('no_fixtures_generated_desc')}</p>
         </div>
     );
@@ -184,7 +184,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             type="button"
                             onClick={() => setDivisionFilter('all')}
                             className={cn(
-                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 italic",
+                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 ",
                                 divisionFilter === 'all'
                                     ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.4)]"
                                     : "text-white/50 hover:text-white"
@@ -196,7 +196,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             type="button"
                             onClick={() => setDivisionFilter('div-1')}
                             className={cn(
-                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 italic flex items-center gap-1.5",
+                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300  flex items-center gap-1.5",
                                 divisionFilter === 'div-1'
                                     ? "bg-emerald-400 text-black shadow-[0_0_20px_rgba(52,211,153,0.4)]"
                                     : "text-emerald-400/70 hover:text-emerald-300"
@@ -209,7 +209,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             type="button"
                             onClick={() => setDivisionFilter('div-2')}
                             className={cn(
-                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 italic flex items-center gap-1.5",
+                                "px-3.5 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300  flex items-center gap-1.5",
                                 divisionFilter === 'div-2'
                                     ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.4)]"
                                     : "text-amber-400/70 hover:text-amber-300"
@@ -245,7 +245,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                     <Input 
                         type="text" 
                         placeholder="SEARCH BATTLE NODE / UNIT..." 
-                        className="flex-1 h-12 sm:h-14 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base sm:text-xl font-black italic tracking-tight uppercase placeholder:text-white/20 transition-all relative z-10 px-4 sm:px-6 text-white" 
+                        className="flex-1 h-12 sm:h-14 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base sm:text-xl font-black tracking-tight uppercase placeholder:text-white/20 transition-all relative z-10 px-4 sm:px-6 text-white" 
                         value={searchTerm} 
                         onChange={(e) => setSearchTerm(e.target.value)} 
                     />
@@ -271,7 +271,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                           style={{ borderColor: `${theme.primaryHex}55` }}
                         />
                     </div>
-                    <h2 className="text-xl font-black uppercase italic tracking-[0.3em] text-white/60">{t('no_matches_found')}</h2>
+                    <h2 className="text-xl font-black uppercase tracking-[0.3em] text-white/60">{t('no_matches_found')}</h2>
                 </div>
             ) : (
                 <Tabs defaultValue={liveCount > 0 ? "live" : "upcoming"} className="w-full">
@@ -280,7 +280,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             <TabsTrigger 
                                 value="live" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm italic transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
+                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm  transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
                                     theme.tabsActiveBg,
                                     "data-[state=inactive]:text-white/45 data-[state=inactive]:hover:text-white"
                                 )}
@@ -295,7 +295,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             <TabsTrigger 
                                 value="upcoming" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm italic transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
+                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm  transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
                                     theme.tabsActiveBg,
                                     "data-[state=inactive]:text-white/45 data-[state=inactive]:hover:text-white"
                                 )}
@@ -310,7 +310,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             <TabsTrigger 
                                 value="completed" 
                                 className={cn(
-                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm italic transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
+                                    "relative h-full font-black uppercase tracking-tight sm:tracking-[0.15em] text-[10px] sm:text-xs md:text-sm  transition-all duration-300 rounded-xl sm:rounded-full px-1 sm:px-3",
                                     theme.tabsActiveBg,
                                     "data-[state=inactive]:text-white/45 data-[state=inactive]:hover:text-white"
                                 )}
@@ -332,7 +332,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                                         <div className="flex items-center gap-6 w-full max-w-4xl px-4">
                                             <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-red-500/40 to-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.4)]" />
                                             <div className="flex flex-col items-center shrink-0">
-                                                <h3 className="text-xl sm:text-2xl font-black tracking-widest text-white uppercase italic drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] pr-2">{roundNames[rd] || rd}</h3>
+                                                <h3 className="text-xl sm:text-2xl font-black tracking-widest text-white uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] pr-2">{roundNames[rd] || rd}</h3>
                                                 <Badge variant="outline" className="text-[9px] font-black uppercase tracking-[0.3em] border-red-500/30 text-red-500 py-0.5 h-6 mt-1 animate-pulse bg-red-500/10 px-5 rounded-full">BROADCAST_ACTIVE</Badge>
                                             </div>
                                             <div className="h-0.5 flex-1 bg-gradient-to-l from-transparent via-red-500/40 to-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.4)]" />
@@ -348,7 +348,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             {liveCount === 0 && (
                                 <div className="text-center py-24 opacity-30 flex flex-col items-center gap-4 rounded-3xl bg-black/30 border border-white/5 p-8 max-w-xl mx-auto">
                                     <Radio className="w-16 h-16 text-white/40" />
-                                    <p className="text-sm font-black uppercase tracking-[0.4em] italic text-white/60">SIGNAL_LOST: NO_LIVE_BROADCAST</p>
+                                    <p className="text-sm font-black uppercase tracking-[0.4em] text-white/60">SIGNAL_LOST: NO_LIVE_BROADCAST</p>
                                 </div>
                             )}
                         </div>
@@ -368,7 +368,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                                               }} 
                                             />
                                             <div className="flex flex-col items-center shrink-0">
-                                                <h3 className="text-xl sm:text-2xl font-black tracking-widest text-white uppercase italic pr-2">{roundNames[rd] || rd}</h3>
+                                                <h3 className="text-xl sm:text-2xl font-black tracking-widest text-white uppercase pr-2">{roundNames[rd] || rd}</h3>
                                                 <Badge 
                                                   variant="outline" 
                                                   className="text-[9px] font-black uppercase tracking-[0.3em] py-0.5 h-6 mt-1 px-5 rounded-full border shadow-sm"
@@ -400,7 +400,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             {upcomingCount === 0 && (
                                 <div className="text-center py-24 opacity-30 flex flex-col items-center gap-4 rounded-3xl bg-black/30 border border-white/5 p-8 max-w-xl mx-auto">
                                     <Trophy className="w-16 h-16 text-white/40" />
-                                    <p className="text-sm font-black uppercase tracking-[0.4em] italic text-white/60">PROTOCOL_COMPLETE: NO_PENDING_UNITS</p>
+                                    <p className="text-sm font-black uppercase tracking-[0.4em] text-white/60">PROTOCOL_COMPLETE: NO_PENDING_UNITS</p>
                                 </div>
                             )}
                         </div>
@@ -414,7 +414,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                                         <div className="flex items-center gap-6 w-full max-w-4xl px-4">
                                             <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-white/20 to-white/60 rounded-full" />
                                             <div className="flex flex-col items-center shrink-0">
-                                                <h3 className="text-xl sm:text-2xl font-black tracking-widest text-white/70 uppercase italic pr-2">{roundNames[rd] || rd}</h3>
+                                                <h3 className="text-xl sm:text-2xl font-black tracking-widest text-white/70 uppercase pr-2">{roundNames[rd] || rd}</h3>
                                                 <Badge variant="outline" className="text-[9px] font-black uppercase tracking-[0.3em] border-white/10 text-white/40 py-0.5 h-6 mt-1 px-5 rounded-full">LOGS_ARCHIVE</Badge>
                                             </div>
                                             <div className="h-0.5 flex-1 bg-gradient-to-l from-transparent via-white/20 to-white/60 rounded-full" />
@@ -430,7 +430,7 @@ export const FixtureContent = memo(function FixtureContent({ activeSeasonId, onE
                             {completedCount === 0 && (
                                 <div className="text-center py-24 opacity-30 flex flex-col items-center gap-4 rounded-3xl bg-black/30 border border-white/5 p-8 max-w-xl mx-auto">
                                     <Zap className="w-16 h-16 text-white/40" />
-                                    <p className="text-sm font-black uppercase tracking-[0.4em] italic text-white/60">EMPTY_ARCHIVE: NO_MATCH_RECORDS</p>
+                                    <p className="text-sm font-black uppercase tracking-[0.4em] text-white/60">EMPTY_ARCHIVE: NO_MATCH_RECORDS</p>
                                 </div>
                             )}
                         </div>

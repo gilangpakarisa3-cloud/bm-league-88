@@ -153,7 +153,7 @@ export const RelegationPlacementRadar = ({
           )} />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-sm sm:text-base font-black tracking-wider text-white uppercase italic font-headline flex items-center gap-2">
+              <h4 className="text-sm sm:text-base font-black tracking-wider text-white uppercase font-headline flex items-center gap-2">
                 <AlertTriangle className={cn("w-4 h-4", hasDivisions ? "text-rose-400 animate-pulse" : "text-amber-400")} />
                 {hasDivisions ? 'ZONA DEGRADASI & STATUS FINISH' : 'STATUS FINISH LUAR PLAYOFF'}
               </h4>
@@ -252,7 +252,7 @@ export const RelegationPlacementRadar = ({
                   <div className="flex items-center justify-between pl-1.5 font-mono">
                     <div className="flex items-center gap-1.5">
                       <span className={cn(
-                        "text-xs font-black italic px-2 py-0.5 rounded-md border",
+                        "text-xs font-black  px-2 py-0.5 rounded-md border",
                         isTotalRelegated 
                           ? "bg-rose-500 text-white border-rose-400 font-headline" 
                           : isPlayoffEligibleSurvivor
@@ -296,7 +296,7 @@ export const RelegationPlacementRadar = ({
                     </Avatar>
 
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-xs font-black uppercase italic tracking-wide text-white truncate font-headline group-hover/relegation:text-rose-300 transition-colors">
+                      <span className="text-xs font-black uppercase tracking-wide text-white truncate font-headline group-hover/relegation:text-rose-300 transition-colors">
                         {playerName}
                       </span>
                       <span className="text-[8px] font-mono text-white/50 truncate uppercase tracking-wider">
@@ -334,7 +334,7 @@ export const RelegationPlacementRadar = ({
             })}
           </div>
         ) : (
-          <div className="py-6 text-center font-mono text-xs text-white/40 italic">
+          <div className="py-6 text-center font-mono text-xs text-white/40">
             Semua peserta ({totalPlayers} tim) saat ini terdaftar di babak playoff.
           </div>
         )}

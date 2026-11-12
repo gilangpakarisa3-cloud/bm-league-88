@@ -24,7 +24,7 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
         <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 flex flex-col items-center text-center gap-8 sm:gap-16 relative">
             {/* Floating Back Button */}
             <div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-50 animate-in fade-in slide-in-from-left-4 duration-700">
-                <Button asChild variant="outline" size="sm" className="bg-[#0A192F]/90 border-white/10 hover:border-primary/50 font-black uppercase italic text-[9px] sm:text-[10px] h-10 sm:h-12 px-4 sm:px-6 rounded-xl transition-all">
+                <Button asChild variant="outline" size="sm" className="bg-[#0A192F]/90 border-white/10 hover:border-primary/50 font-black uppercase text-[9px] sm:text-[10px] h-10 sm:h-12 px-4 sm:px-6 rounded-xl transition-all">
                     <Link href="/league" className="flex items-center">
                         <ChevronLeft className="mr-2 h-4 w-4" /> 
                         {t('back_to_league', { defaultValue: 'Kembali ke Liga'})}
@@ -34,20 +34,20 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
 
             {/* Immersive Background Ghost Text - Simplified for performance */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-[0.02] select-none flex flex-col items-start pt-10 pl-4 sm:pl-10 overflow-hidden">
-                <span className="text-[6rem] sm:text-[12rem] font-black italic pr-10">THE</span>
-                <span className="text-[6rem] sm:text-[12rem] font-black italic -mt-4 sm:-mt-10 text-primary pr-10">CHAMPION</span>
+                <span className="text-[6rem] sm:text-[12rem] font-black pr-10">THE</span>
+                <span className="text-[6rem] sm:text-[12rem] font-black -mt-4 sm:-mt-10 text-primary pr-10">CHAMPION</span>
             </div>
 
             {/* Title Section with Victory Protocol */}
             <div className="space-y-4 sm:space-y-6 relative z-10 animate-in fade-in slide-in-from-top-8 duration-1000">
                 <div className="inline-flex items-center gap-2 sm:gap-3 bg-primary/10 border-2 border-primary/30 px-4 sm:px-6 py-1.5 sm:py-2 rounded-full shadow-[0_0_30px_rgba(204,253,1,0.1)]">
                     <Trophy className="w-4 h-4 sm:w-6 sm:h-6 text-primary animate-bounce" />
-                    <span className="text-[8px] sm:text-xs font-black uppercase tracking-[0.3em] sm:tracking-[0.5em] text-primary italic pr-1">Victory Protocol Activated</span>
+                    <span className="text-[8px] sm:text-xs font-black uppercase tracking-[0.3em] sm:tracking-[0.5em] text-primary pr-1">Victory Protocol Activated</span>
                 </div>
-                <h1 className="font-headline text-4xl sm:text-8xl font-black tracking-tighter text-white uppercase italic pr-2 sm:pr-12 drop-shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                <h1 className="font-headline text-4xl sm:text-8xl font-black tracking-tighter text-white uppercase pr-2 sm:pr-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                     {title}
                 </h1>
-                {subtitle && <p className="text-sm sm:text-2xl font-bold text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.4em] italic pr-4">{subtitle}</p>}
+                {subtitle && <p className="text-sm sm:text-2xl font-bold text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.4em] pr-4">{subtitle}</p>}
             </div>
             
             <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 sm:gap-12 items-center relative z-10">
@@ -73,12 +73,12 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
                             </div>
 
                             <div className="space-y-2 sm:space-y-4 text-center">
-                                <h2 className="text-3xl sm:text-7xl font-black text-white tracking-tighter uppercase italic pr-4 sm:pr-12 group-hover:text-primary transition-colors duration-500">
+                                <h2 className="text-3xl sm:text-7xl font-black text-white tracking-tighter uppercase pr-4 sm:pr-12 group-hover:text-primary transition-colors duration-500">
                                     {winnerName}
                                 </h2>
                                 <div className="flex items-center justify-center gap-3 sm:gap-4">
                                     <div className="h-0.5 w-8 sm:w-16 bg-primary/30" />
-                                    <p className="text-base sm:text-3xl font-black text-primary/60 uppercase tracking-widest italic pr-4">{teamName}</p>
+                                    <p className="text-base sm:text-3xl font-black text-primary/60 uppercase tracking-widest pr-4">{teamName}</p>
                                     <div className="h-0.5 w-8 sm:w-16 bg-primary/30" />
                                 </div>
                             </div>
@@ -90,7 +90,7 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
                 <div className="flex flex-col gap-3 sm:gap-5 animate-in fade-in slide-in-from-right-8 duration-1000 delay-500">
                     <div className="flex items-center gap-3 mb-2 px-2">
                         <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-primary fill-primary" />
-                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/40 italic">Champion Metadata</span>
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/40">Champion Metadata</span>
                     </div>
                     
                     {stats.map((stat, index) => (
@@ -98,7 +98,7 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
                             <div className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5 bg-primary/10 group-hover/stat:bg-primary transition-colors duration-500" />
                             <div className="flex justify-between items-center relative z-10">
                                 <span className="text-[9px] sm:text-[11px] font-black text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.3em]">{stat.label}</span>
-                                <span className="text-3xl sm:text-5xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(204,253,1,0.3)] tabular-nums" suppressHydrationWarning>
+                                <span className="text-3xl sm:text-5xl font-black text-primary drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tabular-nums" suppressHydrationWarning>
                                     {stat.value}
                                 </span>
                             </div>
@@ -110,7 +110,7 @@ export function WinnerDisplay({ title, subtitle, winnerName, teamName, imageUrl,
                         <div className="flex items-center justify-between relative z-10">
                             <div className="text-left">
                                 <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-60 mb-1">Status Kompetisi</p>
-                                <p className="text-base sm:text-xl font-black uppercase italic leading-none pr-4">HISTORI TERVERIFIKASI</p>
+                                <p className="text-base sm:text-xl font-black uppercase leading-none pr-4">HISTORI TERVERIFIKASI</p>
                             </div>
                             <ShieldCheck className="w-8 h-8 sm:w-12 sm:h-12 opacity-40" />
                         </div>

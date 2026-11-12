@@ -407,7 +407,7 @@ export function TeamDraftDialog({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <DialogTitle className="text-sm sm:text-base font-black text-white uppercase italic tracking-tight font-headline">
+                <DialogTitle className="text-sm sm:text-base font-black text-white uppercase tracking-tight font-headline">
                   Team Allocation <span style={{ color: primaryHex }}>Arena</span>
                 </DialogTitle>
                 <DialogDescription className="sr-only">
@@ -454,7 +454,7 @@ export function TeamDraftDialog({
                 type="button"
                 onClick={() => setDraftMode('draw')}
                 className={cn(
-                  "h-7 px-2.5 text-[9px] font-black uppercase tracking-wider italic rounded-md transition-all font-headline",
+                  "h-7 px-2.5 text-[9px] font-black uppercase tracking-wider  rounded-md transition-all font-headline",
                   draftMode === 'draw' 
                     ? "text-black" 
                     : "text-white/40 hover:text-white"
@@ -471,7 +471,7 @@ export function TeamDraftDialog({
                 type="button"
                 onClick={() => setDraftMode('manual')}
                 className={cn(
-                  "h-7 px-2.5 text-[9px] font-black uppercase tracking-wider italic rounded-md transition-all font-headline",
+                  "h-7 px-2.5 text-[9px] font-black uppercase tracking-wider  rounded-md transition-all font-headline",
                   draftMode === 'manual' 
                     ? "text-black" 
                     : "text-white/40 hover:text-white"
@@ -492,7 +492,7 @@ export function TeamDraftDialog({
                 type="button"
                 onClick={() => setAllowSameTeam(!allowSameTeam)}
                 className={cn(
-                  "h-7 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider italic rounded-lg border transition-all hidden sm:inline-flex items-center",
+                  "h-7 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider  rounded-lg border transition-all hidden sm:inline-flex items-center",
                   allowSameTeam 
                     ? "bg-amber-400/20 text-amber-300 border-amber-400/50" 
                     : "text-white/40 border-white/10 hover:text-white"
@@ -540,7 +540,7 @@ export function TeamDraftDialog({
                       T{selectedTeam.tier || 3}
                     </Badge>
                   </div>
-                  <p className="text-[11px] font-black text-white uppercase italic truncate font-headline leading-tight">
+                  <p className="text-[11px] font-black text-white uppercase truncate font-headline leading-tight">
                     {selectedTeam.name}
                   </p>
                 </div>
@@ -552,7 +552,7 @@ export function TeamDraftDialog({
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-white/15 text-white/30 text-[9px] font-black uppercase tracking-wider italic">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-white/15 text-white/30 text-[9px] font-black uppercase tracking-wider">
                 <span>👈 Pilih 1 Tim di Kiri</span>
               </div>
             )}
@@ -564,7 +564,7 @@ export function TeamDraftDialog({
               onClick={handleRunDraw}
               disabled={!selectedTeamId || selectedPlayerIds.length === 0 || isDrawing}
               className={cn(
-                "h-9 sm:h-10 px-5 sm:px-7 font-black uppercase italic text-[11px] sm:text-xs tracking-wider rounded-xl transition-all shadow-xl font-headline",
+                "h-9 sm:h-10 px-5 sm:px-7 font-black uppercase  text-[11px] sm:text-xs tracking-wider rounded-xl transition-all shadow-xl font-headline",
                 isDrawing 
                   ? "cursor-wait animate-pulse" 
                   : (!selectedTeamId || selectedPlayerIds.length === 0)
@@ -616,7 +616,7 @@ export function TeamDraftDialog({
                   <span className="text-[7px] font-black uppercase" style={{ color: primaryHex }}>
                     {selectedPlayerIds.length > 1 ? `${selectedPlayerIds.length} ATLET TERPILIH` : 'ATLET TERPILIH'}
                   </span>
-                  <p className="text-[11px] font-black text-white uppercase italic truncate font-headline leading-tight">
+                  <p className="text-[11px] font-black text-white uppercase truncate font-headline leading-tight">
                     {selectedPlayerIds.length === 1 ? firstSelectedPlayerName : `${selectedPlayerIds.length} Peserta`}
                   </p>
                 </div>
@@ -634,7 +634,7 @@ export function TeamDraftDialog({
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-white/15 text-white/30 text-[9px] font-black uppercase tracking-wider italic">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-white/15 text-white/30 text-[9px] font-black uppercase tracking-wider">
                 <span>Pilih Peserta di Kanan 👉</span>
               </div>
             )}
@@ -651,7 +651,7 @@ export function TeamDraftDialog({
               borderColor: `${primaryHex}4D`
             }}
           >
-            <div className="flex items-center gap-2 text-xs font-black uppercase italic truncate" style={{ color: primaryHex }}>
+            <div className="flex items-center gap-2 text-xs font-black uppercase truncate" style={{ color: primaryHex }}>
               <Trophy className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">
                 {lastDrawResult.isManual ? 'ASSIGN SELESAI' : 'HASIL UNDIAN'}: {" "}
@@ -675,7 +675,7 @@ export function TeamDraftDialog({
             <div className="p-2.5 bg-black/70 border-b border-white/5 shrink-0 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 shrink-0">
                 <Shield className="w-3.5 h-3.5" style={{ color: primaryHex }} />
-                <span className="text-[10px] font-black uppercase tracking-wider text-white/80 italic font-headline">
+                <span className="text-[10px] font-black uppercase tracking-wider text-white/80 font-headline">
                   Daftar Klub ({filteredTeams.length})
                 </span>
               </div>
@@ -705,7 +705,7 @@ export function TeamDraftDialog({
                     type="button"
                     onClick={() => setTierFilter(tier)}
                     className={cn(
-                      "px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider italic rounded transition-all",
+                      "px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider  rounded transition-all",
                       tierFilter === tier 
                         ? "text-black font-headline" 
                         : "text-white/40 hover:text-white"
@@ -759,7 +759,7 @@ export function TeamDraftDialog({
                         <div className="flex-1 min-w-0 pr-1">
                           <p 
                             className={cn(
-                              "text-[10px] font-black uppercase italic tracking-tight truncate leading-tight transition-colors font-headline",
+                              "text-[10px] font-black uppercase  tracking-tight truncate leading-tight transition-colors font-headline",
                               !isSelected && "text-white/80 group-hover:text-white"
                             )}
                             style={isSelected ? {
@@ -773,7 +773,7 @@ export function TeamDraftDialog({
 
                         {/* Tier Badge */}
                         <Badge className={cn(
-                          "text-[7px] font-black italic h-3.5 px-1 rounded shrink-0",
+                          "text-[7px] font-black  h-3.5 px-1 rounded shrink-0",
                           isTier1 
                             ? "bg-amber-400 text-black shadow-[0_0_6px_rgba(251,191,36,0.6)]" 
                             : team.tier === 2 
@@ -789,7 +789,7 @@ export function TeamDraftDialog({
               ) : (
                 <div className="py-12 text-center border border-dashed border-white/10 rounded-xl opacity-40">
                   <Shield className="w-6 h-6 mx-auto mb-1.5 text-white/30" />
-                  <p className="text-[9px] font-black uppercase tracking-wider italic">Tidak ada klub cocok</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider">Tidak ada klub cocok</p>
                 </div>
               )}
             </ScrollArea>
@@ -807,7 +807,7 @@ export function TeamDraftDialog({
                   type="button"
                   onClick={() => setActivePlayerTab('unassigned')}
                   className={cn(
-                    "h-6 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider italic rounded-md transition-all font-headline whitespace-nowrap",
+                    "h-6 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider  rounded-md transition-all font-headline whitespace-nowrap",
                     activePlayerTab === 'unassigned'
                       ? "text-black"
                       : "text-white/40 hover:text-white"
@@ -823,7 +823,7 @@ export function TeamDraftDialog({
                   type="button"
                   onClick={() => setActivePlayerTab('assigned')}
                   className={cn(
-                    "h-6 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider italic rounded-md transition-all font-headline whitespace-nowrap",
+                    "h-6 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider  rounded-md transition-all font-headline whitespace-nowrap",
                     activePlayerTab === 'assigned'
                       ? "text-black"
                       : "text-white/40 hover:text-white"
@@ -859,7 +859,7 @@ export function TeamDraftDialog({
                 <button
                   type="button"
                   onClick={handleSelectAllUnassigned}
-                  className="h-7 px-2 text-[8px] font-black uppercase tracking-wider italic rounded-lg border border-white/10 transition-all shrink-0 hover:text-white"
+                  className="h-7 px-2 text-[8px] font-black uppercase tracking-wider rounded-lg border border-white/10 transition-all shrink-0 hover:text-white"
                   style={{
                     borderColor: selectedPlayerIds.length === unassignedEntries.length ? primaryHex : undefined,
                     color: selectedPlayerIds.length === unassignedEntries.length ? primaryHex : undefined
@@ -918,7 +918,7 @@ export function TeamDraftDialog({
                             {/* Athlete Name */}
                             <p 
                               className={cn(
-                                "text-xs font-black uppercase italic tracking-tight truncate transition-colors font-headline flex-1 min-w-0 pr-1.5",
+                                "text-xs font-black uppercase  tracking-tight truncate transition-colors font-headline flex-1 min-w-0 pr-1.5",
                                 !isSelected && "text-white/80 group-hover:text-white"
                               )}
                               style={isSelected ? { color: primaryHex } : {}}
@@ -937,7 +937,7 @@ export function TeamDraftDialog({
                 ) : (
                   <div className="py-12 text-center border border-dashed border-white/10 rounded-xl opacity-40">
                     <CheckCircle2 className="w-6 h-6 mx-auto mb-1.5" style={{ color: primaryHex }} />
-                    <p className="text-[9px] font-black uppercase tracking-wider italic">Semua peserta telah ter-alokasi tim!</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider">Semua peserta telah ter-alokasi tim!</p>
                   </div>
                 )
               ) : (
@@ -957,7 +957,7 @@ export function TeamDraftDialog({
                           }}
                         >
                           <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <span className="text-xs font-black uppercase italic text-white tracking-tight truncate font-headline max-w-[130px] sm:max-w-[170px] pr-1.5 shrink-0">
+                            <span className="text-xs font-black uppercase text-white tracking-tight truncate font-headline max-w-[130px] sm:max-w-[170px] pr-1.5 shrink-0">
                               {entry.name}
                             </span>
 
@@ -976,7 +976,7 @@ export function TeamDraftDialog({
                                 {entry.team?.name}
                               </span>
                               <Badge className={cn(
-                                "text-[6px] font-black italic h-3 px-1 rounded shrink-0",
+                                "text-[6px] font-black  h-3 px-1 rounded shrink-0",
                                 entry.team?.tier === 1 ? "bg-amber-400 text-black" : "bg-white/10 text-white/60"
                               )}>
                                 T{entry.team?.tier || 3}
@@ -1000,7 +1000,7 @@ export function TeamDraftDialog({
                 ) : (
                   <div className="py-12 text-center border border-dashed border-white/10 rounded-xl opacity-40">
                     <Activity className="w-6 h-6 mx-auto mb-1.5 text-white/30" />
-                    <p className="text-[9px] font-black uppercase tracking-wider italic">Belum ada peserta yang terkunci</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider">Belum ada peserta yang terkunci</p>
                   </div>
                 )
               )}
@@ -1020,7 +1020,7 @@ export function TeamDraftDialog({
               size="sm"
               disabled={unassignedEntries.length === 0 || isDrawing}
               onClick={handleAutoDraftAll}
-              className="h-8 sm:h-9 px-3 text-[9px] sm:text-[10px] font-black uppercase tracking-wider italic rounded-xl transition-all shadow-lg font-headline hover:text-black"
+              className="h-8 sm:h-9 px-3 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-xl transition-all shadow-lg font-headline hover:text-black"
               style={{
                 backgroundColor: `${primaryHex}1A`,
                 borderColor: `${primaryHex}66`,
@@ -1038,7 +1038,7 @@ export function TeamDraftDialog({
                 variant="outline"
                 size="sm"
                 onClick={handleAssignTeamToAll}
-                className="h-8 sm:h-9 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider italic border-amber-400/40 text-amber-300 hover:bg-amber-400/20 rounded-xl transition-all hidden sm:inline-flex"
+                className="h-8 sm:h-9 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider border-amber-400/40 text-amber-300 hover:bg-amber-400/20 rounded-xl transition-all hidden sm:inline-flex"
               >
                 <Users className="w-3 h-3 mr-1" />
                 Klub Ini Ke Semua
@@ -1052,7 +1052,7 @@ export function TeamDraftDialog({
                 variant="ghost"
                 size="sm"
                 onClick={handleResetDraft}
-                className="h-8 sm:h-9 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider italic text-rose-400/70 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+                className="h-8 sm:h-9 px-2.5 text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-rose-400/70 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
               >
                 <RotateCcw className="w-3 h-3 mr-1" />
                 Reset
@@ -1067,7 +1067,7 @@ export function TeamDraftDialog({
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="h-8 sm:h-9 px-3 text-[9px] sm:text-[10px] font-black uppercase tracking-wider italic text-white/40 hover:text-white rounded-xl"
+              className="h-8 sm:h-9 px-3 text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white/40 hover:text-white rounded-xl"
             >
               Batal
             </Button>
@@ -1077,7 +1077,7 @@ export function TeamDraftDialog({
               onClick={handleFinalSubmit}
               disabled={totalAssigned === 0}
               className={cn(
-                "h-8 sm:h-9 px-4 sm:px-5 font-black uppercase italic text-[10px] sm:text-xs tracking-wider rounded-xl transition-all shadow-xl font-headline",
+                "h-8 sm:h-9 px-4 sm:px-5 font-black uppercase  text-[10px] sm:text-xs tracking-wider rounded-xl transition-all shadow-xl font-headline",
                 totalAssigned > 0
                   ? "text-black hover:scale-105 active:scale-95"
                   : "bg-white/5 text-white/20 border border-white/5 cursor-not-allowed"

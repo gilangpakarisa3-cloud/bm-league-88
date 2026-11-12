@@ -88,7 +88,7 @@ const StatItem = ({
             <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
           </div>
           <span 
-            className={cn("font-black text-xs tracking-tight uppercase italic truncate mt-0.5 relative z-10 w-full px-1", valueClassName)}
+            className={cn("font-black text-xs tracking-tight uppercase  truncate mt-0.5 relative z-10 w-full px-1", valueClassName)}
             style={variant === "season" && customHex ? { color: customHex } : undefined}
           >
             {value}
@@ -163,7 +163,7 @@ export function SeasonRecordCard({
         {/* Large Decorative Watermark Background */}
         <div className="absolute top-6 left-6 w-full h-full pointer-events-none opacity-[0.03] select-none flex flex-col items-start overflow-hidden">
           <span 
-            className="text-[10rem] font-black italic leading-none transition-colors duration-700"
+            className="text-[10rem] font-black leading-none transition-colors duration-700"
             style={{ color: theme.primaryHex }}
           >
             CHAMP
@@ -189,7 +189,7 @@ export function SeasonRecordCard({
                 style={{ backgroundColor: theme.primaryHex }}
               />
               <Badge 
-                className="text-[9px] font-black uppercase tracking-[0.3em] py-1 px-3 italic rounded-full border shadow-sm"
+                className="text-[9px] font-black uppercase tracking-[0.3em] py-1 px-3 rounded-full border shadow-sm"
                 style={{
                   backgroundColor: `${theme.primaryHex}1A`,
                   borderColor: `${theme.primaryHex}4D`,
@@ -232,7 +232,7 @@ export function SeasonRecordCard({
           
           <div className="space-y-1 text-center">
             <CardTitle 
-              className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase italic drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] transition-colors group-hover:drop-shadow-lg"
+              className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-colors group-hover:drop-shadow-lg"
               style={{
                 textShadow: `0 0 25px ${theme.primaryHex}33`
               }}
@@ -245,7 +245,7 @@ export function SeasonRecordCard({
                 style={{ backgroundImage: `linear-gradient(to right, transparent, ${theme.primaryHex}66)` }}
               />
               <span 
-                className="text-[10px] font-black uppercase tracking-[0.35em] italic font-mono"
+                className="text-[10px] font-black uppercase tracking-[0.35em] font-mono"
                 style={{ color: `${theme.primaryHex}B3` }}
               >
                 {formattedDate}
@@ -326,7 +326,7 @@ export function SeasonRecordCard({
             </div>
 
             <h3 
-              className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase italic transition-colors duration-500 drop-shadow-lg leading-none group-hover:text-white"
+              className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase transition-colors duration-500 drop-shadow-lg leading-none group-hover:text-white"
               style={{
                 textShadow: `0 0 30px ${theme.primaryHex}40`
               }}
@@ -369,7 +369,7 @@ export function SeasonRecordCard({
                   className="w-3.5 h-3.5 animate-pulse" 
                   style={{ color: theme.primaryHex }}
                 />
-                <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em] italic">
+                <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em]">
                   OVERALL CHAMPIONSHIP MATRIX
                 </span>
               </div>
@@ -377,13 +377,13 @@ export function SeasonRecordCard({
                 {record.winnerStats.points > 0 && (
                   <Badge 
                     variant="outline"
-                    className="font-black text-[9px] px-2 h-5.5 italic rounded-full border border-white/20 text-white/70 bg-white/5"
+                    className="font-black text-[9px] px-2 h-5.5 rounded-full border border-white/20 text-white/70 bg-white/5"
                   >
                     {record.winnerStats.points} LGE PTS
                   </Badge>
                 )}
                 <Badge 
-                  className="font-black text-[9.5px] px-2.5 h-5.5 italic rounded-full text-black shadow-md tracking-wider"
+                  className="font-black text-[9.5px] px-2.5 h-5.5 rounded-full text-black shadow-md tracking-wider"
                   style={{
                     backgroundColor: theme.primaryHex,
                     boxShadow: `0 0 15px ${theme.primaryHex}80`
@@ -404,12 +404,12 @@ export function SeasonRecordCard({
                 style={{ borderColor: `${theme.primaryHex}33` }}
               >
                 <span 
-                  className="text-[8px] font-black uppercase italic tracking-widest mb-1"
+                  className="text-[8px] font-black uppercase tracking-widest mb-1"
                   style={{ color: theme.primaryHex }}
                 >
                   VICTORIES (W)
                 </span>
-                <span className="text-3xl font-black text-white italic tabular-nums leading-none">
+                <span className="text-3xl font-black text-white tabular-nums leading-none">
                   {record.winnerStats.win}
                 </span>
                 <div className="mt-2 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
@@ -426,10 +426,10 @@ export function SeasonRecordCard({
 
               {(record.winnerStats.draw && record.winnerStats.draw > 0) ? (
                 <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-black/50 border border-amber-400/20">
-                  <span className="text-[8px] font-black text-amber-400 uppercase italic tracking-widest mb-1">
+                  <span className="text-[8px] font-black text-amber-400 uppercase tracking-widest mb-1">
                     DRAWS (D)
                   </span>
-                  <span className="text-3xl font-black text-white italic tabular-nums leading-none">
+                  <span className="text-3xl font-black text-white tabular-nums leading-none">
                     {record.winnerStats.draw}
                   </span>
                   <div className="mt-2 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
@@ -442,10 +442,10 @@ export function SeasonRecordCard({
               ) : null}
 
               <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-black/50 border border-rose-500/20">
-                <span className="text-[8px] font-black text-rose-400 uppercase italic tracking-widest mb-1">
+                <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">
                   DEFEATS (L)
                 </span>
-                <span className="text-3xl font-black text-white italic tabular-nums leading-none">
+                <span className="text-3xl font-black text-white tabular-nums leading-none">
                   {record.winnerStats.loss}
                 </span>
                 <div className="mt-2 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
@@ -462,7 +462,7 @@ export function SeasonRecordCard({
               <div className="p-2 bg-white/[0.02] rounded-xl">
                 <span className="block text-[7px] font-black uppercase tracking-wider text-white/40">WIN RATE</span>
                 <span 
-                  className="text-sm font-black font-mono italic"
+                  className="text-sm font-black font-mono"
                   style={{ color: theme.primaryHex }}
                 >
                   {winPercentage}%
@@ -470,12 +470,12 @@ export function SeasonRecordCard({
               </div>
               <div className="p-2 bg-white/[0.02] rounded-xl">
                 <span className="block text-[7px] font-black uppercase tracking-wider text-white/40">TOTAL GOALS</span>
-                <span className="text-sm font-black font-mono text-white italic">{record.winnerStats.goalsFor || 0}</span>
+                <span className="text-sm font-black font-mono text-white">{record.winnerStats.goalsFor || 0}</span>
               </div>
               <div className="p-2 bg-white/[0.02] rounded-xl">
                 <span className="block text-[7px] font-black uppercase tracking-wider text-white/40">GOAL DIFF</span>
                 <span className={cn(
-                  "text-sm font-black font-mono italic",
+                  "text-sm font-black font-mono ",
                   (record.winnerStats.goalDifference || 0) >= 0 ? "" : "text-rose-400"
                 )}
                 style={(record.winnerStats.goalDifference || 0) >= 0 ? { color: theme.primaryHex } : undefined}
@@ -498,7 +498,7 @@ export function SeasonRecordCard({
           >
             <div className="flex items-center gap-2">
               <Zap className="w-3.5 h-3.5 text-black animate-pulse" />
-              <h4 className="text-[9px] font-black tracking-[0.25em] uppercase italic text-black">
+              <h4 className="text-[9px] font-black tracking-[0.25em] uppercase text-black">
                 SEASON ACCOLADES (OVERALL TOURNAMENT)
               </h4>
             </div>
@@ -565,7 +565,7 @@ export function SeasonRecordCard({
                   />
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-[10px] font-black uppercase italic tracking-tight text-white/90">
+                  <span className="text-[10px] font-black uppercase tracking-tight text-white/90">
                     Legacy Seal Verified
                   </span>
                   <span 

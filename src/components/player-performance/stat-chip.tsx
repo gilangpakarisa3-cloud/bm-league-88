@@ -42,8 +42,8 @@ export const StatChip = ({
       </div>
       <span
         className={cn(
-          "text-lg sm:text-2xl font-black italic tabular-nums leading-none mt-1.5 font-headline",
-          variant === "gold" ? "text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]" :
+          "text-lg sm:text-2xl font-black  tabular-nums leading-none mt-1.5 font-headline",
+          variant === "gold" ? "text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" :
           variant === "win" ? "text-green-400" :
           variant === "loss" ? "text-red-400" :
           variant === "draw" ? "text-yellow-400" :

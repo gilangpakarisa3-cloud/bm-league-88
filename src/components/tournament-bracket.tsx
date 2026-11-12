@@ -320,12 +320,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
 
   return (
     <div className="w-full relative">
-        <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black italic leading-none">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black italic -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
+        <div className="absolute top-0 left-0 pointer-events-none opacity-[0.03] flex flex-col items-start pt-4 pl-10"><span className="text-[4rem] sm:text-[6rem] font-black leading-none">BM LEAGUE</span><span className="text-[1.5rem] sm:text-[2rem] font-black -mt-4 tracking-[0.8em]">EIGHTY EIGHT</span></div>
         
         {(!matches || matches.filter(m => m.bracketId).length === 0) && rankedTable.length > 0 && (
             <div className="mb-4 sm:mb-6 px-3 sm:px-8"><div className="relative overflow-hidden bg-amber-500/[0.03] border-2 border-amber-500/20 rounded-xl p-3 sm:p-4 backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 animate-pulse" /><div className="flex items-start gap-3 sm:gap-4"><div className="p-2 sm:p-2.5 rounded-lg bg-amber-500/10 text-amber-500 shadow-lg shrink-0"><Scan className="w-4 h-4 sm:w-5 sm:h-5" /></div><div className="flex-1">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-1"><Badge className="bg-amber-500 text-black font-black uppercase italic text-[8.5px] sm:text-[9px]">Live Simulation v2.4</Badge></div><p className="text-[11px] sm:text-xs font-bold text-amber-200/90 leading-tight">Bagan ini adalah proyeksi dinamis berdasarkan peringkat grup saat ini. Jadwal final akan dikunci saat Admin memulai babak playoff.</p>
+                    <div className="flex items-center gap-2 sm:gap-3 mb-1"><Badge className="bg-amber-500 text-black font-black uppercase text-[8.5px] sm:text-[9px]">Live Simulation v2.4</Badge></div><p className="text-[11px] sm:text-xs font-bold text-amber-200/90 leading-tight">Bagan ini adalah proyeksi dinamis berdasarkan peringkat grup saat ini. Jadwal final akan dikunci saat Admin memulai babak playoff.</p>
                 </div></div>
             </div></div>
         )}
@@ -366,7 +366,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                     <Button
                         type="button"
                         onClick={() => setIsShareDialogOpen(true)}
-                        className="h-6 sm:h-7 px-2 sm:px-2.5 rounded-md sm:rounded-lg text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider italic flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-sm active:scale-95 transition-all"
+                        className="h-6 sm:h-7 px-2 sm:px-2.5 rounded-md sm:rounded-lg text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-sm active:scale-95 transition-all"
                     >
                         <Share2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         <span>Share Bagan</span>
@@ -386,7 +386,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('all')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'all' 
                                         ? "bg-white/20 text-white border-white/40 shadow-sm" 
                                         : "bg-black/50 text-white/50 border-white/10 hover:border-white/20"
@@ -398,7 +398,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('qf')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'qf' 
                                         ? "bg-primary text-black border-primary shadow-[0_0_10px_rgba(204,253,1,0.5)]" 
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
@@ -410,7 +410,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('sf')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'sf' 
                                         ? "bg-cyan-500 text-black border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
@@ -422,7 +422,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('final')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'final' 
                                         ? "bg-amber-400 text-black border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.6)]" 
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
@@ -434,7 +434,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('relegation')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all flex items-center gap-1",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all flex items-center gap-1",
                                     mobileRoundTab === 'relegation' 
                                         ? "bg-rose-500 text-white border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.6)]" 
                                         : "bg-black/50 text-rose-300/80 border-rose-500/20 hover:border-rose-500/40"
@@ -450,7 +450,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('all')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'all' 
                                         ? "bg-white/20 text-white border-white/40 shadow-sm" 
                                         : "bg-black/50 text-white/50 border-white/10 hover:border-white/20"
@@ -462,7 +462,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('ub')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'ub' 
                                         ? "bg-primary text-black border-primary shadow-[0_0_10px_rgba(204,253,1,0.5)]" 
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
@@ -474,7 +474,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('lb')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'lb' 
                                         ? "bg-rose-500 text-white border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.5)]" 
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
@@ -486,7 +486,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('final')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all",
                                     mobileRoundTab === 'final' 
                                         ? "bg-amber-400 text-black border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.6)]" 
                                         : "bg-black/50 text-white/60 border-white/10 hover:border-white/20"
@@ -498,7 +498,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 type="button"
                                 onClick={() => scrollToStage('relegation')}
                                 className={cn(
-                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-wider border transition-all flex items-center gap-1",
+                                    "shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase  tracking-wider border transition-all flex items-center gap-1",
                                     mobileRoundTab === 'relegation' 
                                         ? "bg-rose-500 text-white border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.6)]" 
                                         : "bg-black/50 text-rose-300/80 border-rose-500/20 hover:border-rose-500/40"
@@ -525,7 +525,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
                                     <div className="flex items-center gap-2">
                                         <div className={cn("h-4 w-1 rounded-full shadow-[0_0_10px_rgba(204,253,1,0.8)]", theme.laserConduit)} />
-                                        <h4 className="text-xs sm:text-sm font-black tracking-wider text-white uppercase italic font-headline">
+                                        <h4 className="text-xs sm:text-sm font-black tracking-wider text-white uppercase font-headline">
                                             8 BESAR (QUARTERFINALS)
                                         </h4>
                                     </div>
@@ -549,7 +549,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
                                     <div className="flex items-center gap-2">
                                         <div className="h-4 w-1 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
-                                        <h4 className="text-xs sm:text-sm font-black tracking-wider text-white uppercase italic font-headline">
+                                        <h4 className="text-xs sm:text-sm font-black tracking-wider text-white uppercase font-headline">
                                             SEMIFINALS
                                         </h4>
                                     </div>
@@ -601,7 +601,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
                                     <div className="flex items-center gap-2">
                                         <div className={cn("h-4 w-1 rounded-full shadow-[0_0_10px_rgba(204,253,1,0.8)]", theme.laserConduit)} />
-                                        <h4 className={cn("text-xs sm:text-sm font-black tracking-wider uppercase italic font-headline", theme.primaryText)}>
+                                        <h4 className={cn("text-xs sm:text-sm font-black tracking-wider uppercase  font-headline", theme.primaryText)}>
                                             UPPER BRACKET
                                         </h4>
                                     </div>
@@ -636,7 +636,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
                                     <div className="flex items-center gap-2">
                                         <div className="h-4 w-1 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.8)]" />
-                                        <h4 className="text-xs sm:text-sm font-black tracking-wider text-rose-400 uppercase italic font-headline">
+                                        <h4 className="text-xs sm:text-sm font-black tracking-wider text-rose-400 uppercase font-headline">
                                             LOWER BRACKET
                                         </h4>
                                     </div>
@@ -718,7 +718,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             {/* Top neon racing tracer */}
                             <div className={cn("absolute top-0 left-0 right-0 h-[2px]", theme.topTracer)} />
                             <div className="absolute top-3 right-5 flex items-center gap-2 font-mono opacity-75">
-                                <span className={cn("text-[7.5px] font-black tracking-[0.3em] uppercase italic", theme.primaryText)}>
+                                <span className={cn("text-[7.5px] font-black tracking-[0.3em] uppercase ", theme.primaryText)}>
                                     {theme.sysTag}
                                 </span>
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
@@ -731,7 +731,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className={cn("h-7 w-1.5 rounded-full shadow-[0_0_15px_rgba(204,253,1,0.9)]", theme.laserConduit)} />
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <h3 className="text-lg sm:text-xl font-black tracking-wider text-white uppercase italic font-headline">
+                                                <h3 className="text-lg sm:text-xl font-black tracking-wider text-white uppercase font-headline">
                                                     {theme.knockoutArenaTitle}
                                                 </h3>
                                                 <Badge className={cn("text-[7.5px] font-black uppercase tracking-widest px-2 py-0.2 rounded-full shadow-sm", theme.badgeClass)}>
@@ -754,7 +754,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <Button
                                             type="button"
                                             onClick={() => setIsShareDialogOpen(true)}
-                                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-[0_0_15px_rgba(251,191,36,0.3)] active:scale-95"
+                                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-[0_0_15px_rgba(251,191,36,0.3)] active:scale-95"
                                         >
                                             <Share2 className="w-3.5 h-3.5" />
                                             <span>Share Bagan</span>
@@ -892,7 +892,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             {/* Top neon tracer */}
                             <div className={cn("absolute top-0 left-0 right-0 h-[2px]", theme.topTracer)} />
                             <div className="absolute top-4 right-6 flex items-center gap-2 opacity-75 font-mono">
-                                <span className={cn("text-[7.5px] font-black tracking-[0.3em] uppercase italic", theme.primaryText)}>
+                                <span className={cn("text-[7.5px] font-black tracking-[0.3em] uppercase ", theme.primaryText)}>
                                     {`${theme.sysTag}_UB`}
                                 </span>
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -904,7 +904,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className={cn("h-7 w-1.5 rounded-full shadow-[0_0_15px_rgba(204,253,1,0.8)]", theme.laserConduit)} />
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <h3 className={cn("text-lg sm:text-xl font-black tracking-widest uppercase italic font-headline", theme.primaryText)}>
+                                                <h3 className={cn("text-lg sm:text-xl font-black tracking-widest uppercase  font-headline", theme.primaryText)}>
                                                     {theme.upperTitle}
                                                 </h3>
                                                 <Badge className={cn("text-[7.5px] font-black uppercase tracking-widest px-2 py-0.2 rounded-full shadow-sm", theme.badgeClass)}>
@@ -919,7 +919,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <Button
                                         type="button"
                                         onClick={() => setIsShareDialogOpen(true)}
-                                        className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider italic transition-all flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-[0_0_15px_rgba(251,191,36,0.3)] active:scale-95"
+                                        className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black border border-amber-300/60 shadow-[0_0_15px_rgba(251,191,36,0.3)] active:scale-95"
                                     >
                                         <Share2 className="w-3.5 h-3.5" />
                                         <span>Share Bagan</span>
@@ -981,7 +981,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             />
                             <div className="absolute top-4 right-6 flex items-center gap-2 opacity-75 font-mono">
                                 <span
-                                  className="text-[7.5px] font-black tracking-[0.3em] uppercase italic"
+                                  className="text-[7.5px] font-black tracking-[0.3em] uppercase"
                                   style={{ color: theme.secondaryHex || theme.primaryHex }}
                                 >
                                     {`${theme.sysTag}_LB`}
@@ -1004,7 +1004,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div className="flex flex-col">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <h3
-                                              className="text-lg sm:text-xl font-black tracking-widest uppercase italic font-headline"
+                                              className="text-lg sm:text-xl font-black tracking-widest uppercase font-headline"
                                               style={{ color: theme.secondaryHex || theme.primaryHex }}
                                             >
                                                 {theme.lowerTitle}
@@ -1143,11 +1143,11 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                 </div>
                                 <div className="text-center sm:text-left min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-                                        <DialogTitle className="text-lg sm:text-2xl font-black tracking-tight uppercase italic leading-none text-white font-headline drop-shadow-md">
+                                        <DialogTitle className="text-lg sm:text-2xl font-black tracking-tight uppercase leading-none text-white font-headline drop-shadow-md">
                                             HUD ANALISIS PERTANDINGAN
                                         </DialogTitle>
                                         <Badge 
-                                            className="font-black tracking-widest text-[8px] sm:text-[9px] px-2.5 h-4.5 rounded-full uppercase italic border shadow-sm"
+                                            className="font-black tracking-widest text-[8px] sm:text-[9px] px-2.5 h-4.5 rounded-full uppercase border shadow-sm"
                                             style={{
                                                 backgroundColor: `${theme.primaryHex}1A`,
                                                 borderColor: `${theme.primaryHex}4D`,
@@ -1171,7 +1171,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center text-center">
                                         <div className="flex flex-col items-center space-y-2">
                                             <Label 
-                                                className="text-[9.5px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
+                                                className="text-[9.5px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5"
                                                 style={{ color: theme.primaryHex }}
                                             >
                                                 <CalendarIcon className="w-3.5 h-3.5" /> Tanggal Pertandingan
@@ -1191,7 +1191,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         </div>
                                         <div className="flex flex-col items-center space-y-2">
                                             <Label 
-                                                className="text-[9.5px] font-black uppercase tracking-[0.2em] italic flex items-center gap-1.5"
+                                                className="text-[9.5px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5"
                                                 style={{ color: theme.primaryHex }}
                                             >
                                                 <Clock className="w-3.5 h-3.5" /> Waktu Kick-Off (24H)
@@ -1222,7 +1222,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             <Button 
                                                 onClick={handleSaveManualSchedule} 
                                                 disabled={isUpdatingSchedule} 
-                                                className="h-11 px-7 font-black uppercase italic tracking-wider text-[10px] gap-2 rounded-xl text-black transition-all active:scale-95"
+                                                className="h-11 px-7 font-black uppercase tracking-wider text-[10px] gap-2 rounded-xl text-black transition-all active:scale-95"
                                                 style={{
                                                     backgroundColor: theme.primaryHex,
                                                     boxShadow: `0 0 15px ${theme.primaryHex}4D`
@@ -1233,7 +1233,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                             {selectedMatch?.isCompleted && onRevertMatch && (
                                                 <Button 
                                                     variant="outline" 
-                                                    className="bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black font-black uppercase italic tracking-wider text-[10px] h-11 px-5 rounded-xl transition-all gap-2 active:scale-95" 
+                                                    className="bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black font-black uppercase tracking-wider text-[10px] h-11 px-5 rounded-xl transition-all gap-2 active:scale-95" 
                                                     onClick={() => { onRevertMatch(selectedMatch); setSelectedMatch(null); }}
                                                 >
                                                     <Undo2 className="w-4 h-4" /> RESET SKOR
@@ -1273,7 +1273,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 {analysis1.entry?.rank || '?'}
                                             </div>
                                         </div>
-                                        <h3 className="text-sm sm:text-lg font-black uppercase italic text-white text-center w-full leading-tight truncate px-1" suppressHydrationWarning>
+                                        <h3 className="text-sm sm:text-lg font-black uppercase text-white text-center w-full leading-tight truncate px-1" suppressHydrationWarning>
                                             {selectedMatch?.p1?.name}
                                         </h3>
                                         <Badge 
@@ -1293,7 +1293,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="h-16 w-16 rounded-full border-2 border-dashed border-white/30 flex items-center justify-center">
                                             <User className="w-8 h-8 text-white/30" />
                                         </div>
-                                        <h3 className="text-xs font-black uppercase italic">SLOT TERSEDIA</h3>
+                                        <h3 className="text-xs font-black uppercase">SLOT TERSEDIA</h3>
                                     </div>
                                 )}
                             </div>
@@ -1309,7 +1309,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                     }}
                                 >
                                     <span 
-                                        className="font-black text-xs sm:text-base italic -rotate-45 font-headline"
+                                        className="font-black text-xs sm:text-base -rotate-45 font-headline"
                                         style={{ color: theme.primaryHex }}
                                     >
                                         VS
@@ -1343,7 +1343,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                 {analysis2.entry?.rank || '?'}
                                             </div>
                                         </div>
-                                        <h3 className="text-sm sm:text-lg font-black uppercase italic text-white text-center w-full leading-tight truncate px-1" suppressHydrationWarning>
+                                        <h3 className="text-sm sm:text-lg font-black uppercase text-white text-center w-full leading-tight truncate px-1" suppressHydrationWarning>
                                             {selectedMatch?.p2?.name}
                                         </h3>
                                         <Badge 
@@ -1363,7 +1363,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                         <div className="h-16 w-16 rounded-full border-2 border-dashed border-white/30 flex items-center justify-center">
                                             <User className="w-8 h-8 text-white/30" />
                                         </div>
-                                        <h3 className="text-xs font-black uppercase italic">SLOT TERSEDIA</h3>
+                                        <h3 className="text-xs font-black uppercase">SLOT TERSEDIA</h3>
                                     </div>
                                 )}
                             </div>
@@ -1392,14 +1392,14 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                      {/* Probability Bar */}
                                      <div className="flex flex-col items-center gap-1.5">
                                          <h4 
-                                            className="text-[9px] font-black tracking-[0.25em] uppercase italic flex items-center gap-1.5"
+                                            className="text-[9px] font-black tracking-[0.25em] uppercase flex items-center gap-1.5"
                                             style={{ color: theme.primaryHex }}
                                          >
                                              <Zap className="w-3 h-3" style={{ color: theme.primaryHex }} /> Probability Matrix
                                          </h4>
                                          <div className="flex items-center gap-3 w-full max-w-xs">
                                              <span 
-                                                className="text-lg sm:text-xl font-black italic tabular-nums" 
+                                                className="text-lg sm:text-xl font-black tabular-nums" 
                                                 style={{ color: theme.primaryHex }}
                                                 suppressHydrationWarning
                                              >
@@ -1423,7 +1423,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                  />
                                              </div>
                                              <span 
-                                                className="text-lg sm:text-xl font-black italic tabular-nums" 
+                                                className="text-lg sm:text-xl font-black tabular-nums" 
                                                 style={{ color: theme.secondaryHex || 'rgba(255,255,255,0.5)' }}
                                                 suppressHydrationWarning
                                              >
@@ -1443,7 +1443,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                              <div key={i} className="space-y-1">
                                                  <div className="flex justify-between items-center text-[7.5px] sm:text-[8px] font-black uppercase tracking-widest text-white/30">
                                                      <span suppressHydrationWarning className="text-white/60 font-mono">{stat.v1} Units</span>
-                                                     <span className="text-white/50 italic font-headline">{stat.label}</span>
+                                                     <span className="text-white/50 font-headline">{stat.label}</span>
                                                      <span suppressHydrationWarning className="text-white/60 font-mono">{stat.v2} Units</span>
                                                  </div>
                                                  <div className="flex items-center gap-1.5 h-1.5 w-full">
@@ -1489,12 +1489,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                              <div className="flex justify-between items-start">
                                                  <div className="flex flex-col">
                                                      <span 
-                                                        className="text-[6.5px] font-black uppercase tracking-[0.25em] italic"
+                                                        className="text-[6.5px] font-black uppercase tracking-[0.25em]"
                                                         style={{ color: theme.primaryHex }}
                                                      >
                                                          Play Style
                                                      </span>
-                                                     <h4 className="text-xs sm:text-sm font-black uppercase italic text-white pr-1">
+                                                     <h4 className="text-xs sm:text-sm font-black uppercase text-white pr-1">
                                                          {analysis1.playStyleText}
                                                      </h4>
                                                  </div>
@@ -1514,7 +1514,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                      ))}
                                                  </div>
                                              </div>
-                                             <p className="text-[8.5px] sm:text-[9px] font-semibold text-white/40 leading-snug italic line-clamp-2" suppressHydrationWarning>
+                                             <p className="text-[8.5px] sm:text-[9px] font-semibold text-white/40 leading-snug line-clamp-2" suppressHydrationWarning>
                                                  "{analysis1.playStyleDescription}"
                                              </p>
                                          </div>
@@ -1535,12 +1535,12 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                              <div className="flex justify-between items-start flex-row-reverse">
                                                  <div className="flex flex-col">
                                                      <span 
-                                                        className="text-[6.5px] font-black uppercase tracking-[0.25em] italic"
+                                                        className="text-[6.5px] font-black uppercase tracking-[0.25em]"
                                                         style={{ color: theme.secondaryHex || 'rgba(255,255,255,0.5)' }}
                                                      >
                                                          Tactical DNA
                                                      </span>
-                                                     <h4 className="text-xs sm:text-sm font-black uppercase italic text-white pl-1">
+                                                     <h4 className="text-xs sm:text-sm font-black uppercase text-white pl-1">
                                                          {analysis2.playStyleText}
                                                      </h4>
                                                  </div>
@@ -1560,7 +1560,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                                                      ))}
                                                  </div>
                                              </div>
-                                             <p className="text-[8.5px] sm:text-[9px] font-semibold text-white/40 leading-snug italic line-clamp-2" suppressHydrationWarning>
+                                             <p className="text-[8.5px] sm:text-[9px] font-semibold text-white/40 leading-snug line-clamp-2" suppressHydrationWarning>
                                                  "{analysis2.playStyleDescription}"
                                              </p>
                                          </div>
@@ -1579,7 +1579,7 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
                             }}
                         >
                             <p 
-                                className="text-[8px] font-bold italic leading-tight uppercase tracking-tight"
+                                className="text-[8px] font-bold leading-tight uppercase tracking-tight"
                                 style={{ color: `${theme.primaryHex}CC` }}
                             >
                                 Data disinkronisasi real-time sesuai statistik turnamen & match report {theme.seasonBadge}.

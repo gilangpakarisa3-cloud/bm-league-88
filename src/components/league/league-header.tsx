@@ -43,7 +43,7 @@ export function LeagueHeader({
                   style={{ backgroundColor: theme.primaryHex }}
                 />
                 <span
-                  className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] italic"
+                  className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]"
                   style={{ color: theme.primaryHex }}
                 >
                   Live Match Centre
@@ -59,7 +59,7 @@ export function LeagueHeader({
 
             {/* Headline */}
             <div className="relative min-w-0">
-              <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase italic leading-none drop-shadow-[0_0_35px_rgba(255,255,255,0.12)] flex flex-wrap items-baseline gap-x-2.5 sm:gap-x-4 py-1 pr-4">
+              <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex flex-wrap items-baseline gap-x-2.5 sm:gap-x-4 py-1 pr-4">
                 <span className="inline-block text-white pr-1">
                   {t('league_standings_page_title').split(' ')[0]}
                 </span>
@@ -87,7 +87,7 @@ export function LeagueHeader({
           {activeSeason && (
             <div className="flex flex-wrap md:flex-col items-start md:items-end gap-1.5 shrink-0">
               <Badge
-                className="font-black tracking-[0.15em] text-[9px] sm:text-[10px] h-6 sm:h-7 px-3 sm:px-4 uppercase italic rounded-full backdrop-blur-md flex items-center gap-1.5 border shadow-md shrink-0"
+                className="font-black tracking-[0.15em] text-[9px] sm:text-[10px] h-6 sm:h-7 px-3 sm:px-4 uppercase rounded-full backdrop-blur-md flex items-center gap-1.5 border shadow-md shrink-0"
                 style={{
                   backgroundColor: `${theme.primaryHex}20`,
                   color: theme.primaryHex,
@@ -104,7 +104,7 @@ export function LeagueHeader({
               <div className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-white/10 backdrop-blur-sm shadow-inner shrink-0">
                 <CalendarIcon className="w-3 h-3 shrink-0" style={{ color: theme.primaryHex }} />
                 {formattedDateRange && (
-                  <p className="text-[9px] sm:text-[10px] font-black text-white/70 uppercase tracking-wider italic">
+                  <p className="text-[9px] sm:text-[10px] font-black text-white/70 uppercase tracking-wider">
                     {formattedDateRange}
                   </p>
                 )}
@@ -120,7 +120,7 @@ export function LeagueHeader({
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 8px ${theme.glowRgba}` }}
               />
-              <p className="text-xs sm:text-sm lg:text-base font-black text-white tracking-tight uppercase italic break-words min-w-0">
+              <p className="text-xs sm:text-sm lg:text-base font-black text-white tracking-tight uppercase break-words min-w-0">
                 {activeSeason.name}
               </p>
             </div>
@@ -132,7 +132,7 @@ export function LeagueHeader({
                     <Activity className="w-2.5 h-2.5 animate-pulse shrink-0" style={{ color: theme.primaryHex }} />
                     <span className="text-[8px] font-black uppercase tracking-[0.15em] text-white/50">Progress</span>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-black italic" style={{ color: theme.primaryHex }} suppressHydrationWarning>
+                  <span className="text-[9px] sm:text-[10px] font-black" style={{ color: theme.primaryHex }} suppressHydrationWarning>
                     [{seasonProgress.toFixed(0)}%]
                   </span>
                 </div>
@@ -146,7 +146,7 @@ export function LeagueHeader({
                     }}
                   />
                 </div>
-                <p className="text-[7px] font-black tracking-[0.15em] uppercase text-white/30 italic text-right">
+                <p className="text-[7px] font-black tracking-[0.15em] uppercase text-white/30 text-right">
                   {completedMatchesCount}/{matches.length} MATCHES
                 </p>
               </div>

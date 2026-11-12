@@ -349,27 +349,27 @@ export const SingleTable = memo(({
                   {/* Futuristic Rank Badge */}
                   <div className="flex items-center justify-center pl-1 sm:pl-3">
                     {isFirst ? (
-                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl font-black text-xs sm:text-base italic flex items-center justify-center group-hover/row:scale-110 transition-transform font-headline", activeTheme.tableLeaderGradient)}>
+                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl font-black text-xs sm:text-base  flex items-center justify-center group-hover/row:scale-110 transition-transform font-headline", activeTheme.tableLeaderGradient)}>
                         1
                       </div>
                     ) : isPromotionZone ? (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-black text-xs sm:text-base italic flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.3)] group-hover/row:scale-105 transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-black text-xs sm:text-base flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.3)] group-hover/row:scale-105 transition-all font-headline">
                         {entry.rank}
                       </div>
                     ) : isUpperBracketZone ? (
-                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl font-black text-xs sm:text-base italic flex items-center justify-center group-hover/row:scale-105 transition-all font-headline border", activeTheme.tablePlayoffRankBadge || "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)] group-hover/row:border-emerald-400")}>
+                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl font-black text-xs sm:text-base  flex items-center justify-center group-hover/row:scale-105 transition-all font-headline border", activeTheme.tablePlayoffRankBadge || "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)] group-hover/row:border-emerald-400")}>
                         {entry.rank}
                       </div>
                     ) : isLowerBracketZone ? (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 font-black text-xs sm:text-base italic flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.2)] group-hover/row:border-amber-400 group-hover/row:scale-105 transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 font-black text-xs sm:text-base flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.2)] group-hover/row:border-amber-400 group-hover/row:scale-105 transition-all font-headline">
                         {entry.rank}
                       </div>
                     ) : isRelegationZone ? (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-400 font-black text-xs sm:text-base italic flex items-center justify-center shadow-[0_0_12px_rgba(244,63,94,0.2)] group-hover/row:border-rose-400 group-hover/row:scale-105 transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-400 font-black text-xs sm:text-base flex items-center justify-center shadow-[0_0_12px_rgba(244,63,94,0.2)] group-hover/row:border-rose-400 group-hover/row:scale-105 transition-all font-headline">
                         {entry.rank}
                       </div>
                     ) : (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-white/[0.04] border border-white/10 text-white/50 font-black text-xs sm:text-base italic flex items-center justify-center group-hover/row:text-white transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-white/[0.04] border border-white/10 text-white/50 font-black text-xs sm:text-base flex items-center justify-center group-hover/row:text-white transition-all font-headline">
                         {entry.rank}
                       </div>
                     )}
@@ -419,7 +419,7 @@ export const SingleTable = memo(({
                         <span
                           className={cn(
                             "font-bold tracking-wide transition-colors uppercase pr-1 font-headline leading-tight whitespace-nowrap",
-                            isFirst ? cn("text-[12px] sm:text-base drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]", activeTheme.primaryText) : "text-[12px] sm:text-sm text-white group-hover/node:text-white"
+                            isFirst ? cn("text-[12px] sm:text-base drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]", activeTheme.primaryText) : "text-[12px] sm:text-sm text-white group-hover/node:text-white"
                           )}
                           suppressHydrationWarning
                         >
@@ -431,8 +431,8 @@ export const SingleTable = memo(({
                           <span
                             className={cn(
                               "text-[7px] sm:text-[8.5px] font-black uppercase tracking-widest px-1 sm:px-1.5 py-0.5 rounded shrink-0 leading-none",
-                              mmrTierId === 'LEGEND' ? "text-yellow-400 font-extrabold drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" :
-                                mmrTierId === 'TOP_PLAYER' ? "text-primary font-extrabold drop-shadow-[0_0_8px_rgba(204,253,1,0.4)]" :
+                              mmrTierId === 'LEGEND' ? "text-yellow-400 font-extrabold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" :
+                                mmrTierId === 'TOP_PLAYER' ? "text-primary font-extrabold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" :
                                   mmrTierId === 'REGULER' ? "text-accent font-bold" :
                                     mmrTierId === 'AMATEUR' ? "text-pink-400 font-bold" :
                                       "text-slate-400 font-semibold"
@@ -442,17 +442,17 @@ export const SingleTable = memo(({
                           </span>
                         )}
                         {isFirst && (
-                          <Badge className={cn("border-none text-[7px] sm:text-[8px] px-1 sm:px-1.5 h-3.5 sm:h-4 rounded-full uppercase italic shrink-0 hidden sm:inline-flex shadow-sm", activeTheme.tableLeaderBadge)}>
+                          <Badge className={cn("border-none text-[7px] sm:text-[8px] px-1 sm:px-1.5 h-3.5 sm:h-4 rounded-full uppercase  shrink-0 hidden sm:inline-flex shadow-sm", activeTheme.tableLeaderBadge)}>
                             LEADER
                           </Badge>
                         )}
                         {isPromotionZone && (
-                          <Badge className="border-none text-[7px] sm:text-[7.5px] px-1 sm:px-1.5 h-3.5 sm:h-4 rounded-full uppercase italic shrink-0 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse whitespace-nowrap">
+                          <Badge className="border-none text-[7px] sm:text-[7.5px] px-1 sm:px-1.5 h-3.5 sm:h-4 rounded-full uppercase shrink-0 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse whitespace-nowrap">
                             🟢 PROMOSI
                           </Badge>
                         )}
                         {isRelegationZone && hasDivisions && (
-                          <Badge className="border-none text-[7px] sm:text-[7.5px] px-1 sm:px-1.5 h-3.5 sm:h-4 rounded-full uppercase italic shrink-0 bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse whitespace-nowrap">
+                          <Badge className="border-none text-[7px] sm:text-[7.5px] px-1 sm:px-1.5 h-3.5 sm:h-4 rounded-full uppercase shrink-0 bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse whitespace-nowrap">
                             🔻 DEGRADASI
                           </Badge>
                         )}
@@ -492,7 +492,7 @@ export const SingleTable = memo(({
                 <TableCell
                   className={cn(
                     "text-center px-1 text-[10px] sm:text-xs font-black tabular-nums font-mono transition-all",
-                    entry.goalDifference > 0 ? cn(activeTheme.primaryText, "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]") :
+                    entry.goalDifference > 0 ? cn(activeTheme.primaryText, "drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]") :
                       (entry.goalDifference < 0 ? "text-rose-400/80" : "text-white/30")
                   )}
                   suppressHydrationWarning
@@ -598,7 +598,7 @@ export const SingleTable = memo(({
                 <TableCell className="text-center px-1 sm:px-3 tabular-nums pr-2 sm:pr-4">
                   <span
                     className={cn(
-                      "inline-block min-w-[2rem] sm:min-w-[3rem] px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl font-black text-xs sm:text-lg italic tabular-nums transition-all duration-300 font-headline",
+                      "inline-block min-w-[2rem] sm:min-w-[3rem] px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl font-black text-xs sm:text-lg  tabular-nums transition-all duration-300 font-headline",
                       isFirst ? activeTheme.pointsBadgeLeader : activeTheme.pointsBadge
                     )}
                     suppressHydrationWarning

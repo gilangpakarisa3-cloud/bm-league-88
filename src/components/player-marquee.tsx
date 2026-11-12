@@ -3,17 +3,18 @@
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Season, LeagueEntry, WithId, Team, Player } from '@/lib/types';
 import { useState, useMemo, useEffect } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Shield, Zap, Activity } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Shield, Zap } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { resolveLogo } from '@/lib/logo-utils';
+import { useGlobalSeasonTheme } from '@/context/season-theme-context';
 
 const LEAGUE_ID = 'main-league';
 
 export function PlayerMarquee() {
   const firestore = useFirestore();
+  const { theme } = useGlobalSeasonTheme();
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
 
   const seasonsCollection = useMemoFirebase(
@@ -95,24 +96,33 @@ export function PlayerMarquee() {
   }
 
   if (!participants || participants.length === 0) {
-    return null; // Don't render anything if there are no participants
+    return null;
   }
   
-  // Duplicate the array to create a seamless loop
   const marqueeItems = [...participants, ...participants];
-
-  // Increase rolling speed by 30% (Original factor 5 / 1.3 ≈ 3.8)
   const animationDuration = `${participants.length * 3.8}s`;
 
   return (
     <div className="relative w-full overflow-hidden bg-black/40 border-y-2 border-white/5 py-4 sm:py-6 group backdrop-blur-xl">
-        {/* HUD Side Accents */}
-        <div className="absolute top-0 left-0 w-24 sm:w-48 h-full bg-gradient-to-r from-primary/[0.07] to-transparent pointer-events-none z-20" />
-        <div className="absolute top-0 right-0 w-24 sm:w-48 h-full bg-gradient-to-l from-primary/[0.07] to-transparent pointer-events-none z-20" />
+        {/* HUD Side Accents with dynamic theme gradient */}
+        <div 
+          className="absolute top-0 left-0 w-24 sm:w-48 h-full pointer-events-none z-20"
+          style={{ background: `linear-gradient(90deg, ${theme.primaryHex}1a, transparent)` }}
+        />
+        <div 
+          className="absolute top-0 right-0 w-24 sm:w-48 h-full pointer-events-none z-20"
+          style={{ background: `linear-gradient(270deg, ${theme.primaryHex}1a, transparent)` }}
+        />
         
         {/* Top/Bottom HUD Lines */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+        <div 
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px]"
+          style={{ background: `linear-gradient(90deg, transparent, ${theme.primaryHex}66, transparent)` }}
+        />
+        <div 
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px]"
+          style={{ background: `linear-gradient(90deg, transparent, ${theme.primaryHex}66, transparent)` }}
+        />
 
         <div 
             className="flex gap-6 sm:gap-12 animate-marquee group-hover:[animation-play-state:paused]"
@@ -121,23 +131,31 @@ export function PlayerMarquee() {
             {marqueeItems.map((participant, index) => (
                 <div 
                     key={`${participant.id}-${index}`} 
-                    className="flex items-center gap-3 sm:gap-5 shrink-0 px-4 sm:px-6 py-2 sm:py-3 bg-white/[0.02] border border-white/5 rounded-xl sm:rounded-2xl hover:border-primary/30 hover:bg-primary/[0.03] transition-all duration-500 group/item"
+                    className="flex items-center gap-3 sm:gap-5 shrink-0 px-4 sm:px-6 py-2 sm:py-3 bg-white/[0.02] border border-white/5 rounded-xl sm:rounded-2xl transition-all duration-500 group/item hover:border-white/20"
                 >
                     <div className="relative">
-                        <div className="absolute -inset-1.5 bg-primary/20 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity duration-500" />
-                        <Avatar className="h-9 w-9 sm:h-12 sm:w-12 border-2 border-white/10 group-hover/item:border-primary transition-all duration-500 shadow-xl relative z-10">
+                        <div 
+                          className="absolute -inset-1.5 rounded-full blur-md opacity-0 group-hover/item:opacity-100 transition-opacity duration-500" 
+                          style={{ backgroundColor: `${theme.primaryHex}4d` }}
+                        />
+                        <Avatar 
+                          className="h-9 w-9 sm:h-12 sm:w-12 border-2 border-white/10 transition-all duration-500 shadow-xl relative z-10"
+                        >
                             <AvatarImage key={participant.logoUrl} src={participant.logoUrl} alt={participant.playerName} className="object-cover" referrerPolicy="no-referrer" />
                             <AvatarFallback className="bg-black/40 font-black text-xs"><Shield className="w-5 h-5 text-white/30"/></AvatarFallback>
                         </Avatar>
                     </div>
                     
                     <div className="flex flex-col gap-0.5 relative z-10">
-                        <span className="font-black text-sm sm:text-lg text-white uppercase italic tracking-tight pr-4 group-hover/item:text-primary transition-colors duration-300 leading-none">
+                        <span className="font-black text-sm sm:text-lg text-white uppercase tracking-tight pr-4 transition-colors duration-300 leading-none">
                             {participant.playerName}
                         </span>
-                        <div className="flex items-center gap-1.5 opacity-40 group-hover/item:opacity-100 transition-opacity duration-300">
-                            <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary fill-primary" />
-                            <span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-widest truncate max-w-[100px]">
+                        <div className="flex items-center gap-1.5 opacity-60 group-hover/item:opacity-100 transition-opacity duration-300">
+                            <Zap 
+                              className="w-2.5 h-2.5 sm:w-3 sm:h-3" 
+                              style={{ color: theme.primaryHex, fill: theme.primaryHex }}
+                            />
+                            <span className="text-[8px] sm:text-[10px] font-black text-white/70 uppercase tracking-widest truncate max-w-[100px]">
                                 {participant.teamName || 'Independent'}
                             </span>
                         </div>
@@ -164,5 +182,5 @@ function MarqueeSkeleton() {
                 ))}
             </div>
         </div>
-    )
+    );
 }

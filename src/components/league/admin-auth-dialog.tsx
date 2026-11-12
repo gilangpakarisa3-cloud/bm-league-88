@@ -36,7 +36,7 @@ export const AdminAuthDialog = ({
                 <KeyRound className="w-5 h-5 animate-pulse" />
               </div>
               <div>
-                <DialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
+                <DialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tight font-headline text-white">
                   {t('admin_auth')}
                 </DialogTitle>
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/80 font-mono">
@@ -70,7 +70,7 @@ export const AdminAuthDialog = ({
           <DialogFooter className="flex-col gap-2 sm:flex-col pt-1">
             <Button 
               onClick={onAuthorize} 
-              className="w-full h-12 font-headline font-black tracking-wider text-xs uppercase italic rounded-2xl shadow-[0_0_30px_rgba(204,253,1,0.45)] text-black bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-12 font-headline font-black tracking-wider text-xs uppercase rounded-2xl shadow-[0_0_30px_rgba(204,253,1,0.45)] text-black bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Unlock className="w-4 h-4" />
               <span>AUTHORIZE PROTOCOL // BUKA ADMIN</span>

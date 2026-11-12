@@ -184,7 +184,7 @@ const ScoreControl = memo(({
           )}
           <span 
             className={cn(
-              "font-black italic relative z-10 tabular-nums font-headline",
+              "font-black  relative z-10 tabular-nums font-headline",
               size === "sm" ? "text-2xl" : "text-4xl sm:text-5xl",
               readOnly && "text-white/60 drop-shadow-none"
             )}
@@ -212,7 +212,7 @@ const ScoreControl = memo(({
           <Plus className={cn(size === "sm" ? "h-4 w-4" : "h-6 w-6 sm:h-5 sm:w-5", "transition-colors")} />
         </Button>
       </div>
-      <p className="text-[9px] sm:text-[10px] font-black text-white/50 uppercase tracking-[0.2em] sm:tracking-[0.25em] italic text-center max-w-[140px] mt-0.5">{label}</p>
+      <p className="text-[9px] sm:text-[10px] font-black text-white/50 uppercase tracking-[0.2em] sm:tracking-[0.25em] text-center max-w-[140px] mt-0.5">{label}</p>
     </div>
   );
 });
@@ -377,7 +377,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
         >
             <div className="flex items-center gap-2.5">
                 <Radio className={cn("w-4 h-4", matchStatus === 'Live' ? "text-red-500 animate-pulse" : "")} style={matchStatus !== 'Live' ? { color: primaryHex } : undefined} />
-                <span className="text-[9px] font-black uppercase tracking-[0.3em] italic" style={{ color: primaryHex }}>
+                <span className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: primaryHex }}>
                     MATCH STATUS PROTOCOL
                 </span>
             </div>
@@ -387,15 +387,15 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
                 render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger 
-                            className="h-12 bg-black/60 border-white/15 rounded-xl font-black italic uppercase tracking-widest focus:border-white/40 shadow-inner"
+                            className="h-12 bg-black/60 border-white/15 rounded-xl font-black uppercase tracking-widest focus:border-white/40 shadow-inner"
                             style={{ color: primaryHex }}
                         >
                             <SelectValue placeholder="Select Status" />
                         </SelectTrigger>
                         <SelectContent className="bg-black/95 border-white/20 rounded-xl backdrop-blur-2xl">
-                            <SelectItem value="Scheduled" className="font-black text-white/70 italic">SCHEDULED</SelectItem>
-                            <SelectItem value="Live" className="font-black text-red-500 italic">LIVE DASHBOARD</SelectItem>
-                            <SelectItem value="Completed" className="font-black italic" style={{ color: primaryHex }}>FINALIZED (COMPLETED)</SelectItem>
+                            <SelectItem value="Scheduled" className="font-black text-white/70">SCHEDULED</SelectItem>
+                            <SelectItem value="Live" className="font-black text-red-500">LIVE DASHBOARD</SelectItem>
+                            <SelectItem value="Completed" className="font-black" style={{ color: primaryHex }}>FINALIZED (COMPLETED)</SelectItem>
                         </SelectContent>
                     </Select>
                 )}
@@ -419,10 +419,10 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
                   }}
               >
                 <div className="space-y-1.5 relative z-10 w-full flex flex-col items-center">
-                  <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase italic truncate max-w-[200px] drop-shadow">{player1Info.name}</h3>
+                  <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase truncate max-w-[200px] drop-shadow">{player1Info.name}</h3>
                   <Badge 
                     variant="outline" 
-                    className="font-black tracking-widest text-[9px] uppercase px-3 py-0.5 rounded-full italic shadow-sm border"
+                    className="font-black tracking-widest text-[9px] uppercase px-3 py-0.5 rounded-full shadow-sm border"
                     style={{
                         backgroundColor: `${primaryHex}14`,
                         borderColor: `${primaryHex}40`,
@@ -444,13 +444,13 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
                                 } : { borderColor: 'rgba(255,255,255,0.1)' }}
                             >
                                 <span 
-                                    className={cn("text-3xl font-black italic tabular-nums font-headline", p1Wins < 2 && "text-white/40")}
+                                    className={cn("text-3xl font-black  tabular-nums font-headline", p1Wins < 2 && "text-white/40")}
                                     style={p1Wins >= 2 ? { color: primaryHex } : undefined}
                                 >
                                     {p1Wins}
                                 </span>
                             </div>
-                            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.25em] italic">Series Wins</p>
+                            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.25em]">Series Wins</p>
                         </div>
                     )}
                     
@@ -493,10 +493,10 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
                   }}
               >
                 <div className="space-y-1.5 relative z-10 w-full flex flex-col items-center">
-                  <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase italic truncate max-w-[200px] drop-shadow">{player2Info.name}</h3>
+                  <h3 className="text-base sm:text-lg font-black tracking-tight text-white uppercase truncate max-w-[200px] drop-shadow">{player2Info.name}</h3>
                   <Badge 
                     variant="outline" 
-                    className="font-black tracking-widest text-[9px] uppercase px-3 py-0.5 rounded-full italic shadow-sm border"
+                    className="font-black tracking-widest text-[9px] uppercase px-3 py-0.5 rounded-full shadow-sm border"
                     style={{
                         backgroundColor: `${primaryHex}14`,
                         borderColor: `${primaryHex}40`,
@@ -518,13 +518,13 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
                                 } : { borderColor: 'rgba(255,255,255,0.1)' }}
                             >
                                 <span 
-                                    className={cn("text-3xl font-black italic tabular-nums font-headline", p2Wins < 2 && "text-white/40")}
+                                    className={cn("text-3xl font-black  tabular-nums font-headline", p2Wins < 2 && "text-white/40")}
                                     style={p2Wins >= 2 ? { color: primaryHex } : undefined}
                                 >
                                     {p2Wins}
                                 </span>
                             </div>
-                            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.25em] italic">Series Wins</p>
+                            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.25em]">Series Wins</p>
                         </div>
                     )}
                     
@@ -568,7 +568,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
             <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-2xl flex items-start gap-3 backdrop-blur-sm">
                 <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5 animate-pulse" />
                 <div className="space-y-1">
-                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">Protocol Violation Detected</p>
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Protocol Violation Detected</p>
                     <ul className="list-disc pl-4 space-y-1">
                         {isBestOfThree && !isBo3Valid && matchStatus === 'Completed' && <li className="text-[11px] font-bold text-white/80 leading-tight">Salah satu tim harus mencapai 2 kemenangan.</li>}
                         {isCoopSession && !p1SumMatch && matchStatus === 'Completed' && <li className="text-[11px] font-bold text-white/80 leading-tight">Total gol individu Tim Home tidak cocok ({p1p1Goals} + {p1p2Goals} ≠ {p1Score}).</li>}
@@ -649,7 +649,7 @@ export function ScoreForm({ match, onSave, seasonType, player1Info, player2Info,
                 type="submit" 
                 disabled={isSaving} 
                 className={cn(
-                    "w-full h-14 sm:h-15 text-sm sm:text-base font-black tracking-[0.2em] gap-3 rounded-2xl sm:rounded-full uppercase italic transition-all duration-300 relative overflow-hidden text-black hover:scale-[1.01] active:scale-[0.98] shadow-2xl", 
+                    "w-full h-14 sm:h-15 text-sm sm:text-base font-black tracking-[0.2em] gap-3 rounded-2xl sm:rounded-full uppercase  transition-all duration-300 relative overflow-hidden text-black hover:scale-[1.01] active:scale-[0.98] shadow-2xl", 
                     isSaving && "opacity-60 cursor-wait"
                 )}
                 style={{

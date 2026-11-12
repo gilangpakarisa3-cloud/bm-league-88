@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { resolveLogo } from '@/lib/logo-utils';
 import { LeaderboardTable, LeaderboardSkeleton } from './leaderboard-table';
+import { useGlobalSeasonTheme } from '@/context/season-theme-context';
 
 const TournamentBracket = dynamic(
   () => import('@/components/tournament-bracket').then((m) => m.TournamentBracket),
@@ -28,6 +29,7 @@ interface LeaderboardSectionProps {
 export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSectionProps) {
   const firestore = useFirestore();
   const { t } = useTranslation();
+  const { theme } = useGlobalSeasonTheme();
   const [activeSeasonId, setActiveSeasonId] = useState<string | null>(null);
 
   const seasonsCollection = useMemoFirebase(
@@ -125,7 +127,7 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
   const leaderboardData = useMemo(() => {
     if (!allLeaguePlayers) return null;
 
-    const enrichedTable = allLeaguePlayers.map(entry => {
+    const enrichedTable = allLeaguePlayers.map((entry: any) => {
       let teamId = entry.teamId;
       let pName = entry.playerName;
 
@@ -152,16 +154,16 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
     });
 
     if (isHybrid) {
-      const groupA = enrichedTable.filter(p => p.group === 'A');
-      const groupB = enrichedTable.filter(p => p.group === 'B');
+      const groupA = enrichedTable.filter((p: any) => p.group === 'A');
+      const groupB = enrichedTable.filter((p: any) => p.group === 'B');
       return {
-        groupA: groupA.slice(0, 4).map((p, i) => ({ ...p, rank: i + 1 })),
-        groupB: groupB.slice(0, 4).map((p, i) => ({ ...p, rank: i + 1 })),
+        groupA: groupA.slice(0, 4).map((p: any, i: number) => ({ ...p, rank: i + 1 })),
+        groupB: groupB.slice(0, 4).map((p: any, i: number) => ({ ...p, rank: i + 1 })),
         isHybrid: true
       };
     }
 
-    const sorted = enrichedTable.map((entry, index) => ({...entry, rank: index + 1}));
+    const sorted = enrichedTable.map((entry: any, index: number) => ({...entry, rank: index + 1}));
     return {
       top: sorted.slice(0, 10),
       isHybrid: false
@@ -178,10 +180,10 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
           <Skeleton className="h-8 w-64" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="border-2 border-primary/20 overflow-hidden bg-card/40 backdrop-blur-md">
+          <Card className="border-2 border-white/10 overflow-hidden bg-card/40 backdrop-blur-md">
             <LeaderboardSkeleton />
           </Card>
-          <Card className="border-2 border-primary/20 overflow-hidden bg-card/40 backdrop-blur-md">
+          <Card className="border-2 border-white/10 overflow-hidden bg-card/40 backdrop-blur-md">
             <LeaderboardSkeleton />
           </Card>
         </div>
@@ -193,23 +195,46 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
     <section className="space-y-8 w-full">
       {activeSeason && (
         <div className="flex flex-col items-center gap-3 mb-2 px-4">
-          <Badge variant="outline" className="text-primary border-primary bg-primary/10 px-4 sm:px-6 py-1 font-black uppercase tracking-widest italic text-[9px] sm:text-[10px]">
+          <Badge 
+            variant="outline" 
+            className="px-4 sm:px-6 py-1 font-black uppercase tracking-widest text-[9px] sm:text-[10px]"
+            style={{ 
+              color: theme.primaryHex, 
+              borderColor: `${theme.primaryHex}66`, 
+              backgroundColor: `${theme.primaryHex}1a` 
+            }}
+          >
             <Activity className="w-3 h-3 mr-2 inline" />
             Format: {activeSeason.type || 'Single'}
           </Badge>
-          <h2 className="text-xl sm:text-3xl font-black text-center tracking-tighter uppercase italic pr-2 sm:pr-4">{activeSeason.name}</h2>
-          <div className="h-1 w-16 sm:w-24 bg-primary rounded-full shadow-[0_0_15px_rgba(204,253,1,0.6)]" />
+          <h2 className="font-headline text-xl sm:text-3xl font-black text-center tracking-normal uppercase pr-2 sm:pr-4">{activeSeason.name}</h2>
+          <div 
+            className="h-1 w-16 sm:w-24 rounded-full" 
+            style={{ 
+              backgroundColor: theme.primaryHex, 
+              boxShadow: `0 0 15px ${theme.primaryHex}` 
+            }}
+          />
         </div>
       )}
 
       {hasPlayoffs ? (
-        <div className="w-full overflow-hidden rounded-[2.5rem] border border-primary/30 bg-black/70 shadow-[0_20px_70px_rgba(0,0,0,0.8)] backdrop-blur-2xl p-4 sm:p-8">
+        <div 
+          className="w-full overflow-hidden rounded-[2.5rem] border bg-black/70 shadow-[0_20px_70px_rgba(0,0,0,0.8)] backdrop-blur-2xl p-4 sm:p-8"
+          style={{ borderColor: `${theme.primaryHex}4d` }}
+        >
           <div className="flex flex-col items-center gap-2 mb-6 sm:mb-10">
-            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 px-4 py-1 rounded-full">
-              <Swords className="w-4 h-4 text-primary animate-pulse"/>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic">Playoff Bracket Stage</span>
+            <div 
+              className="inline-flex items-center gap-2 px-4 py-1 rounded-full border"
+              style={{ 
+                backgroundColor: `${theme.primaryHex}1a`, 
+                borderColor: `${theme.primaryHex}4d` 
+              }}
+            >
+              <Swords className="w-4 h-4 animate-pulse" style={{ color: theme.primaryHex }} />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: theme.primaryHex }}>Playoff Bracket Stage</span>
             </div>
-            <h2 className="text-xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">
+            <h2 className="font-headline text-xl sm:text-3xl font-black text-white uppercase tracking-normal">
               Bagan Babak Playoff
             </h2>
             <p className="text-[8px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Tournament HUD System v2.0</p>
@@ -230,21 +255,30 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
               <>
                 {/* Group A Column */}
                 <div className="flex flex-col group/card relative">
-                  <div className="absolute -inset-2 bg-primary/5 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                  <div 
+                    className="absolute -inset-2 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" 
+                    style={{ backgroundColor: `${theme.primaryHex}0d` }}
+                  />
                   
-                  <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-primary/40 transition-all duration-500 z-10">
-                    <div className="py-3 px-4 sm:py-4 sm:px-8 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border-b border-white/10 flex items-center justify-between">
+                  <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-white/30 transition-all duration-500 z-10">
+                    <div 
+                      className="py-3 px-4 sm:py-4 sm:px-8 border-b border-white/10 flex items-center justify-between"
+                      style={{ background: `linear-gradient(90deg, ${theme.primaryHex}33, ${theme.primaryHex}1a, transparent)` }}
+                    >
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="bg-primary p-1.5 sm:p-2 rounded-xl text-black shadow-[0_0_15px_rgba(204,253,1,0.5)]">
+                        <div 
+                          className="p-1.5 sm:p-2 rounded-xl text-black shadow-lg"
+                          style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 15px ${theme.primaryHex}80` }}
+                        >
                           <Award className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                         </div>
                         <div>
-                          <h2 className="text-sm sm:text-xl font-black uppercase italic tracking-wide text-white leading-none">GRUP A // STANDINGS</h2>
-                          <span className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-primary/70">Top Qualifiers</span>
+                          <h2 className="font-headline text-sm sm:text-xl font-black uppercase tracking-normal text-white leading-none">GRUP A // STANDINGS</h2>
+                          <span className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: theme.primaryHex }}>Top Qualifiers</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/5 border border-white/10">
-                        <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                        <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5" style={{ color: theme.primaryHex }} />
                         <span className="text-[7px] sm:text-[8px] font-black text-white/70 uppercase tracking-widest hidden xs:block">GRP_A</span>
                       </div>
                     </div>
@@ -253,7 +287,7 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
                       {leaderboardData.groupA && leaderboardData.groupA.length > 0 ? (
                         <LeaderboardTable players={leaderboardData.groupA} defendingChampionId={defendingChampionId} />
                       ) : (
-                        <div className="p-10 sm:p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-3 sm:gap-4">
+                        <div className="p-10 sm:p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs flex flex-col items-center gap-3 sm:gap-4">
                           <Zap className="w-8 h-8 sm:w-10 sm:h-10 opacity-30" />
                           MENANTI SINYAL KICK-OFF
                         </div>
@@ -264,21 +298,30 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
 
                 {/* Group B Column */}
                 <div className="flex flex-col group/card relative">
-                  <div className="absolute -inset-2 bg-primary/5 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                  <div 
+                    className="absolute -inset-2 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" 
+                    style={{ backgroundColor: `${theme.primaryHex}0d` }}
+                  />
                   
-                  <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-primary/40 transition-all duration-500 z-10">
-                    <div className="py-3 px-4 sm:py-4 sm:px-8 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border-b border-white/10 flex items-center justify-between">
+                  <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-white/30 transition-all duration-500 z-10">
+                    <div 
+                      className="py-3 px-4 sm:py-4 sm:px-8 border-b border-white/10 flex items-center justify-between"
+                      style={{ background: `linear-gradient(90deg, ${theme.primaryHex}33, ${theme.primaryHex}1a, transparent)` }}
+                    >
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="bg-primary p-1.5 sm:p-2 rounded-xl text-black shadow-[0_0_15px_rgba(204,253,1,0.5)]">
+                        <div 
+                          className="p-1.5 sm:p-2 rounded-xl text-black shadow-lg"
+                          style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 15px ${theme.primaryHex}80` }}
+                        >
                           <Award className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                         </div>
                         <div>
-                          <h2 className="text-sm sm:text-xl font-black uppercase italic tracking-wide text-white leading-none">GRUP B // STANDINGS</h2>
-                          <span className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-primary/70">Top Qualifiers</span>
+                          <h2 className="font-headline text-sm sm:text-xl font-black uppercase tracking-normal text-white leading-none">GRUP B // STANDINGS</h2>
+                          <span className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: theme.primaryHex }}>Top Qualifiers</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/5 border border-white/10">
-                        <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                        <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5" style={{ color: theme.primaryHex }} />
                         <span className="text-[7px] sm:text-[8px] font-black text-white/70 uppercase tracking-widest hidden xs:block">GRP_B</span>
                       </div>
                     </div>
@@ -287,7 +330,7 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
                       {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
                         <LeaderboardTable players={leaderboardData.groupB} defendingChampionId={defendingChampionId} />
                       ) : (
-                        <div className="p-10 sm:p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs italic flex flex-col items-center gap-3 sm:gap-4">
+                        <div className="p-10 sm:p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs flex flex-col items-center gap-3 sm:gap-4">
                           <Zap className="w-8 h-8 sm:w-10 sm:h-10 opacity-30" />
                           MENANTI SINYAL KICK-OFF
                         </div>
@@ -298,21 +341,30 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
               </>
             ) : (
               <div className="lg:col-span-2 flex flex-col max-w-4xl mx-auto w-full group/card relative">
-                <div className="absolute -inset-3 bg-primary/5 rounded-[3rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div 
+                  className="absolute -inset-3 rounded-[3rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" 
+                  style={{ backgroundColor: `${theme.primaryHex}0d` }}
+                />
 
-                <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.8)] group-hover/card:border-primary/40 transition-all duration-500 z-10">
-                  <div className="py-3.5 px-4 sm:py-5 sm:px-10 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border-b border-white/10 flex items-center justify-between">
+                <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.8)] group-hover/card:border-white/30 transition-all duration-500 z-10">
+                  <div 
+                    className="py-3.5 px-4 sm:py-5 sm:px-10 border-b border-white/10 flex items-center justify-between"
+                    style={{ background: `linear-gradient(90deg, ${theme.primaryHex}33, ${theme.primaryHex}1a, transparent)` }}
+                  >
                     <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="bg-primary p-2 sm:p-2.5 rounded-xl sm:rounded-2xl text-black shadow-[0_0_20px_rgba(204,253,1,0.5)]">
+                      <div 
+                        className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl text-black shadow-lg"
+                        style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 20px ${theme.primaryHex}80` }}
+                      >
                         <Award className="w-4 h-4 sm:w-6 sm:h-6" />
                       </div>
                       <div>
-                        <h2 className="text-base sm:text-2xl font-black uppercase italic tracking-wide text-white leading-none">{t('home_top_players')}</h2>
-                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.25em] text-primary/70">Top Roster Standings</span>
+                        <h2 className="font-headline text-base sm:text-2xl font-black uppercase tracking-normal text-white leading-none">{t('home_top_players')}</h2>
+                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.25em]" style={{ color: theme.primaryHex }}>Top Roster Standings</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/5 border border-white/10">
-                      <Binary className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                      <Binary className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: theme.primaryHex }} />
                       <span className="text-[7.5px] sm:text-[9px] font-black text-white/70 uppercase tracking-widest hidden xs:block">MASTER_MANIFEST</span>
                     </div>
                   </div>
@@ -321,7 +373,7 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
                     {leaderboardData.top && leaderboardData.top.length > 0 ? (
                       <LeaderboardTable players={leaderboardData.top} defendingChampionId={defendingChampionId} />
                     ) : (
-                      <div className="p-20 text-center text-white/20 font-black uppercase tracking-widest text-sm italic flex flex-col items-center gap-6">
+                      <div className="p-20 text-center text-white/20 font-black uppercase tracking-widest text-sm flex flex-col items-center gap-6">
                         <Zap className="w-12 h-12 opacity-30" />
                         MENANTI SINYAL KICK-OFF
                       </div>

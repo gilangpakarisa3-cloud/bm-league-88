@@ -568,7 +568,7 @@ export function KnockoutShareDialog({
                 <Shield className="w-2.5 h-2.5 text-white/40" />
               )}
             </div>
-            <span className="truncate font-headline italic uppercase tracking-tight">{m.p1Name}</span>
+            <span className="truncate font-headline uppercase tracking-tight">{m.p1Name}</span>
           </div>
           <span className="font-mono font-black text-[11px] shrink-0">{m.isCompleted || m.isLive ? m.s1 : '-'}</span>
         </div>
@@ -587,7 +587,7 @@ export function KnockoutShareDialog({
                 <Shield className="w-2.5 h-2.5 text-white/40" />
               )}
             </div>
-            <span className="truncate font-headline italic uppercase tracking-tight">{m.p2Name}</span>
+            <span className="truncate font-headline uppercase tracking-tight">{m.p2Name}</span>
           </div>
           <span className="font-mono font-black text-[11px] shrink-0">{m.isCompleted || m.isLive ? m.s2 : '-'}</span>
         </div>
@@ -614,9 +614,9 @@ export function KnockoutShareDialog({
               <Swords className="w-4 h-4" style={{ color: primaryHex }} />
             </div>
             <div>
-              <DialogTitle className="text-sm sm:text-base font-black uppercase italic tracking-wider font-headline text-white flex items-center gap-2">
+              <DialogTitle className="text-sm sm:text-base font-black uppercase tracking-wider font-headline text-white flex items-center gap-2">
                 Share Poster Bagan Playoff
-                <span className="text-[10px] not-italic font-mono px-2 py-0.5 rounded bg-white/10 text-white/70">
+                <span className="text-[10px] not- font-mono px-2 py-0.5 rounded bg-white/10 text-white/70">
                   KNOCKOUT HUD
                 </span>
               </DialogTitle>
@@ -659,7 +659,7 @@ export function KnockoutShareDialog({
             <div className="relative z-10 flex items-center justify-between pb-3 mb-3 border-b border-white/15">
               <div className="flex items-center gap-2">
                 <div 
-                  className="px-3 py-1 rounded-md font-black text-[11px] uppercase italic tracking-wider flex items-center gap-1.5 shadow-md"
+                  className="px-3 py-1 rounded-md font-black text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-md"
                   style={{
                     backgroundColor: primaryHex,
                     color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
@@ -801,7 +801,7 @@ export function KnockoutShareDialog({
           <Button
             type="button"
             onClick={handleSendToWhatsApp}
-            className="flex-1 min-w-[200px] h-11 rounded-xl font-black text-xs uppercase italic tracking-wider transition-all duration-300 shadow-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/40"
+            className="flex-1 min-w-[200px] h-11 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/40"
           >
             <Share2 className="w-4 h-4 mr-2" />
             KIRIM LANGSUNG KE WA
@@ -811,7 +811,7 @@ export function KnockoutShareDialog({
             type="button"
             onClick={handleCopyBoth}
             disabled={isCopyingImage}
-            className="flex-1 min-w-[170px] h-11 rounded-xl font-black text-xs uppercase italic tracking-wider transition-all duration-300 shadow-lg"
+            className="flex-1 min-w-[170px] h-11 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-lg"
             style={{
               backgroundColor: primaryHex,
               color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
@@ -835,7 +835,7 @@ export function KnockoutShareDialog({
             type="button"
             variant="outline"
             onClick={handleCopyText}
-            className="h-11 px-4 rounded-xl border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase italic"
+            className="h-11 px-4 rounded-xl border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase"
           >
             {isCopiedText ? (
               <>

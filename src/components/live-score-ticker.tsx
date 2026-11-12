@@ -92,14 +92,14 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
               }}
             >
                 {/* Red Overdrive Flashing Strobe */}
-                <div className="flex items-center gap-1.5 bg-red-600 text-white font-black text-[8px] sm:text-[10px] tracking-widest uppercase italic px-2 py-0.5 rounded-md shadow-[0_0_12px_rgba(239,68,68,0.7)] animate-pulse">
+                <div className="flex items-center gap-1.5 bg-red-600 text-white font-black text-[8px] sm:text-[10px] tracking-widest uppercase px-2 py-0.5 rounded-md shadow-[0_0_12px_rgba(239,68,68,0.7)] animate-pulse">
                     <Flame className="w-3 h-3 fill-current text-amber-300" />
                     LIVE COMBAT
                 </div>
 
                 <div className="flex items-center gap-1.5">
                     <span 
-                      className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider font-mono italic"
+                      className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider font-mono"
                       style={{ color: primaryHex }}
                     >
                       WARZONE ARENA
@@ -296,7 +296,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                     {/* Series Wins Pip Node */}
                                     {isBo3 && (
                                       <div 
-                                        className="absolute -top-1.5 -right-1.5 font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center border border-[#090d16] shadow-md text-black font-headline italic"
+                                        className="absolute -top-1.5 -right-1.5 font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center border border-[#090d16] shadow-md text-black font-headline"
                                         style={{ 
                                           backgroundColor: primaryHex,
                                           boxShadow: `0 0 8px ${primaryHex}`
@@ -315,7 +315,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                       <span className="w-1.5 h-1.5 rounded-full animate-ping shrink-0" style={{ backgroundColor: primaryHex }} />
                                       <span className="truncate">{t1?.name || 'HOME COMBATANT'}</span>
                                     </span>
-                                    <h3 className="text-base sm:text-xl lg:text-2xl font-black text-white uppercase italic tracking-tight drop-shadow-md pr-1 leading-tight break-words">
+                                    <h3 className="text-base sm:text-xl lg:text-2xl font-black text-white uppercase tracking-tight drop-shadow-md pr-1 leading-tight break-words">
                                       {p1?.name || match.player1Id}
                                     </h3>
                                     {isBo3 && (
@@ -359,7 +359,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                     <div className="flex flex-col items-center">
                                         <span 
                                           className={cn(
-                                            "font-headline text-3xl sm:text-5xl font-black italic tabular-nums tracking-tighter leading-none transition-all duration-300",
+                                            "font-headline text-3xl sm:text-5xl font-black  tabular-nums tracking-tighter leading-none transition-all duration-300",
                                             p1Winning ? "scale-105" : "opacity-90"
                                           )}
                                           style={{ 
@@ -374,7 +374,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                     {/* VS Clash Center Piece */}
                                     <div className="flex flex-col items-center gap-1 px-1">
                                         <div 
-                                          className="font-headline font-black text-[10px] sm:text-xs tracking-wider italic px-2 py-0.5 rounded border text-white shadow-md"
+                                          className="font-headline font-black text-[10px] sm:text-xs tracking-wider px-2 py-0.5 rounded border text-white shadow-md"
                                           style={{
                                             background: `linear-gradient(135deg, #ef4444, #b91c1c)`,
                                             borderColor: `#ef4444`,
@@ -390,7 +390,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                     <div className="flex flex-col items-center">
                                         <span 
                                           className={cn(
-                                            "font-headline text-3xl sm:text-5xl font-black italic tabular-nums tracking-tighter leading-none transition-all duration-300",
+                                            "font-headline text-3xl sm:text-5xl font-black  tabular-nums tracking-tighter leading-none transition-all duration-300",
                                             p2Winning ? "scale-105" : "opacity-90"
                                           )}
                                           style={{ 
@@ -406,7 +406,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                 {/* Under-score Telemetry Pill */}
                                 <div className="mt-1.5 pt-1.5 border-t border-white/10 flex items-center justify-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
-                                    <span className="text-[8px] font-black uppercase tracking-widest font-mono text-white/70 italic">
+                                    <span className="text-[8px] font-black uppercase tracking-widest font-mono text-white/70">
                                       IN PLAY
                                     </span>
                                 </div>
@@ -429,7 +429,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                       <span className="truncate">{t2?.name || 'AWAY COMBATANT'}</span>
                                       <span className="w-1.5 h-1.5 rounded-full animate-ping shrink-0" style={{ backgroundColor: secondaryHex }} />
                                     </span>
-                                    <h3 className="text-base sm:text-xl lg:text-2xl font-black text-white uppercase italic tracking-tight drop-shadow-md pl-1 leading-tight break-words">
+                                    <h3 className="text-base sm:text-xl lg:text-2xl font-black text-white uppercase tracking-tight drop-shadow-md pl-1 leading-tight break-words">
                                       {p2?.name || match.player2Id}
                                     </h3>
                                     {isBo3 && (
@@ -481,7 +481,7 @@ export function LiveScoreTicker({ activeSeasonId, teamsById, playersById, isAdmi
                                     {/* Series Wins Pip Node */}
                                     {isBo3 && (
                                       <div 
-                                        className="absolute -top-1.5 -left-1.5 font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center border border-[#090d16] shadow-md text-black font-headline italic"
+                                        className="absolute -top-1.5 -left-1.5 font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center border border-[#090d16] shadow-md text-black font-headline"
                                         style={{ 
                                           backgroundColor: secondaryHex,
                                           boxShadow: `0 0 8px ${secondaryHex}`

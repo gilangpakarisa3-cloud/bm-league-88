@@ -58,14 +58,14 @@ export const MatchCard = ({
         {/* Match Header Tag */}
         <div className="flex items-center justify-between w-full max-w-[320px] 2xl:max-w-[340px] px-1">
           <span
-            className="text-[8px] font-black tracking-widest uppercase italic font-headline"
+            className="text-[8px] font-black tracking-widest uppercase font-headline"
             style={{ color: primaryHex }}
           >
             {label}
           </span>
           <Badge
             variant="outline"
-            className="h-3 text-[6.5px] py-0 px-1 font-black uppercase italic rounded-full"
+            className="h-3 text-[6.5px] py-0 px-1 font-black uppercase rounded-full"
             style={{
               borderColor: `${primaryHex}66`,
               color: primaryHex,
@@ -143,11 +143,11 @@ export const MatchCard = ({
   if (!m) {
     return (
       <div className="flex flex-col gap-1 items-center group/calib w-full">
-        <span className="text-[8px] font-black tracking-widest text-white/30 uppercase italic font-headline">{label}</span>
+        <span className="text-[8px] font-black tracking-widest text-white/30 uppercase font-headline">{label}</span>
         <div className="w-full min-w-[195px] sm:min-w-[215px] max-w-[320px] 2xl:max-w-[340px] h-[70px] bg-gradient-to-b from-white/[0.02] to-black/80 border border-white/10 rounded-xl flex flex-col items-center justify-center gap-0.5 backdrop-blur-xl relative overflow-hidden transition-all shadow-md">
           <div className="flex items-center gap-1.5 opacity-80">
             <Scan className="w-3 h-3 animate-pulse" style={{ color: primaryHex }} />
-            <span className="text-[7.5px] font-black tracking-[0.2em] uppercase italic text-white/60">STANDBY // TBD</span>
+            <span className="text-[7.5px] font-black tracking-[0.2em] uppercase text-white/60">STANDBY // TBD</span>
           </div>
           <span className="text-[6.5px] font-black tracking-[0.2em] text-white/25 uppercase font-mono">AWAITING RESULTS</span>
         </div>
@@ -162,7 +162,7 @@ export const MatchCard = ({
       {/* Match Header Tag */}
       <div className="flex items-center justify-between w-full max-w-[320px] 2xl:max-w-[340px] px-1">
         <span
-          className="text-[8px] font-black tracking-widest uppercase italic font-headline transition-colors"
+          className="text-[8px] font-black tracking-widest uppercase font-headline transition-colors"
           style={{
             color: m.isCompleted ? primaryHex : isBattleReady ? primaryHex : 'rgba(255,255,255,0.4)',
             filter: isBattleReady ? `drop-shadow(0 0 8px ${primaryHex}99)` : undefined
@@ -190,7 +190,7 @@ export const MatchCard = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: primaryHex }}></span>
               <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: primaryHex }}></span>
             </span>
-            <span className="text-[6px] font-black uppercase tracking-widest italic" style={{ color: primaryHex }}>LIVE BO3</span>
+            <span className="text-[6px] font-black uppercase tracking-widest" style={{ color: primaryHex }}>LIVE BO3</span>
           </div>
         ) : (
           <span className="text-[7px] font-mono text-white/30 uppercase">BO3</span>
@@ -319,7 +319,7 @@ export const MatchCard = ({
                   }}
                 >
                   <span
-                    className="text-[10px] sm:text-[11px] font-black italic tabular-nums leading-none font-headline"
+                    className="text-[10px] sm:text-[11px] font-black tabular-nums leading-none font-headline"
                     style={{
                       color: isW ? primaryHex : 'rgba(255,255,255,0.4)',
                       filter: isW ? `drop-shadow(0 0 6px ${primaryHex}80)` : undefined

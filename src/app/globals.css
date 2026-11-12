@@ -1,4 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800;900&family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Rajdhani:wght@600;700&family=Roboto+Mono:wght@500;700&display=swap');
+
+/* The International - Dota 2 Official Valve Fonts */
+@font-face {
+  font-family: 'Radiance';
+  src: url('https://cdn.cloudflare.steamstatic.com/apps/dota2/fonts/radiance.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Radiance';
+  src: url('https://cdn.cloudflare.steamstatic.com/apps/dota2/fonts/radiance-semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Radiance';
+  src: url('https://cdn.cloudflare.steamstatic.com/apps/dota2/fonts/radiance-bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reaver';
+  src: url('https://cdn.cloudflare.steamstatic.com/apps/dota2/fonts/Reaver-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reaver';
+  src: url('https://cdn.cloudflare.steamstatic.com/apps/dota2/fonts/Reaver-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reaver';
+  src: url('https://cdn.cloudflare.steamstatic.com/apps/dota2/fonts/Reaver-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -78,6 +127,11 @@
     @apply bg-background text-foreground;
   }
   
+  /* Anti-italic rule: keep typography upright, authoritative & sharp ala The International */
+  .italic, i, em {
+    font-style: normal !important;
+  }
+  
   main, footer, header {
       background-color: transparent;
   }
@@ -148,10 +202,10 @@
 
   @keyframes gold-radiance {
     0%, 100% {
-      filter: drop-shadow(0 0 25px rgba(251, 191, 36, 0.7)) drop-shadow(0 0 50px rgba(251, 191, 36, 0.3));
+      filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.35)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
     }
     50% {
-      filter: drop-shadow(0 0 45px rgba(251, 191, 36, 1)) drop-shadow(0 0 80px rgba(251, 191, 36, 0.6));
+      filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.55)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
     }
   }
 
@@ -328,10 +382,10 @@
     clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
   }
 
-  /* Safe Cross-Browser Gradient Text with Fallback */
+  /* Safe Cross-Browser Gradient Text with Fallback - Crisp Metallic White/Silver */
   .headline-white-gradient {
     color: #ffffff;
-    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 60%, #94a3b8 100%);
+    background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 70%, #94a3b8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;

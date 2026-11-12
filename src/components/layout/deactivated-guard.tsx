@@ -34,13 +34,13 @@ export function DeactivatedGuard({ children }: { children: React.ReactNode }) {
               <div className="p-8 bg-red-600/10 rounded-full border-4 border-red-600/40 animate-pulse shadow-[0_0_50px_rgba(220,38,38,0.2)]">
                   <ShieldAlert className="w-24 h-24 text-red-600" />
               </div>
-              <Badge className="bg-red-600 text-white font-black italic text-xs px-10 h-10 tracking-[0.6em] shadow-xl border-r-4 border-black/20">
+              <Badge className="bg-red-600 text-white font-black text-xs px-10 h-10 tracking-[0.6em] shadow-xl border-r-4 border-black/20">
                 SYSTEM_TERMINATED
               </Badge>
           </div>
           
           <div className="space-y-6">
-            <h1 className="text-4xl sm:text-7xl font-black text-white uppercase italic tracking-tighter leading-none pr-4 drop-shadow-[0_0_30px_rgba(220,38,38,0.5)]">
+            <h1 className="text-4xl sm:text-7xl font-black text-white uppercase tracking-tighter leading-none pr-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               LIGA DI HENTIKAN <br />
               <span className="text-red-600">SAMPAI WAKTU YANG TIDAK DI TENTUKAN. SAMPAI JUMPA</span>
             </h1>
@@ -54,13 +54,13 @@ export function DeactivatedGuard({ children }: { children: React.ReactNode }) {
           <div className="pt-10 flex flex-col items-center gap-8">
               <div className="flex items-center gap-3">
                   <Zap className="w-5 h-5 text-red-600 fill-red-600 animate-pulse" />
-                  <p className="text-[11px] font-black text-white/40 uppercase tracking-[0.3em] italic">Station Broadcast Status: OFFLINE</p>
+                  <p className="text-[11px] font-black text-white/40 uppercase tracking-[0.3em]">Station Broadcast Status: OFFLINE</p>
               </div>
               
               {/* Prominent Admin Override Button */}
               <div className="space-y-4">
                   <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Authorized Personnel Only</p>
-                  <Button asChild variant="outline" className="h-14 px-10 border-red-600/30 bg-red-600/5 text-red-600 hover:bg-red-600 hover:text-white font-black uppercase italic tracking-widest text-[10px] -skew-x-[15deg] transition-all group/btn">
+                  <Button asChild variant="outline" className="h-14 px-10 border-red-600/30 bg-red-600/5 text-red-600 hover:bg-red-600 hover:text-white font-black uppercase tracking-widest text-[10px] -skew-x-[15deg] transition-all group/btn">
                     <Link href="/settings" className="flex items-center gap-3">
                         <span className="skew-x-[15deg] flex items-center gap-3">
                             <KeyRound className="w-4 h-4" />

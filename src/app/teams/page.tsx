@@ -113,7 +113,7 @@ export default function TeamsPage() {
                     />
                     <span
                       style={{ color: theme.primaryHex }}
-                      className="text-[9px] sm:text-xs font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] italic"
+                      className="text-[9px] sm:text-xs font-black uppercase tracking-[0.3em] sm:tracking-[0.4em]"
                     >
                       Strategic Asset Registry
                     </span>
@@ -121,7 +121,7 @@ export default function TeamsPage() {
                 </div>
 
                 <div className="relative">
-                  <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight uppercase italic leading-[0.95] flex flex-wrap items-baseline gap-x-3 sm:gap-x-5">
+                  <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight uppercase leading-[0.95] flex flex-wrap items-baseline gap-x-3 sm:gap-x-5">
                     <span className="inline-block pr-4 sm:pr-6 pb-1 headline-white-gradient">
                       {t('teams_page_title')}
                     </span>
@@ -151,7 +151,7 @@ export default function TeamsPage() {
                     style={{ color: theme.primaryHex }}
                     className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                   />
-                  <p className="text-[10px] sm:text-xs font-black text-white/70 uppercase tracking-[0.15em] sm:tracking-[0.2em] italic">
+                  <p className="text-[10px] sm:text-xs font-black text-white/70 uppercase tracking-[0.15em] sm:tracking-[0.2em]">
                     {t('teams_page_subtitle', { defaultValue: "Arsip resmi klub elit Engineering EightyEight." })}
                   </p>
                 </div>
@@ -178,7 +178,7 @@ export default function TeamsPage() {
               <Scan className="w-4 h-4" />
             </div>
             <div className="px-4 sm:px-6 py-2 sm:py-2.5 bg-white/5 border border-white/10 rounded-full flex items-center justify-center flex-1 sm:flex-initial sm:min-w-[200px]">
-              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-white/70 italic">Authorized Club Members</span>
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-white/70">Authorized Club Members</span>
             </div>
           </div>
 
@@ -190,7 +190,7 @@ export default function TeamsPage() {
                   backgroundColor: theme.primaryHex,
                   boxShadow: `0 0 20px ${theme.glowRgba || theme.primaryHex}`,
                 }}
-                className="h-12 sm:h-14 px-7 font-black text-xs uppercase tracking-widest italic rounded-full text-black hover:brightness-110 transition-all flex items-center gap-2"
+                className="h-12 sm:h-14 px-7 font-black text-xs uppercase tracking-widest rounded-full text-black hover:brightness-110 transition-all flex items-center gap-2"
               >
                 <PlusCircle className="h-4 w-4" />
                 {t('add_new_team')}
@@ -210,7 +210,7 @@ export default function TeamsPage() {
                   : undefined
               }
               className={cn(
-                "h-12 sm:h-14 px-7 font-black text-xs uppercase tracking-widest italic rounded-full transition-all duration-500 relative overflow-hidden group/admin border",
+                "h-12 sm:h-14 px-7 font-black text-xs uppercase tracking-widest  rounded-full transition-all duration-500 relative overflow-hidden group/admin border",
                 isAdmin
                   ? ""
                   : "bg-white/5 text-white/50 border-white/10 hover:border-white/30"
@@ -229,7 +229,7 @@ export default function TeamsPage() {
           <div className="flex flex-col gap-1 items-center justify-center">
             <div className="flex items-center gap-4">
               <div className="h-0.5 w-12 sm:w-20 bg-gradient-to-r from-transparent to-primary/40 rounded-full" />
-              <h2 className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-[0.4em] sm:tracking-[0.6em] flex items-center justify-center gap-3 italic pr-4">
+              <h2 className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-[0.4em] sm:tracking-[0.6em] flex items-center justify-center gap-3 pr-4">
                 <Zap className="w-4 h-4 text-primary animate-pulse" /> VERIFIED STRATEGIC UNITS
               </h2>
               <div className="h-0.5 w-12 sm:w-20 bg-gradient-to-l from-transparent to-primary/40 rounded-full" />
@@ -246,7 +246,7 @@ export default function TeamsPage() {
                 <div className="p-2.5 bg-primary/10 rounded-2xl border border-primary/30">
                   <Shield className="w-6 h-6" />
                 </div>
-                <DialogTitle className="text-2xl font-black tracking-tight uppercase italic pr-4">
+                <DialogTitle className="text-2xl font-black tracking-tight uppercase pr-4">
                   {editingTeam ? t('edit_team_title') : t('add_new_team')}
                 </DialogTitle>
               </div>
@@ -268,7 +268,7 @@ export default function TeamsPage() {
                   <KeyRound className="w-8 h-8" />
                 </div>
                 <div className="text-left">
-                  <DialogTitle className="text-2xl font-black tracking-tight uppercase italic leading-none">{t('admin_auth')}</DialogTitle>
+                  <DialogTitle className="text-2xl font-black tracking-tight uppercase leading-none">{t('admin_auth')}</DialogTitle>
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70 mt-1">Status: Restricted_Access</p>
                 </div>
               </div>
@@ -276,14 +276,14 @@ export default function TeamsPage() {
             </DialogHeader>
             <div className="grid gap-6 py-6">
               <div className="space-y-2">
-                <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/70 ml-1 italic">ENCRYPTED_KEY_TRANSMISSION</Label>
+                <Label htmlFor="password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/70 ml-1">ENCRYPTED_KEY_TRANSMISSION</Label>
                 <div className="relative group/input">
                   <Input id="password-input" type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className="h-14 bg-black/60 border-white/10 rounded-2xl focus:border-primary/50 text-xl font-black tracking-[0.25em] text-primary px-5" onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()} />
                 </div>
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handlePasswordCheck} className="w-full h-14 font-black tracking-[0.25em] text-base uppercase italic rounded-2xl shadow-xl shadow-primary/25 text-black bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-3">
+              <Button onClick={handlePasswordCheck} className="w-full h-14 font-black tracking-[0.25em] text-base uppercase rounded-2xl shadow-xl shadow-primary/25 text-black bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-3">
                 <Scan className="w-5 h-5" />
                 {t('unlock')}
               </Button>

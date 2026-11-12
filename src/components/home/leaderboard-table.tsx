@@ -5,6 +5,7 @@ import { Award, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LeagueEntry, WithId, Player, Team } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGlobalSeasonTheme } from '@/context/season-theme-context';
 
 export interface LeaderboardTableProps {
   players: (WithId<LeagueEntry> & { 
@@ -18,6 +19,8 @@ export interface LeaderboardTableProps {
 }
 
 export function LeaderboardTable({ players, defendingChampionId }: LeaderboardTableProps) {
+  const { theme } = useGlobalSeasonTheme();
+
   return (
     <Table>
       <TableBody>
@@ -31,27 +34,41 @@ export function LeaderboardTable({ players, defendingChampionId }: LeaderboardTa
               key={entry.id || index} 
               className={cn(
                 "border-b border-white/5 transition-all duration-300 group/row h-13 sm:h-16",
-                isFirst ? "bg-primary/[0.04] hover:bg-primary/[0.08]" : "hover:bg-white/[0.03]"
+                isFirst ? "hover:bg-white/[0.04]" : "hover:bg-white/[0.03]"
               )}
+              style={isFirst ? { backgroundColor: `${theme.primaryHex}0a` } : undefined}
             >
-              <TableCell className={cn("p-0 w-1 transition-all duration-500", 
-                isFirst ? 'bg-primary shadow-[0_0_15px_rgba(204,253,1,0.6)]' :
-                isBottom ? 'bg-red-500' : 'bg-transparent'
-              )} />
+              <TableCell 
+                className="p-0 w-1 transition-all duration-500" 
+                style={
+                  isFirst 
+                    ? { backgroundColor: theme.primaryHex, boxShadow: `0 0 15px ${theme.primaryHex}` } 
+                    : isBottom 
+                    ? { backgroundColor: '#ef4444' } 
+                    : { backgroundColor: 'transparent' }
+                }
+              />
               
-              <TableCell className={cn("font-black text-sm sm:text-lg pl-2 sm:pl-6 italic", 
-                isFirst ? "text-primary scale-105 drop-shadow-[0_0_10px_rgba(204,253,1,0.4)]" : "text-white/40 group-hover/row:text-white/70"
-              )}>
-                {entry.rank}
+              <TableCell 
+                className="font-black text-sm sm:text-lg pl-2 sm:pl-6"
+                style={isFirst ? { color: theme.primaryHex } : undefined}
+              >
+                <span className={cn(isFirst ? "scale-105 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] inline-block" : "text-white/40 group-hover/row:text-white/70")}>
+                  {entry.rank}
+                </span>
               </TableCell>
 
               <TableCell className="py-2">
                 <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                   <div className="relative shrink-0">
-                    <Avatar className={cn(
-                      "h-8 w-8 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-xl sm:rounded-2xl", 
-                      isFirst ? "border-primary shadow-[0_0_15px_rgba(204,253,1,0.3)]" : "border-white/10 group-hover/row:border-primary/50"
-                    )}>
+                    <Avatar 
+                      className="h-8 w-8 sm:h-11 sm:w-11 border-2 transition-all duration-300 rounded-xl sm:rounded-2xl"
+                      style={
+                        isFirst 
+                          ? { borderColor: theme.primaryHex, boxShadow: `0 0 15px ${theme.primaryHex}4d` } 
+                          : { borderColor: 'rgba(255,255,255,0.1)' }
+                      }
+                    >
                       <AvatarImage 
                         key={entry.logoUrl} 
                         src={entry.logoUrl || undefined} 
@@ -70,11 +87,13 @@ export function LeaderboardTable({ players, defendingChampionId }: LeaderboardTa
                     )}
                   </div>
                   <div className="overflow-hidden min-w-0 flex-1">
-                    <div className={cn(
-                      "font-black truncate uppercase italic transition-colors leading-tight", 
-                      isFirst ? "text-primary text-xs sm:text-base" : "text-xs sm:text-sm text-white group-hover/row:text-primary"
-                    )}>
-                      {entry.playerName}
+                    <div 
+                      className="font-black truncate uppercase transition-colors leading-tight"
+                      style={isFirst ? { color: theme.primaryHex } : undefined}
+                    >
+                      <span className={cn(isFirst ? "text-xs sm:text-base font-bold" : "text-xs sm:text-sm text-white")}>
+                        {entry.playerName}
+                      </span>
                     </div>
                     <div className="text-[7px] sm:text-[10px] text-white/40 truncate font-black uppercase tracking-wider">
                       {entry.team?.name || entry.teamName}
@@ -83,11 +102,24 @@ export function LeaderboardTable({ players, defendingChampionId }: LeaderboardTa
                 </div>
               </TableCell>
 
-              <TableCell className="text-right pr-2 sm:pr-8 font-black text-lg sm:text-2xl tabular-nums italic">
-                <span className={cn(
-                  "px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg sm:rounded-xl text-xs sm:text-base", 
-                  isFirst ? "text-black bg-primary font-black shadow-[0_0_15px_rgba(204,253,1,0.4)]" : "text-primary bg-primary/10 border border-primary/20"
-                )}>
+              <TableCell className="text-right pr-2 sm:pr-8 font-black text-lg sm:text-2xl tabular-nums">
+                <span 
+                  className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg sm:rounded-xl text-xs sm:text-base"
+                  style={
+                    isFirst 
+                      ? { 
+                          backgroundColor: theme.primaryHex, 
+                          color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000', 
+                          fontWeight: 900,
+                          boxShadow: `0 0 15px ${theme.primaryHex}66`
+                        } 
+                      : { 
+                          backgroundColor: `${theme.primaryHex}1a`, 
+                          color: theme.primaryHex,
+                          border: `1px solid ${theme.primaryHex}33` 
+                        }
+                  }
+                >
                   {entry.points}
                 </span>
               </TableCell>

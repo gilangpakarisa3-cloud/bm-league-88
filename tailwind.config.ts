@@ -11,8 +11,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
-        headline: ['"Oswald"', '"Bebas Neue"', 'sans-serif'],
+        ti: ['"Reaver"', '"Radiance"', 'serif'],
+        body: ['"Radiance"', '"Barlow"', '"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        headline: ['"Rajdhani"', '"Barlow Condensed"', 'sans-serif'],
         mono: ['"Roboto Mono"', 'monospace'],
         code: ['"Roboto Mono"', 'monospace'],
       },

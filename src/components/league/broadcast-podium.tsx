@@ -89,11 +89,11 @@ export const BroadcastPodium = React.memo(({
       <div className="relative z-10 flex items-center justify-between gap-2 max-w-4xl mx-auto mb-3 px-1">
         <div className="flex items-center gap-2">
           <Trophy className="w-3.5 h-3.5" style={{ color: theme.primaryHex }} />
-          <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] font-headline text-white/90">
+          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] font-ti text-white/90">
             Top 3 Pemimpin Klasemen
           </span>
         </div>
-        <div className="text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider">
+        <div className="text-[9px] font-body font-semibold text-white/40 uppercase tracking-[0.18em]">
           Leaderboard Race
         </div>
       </div>
@@ -143,8 +143,8 @@ export const BroadcastPodium = React.memo(({
               <div className="flex items-center justify-between gap-1 mb-2">
                 <div
                   className={cn(
-                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-black text-[8px] sm:text-[9.5px] uppercase tracking-wider italic",
-                    isFirst ? "text-black shadow-sm" : "text-white/80 bg-white/10"
+                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-body font-bold text-[8px] sm:text-[9.5px] uppercase tracking-[0.14em]",
+                    isFirst ? "text-black shadow-sm font-extrabold" : "text-white/80 bg-white/10"
                   )}
                   style={
                     isFirst
@@ -174,7 +174,7 @@ export const BroadcastPodium = React.memo(({
                 {mmrStyle && (
                   <span
                     className={cn(
-                      "text-[7px] sm:text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded font-mono",
+                      "text-[7px] sm:text-[8px] font-body font-bold uppercase tracking-[0.14em] px-1.5 py-0.5 rounded",
                       tierId === 'LEGEND'
                         ? "bg-yellow-400/15 text-yellow-400 border border-yellow-400/30"
                         : tierId === 'TOP_PLAYER'
@@ -203,14 +203,14 @@ export const BroadcastPodium = React.memo(({
                       className="object-cover"
                       referrerPolicy="no-referrer"
                     />
-                    <AvatarFallback className="bg-black/80 font-black text-xs text-white/60">
+                    <AvatarFallback className="bg-black/80 font-bold text-xs text-white/60">
                       <User className="w-4 h-4 sm:w-5 sm:h-5 text-white/40" />
                     </AvatarFallback>
                   </Avatar>
 
                   {/* MMR Number Chip */}
                   <div
-                    className="absolute -bottom-1 -right-1 px-1 py-[0.5px] rounded font-mono font-black text-[7.5px] sm:text-[8.5px] tracking-tight bg-black border border-white/20 text-white shadow"
+                    className="absolute -bottom-1 -right-1 px-1 py-[0.5px] rounded font-headline font-bold tabular-nums tracking-wider text-[7.5px] sm:text-[8.5px] bg-black border border-white/20 text-white shadow"
                     title={`MMR: ${mmr}`}
                   >
                     {mmr}
@@ -218,34 +218,34 @@ export const BroadcastPodium = React.memo(({
                 </div>
 
                 {/* Player Name */}
-                <h3 className="font-headline font-bold uppercase tracking-wide truncate w-full text-xs sm:text-sm text-white px-0.5">
+                <h3 className="font-ti font-bold uppercase tracking-wide truncate w-full text-xs sm:text-sm text-white px-0.5">
                   {entry.playerName}
                 </h3>
 
                 {/* Team Name */}
-                <p className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider text-white/40 truncate w-full">
+                <p className="text-[7px] sm:text-[9px] font-body font-semibold uppercase tracking-[0.14em] text-white/40 truncate w-full">
                   {entry.team?.name || entry.teamName || 'Independent'}
                 </p>
               </div>
 
               {/* Match Summary Strip (P • W • D • L • GD) */}
-              <div className="grid grid-cols-4 gap-0.5 py-1 my-1.5 bg-black/40 border border-white/5 rounded-lg text-center font-mono">
+              <div className="grid grid-cols-4 gap-0.5 py-1 my-1.5 bg-black/40 border border-white/5 rounded-lg text-center">
                 <div className="flex flex-col">
-                  <span className="text-[6.5px] font-bold text-white/30 uppercase">MAIN</span>
-                  <span className="text-[9px] sm:text-xs font-black text-white/80">{entry.played}</span>
+                  <span className="text-[6.5px] font-body font-semibold text-white/30 uppercase tracking-wider">MAIN</span>
+                  <span className="text-[9px] sm:text-xs font-headline font-bold tabular-nums tracking-wider text-white/80">{entry.played}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[6.5px] font-bold text-emerald-400/80 uppercase">M</span>
-                  <span className="text-[9px] sm:text-xs font-black text-emerald-400">{entry.win}</span>
+                  <span className="text-[6.5px] font-body font-semibold text-emerald-400/80 uppercase tracking-wider">M</span>
+                  <span className="text-[9px] sm:text-xs font-headline font-bold tabular-nums tracking-wider text-emerald-400">{entry.win}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[6.5px] font-bold text-amber-400/80 uppercase">S</span>
-                  <span className="text-[9px] sm:text-xs font-black text-amber-400">{entry.draw}</span>
+                  <span className="text-[6.5px] font-body font-semibold text-amber-400/80 uppercase tracking-wider">S</span>
+                  <span className="text-[9px] sm:text-xs font-headline font-bold tabular-nums tracking-wider text-amber-400">{entry.draw}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[6.5px] font-bold text-white/30 uppercase">SG</span>
+                  <span className="text-[6.5px] font-body font-semibold text-white/30 uppercase tracking-wider">SG</span>
                   <span className={cn(
-                    "text-[9px] sm:text-xs font-black",
+                    "text-[9px] sm:text-xs font-headline font-bold tabular-nums tracking-wider",
                     entry.goalDifference > 0 ? "text-emerald-400" : entry.goalDifference < 0 ? "text-rose-400" : "text-white/60"
                   )}>
                     {entry.goalDifference > 0 ? `+${entry.goalDifference}` : entry.goalDifference}
@@ -261,14 +261,14 @@ export const BroadcastPodium = React.memo(({
                   borderColor: `${rankColor}40`,
                 }}
               >
-                <span className="text-[8px] sm:text-[9px] font-mono font-bold uppercase tracking-wider text-white/60">
+                <span className="text-[8px] sm:text-[9px] font-body font-bold uppercase tracking-[0.14em] text-white/60">
                   TOTAL POIN
                 </span>
                 <span
-                  className="font-headline font-bold text-sm sm:text-lg tracking-wide"
+                  className="font-headline font-bold text-sm sm:text-lg tracking-wider tabular-nums"
                   style={{ color: rankColor }}
                 >
-                  {entry.points} <span className="text-[8px] font-mono font-bold">PTS</span>
+                  {entry.points} <span className="text-[8px] font-body font-bold">PTS</span>
                 </span>
               </div>
             </div>

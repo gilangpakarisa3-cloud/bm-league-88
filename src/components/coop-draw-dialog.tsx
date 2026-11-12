@@ -166,9 +166,9 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                       <Shuffle className="w-8 h-8" />
                   </div>
               </div>
-              <DialogTitle className="text-4xl font-black italic uppercase text-white tracking-tighter leading-none">Undian Pasangan CO-OP</DialogTitle>
+              <DialogTitle className="text-4xl font-black uppercase text-white tracking-tighter leading-none">Undian Pasangan CO-OP</DialogTitle>
               <div className="flex items-center justify-center gap-3 mt-4">
-                <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[8px] font-black uppercase tracking-[0.3em] h-6 px-4 italic">Single Pool Randomizer Active</Badge>
+                <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[8px] font-black uppercase tracking-[0.3em] h-6 px-4">Single Pool Randomizer Active</Badge>
                 <div className="h-px w-12 bg-white/10" />
                 <span className="text-[8px] font-bold text-white/30 uppercase tracking-[0.4em]">Protocol v5.0</span>
               </div>
@@ -180,7 +180,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                         <div className="absolute -inset-8 bg-primary/20 rounded-full blur-3xl animate-pulse" />
                         <Loader2 className="h-16 w-16 animate-spin text-primary relative z-10" />
                     </div>
-                    <p className="font-black text-[11px] uppercase tracking-[0.4em] text-primary/60 animate-pulse italic">Menganalisis Performa Musim Lalu...</p>
+                    <p className="font-black text-[11px] uppercase tracking-[0.4em] text-primary/60 animate-pulse">Menganalisis Performa Musim Lalu...</p>
                 </div>
             ) : (
                 <div className="space-y-10 relative z-10">
@@ -189,8 +189,8 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                             <Card className="bg-black/40 border-2 border-white/5 rounded-[2rem] overflow-hidden transition-all duration-500 group/pool hover:border-primary/20">
                                 <CardHeader className="p-6 bg-white/[0.02] border-b border-white/5">
                                     <div className="flex flex-col items-center gap-1">
-                                        <CardTitle className="text-center font-black text-base uppercase tracking-[0.2em] italic text-white/60">Pool Pemain Terdaftar</CardTitle>
-                                        <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20 italic">Verified Tournament Roster</p>
+                                        <CardTitle className="text-center font-black text-base uppercase tracking-[0.2em] text-white/60">Pool Pemain Terdaftar</CardTitle>
+                                        <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20">Verified Tournament Roster</p>
                                         <Badge variant="outline" className="mt-2 h-6 font-black border-primary/30 text-primary bg-primary/5 uppercase">{playerPool.length} Unit Tersedia</Badge>
                                     </div>
                                 </CardHeader>
@@ -200,7 +200,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                                             <div key={player.id} className="flex items-center justify-between p-3.5 bg-white/[0.02] border border-white/5 rounded-xl group/item hover:bg-white/[0.05] hover:border-primary/20 transition-all">
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-[10px] font-black text-white/20 tabular-nums">#{idx + 1}</span>
-                                                    <span className="font-black text-sm uppercase italic text-white/80 tracking-tight" suppressHydrationWarning>{player.playerName}</span>
+                                                    <span className="font-black text-sm uppercase text-white/80 tracking-tight" suppressHydrationWarning>{player.playerName}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     {isAdmin && (
@@ -216,7 +216,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                                     {playerPool.length === 0 && (
                                         <div className="py-20 text-center opacity-10 flex flex-col items-center gap-4">
                                             <Users className="w-12 h-12" />
-                                            <p className="text-xs font-black uppercase tracking-[0.4em] italic">Belum Ada Pemain Terdaftar</p>
+                                            <p className="text-xs font-black uppercase tracking-[0.4em]">Belum Ada Pemain Terdaftar</p>
                                         </div>
                                     )}
                                     {playerPool.length % 2 !== 0 && playerPool.length > 0 && (
@@ -236,7 +236,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                         <div className="space-y-8 animate-in fade-in duration-500">
                             <div className="flex items-center justify-center gap-4">
                                 <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
-                                <h3 className="text-xl font-black italic uppercase text-primary tracking-widest px-4">HASIL UNIT PASANGAN</h3>
+                                <h3 className="text-xl font-black uppercase text-primary tracking-widest px-4">HASIL UNIT PASANGAN</h3>
                                 <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
                             </div>
 
@@ -263,17 +263,17 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                                                                 <Avatar className="h-7 w-7 border-2 border-primary/30 shadow-lg">
                                                                     <AvatarFallback className="bg-black/40 font-black text-[10px]">{pair.player1.playerName.charAt(0)}</AvatarFallback>
                                                                 </Avatar>
-                                                                <span className="font-black text-xs uppercase italic text-white tracking-tight" suppressHydrationWarning>{pair.player1.playerName}</span>
+                                                                <span className="font-black text-xs uppercase text-white tracking-tight" suppressHydrationWarning>{pair.player1.playerName}</span>
                                                             </div>
                                                             <div className="flex items-center gap-3">
                                                                 <Avatar className="h-7 w-7 border-2 border-primary/30 shadow-lg">
                                                                     <AvatarFallback className="bg-black/40 font-black text-[10px]">{pair.player2.playerName.charAt(0)}</AvatarFallback>
                                                                 </Avatar>
-                                                                <span className="font-black text-xs uppercase italic text-white tracking-tight" suppressHydrationWarning>{pair.player2.playerName}</span>
+                                                                <span className="font-black text-xs uppercase text-white tracking-tight" suppressHydrationWarning>{pair.player2.playerName}</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1">
-                                                            <Badge className="bg-primary text-black font-black italic text-[9px] h-5 px-2">UNIT {index + 1}</Badge>
+                                                            <Badge className="bg-primary text-black font-black text-[9px] h-5 px-2">UNIT {index + 1}</Badge>
                                                             <CheckCircle2 className="w-4 h-4 text-primary animate-in fade-in zoom-in duration-500 delay-300" />
                                                         </div>
                                                     </div>
@@ -303,7 +303,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                         onClick={handleFinalSave} 
                         disabled={isRevealing}
                         className={cn(
-                            "w-full h-16 font-black uppercase italic text-lg tracking-tighter gap-4 shadow-[0_0_50px_rgba(204,253,1,0.2)] rounded-2xl transition-all duration-500",
+                            "w-full h-16 font-black uppercase  text-lg tracking-tighter gap-4 shadow-[0_0_50px_rgba(204,253,1,0.2)] rounded-2xl transition-all duration-500",
                             isRevealing ? "bg-primary/20 text-white/20 cursor-wait" : "bg-primary text-black hover:bg-primary/90"
                         )}
                     >
@@ -322,7 +322,7 @@ export function CoopDrawDialog({ season, registeredPlayers, allPlayers, open, on
                 ): (
                     <Button 
                         onClick={handleDraw} 
-                        className="w-full h-16 font-black uppercase italic text-lg tracking-tighter gap-4 bg-primary text-black hover:bg-primary/90 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95" 
+                        className="w-full h-16 font-black uppercase text-lg tracking-tighter gap-4 bg-primary text-black hover:bg-primary/90 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95" 
                         disabled={isLoading || (playerPool.length < 2) || (playerPool.length % 2 !== 0)}
                     >
                         <Shuffle className="h-6 w-6"/>

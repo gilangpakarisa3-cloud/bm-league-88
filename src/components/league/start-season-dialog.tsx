@@ -42,7 +42,7 @@ export const StartSeasonDialog = ({
                 <Play className="w-5 h-5 fill-primary" />
               </div>
               <div>
-                <AlertDialogTitle className="text-lg sm:text-xl font-black uppercase italic tracking-tight font-headline text-white">
+                <AlertDialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tight font-headline text-white">
                   Apex Launch <span className="text-primary">Countdown</span>
                 </AlertDialogTitle>
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/80 font-mono">
@@ -72,12 +72,12 @@ export const StartSeasonDialog = ({
           </div>
 
           <AlertDialogFooter className="flex-row gap-2 pt-1">
-            <AlertDialogCancel className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs italic rounded-2xl bg-white/[0.03] border-white/10 text-white/70 hover:bg-white/[0.08] hover:text-white transition-all">
+            <AlertDialogCancel className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs rounded-2xl bg-white/[0.03] border-white/10 text-white/70 hover:bg-white/[0.08] hover:text-white transition-all">
               STANDBY // BATAL
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={onStartSeason} 
-              className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs italic rounded-2xl bg-primary hover:bg-primary/90 text-black shadow-[0_0_35px_rgba(204,253,1,0.6)] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 h-12 font-headline font-black uppercase tracking-wider text-xs rounded-2xl bg-primary hover:bg-primary/90 text-black shadow-[0_0_35px_rgba(204,253,1,0.6)] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-black" />
               <span>APEX LAUNCH // GO ▶</span>

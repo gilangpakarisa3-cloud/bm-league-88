@@ -104,7 +104,7 @@ export function PwaRegister() {
                 <Download className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white uppercase italic">Install BM LEAGUE 88</h3>
+                <h3 className="text-base font-black text-white uppercase">Install BM LEAGUE 88</h3>
                 <p className="text-xs text-white/50">Panduan Pemasangan Aplikasi Web (PWA)</p>
               </div>
             </div>

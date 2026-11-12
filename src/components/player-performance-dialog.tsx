@@ -539,7 +539,7 @@ export function PlayerPerformanceDialog({
                     }}
                   >
                     <Scan className="w-3 h-3 animate-pulse" style={{ color: primaryHex }} />
-                    <span className="text-[8.5px] font-black uppercase tracking-[0.25em] italic" style={{ color: primaryHex }}>
+                    <span className="text-[8.5px] font-black uppercase tracking-[0.25em]" style={{ color: primaryHex }}>
                       {theme.editionName} • ROSTER INTEL
                     </span>
                   </div>
@@ -560,7 +560,7 @@ export function PlayerPerformanceDialog({
                       {player.group && (
                         <div className="absolute -top-2 -left-2 z-20">
                           <Badge
-                            className="border-2 border-black font-black text-[9px] px-2.5 h-5 rounded-full italic shadow-xl uppercase"
+                            className="border-2 border-black font-black text-[9px] px-2.5 h-5 rounded-full shadow-xl uppercase"
                             style={{
                               backgroundColor: primaryHex,
                               color: isCrimson ? '#ffffff' : '#000000'
@@ -613,7 +613,7 @@ export function PlayerPerformanceDialog({
                     {/* Player Name, Team, and Tactical Style */}
                     <div className="flex-1 min-w-0 flex flex-col items-center sm:items-start text-center sm:text-left space-y-1.5">
                       <DialogTitle
-                        className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight uppercase italic text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] leading-tight font-headline break-words w-full"
+                        className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight uppercase text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight font-headline break-words w-full"
                         title={player.playerName}
                         suppressHydrationWarning
                       >
@@ -656,7 +656,7 @@ export function PlayerPerformanceDialog({
                         </Popover>
 
                         {isTopRank && (
-                          <Badge className="bg-amber-400/20 text-amber-300 border-amber-400/30 text-[8.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full italic">
+                          <Badge className="bg-amber-400/20 text-amber-300 border-amber-400/30 text-[8.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                             Leader Klasemen
                           </Badge>
                         )}
@@ -685,7 +685,7 @@ export function PlayerPerformanceDialog({
                       <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-white/10">
                         <div className="flex items-center gap-1.5">
                           <Flame className="w-3.5 h-3.5 animate-pulse" style={{ color: primaryHex }} />
-                          <span className="text-[8.5px] font-black uppercase italic tracking-wider text-white/70">
+                          <span className="text-[8.5px] font-black uppercase tracking-wider text-white/70">
                             MMR TELEMETRY
                           </span>
                         </div>
@@ -716,10 +716,10 @@ export function PlayerPerformanceDialog({
                             MMR RATING
                           </span>
                           <div className="my-1 flex items-baseline gap-1">
-                            <span className="text-2xl sm:text-3xl font-black italic tracking-tighter tabular-nums font-headline text-white leading-none">
+                            <span className="text-2xl sm:text-3xl font-black tracking-tighter tabular-nums font-headline text-white leading-none">
                               {masterInfoSummary.mmr}
                             </span>
-                            <span className="text-[8.5px] font-black uppercase italic tracking-wider" style={{ color: primaryHex }}>
+                            <span className="text-[8.5px] font-black uppercase tracking-wider" style={{ color: primaryHex }}>
                               PTS
                             </span>
                           </div>
@@ -745,7 +745,7 @@ export function PlayerPerformanceDialog({
                           </span>
                           <div className="my-1 flex items-baseline gap-1">
                             <span
-                              className="text-2xl sm:text-3xl font-black italic tracking-tighter tabular-nums font-headline leading-none"
+                              className="text-2xl sm:text-3xl font-black tracking-tighter tabular-nums font-headline leading-none"
                               style={{
                                 color: primaryHex,
                                 textShadow: `0 0 15px ${glowRgba}`
@@ -808,7 +808,7 @@ export function PlayerPerformanceDialog({
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-xs sm:text-sm font-black tracking-[0.25em] uppercase italic text-white font-headline">
+                          <h3 className="text-xs sm:text-sm font-black tracking-[0.25em] uppercase text-white font-headline">
                             SEASON PERFORMANCE HUD
                           </h3>
                         </div>
@@ -850,7 +850,7 @@ export function PlayerPerformanceDialog({
 
                         {/* Large Circular Gauge SVG with Neon Glow */}
                         <div className="relative w-48 h-48 sm:w-56 sm:h-56 my-2 flex items-center justify-center">
-                          <svg className="w-full h-full -rotate-90 transform drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]" viewBox="0 0 120 120">
+                          <svg className="w-full h-full -rotate-90 transform drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" viewBox="0 0 120 120">
                             <defs>
                               <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stopColor={secondaryHex || primaryHex} />
@@ -917,12 +917,12 @@ export function PlayerPerformanceDialog({
 
                           {/* Center HUD Information */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/50 italic">
+                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/50">
                               WIN RATE
                             </span>
                             <div className="flex items-baseline justify-center my-0.5">
                               <span
-                                className="text-4xl sm:text-5xl font-black italic tracking-tighter font-headline leading-none"
+                                className="text-4xl sm:text-5xl font-black tracking-tighter font-headline leading-none"
                                 style={{
                                   color: '#ffffff',
                                   textShadow: `0 0 25px ${glowRgba}, 0 0 10px ${primaryHex}`
@@ -930,7 +930,7 @@ export function PlayerPerformanceDialog({
                               >
                                 {winRate.toFixed(0)}
                               </span>
-                              <span className="text-base sm:text-lg font-black italic ml-0.5" style={{ color: primaryHex }}>
+                              <span className="text-base sm:text-lg font-black ml-0.5" style={{ color: primaryHex }}>
                                 %
                               </span>
                             </div>
@@ -986,7 +986,7 @@ export function PlayerPerformanceDialog({
                         {/* Match Matrix (P, W, D, L, GD, PTS) */}
                         <div>
                           <div className="flex items-center justify-between mb-2 px-1">
-                            <span className="text-[9.5px] font-black uppercase tracking-[0.2em] text-white/70 flex items-center gap-1.5 italic">
+                            <span className="text-[9.5px] font-black uppercase tracking-[0.2em] text-white/70 flex items-center gap-1.5">
                               <Activity className="w-3.5 h-3.5" style={{ color: primaryHex }} /> MATCH PERFORMANCE MATRIX
                             </span>
                             <span className="text-[8.5px] font-mono text-white/40 uppercase">SEASON STATS</span>
@@ -996,32 +996,32 @@ export function PlayerPerformanceDialog({
                             {/* P */}
                             <div className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border bg-white/[0.03] border-white/10 backdrop-blur-md">
                               <span className="text-[8px] font-mono text-white/40">P</span>
-                              <span className="text-lg sm:text-xl font-black italic text-white font-headline">{stats.played}</span>
+                              <span className="text-lg sm:text-xl font-black text-white font-headline">{stats.played}</span>
                               <span className="text-[7.5px] font-mono uppercase text-white/40">MAIN</span>
                             </div>
                             {/* W */}
                             <div className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border bg-emerald-500/[0.08] border-emerald-500/30 backdrop-blur-md shadow-[0_0_12px_rgba(16,185,129,0.15)]">
                               <span className="text-[8px] font-mono text-emerald-400/70">W</span>
-                              <span className="text-lg sm:text-xl font-black italic text-emerald-400 font-headline">{stats.win}</span>
+                              <span className="text-lg sm:text-xl font-black text-emerald-400 font-headline">{stats.win}</span>
                               <span className="text-[7.5px] font-mono uppercase text-emerald-400/80">MENANG</span>
                             </div>
                             {/* D */}
                             <div className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border bg-amber-500/[0.08] border-amber-500/30 backdrop-blur-md shadow-[0_0_12px_rgba(245,158,11,0.15)]">
                               <span className="text-[8px] font-mono text-amber-400/70">D</span>
-                              <span className="text-lg sm:text-xl font-black italic text-amber-400 font-headline">{stats.draw}</span>
+                              <span className="text-lg sm:text-xl font-black text-amber-400 font-headline">{stats.draw}</span>
                               <span className="text-[7.5px] font-mono uppercase text-amber-400/80">SERI</span>
                             </div>
                             {/* L */}
                             <div className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border bg-rose-500/[0.08] border-rose-500/30 backdrop-blur-md shadow-[0_0_12px_rgba(244,63,94,0.15)]">
                               <span className="text-[8px] font-mono text-rose-400/70">L</span>
-                              <span className="text-lg sm:text-xl font-black italic text-rose-400 font-headline">{stats.loss}</span>
+                              <span className="text-lg sm:text-xl font-black text-rose-400 font-headline">{stats.loss}</span>
                               <span className="text-[7.5px] font-mono uppercase text-rose-400/80">KALAH</span>
                             </div>
                             {/* GD */}
                             <div className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border bg-white/[0.03] border-white/10 backdrop-blur-md">
                               <span className="text-[8px] font-mono text-white/40">GD</span>
                               <span className={cn(
-                                "text-lg sm:text-xl font-black italic font-headline",
+                                "text-lg sm:text-xl font-black  font-headline",
                                 stats.gf - stats.ga > 0 ? "text-emerald-400" : stats.gf - stats.ga < 0 ? "text-rose-400" : "text-white"
                               )}>
                                 {stats.gf - stats.ga > 0 ? `+${stats.gf - stats.ga}` : stats.gf - stats.ga}
@@ -1039,7 +1039,7 @@ export function PlayerPerformanceDialog({
                             >
                               <span className="text-[8px] font-mono font-bold" style={{ color: primaryHex }}>PTS</span>
                               <span
-                                className="text-lg sm:text-xl font-black italic font-headline"
+                                className="text-lg sm:text-xl font-black font-headline"
                                 style={{
                                   color: isCrimson ? '#ffffff' : primaryHex,
                                   textShadow: `0 0 12px ${glowRgba}`
@@ -1072,7 +1072,7 @@ export function PlayerPerformanceDialog({
                               >
                                 <Zap className="w-3.5 h-3.5" style={{ color: primaryHex }} />
                               </div>
-                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white italic">
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
                                 MOMENTUM & RECENT FORM
                               </span>
                             </div>
@@ -1135,7 +1135,7 @@ export function PlayerPerformanceDialog({
                                     <div key={m.id || idx} className="flex flex-col items-center gap-1">
                                       <div
                                         className={cn(
-                                          "w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-[10.5px] sm:text-[11px] font-black italic font-headline border shadow-lg transition-transform hover:scale-110",
+                                          "w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-[10.5px] sm:text-[11px] font-black  font-headline border shadow-lg transition-transform hover:scale-110",
                                           isWin ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.35)]" :
                                           isDraw ? "bg-amber-500/20 text-amber-400 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.35)]" :
                                           "bg-rose-500/20 text-rose-400 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.35)]"
@@ -1151,7 +1151,7 @@ export function PlayerPerformanceDialog({
                                   );
                                 })}
                                 {completedMatches.length === 0 && (
-                                  <span className="text-[9px] font-mono text-white/30 italic">Belum ada rekam pertandingan</span>
+                                  <span className="text-[9px] font-mono text-white/30">Belum ada rekam pertandingan</span>
                                 )}
                               </div>
                             </div>
@@ -1161,7 +1161,7 @@ export function PlayerPerformanceDialog({
                               {/* Scoring Rate */}
                               <div className="bg-white/[0.03] border border-white/10 rounded-xl p-2 flex flex-col items-center justify-center text-center">
                                 <span className="text-[7.5px] font-mono text-white/40 uppercase">SCORING</span>
-                                <span className="text-xs sm:text-sm font-black italic font-headline text-emerald-400 mt-0.5">
+                                <span className="text-xs sm:text-sm font-black font-headline text-emerald-400 mt-0.5">
                                   {scoringRate}
                                 </span>
                                 <span className="text-[7px] font-mono text-white/30">GF / GAME</span>
@@ -1170,7 +1170,7 @@ export function PlayerPerformanceDialog({
                               {/* Concede Rate */}
                               <div className="bg-white/[0.03] border border-white/10 rounded-xl p-2 flex flex-col items-center justify-center text-center">
                                 <span className="text-[7.5px] font-mono text-white/40 uppercase">DEFENSE</span>
-                                <span className="text-xs sm:text-sm font-black italic font-headline text-rose-400 mt-0.5">
+                                <span className="text-xs sm:text-sm font-black font-headline text-rose-400 mt-0.5">
                                   {concedeRate}
                                 </span>
                                 <span className="text-[7px] font-mono text-white/30">GA / GAME</span>
@@ -1179,7 +1179,7 @@ export function PlayerPerformanceDialog({
                               {/* Clean Sheets */}
                               <div className="bg-white/[0.03] border border-white/10 rounded-xl p-2 flex flex-col items-center justify-center text-center">
                                 <span className="text-[7.5px] font-mono text-white/40 uppercase">CLEAN S.</span>
-                                <span className="text-xs sm:text-sm font-black italic font-headline text-amber-300 mt-0.5">
+                                <span className="text-xs sm:text-sm font-black font-headline text-amber-300 mt-0.5">
                                   {cleanSheetsCount}
                                 </span>
                                 <span className="text-[7px] font-mono text-white/30">CS LOGGED</span>
@@ -1237,7 +1237,7 @@ export function PlayerPerformanceDialog({
                           key={tab}
                           value={tab}
                           className={cn(
-                            "h-full rounded-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-[11px] italic transition-all duration-300",
+                            "h-full rounded-full font-black uppercase tracking-[0.15em] text-[10px] sm:text-[11px]  transition-all duration-300",
                             theme.tabsActiveBg,
                             "data-[state=inactive]:text-white/40 data-[state=inactive]:hover:text-white"
                           )}
@@ -1285,11 +1285,11 @@ export function PlayerPerformanceDialog({
                     borderColor: `${primaryHex}25`
                   }}
                 >
-                  <p className="text-[8px] sm:text-[9px] text-white/40 font-black tracking-[0.25em] uppercase mb-1 relative z-10 italic">
+                  <p className="text-[8px] sm:text-[9px] text-white/40 font-black tracking-[0.25em] uppercase mb-1 relative z-10">
                     Technical Analysis & Match Stats Disclaimer
                   </p>
                   <p
-                    className="text-[10px] sm:text-[11px] font-bold italic leading-relaxed text-center relative z-10 max-w-xl mx-auto"
+                    className="text-[10px] sm:text-[11px] font-bold leading-relaxed text-center relative z-10 max-w-xl mx-auto"
                     style={{ color: `${primaryHex}CC` }}
                   >
                     Data dikalkulasi berdasarkan performa agregat pemain dalam seluruh pertandingan liga. Konsistensi kemenangan di atas rata-rata mencerminkan stabilitas taktis yang solid.

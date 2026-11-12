@@ -68,7 +68,7 @@ export function Header() {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-base sm:text-2xl tracking-tighter uppercase italic text-white leading-none">
+            <span className="font-black text-base sm:text-2xl tracking-tighter uppercase text-white leading-none">
               BM{' '}
               <span
                 style={{
@@ -79,7 +79,7 @@ export function Header() {
                 LEAGUE 88
               </span>
             </span>
-            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white/30 italic hidden xs:block md:block">
+            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white/30 hidden xs:block md:block">
               ENGINEERING FOOTBALL HUD
             </span>
           </div>
@@ -108,7 +108,7 @@ export function Header() {
                         : undefined
                     }
                     className={cn(
-                      "relative flex-1 flex items-center justify-center text-[10px] lg:text-[11px] xl:text-xs font-black uppercase tracking-tight sm:tracking-normal italic transition-all duration-300 rounded-full h-full px-2 lg:px-3 whitespace-nowrap min-w-max",
+                      "relative flex-1 flex items-center justify-center text-[10px] lg:text-[11px] xl:text-xs font-black uppercase tracking-tight sm:tracking-normal  transition-all duration-300 rounded-full h-full px-2 lg:px-3 whitespace-nowrap min-w-max",
                       isActive 
                         ? "font-black" 
                         : "text-white/50 hover:text-white hover:bg-white/[0.05]"
@@ -167,13 +167,13 @@ export function Header() {
             >
               <DropdownMenuItem
                 onClick={() => setLanguage('id')}
-                className="font-black text-[11px] uppercase tracking-wider py-2.5 px-4 italic cursor-pointer rounded-xl transition-colors hover:bg-white/10"
+                className="font-black text-[11px] uppercase tracking-wider py-2.5 px-4 cursor-pointer rounded-xl transition-colors hover:bg-white/10"
               >
                 ID_TRANSMISSION
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setLanguage('en')}
-                className="font-black text-[11px] uppercase tracking-wider py-2.5 px-4 italic cursor-pointer rounded-xl transition-colors hover:bg-white/10"
+                className="font-black text-[11px] uppercase tracking-wider py-2.5 px-4 cursor-pointer rounded-xl transition-colors hover:bg-white/10"
               >
                 EN_TRANSMISSION
               </DropdownMenuItem>

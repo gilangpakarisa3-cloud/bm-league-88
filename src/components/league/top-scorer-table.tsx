@@ -165,7 +165,7 @@ export const TopScorerTable = memo(({
                                 />
                                 <div className="relative flex flex-col items-center">
                                     <Badge 
-                                        className="font-black italic text-xs sm:text-lg px-6 sm:px-12 h-8 sm:h-10 tracking-[0.25em] sm:tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(0,0,0,0.5)] border-r-4 border-black mb-2 sm:mb-3 rounded-none"
+                                        className="font-black text-xs sm:text-lg px-6 sm:px-12 h-8 sm:h-10 tracking-[0.25em] sm:tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(0,0,0,0.5)] border-r-4 border-black mb-2 sm:mb-3 rounded-none"
                                         style={{
                                             backgroundColor: primaryHex,
                                             color: currentTheme.themeKey === 'crimson' ? '#ffffff' : '#000000',
@@ -202,7 +202,7 @@ export const TopScorerTable = memo(({
                                 </Avatar>
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 className="text-lg sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{predator.name}</h4>
+                                <h4 className="text-lg sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight pr-2" suppressHydrationWarning>{predator.name}</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: primaryHex }} />
                                     <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest truncate" style={{ color: `${primaryHex}CC` }} suppressHydrationWarning>{predator.teamName}</p>
@@ -241,7 +241,7 @@ export const TopScorerTable = memo(({
                 ) : (
                     <Card className="relative overflow-hidden border-2 sm:border-4 border-dashed border-white/10 bg-black/40 rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center">
                         <Flame className="w-10 h-10 sm:w-12 sm:h-12 text-white/10 mb-2" />
-                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-white/40 italic">AWAITING FIRST GOAL SCORER</p>
+                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-white/40">AWAITING FIRST GOAL SCORER</p>
                     </Card>
                 )}
 
@@ -255,7 +255,7 @@ export const TopScorerTable = memo(({
                              <div className="relative group/badge">
                                  <div className="absolute -inset-6 bg-red-600/20 blur-3xl opacity-0 group-hover/badge:opacity-100 transition-opacity animate-pulse" />
                                  <div className="relative flex flex-col items-center">
-                                     <Badge className="bg-red-600 text-white font-black italic text-xs sm:text-lg px-6 sm:px-12 h-8 sm:h-10 tracking-[0.25em] sm:tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(220,38,38,0.2)] border-r-4 border-black mb-2 sm:mb-3 rounded-none">
+                                     <Badge className="bg-red-600 text-white font-black text-xs sm:text-lg px-6 sm:px-12 h-8 sm:h-10 tracking-[0.25em] sm:tracking-[0.4em] -skew-x-[20deg] shadow-[8px_8px_0px_rgba(220,38,38,0.2)] border-r-4 border-black mb-2 sm:mb-3 rounded-none">
                                          PEDOFIL
                                      </Badge>
                                      <div className="flex items-center gap-2">
@@ -277,7 +277,7 @@ export const TopScorerTable = memo(({
                                   </Avatar>
                               </div>
                               <div className="flex-1 min-w-0">
-                                  <h4 className="text-lg sm:text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] leading-tight pr-2" suppressHydrationWarning>{mainPedofil.name}</h4>
+                                  <h4 className="text-lg sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight pr-2" suppressHydrationWarning>{mainPedofil.name}</h4>
                                   <div className="flex items-center gap-2 mt-1">
                                      <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
                                      <p className="text-[9px] sm:text-[10px] font-black text-red-500/80 uppercase tracking-widest truncate" suppressHydrationWarning>{mainPedofil.teamName}</p>
@@ -286,7 +286,7 @@ export const TopScorerTable = memo(({
                               <div className="text-right flex flex-col items-end shrink-0">
                                   <div className="relative flex items-center justify-end">
                                      <span 
-                                        className="text-4xl sm:text-7xl font-black italic text-red-600 tabular-nums leading-none"
+                                        className="text-4xl sm:text-7xl font-black text-red-600 tabular-nums leading-none"
                                         style={{
                                             textShadow: '0 0 25px rgba(220, 38, 38, 0.7), 0 0 50px rgba(220, 38, 38, 0.3)'
                                         }}
@@ -295,7 +295,7 @@ export const TopScorerTable = memo(({
                                         {mainPedofil.goals}
                                      </span>
                                   </div>
-                                  <p className="text-[8px] sm:text-xs font-black text-red-500 uppercase tracking-widest mt-1 text-right drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]" suppressHydrationWarning>
+                                  <p className="text-[8px] sm:text-xs font-black text-red-500 uppercase tracking-widest mt-1 text-right drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" suppressHydrationWarning>
                                     {mainPedofil.goals === 0 ? `${mainPedofil.played} LAGA MANDUL` : `${mainPedofil.played} LAGA MINIM`}
                                   </p>
                               </div>
@@ -328,7 +328,7 @@ export const TopScorerTable = memo(({
                                   <CheckCircle2 className="w-10 h-10 animate-pulse" style={{ color: primaryHex }} />
                               </div>
                               <div className="space-y-1 text-center">
-                                  <p className="text-[11px] font-black uppercase tracking-[0.4em] italic" style={{ color: `${primaryHex}BB` }}>BELUM ADA DATA PEMAIN</p>
+                                  <p className="text-[11px] font-black uppercase tracking-[0.4em]" style={{ color: `${primaryHex}BB` }}>BELUM ADA DATA PEMAIN</p>
                                   <p className="text-[8px] font-bold text-white/30 uppercase tracking-[0.3em]">MENUNGGU HASIL PERTANDINGAN LIGA</p>
                               </div>
                           </div>

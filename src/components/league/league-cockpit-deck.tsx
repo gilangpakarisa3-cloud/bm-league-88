@@ -162,7 +162,7 @@ export const LeagueCockpitDeck = ({
               onValueChange={setActiveSeasonId}
               disabled={isLoadingSeasons}
             >
-              <SelectTrigger className="w-full sm:w-auto sm:min-w-[240px] max-w-full sm:max-w-[420px] lg:max-w-[520px] h-10 bg-transparent border-0 font-black uppercase italic tracking-tight text-xs text-white focus:ring-0 px-2.5 pr-8 min-w-0 overflow-hidden [&>span]:truncate [&>span]:block [&>span]:min-w-0">
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[240px] max-w-full sm:max-w-[420px] lg:max-w-[520px] h-10 bg-transparent border-0 font-black uppercase tracking-tight text-xs text-white focus:ring-0 px-2.5 pr-8 min-w-0 overflow-hidden [&>span]:truncate [&>span]:block [&>span]:min-w-0">
                 <SelectValue placeholder={t('select_a_season')} />
               </SelectTrigger>
               <SelectContent className="bg-[#070B14]/98 border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl">
@@ -170,7 +170,7 @@ export const LeagueCockpitDeck = ({
                   <SelectItem
                     key={season.id}
                     value={season.id}
-                    className="font-black uppercase italic text-xs text-white/90 focus:bg-white/10 focus:text-white py-2.5 px-3 rounded-xl cursor-pointer"
+                    className="font-black uppercase text-xs text-white/90 focus:bg-white/10 focus:text-white py-2.5 px-3 rounded-xl cursor-pointer"
                   >
                     {season.name}
                   </SelectItem>
@@ -258,7 +258,7 @@ export const LeagueCockpitDeck = ({
               }
             }}
             className={cn(
-              'h-11 px-5 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-lg font-headline italic border',
+              'h-11 px-5 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-lg font-headline  border',
               isAdmin ? 'text-black shadow-lg hover:brightness-110' : 'hover:brightness-125'
             )}
             style={
@@ -342,7 +342,7 @@ export const LeagueCockpitDeck = ({
                     <div className="text-[8px] font-black uppercase tracking-wider text-cyan-400/70 font-mono">
                       STEP 01 // ROSTER
                     </div>
-                    <div className="text-[11px] font-black uppercase tracking-tight text-white font-headline italic">
+                    <div className="text-[11px] font-black uppercase tracking-tight text-white font-headline">
                       {t('register_players')}
                     </div>
                   </div>
@@ -367,7 +367,7 @@ export const LeagueCockpitDeck = ({
                     <div className="text-[8px] font-black uppercase tracking-wider text-amber-400/80 font-mono">
                       STEP 02 // DRAFT
                     </div>
-                    <div className="text-[11px] font-black uppercase tracking-tight text-amber-300 font-headline italic">
+                    <div className="text-[11px] font-black uppercase tracking-tight text-amber-300 font-headline">
                       TEAM DRAFT
                     </div>
                   </div>
@@ -392,7 +392,7 @@ export const LeagueCockpitDeck = ({
                     <div className="text-[8px] font-black uppercase tracking-wider text-indigo-400/70 font-mono">
                       STEP 03 // MATCHES
                     </div>
-                    <div className="text-[11px] font-black uppercase tracking-tight text-white font-headline italic truncate max-w-[130px]">
+                    <div className="text-[11px] font-black uppercase tracking-tight text-white font-headline truncate max-w-[130px]">
                       {hasFixtures ? t('regenerate_fixtures') : t('generate_fixtures')}
                     </div>
                   </div>
@@ -416,7 +416,7 @@ export const LeagueCockpitDeck = ({
                     <div className="text-[8px] font-black uppercase tracking-wider text-black/70 font-mono">
                       APEX STEP // LAUNCH
                     </div>
-                    <div className="text-[11px] font-black uppercase tracking-tight text-black font-headline italic">
+                    <div className="text-[11px] font-black uppercase tracking-tight text-black font-headline">
                       {t('start_season')}
                     </div>
                   </div>
@@ -480,7 +480,7 @@ export const LeagueCockpitDeck = ({
                       ? withAdminCheck(handleGeneratePlayoffs)
                       : withAdminCheck(() => setShowFinishGroupStageConfirm(true))
                   }
-                  className="h-13 px-5 font-black text-[11px] uppercase tracking-wider rounded-2xl bg-gradient-to-r from-amber-400 via-primary to-amber-300 text-black shadow-[0_0_35px_rgba(245,158,11,0.4)] hover:brightness-110 transition-all flex items-center justify-between group/playoff font-headline italic"
+                  className="h-13 px-5 font-black text-[11px] uppercase tracking-wider rounded-2xl bg-gradient-to-r from-amber-400 via-primary to-amber-300 text-black shadow-[0_0_35px_rgba(245,158,11,0.4)] hover:brightness-110 transition-all flex items-center justify-between group/playoff font-headline"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-black text-amber-400 flex items-center justify-center shrink-0">
@@ -501,7 +501,7 @@ export const LeagueCockpitDeck = ({
               <Button
                 onClick={() => withAdminCheck(() => setShowFinishSeasonConfirm(true))}
                 variant="destructive"
-                className="h-13 px-5 font-black text-[11px] uppercase tracking-wider rounded-2xl bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all flex items-center justify-between group/finish font-headline italic shadow-sm hover:shadow-[0_0_25px_rgba(239,68,68,0.3)]"
+                className="h-13 px-5 font-black text-[11px] uppercase tracking-wider rounded-2xl bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white transition-all flex items-center justify-between group/finish font-headline shadow-sm hover:shadow-[0_0_25px_rgba(239,68,68,0.3)]"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-red-500/20 text-red-400 group-hover/finish:bg-white group-hover/finish:text-red-500 flex items-center justify-center shrink-0 transition-colors">

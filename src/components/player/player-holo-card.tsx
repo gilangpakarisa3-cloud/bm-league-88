@@ -125,7 +125,7 @@ export const PlayerHoloCard = ({
             )}>
               <span className="text-[7.5px] font-black leading-none uppercase tracking-tighter opacity-80">MMR</span>
               {player.isCalibrated ? (
-                <span className="text-sm font-black leading-none italic tabular-nums tracking-tighter mt-0.5">
+                <span className="text-sm font-black leading-none tabular-nums tracking-tighter mt-0.5">
                   {player.mmrRating || player.mmr || 800}
                 </span>
               ) : (
@@ -139,7 +139,7 @@ export const PlayerHoloCard = ({
           {/* Player Identity */}
           <div className="text-center space-y-1.5 z-10 w-full px-2">
             <h3 className={cn(
-              "font-black text-xl tracking-tight uppercase italic truncate transition-colors",
+              "font-black text-xl tracking-tight uppercase  truncate transition-colors",
               "text-white group-hover:text-white"
             )}>
               {player.name}
@@ -168,7 +168,7 @@ export const PlayerHoloCard = ({
               <span className="text-white/40 flex items-center gap-1">
                 <TrendingUp className="w-3 h-3 text-primary" /> Victory Rate
               </span>
-              <span className={cn("font-mono font-black italic", tier.color)}>
+              <span className={cn("font-mono font-black ", tier.color)}>
                 {winRate.toFixed(1)}%
               </span>
             </div>
@@ -183,19 +183,19 @@ export const PlayerHoloCard = ({
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="p-2.5 rounded-xl bg-black/50 border border-emerald-500/20 hover:border-emerald-500/50 transition-colors">
               <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-0.5">WIN</span>
-              <span className="text-xl font-black italic tabular-nums text-white leading-none">
+              <span className="text-xl font-black tabular-nums text-white leading-none">
                 {player.overallWin || 0}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-black/50 border border-yellow-500/20 hover:border-yellow-500/50 transition-colors">
               <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-yellow-400 mb-0.5">DRAW</span>
-              <span className="text-xl font-black italic tabular-nums text-white leading-none">
+              <span className="text-xl font-black tabular-nums text-white leading-none">
                 {player.overallDraw || 0}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-black/50 border border-rose-500/20 hover:border-rose-500/50 transition-colors">
               <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-rose-400 mb-0.5">LOSS</span>
-              <span className="text-xl font-black italic tabular-nums text-white leading-none">
+              <span className="text-xl font-black tabular-nums text-white leading-none">
                 {player.overallLoss || 0}
               </span>
             </div>
@@ -208,7 +208,7 @@ export const PlayerHoloCard = ({
               </div>
               <div>
                 <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-white/40">Total Goals</span>
-                <span className="text-lg font-black italic tabular-nums text-white leading-none">
+                <span className="text-lg font-black tabular-nums text-white leading-none">
                   {player.overallGoalsFor || 0} <span className="text-[9px] font-normal text-white/40">PTS</span>
                 </span>
               </div>
@@ -216,7 +216,7 @@ export const PlayerHoloCard = ({
 
             <div className="text-right">
               <span className="block text-[7px] font-black uppercase tracking-[0.2em] text-white/40">Per Match</span>
-              <span className="text-sm font-black font-mono text-primary italic leading-none">
+              <span className="text-sm font-black font-mono text-primary leading-none">
                 {goalsPerMatch}
               </span>
             </div>
@@ -254,7 +254,7 @@ export const PlayerHoloCard = ({
                   </Badge>
                 ))
               ) : (
-                <span className="text-[8px] font-black uppercase tracking-widest text-white/20 italic">
+                <span className="text-[8px] font-black uppercase tracking-widest text-white/20">
                   Menunggu gelar pertama
                 </span>
               )}
@@ -273,7 +273,7 @@ export const PlayerHoloCard = ({
                   style={{ width: `${Math.min(100, ((player.overallPlayed || 0) / 20) * 100)}%` }}
                 />
               </div>
-              <span className="block text-[7.5px] font-bold text-slate-400/80 italic leading-tight">
+              <span className="block text-[7.5px] font-bold text-slate-400/80 leading-tight">
                 Butuh {Math.max(0, 20 - (player.overallPlayed || 0))} laga resmi lagi untuk kalibrasi MMR penuh
               </span>
             </div>

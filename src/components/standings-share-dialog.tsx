@@ -319,9 +319,9 @@ export function StandingsShareDialog({
               <Scan className="w-4 h-4" style={{ color: primaryHex }} />
             </div>
             <div>
-              <DialogTitle className="text-sm sm:text-base font-black uppercase italic tracking-wider font-headline text-white flex items-center gap-2">
+              <DialogTitle className="text-sm sm:text-base font-black uppercase tracking-wider font-headline text-white flex items-center gap-2">
                 Share Poster Klasemen
-                <span className="text-[10px] not-italic font-mono px-2 py-0.5 rounded bg-white/10 text-white/70">
+                <span className="text-[10px] not- font-mono px-2 py-0.5 rounded bg-white/10 text-white/70">
                   ESPORTS HUD HD
                 </span>
               </DialogTitle>
@@ -364,7 +364,7 @@ export function StandingsShareDialog({
             <div className="relative z-10 flex items-center justify-between pb-3 mb-3 border-b border-white/15">
               <div className="flex items-center gap-2">
                 <div 
-                  className="px-3 py-1 rounded-md font-black text-[11px] uppercase italic tracking-wider flex items-center gap-1.5 shadow-md"
+                  className="px-3 py-1 rounded-md font-black text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-md"
                   style={{
                     backgroundColor: primaryHex,
                     color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
@@ -446,15 +446,15 @@ export function StandingsShareDialog({
                       {/* Rank Indicator */}
                       <div className="flex items-center justify-center">
                         {rank === 1 ? (
-                          <div className="w-5 h-5 rounded-md bg-amber-400 text-black font-black text-[10px] flex items-center justify-center shadow-[0_0_8px_rgba(251,191,36,0.8)] italic">
+                          <div className="w-5 h-5 rounded-md bg-amber-400 text-black font-black text-[10px] flex items-center justify-center shadow-[0_0_8px_rgba(251,191,36,0.8)]">
                             1
                           </div>
                         ) : rank === 2 ? (
-                          <div className="w-5 h-5 rounded-md bg-slate-300 text-black font-black text-[10px] flex items-center justify-center italic">
+                          <div className="w-5 h-5 rounded-md bg-slate-300 text-black font-black text-[10px] flex items-center justify-center">
                             2
                           </div>
                         ) : rank === 3 ? (
-                          <div className="w-5 h-5 rounded-md bg-amber-700 text-white font-black text-[10px] flex items-center justify-center italic">
+                          <div className="w-5 h-5 rounded-md bg-amber-700 text-white font-black text-[10px] flex items-center justify-center">
                             3
                           </div>
                         ) : (
@@ -484,7 +484,7 @@ export function StandingsShareDialog({
                           )}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-headline font-black text-[11px] text-white uppercase italic truncate tracking-tight leading-tight">
+                          <span className="font-headline font-black text-[11px] text-white uppercase truncate tracking-tight leading-tight">
                             {playerName}
                           </span>
                           <span className="text-[8px] font-bold uppercase tracking-wider text-white/50 truncate leading-tight">
@@ -523,7 +523,7 @@ export function StandingsShareDialog({
 
                       {/* Points */}
                       <div 
-                        className="text-center font-headline font-black text-[12px] italic tracking-tight"
+                        className="text-center font-headline font-black text-[12px] tracking-tight"
                         style={{ color: primaryHex }}
                       >
                         {entry.points ?? 0}
@@ -553,7 +553,7 @@ export function StandingsShareDialog({
           <Button
             type="button"
             onClick={handleSendToWhatsApp}
-            className="flex-1 min-w-[200px] h-11 rounded-xl font-black text-xs uppercase italic tracking-wider transition-all duration-300 shadow-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/40"
+            className="flex-1 min-w-[200px] h-11 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/40"
           >
             <Share2 className="w-4 h-4 mr-2" />
             KIRIM LANGSUNG KE WA
@@ -563,7 +563,7 @@ export function StandingsShareDialog({
             type="button"
             onClick={handleCopyBoth}
             disabled={isCopyingImage}
-            className="flex-1 min-w-[170px] h-11 rounded-xl font-black text-xs uppercase italic tracking-wider transition-all duration-300 shadow-lg"
+            className="flex-1 min-w-[170px] h-11 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-lg"
             style={{
               backgroundColor: primaryHex,
               color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',
@@ -587,7 +587,7 @@ export function StandingsShareDialog({
             type="button"
             variant="outline"
             onClick={handleCopyText}
-            className="h-11 px-4 rounded-xl border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase italic"
+            className="h-11 px-4 rounded-xl border-white/20 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase"
           >
             {isCopiedText ? (
               <>

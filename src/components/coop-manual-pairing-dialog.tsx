@@ -78,7 +78,7 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
                     <Users className="w-8 h-8" />
                 </div>
                 <div className="space-y-1">
-                    <DialogTitle className="text-3xl font-black italic uppercase text-white tracking-tighter leading-none">Tentukan Pasangan Manual</DialogTitle>
+                    <DialogTitle className="text-3xl font-black uppercase text-white tracking-tighter leading-none">Tentukan Pasangan Manual</DialogTitle>
                     <div className="flex items-center gap-3">
                         <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[8px] font-black uppercase tracking-[0.2em] h-5">Manual Unit Allocation Protocol</Badge>
                         <span className="text-[8px] font-bold text-white/20 uppercase tracking-[0.4em]">Tournament System v5.0</span>
@@ -93,7 +93,7 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
                 <div className="p-6 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
                     <div className="flex items-center gap-3">
                         <div className="h-4 w-1 bg-primary rounded-full shadow-[0_0_10px_rgba(204,253,1,0.8)]" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/60 italic">Pool Pemain Terdaftar</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/60">Pool Pemain Terdaftar</h3>
                     </div>
                     <Badge variant="outline" className="h-6 font-black border-white/10 text-white/30">{unassignedPlayers.length} UNIT REM.</Badge>
                 </div>
@@ -112,7 +112,7 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
                                 >
                                     <div className="flex items-center gap-3 relative z-10">
                                         <div className={cn("w-1 h-5 rounded-full", isSelected ? "bg-primary shadow-[0_0_8px_rgba(204,253,1,0.8)]" : "bg-white/10")} />
-                                        <span className={cn("font-black text-sm uppercase italic transition-colors truncate pr-4", isSelected ? "text-primary" : "text-white/60 group-hover:text-white")} suppressHydrationWarning>{player.playerName}</span>
+                                        <span className={cn("font-black text-sm uppercase  transition-colors truncate pr-4", isSelected ? "text-primary" : "text-white/60 group-hover:text-white")} suppressHydrationWarning>{player.playerName}</span>
                                     </div>
                                     {isSelected && <CheckCircle2 className="w-4 h-4 text-primary animate-in zoom-in duration-300" />}
                                 </button>
@@ -128,13 +128,13 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
                             <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(204,253,1,0.05)_50%,transparent_100%)] bg-[length:200%_100%] animate-marquee opacity-30" />
                             <div className="flex items-center gap-3 relative z-10">
                                 <Zap className="w-4 h-4 text-primary fill-primary animate-pulse" />
-                                <span className="text-[10px] font-black text-primary uppercase italic tracking-tighter">Ready to Pair: {selectedIds.length}/2</span>
+                                <span className="text-[10px] font-black text-primary uppercase tracking-tighter">Ready to Pair: {selectedIds.length}/2</span>
                             </div>
                             <Button 
                                 onClick={handleAddPair} 
                                 disabled={selectedIds.length !== 2}
                                 size="sm" 
-                                className="h-9 px-6 bg-primary text-black font-black uppercase italic text-[10px] tracking-widest rounded-lg shadow-lg relative z-10"
+                                className="h-9 px-6 bg-primary text-black font-black uppercase text-[10px] tracking-widest rounded-lg shadow-lg relative z-10"
                             >
                                 <Plus className="w-3.5 h-3.5 mr-1.5" /> PASANGKAN UNIT
                             </Button>
@@ -148,7 +148,7 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
                 <div className="p-6 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
                     <div className="flex items-center gap-3">
                         <Scan className="w-5 h-5 text-primary" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 italic">Manifest Unit Pasangan</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">Manifest Unit Pasangan</h3>
                     </div>
                     <Badge className="bg-primary text-black h-6 font-black">{pairs.length} PASANG</Badge>
                 </div>
@@ -164,8 +164,8 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
                                             <span className="text-[9px] font-black text-white/40 uppercase mt-1.5">P1</span>
                                         </div>
                                         <div className="flex flex-col text-left">
-                                            <p className="text-[13px] font-black text-white uppercase italic tracking-tight" suppressHydrationWarning>{pair.p1.playerName}</p>
-                                            <p className="text-[13px] font-black text-white uppercase italic tracking-tight mt-1" suppressHydrationWarning>{pair.p2.playerName}</p>
+                                            <p className="text-[13px] font-black text-white uppercase tracking-tight" suppressHydrationWarning>{pair.p1.playerName}</p>
+                                            <p className="text-[13px] font-black text-white uppercase tracking-tight mt-1" suppressHydrationWarning>{pair.p2.playerName}</p>
                                         </div>
                                         <div className="flex flex-col items-center">
                                             <Avatar className="h-10 w-10 border-2 border-white/10 shadow-lg"><AvatarFallback className="bg-black/60 text-[10px] font-black">P2</AvatarFallback></Avatar>
@@ -192,7 +192,7 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
                         )) : (
                             <div className="py-20 text-center border-4 border-dashed border-white/5 rounded-[2.5rem] opacity-20">
                                 <Binary className="w-16 h-16 mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-[0.4em] italic">Awaiting Manual Configuration</p>
+                                <p className="text-xs font-black uppercase tracking-[0.4em]">Awaiting Manual Configuration</p>
                             </div>
                         )}
                     </div>
@@ -204,7 +204,7 @@ export function CoopManualPairingDialog({ open, onOpenChange, season, registered
               <Button 
                 onClick={handleSave} 
                 disabled={pairs.length === 0 || unassignedPlayers.length > 0}
-                className="w-full h-16 text-lg font-black uppercase italic tracking-tighter gap-4 shadow-2xl rounded-2xl transition-all hover:scale-[1.01] active:scale-95"
+                className="w-full h-16 text-lg font-black uppercase tracking-tighter gap-4 shadow-2xl rounded-2xl transition-all hover:scale-[1.01] active:scale-95"
               >
                   <CheckCircle2 className="w-6 h-6" /> KUNCI PASANGAN & LANJUT KE DRAFT TIM
               </Button>

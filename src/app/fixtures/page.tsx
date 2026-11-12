@@ -581,7 +581,7 @@ export default function FixturesPage() {
                                             style={{ backgroundColor: theme.primaryHex }}
                                         />
                                         <span
-                                            className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] italic"
+                                            className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]"
                                             style={{ color: theme.primaryHex }}
                                         >
                                             Live Match Feed
@@ -597,7 +597,7 @@ export default function FixturesPage() {
 
                                 {/* Ultra Futuristic & Ultra Sport Dual-Tone Headline */}
                                 <div className="relative min-w-0">
-                                    <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase italic leading-none drop-shadow-[0_0_35px_rgba(255,255,255,0.12)] flex flex-wrap items-baseline gap-x-2.5 sm:gap-x-4 py-1 pr-4">
+                                    <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex flex-wrap items-baseline gap-x-2.5 sm:gap-x-4 py-1 pr-4">
                                         <span className="inline-block text-white pr-1">
                                             {t('fixtures_page_title').split(' ')[0]}
                                         </span>
@@ -625,7 +625,7 @@ export default function FixturesPage() {
                             {activeSeason && (
                                 <div className="flex flex-wrap md:flex-col items-start md:items-end gap-1.5 shrink-0">
                                     <Badge
-                                        className="font-black tracking-[0.15em] text-[9px] sm:text-[10px] h-6 sm:h-7 px-3 sm:px-4 uppercase italic rounded-full backdrop-blur-md flex items-center gap-1.5 border shadow-md shrink-0"
+                                        className="font-black tracking-[0.15em] text-[9px] sm:text-[10px] h-6 sm:h-7 px-3 sm:px-4 uppercase rounded-full backdrop-blur-md flex items-center gap-1.5 border shadow-md shrink-0"
                                         style={{
                                             backgroundColor: `${theme.primaryHex}20`,
                                             color: theme.primaryHex,
@@ -640,7 +640,7 @@ export default function FixturesPage() {
                                     </Badge>
                                     <div className="flex items-center gap-1.5 bg-white/[0.04] px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-white/10 backdrop-blur-sm shadow-inner shrink-0">
                                         <CalendarIcon className="w-3 h-3 shrink-0" style={{ color: theme.primaryHex }} />
-                                        {formattedDateRange && <p className="text-[9px] sm:text-[10px] font-black text-white/70 uppercase tracking-wider italic">{formattedDateRange}</p>}
+                                        {formattedDateRange && <p className="text-[9px] sm:text-[10px] font-black text-white/70 uppercase tracking-wider">{formattedDateRange}</p>}
                                     </div>
                                 </div>
                             )}
@@ -653,7 +653,7 @@ export default function FixturesPage() {
                                         className="w-2 h-2 rounded-full shrink-0"
                                         style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 8px ${theme.glowRgba}` }}
                                     />
-                                    <p className="text-xs sm:text-sm lg:text-base font-black text-white/90 tracking-tight uppercase italic truncate min-w-0 flex-1">
+                                    <p className="text-xs sm:text-sm lg:text-base font-black text-white/90 tracking-tight uppercase truncate min-w-0 flex-1">
                                         {activeSeason.name}
                                     </p>
                                 </div>
@@ -665,7 +665,7 @@ export default function FixturesPage() {
                                                 <Activity className="w-2.5 h-2.5 animate-pulse shrink-0" style={{ color: theme.primaryHex }} />
                                                 <span className="text-[8px] font-black uppercase tracking-[0.15em] text-white/50">Progress</span>
                                             </div>
-                                            <span className="text-[9px] sm:text-[10px] font-black italic" style={{ color: theme.primaryHex }} suppressHydrationWarning>
+                                            <span className="text-[9px] sm:text-[10px] font-black" style={{ color: theme.primaryHex }} suppressHydrationWarning>
                                                 [{progressPercentage.toFixed(0)}%]
                                             </span>
                                         </div>
@@ -679,7 +679,7 @@ export default function FixturesPage() {
                                                 }}
                                             />
                                         </div>
-                                        <p className="text-[7px] font-black tracking-[0.15em] uppercase text-white/40 italic text-right">
+                                        <p className="text-[7px] font-black tracking-[0.15em] uppercase text-white/40 text-right">
                                             {completedMatchesForDisplay}/{totalMatchesForDisplay} UNITS
                                         </p>
                                     </div>
@@ -714,7 +714,7 @@ export default function FixturesPage() {
                             <Scan className="w-4 h-4" />
                         </div>
                         <Select value={activeSeasonId || ''} onValueChange={activeSeasonId => setActiveSeasonId(activeSeasonId)} disabled={isLoadingSeasons}>
-                            <SelectTrigger className="w-full sm:w-auto min-w-0 max-w-full sm:max-w-[340px] md:max-w-[420px] lg:max-w-[500px] h-12 sm:h-14 bg-white/5 border border-white/10 font-black uppercase italic tracking-tight text-xs sm:text-sm rounded-2xl sm:rounded-full focus:border-white/30 transition-all px-4 sm:px-6 pr-9 sm:pr-11 overflow-hidden shadow-inner text-left justify-between [&>span]:line-clamp-1 [&>span]:truncate [&>span]:min-w-0 [&>span]:w-full [&>span]:block">
+                            <SelectTrigger className="w-full sm:w-auto min-w-0 max-w-full sm:max-w-[340px] md:max-w-[420px] lg:max-w-[500px] h-12 sm:h-14 bg-white/5 border border-white/10 font-black uppercase tracking-tight text-xs sm:text-sm rounded-2xl sm:rounded-full focus:border-white/30 transition-all px-4 sm:px-6 pr-9 sm:pr-11 overflow-hidden shadow-inner text-left justify-between [&>span]:line-clamp-1 [&>span]:truncate [&>span]:min-w-0 [&>span]:w-full [&>span]:block">
                                 <SelectValue placeholder={t('select_a_season')} />
                             </SelectTrigger>
                             <SelectContent className="bg-[#0A192F]/98 border border-white/20 rounded-2xl overflow-hidden backdrop-blur-3xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.9)] max-h-[350px]">
@@ -722,7 +722,7 @@ export default function FixturesPage() {
                                     <SelectItem
                                         key={s.id}
                                         value={s.id}
-                                        className="font-black uppercase italic text-xs text-white/90 focus:bg-white/10 focus:text-white py-3 px-6 rounded-xl border-b border-white/5 last:border-0 cursor-pointer"
+                                        className="font-black uppercase text-xs text-white/90 focus:bg-white/10 focus:text-white py-3 px-6 rounded-xl border-b border-white/5 last:border-0 cursor-pointer"
                                     >
                                         {s.name}
                                     </SelectItem>
@@ -735,7 +735,7 @@ export default function FixturesPage() {
                         <Button
                             onClick={() => isAdmin ? setIsAdmin(false) : setPasswordPromptOpen(true)}
                             className={cn(
-                                "h-12 sm:h-14 px-8 font-black text-xs uppercase tracking-[0.2em] italic rounded-2xl sm:rounded-full transition-all duration-500 relative overflow-hidden group/admin border",
+                                "h-12 sm:h-14 px-8 font-black text-xs uppercase tracking-[0.2em]  rounded-2xl sm:rounded-full transition-all duration-500 relative overflow-hidden group/admin border",
                                 isAdmin
                                     ? "hover:brightness-110"
                                     : "hover:brightness-125"
@@ -766,7 +766,7 @@ export default function FixturesPage() {
                             <div className="absolute -inset-12 bg-primary/10 rounded-full border-4 border-primary/20 animate-ping" />
                             <div className="w-20 h-20 border-8 border-primary border-t-transparent rounded-full animate-spin relative z-10 shadow-[0_0_40px_rgba(204,253,1,0.3)]" />
                         </div>
-                        <p className="font-black tracking-[0.6em] text-sm uppercase italic text-primary animate-pulse">UPLINKING_TACTICAL_HUB</p>
+                        <p className="font-black tracking-[0.6em] text-sm uppercase text-primary animate-pulse">UPLINKING_TACTICAL_HUB</p>
                     </div>
                 ) : (
                     <FixtureContent activeSeasonId={activeSeasonId} onEditMatch={setEditingMatch} onRevertMatch={setRevertingMatch} onQuickUpdate={handleQuickUpdate} onShareMatch={setSharingMatch} isAdmin={isAdmin} allPlayers={allPlayers || []} allTeams={allTeams || []} matches={matches} isLoadingMatches={isLoadingMatches} activeSeason={activeSeason} hasPlayoffs={hasPlayoffs} />
@@ -816,7 +816,7 @@ export default function FixturesPage() {
                                 </div>
                                 <div>
                                     <div
-                                        className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-[0.25em] italic mb-1.5 border shadow-sm"
+                                        className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-[0.25em] mb-1.5 border shadow-sm"
                                         style={{
                                             backgroundColor: `${theme.primaryHex}1A`,
                                             borderColor: `${theme.primaryHex}4D`,
@@ -829,13 +829,13 @@ export default function FixturesPage() {
                                         />
                                         Engagement Uplink // {theme.seasonBadge || activeSeason?.name}
                                     </div>
-                                    <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic pr-6 leading-none text-white drop-shadow-md">
+                                    <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase pr-6 leading-none text-white drop-shadow-md">
                                         {isProcessing ? "Menyinkronkan..." : "Update Match Engagement"}
                                     </DialogTitle>
                                 </div>
                             </div>
                             {editingMatch && (
-                                <DialogDescription className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mt-3 relative z-10 italic border-t border-white/5 pt-2.5">
+                                <DialogDescription className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mt-3 relative z-10 border-t border-white/5 pt-2.5">
                                     {t('update_match_score_desc', { player1: editingMatch.player1?.name, player2: editingMatch.player2?.name })}
                                 </DialogDescription>
                             )}
@@ -863,7 +863,7 @@ export default function FixturesPage() {
                             )}
                         </div>
                         <DialogFooter className="p-4 px-8 bg-black/60 border-t border-white/10 shrink-0 flex items-center justify-end">
-                            <Button variant="ghost" onClick={() => setEditingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-[0.25em] italic text-[11px] text-white/50 hover:text-white transition-all h-10 px-6 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/5">
+                            <Button variant="ghost" onClick={() => setEditingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-[0.25em] text-[11px] text-white/50 hover:text-white transition-all h-10 px-6 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/5">
                                 <span>{t('cancel')}</span>
                             </Button>
                         </DialogFooter>
@@ -878,17 +878,17 @@ export default function FixturesPage() {
                                     {isProcessing ? <Loader2 className="w-8 h-8 animate-spin" /> : <Undo2 className="w-8 h-8" />}
                                 </div>
                                 <div className="text-left">
-                                    <AlertDialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic pr-4 leading-none">{t('revert_match_confirm_title')}</AlertDialogTitle>
+                                    <AlertDialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase pr-4 leading-none">{t('revert_match_confirm_title')}</AlertDialogTitle>
                                     <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-500/70 mt-1.5">Protocol: Reset_Node_State</p>
                                 </div>
                             </div>
                             {revertingMatch && (<AlertDialogDescription className="text-sm font-bold text-white/60 uppercase tracking-wide border-l-2 border-amber-500/40 pl-4 py-1.5 leading-relaxed text-left">{t('revert_match_confirm_desc', { player1: revertingMatch.player1Id, player2: revertingMatch.player2Id })}</AlertDialogDescription>)}
                         </AlertDialogHeader>
                         <AlertDialogFooter className="gap-3 mt-8">
-                            <AlertDialogCancel onClick={() => setRevertingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-[0.2em] italic rounded-xl h-12 border border-white/10 bg-white/5 text-white/50 hover:text-white transition-all">
+                            <AlertDialogCancel onClick={() => setRevertingMatch(null)} disabled={isProcessing} className="font-black uppercase tracking-[0.2em] rounded-xl h-12 border border-white/10 bg-white/5 text-white/50 hover:text-white transition-all">
                                 {t('cancel')}
                             </AlertDialogCancel>
-                            <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} disabled={isProcessing} className="bg-amber-500 text-black hover:bg-amber-400 font-black uppercase tracking-[0.2em] italic rounded-xl h-12 shadow-lg shadow-amber-500/25">
+                            <AlertDialogAction onClick={() => revertingMatch && handleRevertMatch(revertingMatch)} disabled={isProcessing} className="bg-amber-500 text-black hover:bg-amber-400 font-black uppercase tracking-[0.2em] rounded-xl h-12 shadow-lg shadow-amber-500/25">
                                 {t('revert_match_action')}
                             </AlertDialogAction>
                         </AlertDialogFooter>
@@ -918,7 +918,7 @@ export default function FixturesPage() {
                                     <KeyRound className="w-8 h-8" />
                                 </div>
                                 <div className="text-left">
-                                    <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase italic pr-4 leading-none text-white">{t('admin_auth')}</DialogTitle>
+                                    <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tight uppercase pr-4 leading-none text-white">{t('admin_auth')}</DialogTitle>
                                     <p
                                         className="text-[10px] font-black uppercase tracking-[0.25em] mt-1"
                                         style={{ color: theme.primaryHex }}
@@ -933,7 +933,7 @@ export default function FixturesPage() {
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="password-input"
-                                    className="text-[10px] font-black uppercase tracking-[0.3em] ml-1 italic"
+                                    className="text-[10px] font-black uppercase tracking-[0.3em] ml-1"
                                     style={{ color: theme.primaryHex }}
                                 >
                                     ENCRYPTED_KEY_TRANSMISSION
@@ -954,7 +954,7 @@ export default function FixturesPage() {
                         <DialogFooter>
                             <Button
                                 onClick={handlePasswordCheck}
-                                className="w-full h-14 font-black tracking-[0.25em] text-base uppercase italic rounded-2xl transition-all flex items-center justify-center gap-3"
+                                className="w-full h-14 font-black tracking-[0.25em] text-base uppercase rounded-2xl transition-all flex items-center justify-center gap-3"
                                 style={{
                                     backgroundColor: theme.primaryHex,
                                     color: theme.themeKey === 'crimson' ? '#ffffff' : '#000000',

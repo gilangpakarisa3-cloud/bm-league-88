@@ -85,7 +85,7 @@ export const SeasonFinancialHub = ({
             <Wallet className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm sm:text-base font-black tracking-tight uppercase italic leading-none font-headline">
+            <h3 className="text-sm sm:text-base font-black tracking-tight uppercase leading-none font-headline">
               Financial Hub
             </h3>
           </div>
@@ -105,7 +105,7 @@ export const SeasonFinancialHub = ({
           </div>
 
           <p
-            className="text-3xl sm:text-4xl font-black text-yellow-400 italic font-headline drop-shadow-[0_0_25px_rgba(250,204,21,0.6)] tabular-nums leading-none"
+            className="text-3xl sm:text-4xl font-black text-yellow-400 font-headline drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tabular-nums leading-none"
             suppressHydrationWarning
           >
             {new Intl.NumberFormat('id-ID', {
@@ -162,7 +162,7 @@ export const SeasonFinancialHub = ({
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <Receipt className="w-4 h-4 text-yellow-400" />
-              <h4 className="text-[10px] font-black uppercase italic tracking-widest text-white font-headline">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-white font-headline">
                 Unit Verification Log
               </h4>
             </div>
@@ -285,7 +285,7 @@ export const SeasonFinancialHub = ({
                       <div className="min-w-0 text-left">
                         <div
                           className={cn(
-                            'text-xs font-black uppercase italic truncate font-headline transition-colors',
+                            'text-xs font-black uppercase  truncate font-headline transition-colors',
                             player.hasPaid ? 'text-yellow-300' : 'text-white'
                           )}
                           suppressHydrationWarning

@@ -17,22 +17,22 @@ export function VantaBackgroundInner() {
       { 
         Icon: Square, 
         color: 'text-amber-500',
-        glow: 'drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]' 
+        glow: 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' 
       },
       { 
         Icon: Circle, 
         color: 'text-primary',
-        glow: 'drop-shadow-[0_0_25px_rgba(204,253,1,0.6)]' 
+        glow: 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' 
       },
       { 
         Icon: Triangle, 
         color: 'text-blue-500',
-        glow: 'drop-shadow-[0_0_25px_rgba(59,130,246,0.6)]' 
+        glow: 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' 
       },
       { 
         Icon: X, 
         color: 'text-pink-500',
-        glow: 'drop-shadow-[0_0_25px_rgba(236,72,153,0.6)]' 
+        glow: 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' 
       }
     ];
 

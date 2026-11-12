@@ -117,7 +117,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
 
                             <div className="absolute top-4 right-4 z-20">
                                 <Badge className={cn(
-                                    "font-black text-[9px] uppercase tracking-wider h-6 px-3 italic border-none rounded-full shadow-lg", 
+                                    "font-black text-[9px] uppercase tracking-wider h-6 px-3  border-none rounded-full shadow-lg", 
                                     tierColor
                                 )}>
                                     <span>T{team.tier || 3}</span>
@@ -125,7 +125,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                             </div>
 
                             {/* Large Ghost Text Background */}
-                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl font-black text-white/[0.02] uppercase tracking-tight italic whitespace-nowrap pointer-events-none group-hover:text-primary/[0.04] transition-colors pr-10 select-none">
+                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl font-black text-white/[0.02] uppercase tracking-tight whitespace-nowrap pointer-events-none group-hover:text-primary/[0.04] transition-colors pr-10 select-none">
                                 {team.name}
                             </span>
 
@@ -149,7 +149,7 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
                                 </div>
                                 
                                 <div className="space-y-1 text-center relative z-10">
-                                    <p className="font-black text-xl sm:text-2xl text-center text-white tracking-tight uppercase italic group-hover:text-primary transition-colors duration-500 pr-4 leading-none">
+                                    <p className="font-black text-xl sm:text-2xl text-center text-white tracking-tight uppercase group-hover:text-primary transition-colors duration-500 pr-4 leading-none">
                                         {team.name}
                                     </p>
                                     <div className="flex items-center justify-center gap-2 opacity-40">
@@ -190,16 +190,16 @@ export function TeamList({ onEdit, isAdmin, withAdminCheck }: TeamListProps) {
         <AlertDialog open={!!deletingTeam} onOpenChange={(isOpen) => !isOpen && setDeletingTeam(null)}>
             <AlertDialogContent className="border border-red-500/40 bg-[#0A192F]/95 backdrop-blur-3xl rounded-3xl p-6 sm:p-8 shadow-[0_0_80px_rgba(239,68,68,0.2)]">
                 <AlertDialogHeader>
-                <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase italic text-red-500">{t('are_you_sure')}</AlertDialogTitle>
+                <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase text-red-500">{t('are_you_sure')}</AlertDialogTitle>
                 <AlertDialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[10px]">
                     {t('delete_team_confirm_desc', { teamName: deletingTeam?.name })}
                 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="gap-3 mt-6">
-                <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic border border-white/10 bg-white/5">{t('cancel')}</AlertDialogCancel>
+                <AlertDialogCancel className="font-black tracking-widest text-[10px] uppercase h-12 rounded-xl border border-white/10 bg-white/5">{t('cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                     onClick={handleDelete}
-                    className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12 rounded-xl italic shadow-lg shadow-red-500/25"
+                    className="bg-red-500 text-white hover:bg-red-600 font-black tracking-widest text-[10px] uppercase h-12 rounded-xl shadow-lg shadow-red-500/25"
                 >
                     {t('delete')}
                 </AlertDialogAction>

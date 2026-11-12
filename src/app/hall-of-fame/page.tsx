@@ -467,7 +467,7 @@ export default function HallOfFamePage() {
                 <div className="flex items-center gap-2">
                   <span
                     style={{ color: theme.primaryHex }}
-                    className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] italic"
+                    className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]"
                   >
                     HALL OF CHAMPIONS // TROPHY SANCTUARY ARCHIVE
                   </span>
@@ -478,7 +478,7 @@ export default function HallOfFamePage() {
                 </div>
               </div>
 
-              <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase italic leading-none drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]">
+              <h1 className="font-headline text-3xl sm:text-6xl font-black tracking-tight text-white uppercase leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 {t('hall_of_fame_title')}{' '}
                 <span
                   style={{
@@ -534,7 +534,7 @@ export default function HallOfFamePage() {
               type="button"
               onClick={() => setActiveTab('div-1')}
               className={cn(
-                "h-11 px-5 rounded-xl font-headline font-black text-xs uppercase tracking-wider italic flex items-center gap-2 transition-all border cursor-pointer",
+                "h-11 px-5 rounded-xl font-headline font-black text-xs uppercase tracking-wider  flex items-center gap-2 transition-all border cursor-pointer",
                 activeTab === 'div-1'
                   ? "bg-yellow-400 text-black border-yellow-300 shadow-[0_0_25px_rgba(250,204,21,0.45)]"
                   : "bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/5"
@@ -551,7 +551,7 @@ export default function HallOfFamePage() {
               type="button"
               onClick={() => setActiveTab('div-2')}
               className={cn(
-                "h-11 px-5 rounded-xl font-headline font-black text-xs uppercase tracking-wider italic flex items-center gap-2 transition-all border cursor-pointer",
+                "h-11 px-5 rounded-xl font-headline font-black text-xs uppercase tracking-wider  flex items-center gap-2 transition-all border cursor-pointer",
                 activeTab === 'div-2'
                   ? "bg-cyan-400 text-black border-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.45)]"
                   : "bg-transparent text-white/50 border-transparent hover:text-white hover:bg-white/5"
@@ -582,7 +582,7 @@ export default function HallOfFamePage() {
                   <Trophy className="w-3.5 h-3.5 text-yellow-400" />
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black italic text-yellow-400 tracking-tighter tabular-nums leading-none drop-shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+                  <span className="text-3xl sm:text-4xl font-black text-yellow-400 tracking-tighter tabular-nums leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                     {championshipStats.totalSeasons}
                   </span>
                   <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">EDITIONS</span>
@@ -599,7 +599,7 @@ export default function HallOfFamePage() {
                   <Crown className="w-3.5 h-3.5 text-amber-400" />
                 </div>
                 <div className="flex items-baseline gap-2 truncate">
-                  <span className="text-2xl sm:text-3xl font-black italic text-white tracking-tight truncate leading-none">
+                  <span className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate leading-none">
                     {championshipStats.topChampion?.name || 'BELUM ADA'}
                   </span>
                 </div>
@@ -616,7 +616,7 @@ export default function HallOfFamePage() {
                   <Flame className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+                  <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">
                     {championshipStats.totalFinalsGoals}
                   </span>
                   <span className="text-[10px] font-black uppercase text-primary tracking-widest">GOALS</span>
@@ -633,7 +633,7 @@ export default function HallOfFamePage() {
                   <Target className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black italic text-white tracking-tighter tabular-nums leading-none">
+                  <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">
                     {championshipStats.highestPoints}
                   </span>
                   <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">PTS MAX</span>
@@ -676,7 +676,7 @@ export default function HallOfFamePage() {
                           #{idx + 1}
                         </div>
                         <div className="min-w-0">
-                          <span className="block font-black text-sm uppercase italic tracking-tight text-white group-hover:text-yellow-400 transition-colors truncate">
+                          <span className="block font-black text-sm uppercase tracking-tight text-white group-hover:text-yellow-400 transition-colors truncate">
                             {leader.name}
                           </span>
                           <span className="block text-[9px] font-bold uppercase tracking-wider text-white/40 truncate">
@@ -756,7 +756,7 @@ export default function HallOfFamePage() {
                       <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
                     </div>
                   </div>
-                  <h2 className="font-headline text-2xl sm:text-4xl font-black italic tracking-tight text-white uppercase flex items-center gap-3">
+                  <h2 className="font-headline text-2xl sm:text-4xl font-black tracking-tight text-white uppercase flex items-center gap-3">
                     PROMOTION HONORS
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
                       HALL
@@ -773,7 +773,7 @@ export default function HallOfFamePage() {
                     <span className="block text-[8px] font-mono font-black text-white/40 uppercase tracking-widest">
                       PROMOTED SQUADS
                     </span>
-                    <span className="text-2xl sm:text-3xl font-black italic text-cyan-300 font-mono">
+                    <span className="text-2xl sm:text-3xl font-black text-cyan-300 font-mono">
                       {(seasonRecords?.filter(r => r.division2Record).length || 0) * 2}
                     </span>
                   </div>
@@ -781,7 +781,7 @@ export default function HallOfFamePage() {
                     <span className="block text-[8px] font-mono font-black text-white/40 uppercase tracking-widest">
                       SEASONS
                     </span>
-                    <span className="text-2xl sm:text-3xl font-black italic text-emerald-400 font-mono">
+                    <span className="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">
                       {seasonRecords?.filter(r => r.division2Record).length || 0}
                     </span>
                   </div>
@@ -843,7 +843,7 @@ export default function HallOfFamePage() {
                           {/* Watermark Holographic Background */}
                           <div className="absolute -right-4 -bottom-6 pointer-events-none select-none opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
                             <span
-                              className="font-headline text-[9rem] font-black italic leading-none"
+                              className="font-headline text-[9rem] font-black leading-none"
                               style={{ color: d2Theme.primaryHex }}
                             >
                               DIV2
@@ -948,7 +948,7 @@ export default function HallOfFamePage() {
                                 </div>
 
                                 <div className="min-w-0">
-                                  <h3 className="font-headline text-2xl sm:text-3xl font-black text-white uppercase italic tracking-tight truncate drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                                  <h3 className="font-headline text-2xl sm:text-3xl font-black text-white uppercase tracking-tight truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                                     {d2.winnerPlayerName}
                                   </h3>
                                   <div className="flex items-center gap-2 mt-1">
@@ -964,7 +964,7 @@ export default function HallOfFamePage() {
                                 <span className="text-[8px] font-mono font-black uppercase tracking-wider" style={{ color: `${d2Theme.primaryHex}99` }}>
                                   RATE
                                 </span>
-                                <span className="text-lg font-black italic font-mono" style={{ color: d2Theme.primaryHex }}>
+                                <span className="text-lg font-black font-mono" style={{ color: d2Theme.primaryHex }}>
                                   {winRate}%
                                 </span>
                               </div>
@@ -989,7 +989,7 @@ export default function HallOfFamePage() {
                                         RUNNER-UP (PROMOTED TICKET)
                                       </span>
                                     </div>
-                                    <h4 className="font-headline text-lg sm:text-xl font-black text-white uppercase italic tracking-tight truncate">
+                                    <h4 className="font-headline text-lg sm:text-xl font-black text-white uppercase tracking-tight truncate">
                                       {d2.runnerUpPlayerName}
                                     </h4>
                                     {d2.runnerUpTeamName && (
@@ -1024,7 +1024,7 @@ export default function HallOfFamePage() {
                                 <span className="text-[8px] font-black uppercase text-white/40 tracking-wider">
                                   LGE PTS
                                 </span>
-                                <span className="text-base sm:text-lg font-black italic font-mono" style={{ color: d2Theme.primaryHex }}>
+                                <span className="text-base sm:text-lg font-black font-mono" style={{ color: d2Theme.primaryHex }}>
                                   {d2.points}
                                 </span>
                               </div>
@@ -1035,7 +1035,7 @@ export default function HallOfFamePage() {
                                 <span className="text-[8px] font-black uppercase text-white/40 tracking-wider">
                                   {d2.draw && d2.draw > 0 ? 'W - D - L' : 'W - L'}
                                 </span>
-                                <span className="text-base sm:text-lg font-black italic text-white font-mono">
+                                <span className="text-base sm:text-lg font-black text-white font-mono">
                                   {d2.win}{d2.draw && d2.draw > 0 ? `-${d2.draw}` : ''} - {d2.loss}
                                 </span>
                               </div>
@@ -1046,7 +1046,7 @@ export default function HallOfFamePage() {
                                 <span className="text-[8px] font-black uppercase text-white/40 tracking-wider">
                                   TOTAL GOL
                                 </span>
-                                <span className="text-base sm:text-lg font-black italic text-emerald-400 font-mono">
+                                <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
                                   {d2.goalsFor}
                                 </span>
                               </div>
@@ -1057,7 +1057,7 @@ export default function HallOfFamePage() {
                                 <span className="text-[8px] font-black uppercase text-white/40 tracking-wider">
                                   CONC
                                 </span>
-                                <span className="text-base sm:text-lg font-black italic text-rose-400 font-mono">
+                                <span className="text-base sm:text-lg font-black text-rose-400 font-mono">
                                   {d2.goalsAgainst ?? 0}
                                 </span>
                               </div>
@@ -1091,7 +1091,7 @@ export default function HallOfFamePage() {
                   <KeyRound className="w-7 h-7" />
                 </div>
                 <div className="text-left">
-                  <DialogTitle className="text-2xl font-black tracking-tight uppercase italic leading-none text-white">
+                  <DialogTitle className="text-2xl font-black tracking-tight uppercase leading-none text-white">
                     {t('admin_auth')}
                   </DialogTitle>
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-yellow-400/70 mt-1">
@@ -1106,7 +1106,7 @@ export default function HallOfFamePage() {
 
             <div className="grid gap-6 py-6">
               <div className="space-y-2">
-                <Label htmlFor="hall-password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-400/70 ml-1 italic">
+                <Label htmlFor="hall-password-input" className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-400/70 ml-1">
                   ENCRYPTED_KEY_TRANSMISSION
                 </Label>
                 <div className="relative group/input">
@@ -1124,7 +1124,7 @@ export default function HallOfFamePage() {
 
             <Button
               onClick={handlePasswordCheck}
-              className="w-full h-14 font-black tracking-[0.25em] text-sm uppercase italic rounded-2xl shadow-xl shadow-yellow-400/25 text-black bg-yellow-400 hover:bg-yellow-300 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+              className="w-full h-14 font-black tracking-[0.25em] text-sm uppercase rounded-2xl shadow-xl shadow-yellow-400/25 text-black bg-yellow-400 hover:bg-yellow-300 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
             >
               <Scan className="w-4 h-4" />
               {t('unlock')}
@@ -1136,7 +1136,7 @@ export default function HallOfFamePage() {
         <AlertDialog open={!!deletingRecord} onOpenChange={(isOpen) => !isOpen && setDeletingRecord(null)}>
           <AlertDialogContent className="border border-rose-500/40 bg-[#0A192F]/95 backdrop-blur-3xl rounded-3xl p-6 sm:p-8 shadow-[0_0_80px_rgba(239,68,68,0.25)]">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase italic text-rose-500">
+              <AlertDialogTitle className="text-2xl font-black tracking-tight uppercase text-rose-500">
                 {t('are_you_sure')}
               </AlertDialogTitle>
               <AlertDialogDescription className="font-bold text-white/50 uppercase tracking-wider text-[10px]">

@@ -123,7 +123,7 @@ export function RegisterPlayersForm({
           <CheckCheck className="w-6 h-6" />
         </div>
         <div className="space-y-1">
-          <h4 className="font-headline font-black text-white uppercase italic text-sm tracking-wide">
+          <h4 className="font-headline font-black text-white uppercase text-sm tracking-wide">
             Semua Atlet Terdaftar
           </h4>
           <p className="text-xs text-white/40 font-mono">
@@ -175,7 +175,7 @@ export function RegisterPlayersForm({
               type="button"
               onClick={() => setTargetDivision('div-1')}
               className={cn(
-                "h-10 px-3 rounded-xl font-headline font-black text-xs uppercase tracking-wide italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
+                "h-10 px-3 rounded-xl font-headline font-black text-xs uppercase tracking-wide  flex items-center justify-center gap-2 transition-all border cursor-pointer",
                 targetDivision === 'div-1'
                   ? "bg-primary text-black border-primary shadow-[0_0_20px_rgba(204,253,1,0.35)]"
                   : "bg-black/40 text-white/50 border-white/10 hover:text-white hover:border-white/20"
@@ -188,7 +188,7 @@ export function RegisterPlayersForm({
               type="button"
               onClick={() => setTargetDivision('div-2')}
               className={cn(
-                "h-10 px-3 rounded-xl font-headline font-black text-xs uppercase tracking-wide italic flex items-center justify-center gap-2 transition-all border cursor-pointer",
+                "h-10 px-3 rounded-xl font-headline font-black text-xs uppercase tracking-wide  flex items-center justify-center gap-2 transition-all border cursor-pointer",
                 targetDivision === 'div-2'
                   ? "bg-cyan-400 text-black border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.35)]"
                   : "bg-black/40 text-white/50 border-white/10 hover:text-white hover:border-white/20"
@@ -228,7 +228,7 @@ export function RegisterPlayersForm({
           variant="outline"
           size="sm"
           className={cn(
-            "h-9 px-3 text-[10px] font-black uppercase tracking-wider italic font-headline rounded-xl border transition-all shrink-0",
+            "h-9 px-3 text-[10px] font-black uppercase tracking-wider  font-headline rounded-xl border transition-all shrink-0",
             areAllFilteredSelected 
               ? "bg-primary text-black border-primary shadow-[0_0_15px_rgba(204,253,1,0.4)]" 
               : "bg-white/[0.03] border-white/10 hover:border-primary/40 text-white/80"
@@ -293,7 +293,7 @@ export function RegisterPlayersForm({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className={cn(
-                          "font-headline font-black uppercase italic tracking-tight text-xs truncate",
+                          "font-headline font-black uppercase  tracking-tight text-xs truncate",
                           isSelected ? "text-primary" : "text-white"
                         )}>
                           {player.name}
@@ -331,7 +331,7 @@ export function RegisterPlayersForm({
         onClick={handleSubmit} 
         disabled={selectedCount === 0}
         className={cn(
-          "w-full h-12 font-headline font-black uppercase italic tracking-wider text-xs rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2",
+          "w-full h-12 font-headline font-black uppercase  tracking-wider text-xs rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2",
           selectedCount > 0 
             ? hasDivisions && targetDivision === 'div-2'
               ? "bg-cyan-400 text-black hover:bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.5)] cursor-pointer"
