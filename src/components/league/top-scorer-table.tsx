@@ -143,7 +143,7 @@ export const TopScorerTable = memo(({
 
     return (
         <div className="space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto px-2 sm:px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-6xl 2xl:max-w-7xl mx-auto px-2 sm:px-6">
                 {predator ? (
                     <Card 
                         className="relative overflow-hidden border-2 sm:border-4 rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 group/pred-card hover:border-white transition-all duration-500 animate-in fade-in zoom-in-95"
@@ -340,7 +340,7 @@ export const TopScorerTable = memo(({
                  )}
             </div>
 
-            <div className="max-w-4xl mx-auto w-full overflow-hidden border-2 border-white/10 rounded-2xl sm:rounded-[2.5rem] bg-black/40 shadow-2xl relative">
+            <div className="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto w-full overflow-hidden border-2 border-white/10 rounded-2xl sm:rounded-[2.5rem] bg-black/40 shadow-2xl relative">
                 <div 
                     className="p-5 border-b border-white/10 flex items-center justify-between"
                     style={{

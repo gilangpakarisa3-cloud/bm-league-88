@@ -78,7 +78,7 @@ export const BroadcastPodium = React.memo(({
   };
 
   return (
-    <div className="w-full relative px-2 sm:px-6 pt-3 pb-5 border-b border-white/10 bg-[#070A12]/80 backdrop-blur-xl">
+    <div className="w-full relative px-2 sm:px-6 xl:px-10 pt-4 pb-6 border-b border-white/10 bg-[#070A12]/80 backdrop-blur-xl">
       {/* Subtle Ambient Light */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[350px] sm:w-[600px] h-[100px] rounded-full blur-[60px] pointer-events-none opacity-20"
@@ -86,7 +86,7 @@ export const BroadcastPodium = React.memo(({
       />
 
       {/* Header Bar */}
-      <div className="relative z-10 flex items-center justify-between gap-2 max-w-4xl mx-auto mb-3 px-1">
+      <div className="relative z-10 flex items-center justify-between gap-2 max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto mb-3 px-1">
         <div className="flex items-center gap-2">
           <Trophy className="w-3.5 h-3.5" style={{ color: theme.primaryHex }} />
           <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] font-ti text-white/90">
@@ -99,7 +99,7 @@ export const BroadcastPodium = React.memo(({
       </div>
 
       {/* 3 Clean Compact Podium Cards */}
-      <div className="relative z-10 grid grid-cols-3 gap-2 sm:gap-4 max-w-4xl mx-auto items-end">
+      <div className="relative z-10 grid grid-cols-3 gap-2 sm:gap-4 xl:gap-6 max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto items-end">
         {podiumSlots.map(({ entry, visualRank }) => {
           const isFirst = visualRank === 1;
           const isSecond = visualRank === 2;

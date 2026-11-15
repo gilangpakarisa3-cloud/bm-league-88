@@ -176,38 +176,38 @@ export const SingleTable = memo(({
       <div className="w-full overflow-x-auto scrollbar-ultra-sport">
         <Table className="w-auto min-w-full border-collapse">
         <TableHeader>
-          <TableRow className="hover:bg-transparent border-b border-white/10 h-10 sm:h-12 bg-black/60 backdrop-blur-md">
-            <TableHead className="w-9 sm:w-12 text-center font-black text-white/40 uppercase text-[8px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] px-1">
+          <TableRow className="hover:bg-transparent border-b border-white/10 h-10 sm:h-12 xl:h-14 bg-black/60 backdrop-blur-md">
+            <TableHead className="w-9 sm:w-14 xl:w-20 text-center font-black text-white/40 uppercase text-[8px] sm:text-[10px] xl:text-[11px] tracking-[0.15em] sm:tracking-[0.2em] px-1">
               {t('rank')}
             </TableHead>
-            <TableHead className="text-left font-black text-white/40 text-[8px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] min-w-[200px] sm:min-w-[280px] uppercase pl-2 sm:pl-4">
+            <TableHead className="text-left font-black text-white/40 text-[8px] sm:text-[10px] xl:text-[11px] tracking-[0.15em] sm:tracking-[0.2em] min-w-[200px] sm:min-w-[280px] xl:min-w-[360px] 2xl:min-w-[440px] uppercase pl-2 sm:pl-4 xl:pl-6">
               {t('player')}
             </TableHead>
-            <TableHead className="text-center font-black text-white/40 w-8 sm:w-11 text-[8px] sm:text-[10px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
+            <TableHead className="text-center font-black text-white/40 w-8 sm:w-12 xl:w-16 2xl:w-20 text-[8px] sm:text-[10px] xl:text-[11px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
               {t('played_short')}
             </TableHead>
-            <TableHead className="text-center font-black text-emerald-400/80 w-8 sm:w-11 text-[8px] sm:text-[10px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
+            <TableHead className="text-center font-black text-emerald-400/80 w-8 sm:w-12 xl:w-16 2xl:w-20 text-[8px] sm:text-[10px] xl:text-[11px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
               {t('w_short')}
             </TableHead>
-            <TableHead className="text-center font-black text-amber-400/80 w-8 sm:w-11 text-[8px] sm:text-[10px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
+            <TableHead className="text-center font-black text-amber-400/80 w-8 sm:w-12 xl:w-16 2xl:w-20 text-[8px] sm:text-[10px] xl:text-[11px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
               {t('d_short')}
             </TableHead>
-            <TableHead className="text-center font-black text-rose-400/80 w-8 sm:w-11 text-[8px] sm:text-[10px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
+            <TableHead className="text-center font-black text-rose-400/80 w-8 sm:w-12 xl:w-16 2xl:w-20 text-[8px] sm:text-[10px] xl:text-[11px] tracking-wider sm:tracking-[0.15em] uppercase px-1">
               {t('l_short')}
             </TableHead>
-            <TableHead className={cn("text-center font-black w-9 sm:w-13 text-[8px] sm:text-[10px] tracking-wider sm:tracking-[0.15em] uppercase px-1", activeTheme.primaryText)}>
+            <TableHead className={cn("text-center font-black w-9 sm:w-14 xl:w-18 2xl:w-22 text-[8px] sm:text-[10px] xl:text-[11px] tracking-wider sm:tracking-[0.15em] uppercase px-1", activeTheme.primaryText)}>
               {t('gd_short')}
             </TableHead>
-            <TableHead className="hidden md:table-cell text-center font-black text-white/40 w-9 sm:w-12 text-[8px] sm:text-[9px] tracking-wider uppercase px-1">
+            <TableHead className="hidden md:table-cell text-center font-black text-white/40 w-9 sm:w-12 xl:w-16 2xl:w-20 text-[8px] sm:text-[9px] xl:text-[10px] tracking-wider uppercase px-1">
               {t('gf_short')}
             </TableHead>
-            <TableHead className="hidden md:table-cell text-center font-black text-white/40 w-9 sm:w-12 text-[8px] sm:text-[9px] tracking-wider uppercase px-1">
+            <TableHead className="hidden md:table-cell text-center font-black text-white/40 w-9 sm:w-12 xl:w-16 2xl:w-20 text-[8px] sm:text-[9px] xl:text-[10px] tracking-wider uppercase px-1">
               {t('ga_short')}
             </TableHead>
-            <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-32 text-[9px] tracking-[0.2em] uppercase px-2">
+            <TableHead className="hidden xl:table-cell text-center font-black text-white/40 w-32 xl:w-44 2xl:w-52 text-[9px] xl:text-[10px] tracking-[0.2em] uppercase px-2">
               FORM
             </TableHead>
-            <TableHead className={cn("text-center font-black w-12 sm:w-16 text-[8px] sm:text-[10px] tracking-wider sm:tracking-[0.15em] uppercase pr-2 sm:pr-4", activeTheme.primaryText)}>
+            <TableHead className={cn("text-center font-black w-12 sm:w-16 xl:w-24 2xl:w-28 text-[8px] sm:text-[10px] xl:text-[11px] tracking-wider sm:tracking-[0.15em] uppercase pr-2 sm:pr-4 xl:pr-6", activeTheme.primaryText)}>
               {t('pts_short')}
             </TableHead>
             {canRemovePlayer && (
@@ -322,7 +322,7 @@ export const SingleTable = memo(({
               <TableRow
                 key={entry.id}
                 className={cn(
-                  "transition-all h-13 sm:h-18 border-b border-white/5 relative group/row overflow-hidden",
+                  "transition-all h-13 sm:h-18 xl:h-20 2xl:h-[84px] border-b border-white/5 relative group/row overflow-hidden",
                   isPromotionZone ? "bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]" :
                     isFirst ? activeTheme.tableLeaderBg :
                       isUpperBracketZone ? "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.07]" :
@@ -332,7 +332,7 @@ export const SingleTable = memo(({
                 )}
               >
                 {/* Rank Cell with Laser Edge Tracer */}
-                <TableCell className="relative p-0 text-center w-8 sm:w-16">
+                <TableCell className="relative p-0 text-center w-8 sm:w-16 xl:w-20">
                   {/* Left aerodynamic laser beam */}
                   <div
                     className={cn(
@@ -349,27 +349,27 @@ export const SingleTable = memo(({
                   {/* Futuristic Rank Badge */}
                   <div className="flex items-center justify-center pl-1 sm:pl-3">
                     {isFirst ? (
-                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl font-black text-xs sm:text-base  flex items-center justify-center group-hover/row:scale-110 transition-transform font-headline", activeTheme.tableLeaderGradient)}>
+                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 xl:w-10 xl:h-10 rounded-lg sm:rounded-xl font-black text-xs sm:text-base xl:text-lg flex items-center justify-center group-hover/row:scale-110 transition-transform font-headline", activeTheme.tableLeaderGradient)}>
                         1
                       </div>
                     ) : isPromotionZone ? (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-black text-xs sm:text-base flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.3)] group-hover/row:scale-105 transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 xl:w-10 xl:h-10 rounded-lg sm:rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-black text-xs sm:text-base xl:text-lg flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.3)] group-hover/row:scale-105 transition-all font-headline">
                         {entry.rank}
                       </div>
                     ) : isUpperBracketZone ? (
-                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl font-black text-xs sm:text-base  flex items-center justify-center group-hover/row:scale-105 transition-all font-headline border", activeTheme.tablePlayoffRankBadge || "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)] group-hover/row:border-emerald-400")}>
+                      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 xl:w-10 xl:h-10 rounded-lg sm:rounded-xl font-black text-xs sm:text-base xl:text-lg flex items-center justify-center group-hover/row:scale-105 transition-all font-headline border", activeTheme.tablePlayoffRankBadge || "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)] group-hover/row:border-emerald-400")}>
                         {entry.rank}
                       </div>
                     ) : isLowerBracketZone ? (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 font-black text-xs sm:text-base flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.2)] group-hover/row:border-amber-400 group-hover/row:scale-105 transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 xl:w-10 xl:h-10 rounded-lg sm:rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 font-black text-xs sm:text-base xl:text-lg flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.2)] group-hover/row:border-amber-400 group-hover/row:scale-105 transition-all font-headline">
                         {entry.rank}
                       </div>
                     ) : isRelegationZone ? (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-400 font-black text-xs sm:text-base flex items-center justify-center shadow-[0_0_12px_rgba(244,63,94,0.2)] group-hover/row:border-rose-400 group-hover/row:scale-105 transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 xl:w-10 xl:h-10 rounded-lg sm:rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-400 font-black text-xs sm:text-base xl:text-lg flex items-center justify-center shadow-[0_0_12px_rgba(244,63,94,0.2)] group-hover/row:border-rose-400 group-hover/row:scale-105 transition-all font-headline">
                         {entry.rank}
                       </div>
                     ) : (
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-white/[0.04] border border-white/10 text-white/50 font-black text-xs sm:text-base flex items-center justify-center group-hover/row:text-white transition-all font-headline">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 xl:w-10 xl:h-10 rounded-lg sm:rounded-xl bg-white/[0.04] border border-white/10 text-white/50 font-black text-xs sm:text-base xl:text-lg flex items-center justify-center group-hover/row:text-white transition-all font-headline">
                         {entry.rank}
                       </div>
                     )}
@@ -377,7 +377,7 @@ export const SingleTable = memo(({
                 </TableCell>
 
                 {/* Athlete & Team Cell */}
-                <TableCell className="relative overflow-visible py-1.5 sm:py-3 pl-1.5 sm:pl-4 min-w-[200px] sm:min-w-[280px]">
+                <TableCell className="relative overflow-visible py-1.5 sm:py-3 pl-1.5 sm:pl-4 xl:pl-6 min-w-[200px] sm:min-w-[280px] xl:min-w-[360px] 2xl:min-w-[440px]">
                   <div
                     className="flex items-center gap-2 sm:gap-3.5 cursor-pointer group/node min-w-0"
                     onClick={() => onSelectPlayer(entry)}
@@ -389,7 +389,7 @@ export const SingleTable = memo(({
                         isFirst ? cn(activeTheme.tableLeaderGlow, "opacity-100") : "group-hover/node:opacity-50"
                       )} />
                       <Avatar className={cn(
-                        "h-7 w-7 sm:h-11 sm:w-11 rounded-lg sm:rounded-2xl border transition-all duration-300 shadow-md relative z-10",
+                        "h-7 w-7 sm:h-11 sm:w-11 xl:h-12 xl:w-12 rounded-lg sm:rounded-2xl border transition-all duration-300 shadow-md relative z-10",
                         isFirst ? cn("border-2 scale-105", activeTheme.tagBorder) : "border-white/15 group-hover/node:scale-105"
                       )}>
                         <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
@@ -419,7 +419,7 @@ export const SingleTable = memo(({
                         <span
                           className={cn(
                             "font-bold tracking-wide transition-colors uppercase pr-1 font-headline leading-tight whitespace-nowrap",
-                            isFirst ? cn("text-[12px] sm:text-base drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]", activeTheme.primaryText) : "text-[12px] sm:text-sm text-white group-hover/node:text-white"
+                            isFirst ? cn("text-[12px] sm:text-base xl:text-base 2xl:text-[17px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]", activeTheme.primaryText) : "text-[12px] sm:text-sm xl:text-base 2xl:text-[17px] text-white group-hover/node:text-white"
                           )}
                           suppressHydrationWarning
                         >
@@ -458,7 +458,7 @@ export const SingleTable = memo(({
                         )}
                       </div>
                       <div
-                        className="text-[7px] sm:text-[10px] font-black text-white/40 uppercase tracking-wider sm:tracking-[0.15em] truncate pr-2 group-hover/node:text-white/70 transition-colors flex items-center gap-1"
+                        className="text-[7px] sm:text-[10px] xl:text-[11px] font-black text-white/40 uppercase tracking-wider sm:tracking-[0.15em] truncate pr-2 group-hover/node:text-white/70 transition-colors flex items-center gap-1"
                         suppressHydrationWarning
                       >
                         <span className={cn("w-1 h-1 rounded-full shrink-0", isFirst ? activeTheme.tableLeaderBadge : "bg-white/20")} />
@@ -469,29 +469,29 @@ export const SingleTable = memo(({
                 </TableCell>
 
                 {/* M (Main / Played) */}
-                <TableCell className="text-center px-1 text-[10px] sm:text-xs font-black text-white/80 tabular-nums font-mono" suppressHydrationWarning>
+                <TableCell className="text-center px-1 xl:px-3 text-[10px] sm:text-xs xl:text-sm 2xl:text-base font-black text-white/80 tabular-nums font-mono" suppressHydrationWarning>
                   {entry.played}
                 </TableCell>
 
                 {/* W (Menang / Win) */}
-                <TableCell className="text-center px-1 text-[10px] sm:text-xs font-black text-emerald-400 tabular-nums font-mono" suppressHydrationWarning>
+                <TableCell className="text-center px-1 xl:px-3 text-[10px] sm:text-xs xl:text-sm 2xl:text-base font-black text-emerald-400 tabular-nums font-mono" suppressHydrationWarning>
                   {entry.win}
                 </TableCell>
 
                 {/* S (Seri / Draw) */}
-                <TableCell className="text-center px-1 text-[10px] sm:text-xs font-black text-amber-400 tabular-nums font-mono" suppressHydrationWarning>
+                <TableCell className="text-center px-1 xl:px-3 text-[10px] sm:text-xs xl:text-sm 2xl:text-base font-black text-amber-400 tabular-nums font-mono" suppressHydrationWarning>
                   {entry.draw}
                 </TableCell>
 
                 {/* K (Kalah / Loss) */}
-                <TableCell className="text-center px-1 text-[10px] sm:text-xs font-black text-rose-400 tabular-nums font-mono" suppressHydrationWarning>
+                <TableCell className="text-center px-1 xl:px-3 text-[10px] sm:text-xs xl:text-sm 2xl:text-base font-black text-rose-400 tabular-nums font-mono" suppressHydrationWarning>
                   {entry.loss}
                 </TableCell>
 
                 {/* SG (Goal Difference) */}
                 <TableCell
                   className={cn(
-                    "text-center px-1 text-[10px] sm:text-xs font-black tabular-nums font-mono transition-all",
+                    "text-center px-1 xl:px-3 text-[10px] sm:text-xs xl:text-sm 2xl:text-base font-black tabular-nums font-mono transition-all",
                     entry.goalDifference > 0 ? cn(activeTheme.primaryText, "drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]") :
                       (entry.goalDifference < 0 ? "text-rose-400/80" : "text-white/30")
                   )}
@@ -501,18 +501,18 @@ export const SingleTable = memo(({
                 </TableCell>
 
                 {/* GM (Goals For) */}
-                <TableCell className="hidden md:table-cell text-center px-1 text-[10px] sm:text-xs font-bold text-white/40 tabular-nums font-mono" suppressHydrationWarning>
+                <TableCell className="hidden md:table-cell text-center px-1 xl:px-3 text-[10px] sm:text-xs xl:text-sm 2xl:text-base font-bold text-white/40 tabular-nums font-mono" suppressHydrationWarning>
                   {entry.goalsFor}
                 </TableCell>
 
                 {/* GA (Goals Against) */}
-                <TableCell className="hidden md:table-cell text-center px-1 text-[10px] sm:text-xs font-bold text-white/40 tabular-nums font-mono" suppressHydrationWarning>
+                <TableCell className="hidden md:table-cell text-center px-1 xl:px-3 text-[10px] sm:text-xs xl:text-sm 2xl:text-base font-bold text-white/40 tabular-nums font-mono" suppressHydrationWarning>
                   {entry.goalsAgainst}
                 </TableCell>
 
                 {/* FORM (Bentuk 5 Laga) */}
                 <TableCell className="hidden xl:table-cell text-center px-2">
-                  <div className="flex justify-center gap-1">
+                  <div className="flex justify-center gap-1 xl:gap-1.5">
                     {playerForm.length > 0 ? (
                       <TooltipProvider delayDuration={150}>
                         {playerForm.map((formItem, i) => {
@@ -526,7 +526,7 @@ export const SingleTable = memo(({
                               <TooltipTrigger asChild>
                                 <div
                                   className={cn(
-                                    "w-5 h-5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center text-[9px] font-black border transition-all cursor-pointer hover:scale-110",
+                                    "w-5 h-5 sm:w-6 sm:h-6 xl:w-7 xl:h-7 rounded-lg flex items-center justify-center text-[9px] xl:text-[10px] font-black border transition-all cursor-pointer hover:scale-110",
                                     isWin ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.3)] hover:bg-emerald-500/30" :
                                       isLoss ? "bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.3)] hover:bg-rose-500/30" :
                                         "bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.3)] hover:bg-amber-500/30"
@@ -595,10 +595,10 @@ export const SingleTable = memo(({
                 </TableCell>
 
                 {/* P (Points) */}
-                <TableCell className="text-center px-1 sm:px-3 tabular-nums pr-2 sm:pr-4">
+                <TableCell className="text-center px-1 sm:px-3 tabular-nums pr-2 sm:pr-4 xl:pr-6">
                   <span
                     className={cn(
-                      "inline-block min-w-[2rem] sm:min-w-[3rem] px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl font-black text-xs sm:text-lg  tabular-nums transition-all duration-300 font-headline",
+                      "inline-block min-w-[2rem] sm:min-w-[3rem] xl:min-w-[3.5rem] px-2 sm:px-3 xl:px-4 py-0.5 sm:py-1 xl:py-1.5 rounded-lg sm:rounded-xl font-black text-xs sm:text-lg xl:text-xl tabular-nums transition-all duration-300 font-headline",
                       isFirst ? activeTheme.pointsBadgeLeader : activeTheme.pointsBadge
                     )}
                     suppressHydrationWarning

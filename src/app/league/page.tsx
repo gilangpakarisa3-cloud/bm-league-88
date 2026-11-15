@@ -364,7 +364,7 @@ export default function LeaguePage() {
 
   return (
     <div className="w-full">
-      <div className="max-w-[92rem] mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+      <div className="max-w-[92rem] 2xl:max-w-[100rem] mx-auto px-2 sm:px-6 2xl:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
         <LeagueHeader
           theme={theme}
           activeSeason={activeSeason}
@@ -425,7 +425,7 @@ export default function LeaguePage() {
           'w-full mx-auto px-2 sm:px-4 pb-8 transition-all duration-700 ease-in-out mt-6',
           isPlayoffActive
             ? 'w-full max-w-[100vw] xl:max-w-[98vw] 2xl:max-w-[96vw] px-1 sm:px-3 xl:px-6'
-            : 'w-full max-w-5xl xl:max-w-6xl'
+            : 'w-full max-w-[92rem] 2xl:max-w-[100rem] px-2 sm:px-6 2xl:px-8'
         )}
       >
         <div className="space-y-6 sm:space-y-10">
