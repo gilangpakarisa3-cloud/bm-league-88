@@ -387,7 +387,16 @@ export function LeagueTable({
                   />
                 </TabsContent>
                 <TabsContent value="topskor" className="mt-0 py-10">
-                  <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} matches={matchesForDivision} />
+                  <TopScorerTable 
+                    tableData={currentDisplayData} 
+                    isLoading={isLoading} 
+                    seasonType={currentFormat} 
+                    teamsById={teamsById} 
+                    playersById={playersById}
+                    onSelectPlayer={onSelectPlayer}
+                    theme={theme} 
+                    matches={matchesForDivision} 
+                  />
                 </TabsContent>
                 {isCoopHybrid && (
                     <TabsContent value="playoff" className="mt-0 p-1 sm:p-2 xl:p-4 w-full">
@@ -474,7 +483,16 @@ export function LeagueTable({
                         />
                     </TabsContent>
                     <TabsContent value="topskor" className="mt-0 py-10">
-                        <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} matches={matchesForDivision} />
+                        <TopScorerTable 
+                          tableData={currentDisplayData} 
+                          isLoading={isLoading} 
+                          seasonType={currentFormat} 
+                          teamsById={teamsById} 
+                          playersById={playersById}
+                          onSelectPlayer={onSelectPlayer}
+                          theme={theme} 
+                          matches={matchesForDivision} 
+                        />
                     </TabsContent>
                     <TabsContent value="playoff" className="mt-0 p-1 sm:p-2 xl:p-4 w-full">
                         <TournamentBracket 
@@ -644,7 +662,16 @@ export function LeagueTable({
                     />
                   </TabsContent>
                   <TabsContent value="topskor" className="mt-0 py-10">
-                    <TopScorerTable tableData={currentDisplayData} isLoading={isLoading} seasonType={currentFormat} teamsById={teamsById} theme={theme} matches={matchesForDivision} />
+                    <TopScorerTable 
+                      tableData={currentDisplayData} 
+                      isLoading={isLoading} 
+                      seasonType={currentFormat} 
+                      teamsById={teamsById} 
+                      playersById={playersById}
+                      onSelectPlayer={onSelectPlayer}
+                      theme={theme} 
+                      matches={matchesForDivision} 
+                    />
                   </TabsContent>
                 </Tabs>
             )

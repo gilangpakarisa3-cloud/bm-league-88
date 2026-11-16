@@ -46,12 +46,6 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     [firestore]
   );
   const { data: teams, isLoading: isLoadingTeams } = useCollection<Team>(teamsCollection);
-
-  const playersCollection = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'players') : null),
-    [firestore]
-  );
-  const { data: players, isLoading: isLoadingPlayers } = useCollection<Player>(playersCollection);
   
   const leaguesCollection = useMemoFirebase(
     () => (firestore ? collection(firestore, 'leagues') : null),
@@ -89,23 +83,17 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
   }, [player, form]);
 
   const teamOptions = React.useMemo(() => {
-    if (!teams || !players) return [];
+    if (!teams) return [];
 
-    const assignedTeamIds = new Set(
-      players
-        .filter(p => p.id !== player?.id)
-        .map(p => p.teamId)
-    );
-
-    const availableTeams = teams
-      .filter(team => !assignedTeamIds.has(team.id))
+    const availableTeams = [...teams]
+      .sort((a, b) => a.name.localeCompare(b.name))
       .map(team => ({
         value: team.id,
         label: team.name,
       }));
       
     return [{ value: '', label: 'Tanpa Tim' }, ...availableTeams];
-  }, [teams, players, player]);
+  }, [teams]);
 
 
   const onSubmit = async (data: PlayerFormValues) => {
@@ -253,7 +241,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
           )}
         />
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoadingTeams || isLoadingPlayers}>
+          <Button type="submit" disabled={isLoadingTeams}>
             {player ? t('save_changes') : t('create_player')}
           </Button>
         </div>
