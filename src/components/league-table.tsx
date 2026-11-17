@@ -388,7 +388,7 @@ export function LeagueTable({
                 </TabsContent>
                 <TabsContent value="topskor" className="mt-0 py-10">
                   <TopScorerTable 
-                    tableData={currentDisplayData} 
+                    tableData={sortedCurrentData} 
                     isLoading={isLoading} 
                     seasonType={currentFormat} 
                     teamsById={teamsById} 
@@ -484,7 +484,7 @@ export function LeagueTable({
                     </TabsContent>
                     <TabsContent value="topskor" className="mt-0 py-10">
                         <TopScorerTable 
-                          tableData={currentDisplayData} 
+                          tableData={sortedCurrentData} 
                           isLoading={isLoading} 
                           seasonType={currentFormat} 
                           teamsById={teamsById} 
@@ -663,7 +663,7 @@ export function LeagueTable({
                   </TabsContent>
                   <TabsContent value="topskor" className="mt-0 py-10">
                     <TopScorerTable 
-                      tableData={currentDisplayData} 
+                      tableData={sortedCurrentData} 
                       isLoading={isLoading} 
                       seasonType={currentFormat} 
                       teamsById={teamsById} 

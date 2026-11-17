@@ -298,12 +298,34 @@ export default function FixturesPage() {
                             const p1Data = p1PlayerSnap.data() as Player;
                             const p2Data = p2PlayerSnap.data() as Player;
 
-                            let curP1Mmr = p1Data.mmr ?? 800;
-                            let curP2Mmr = p2Data.mmr ?? 800;
+                            const isP1Div2 = orig.division === 'div-2' || e1Data?.division === 'div-2' || p1Data.division === 'div-2';
+                            const isP2Div2 = orig.division === 'div-2' || e2Data?.division === 'div-2' || p2Data.division === 'div-2';
 
+                            const p1BaseMmr = isP1Div2 ? 600 : 800;
+                            const p2BaseMmr = isP2Div2 ? 600 : 800;
+
+                            let curP1Mmr = p1Data.mmr;
+                            let curP2Mmr = p2Data.mmr;
+
+                            // Kurangi delta lama terlebih dahulu jika laga ini sebelumnya sudah selesai
                             if (orig.isCompleted) {
-                                if (typeof orig.player1MmrDelta === 'number') curP1Mmr -= orig.player1MmrDelta;
-                                if (typeof orig.player2MmrDelta === 'number') curP2Mmr -= orig.player2MmrDelta;
+                                if (typeof orig.player1MmrDelta === 'number' && typeof curP1Mmr === 'number') curP1Mmr -= orig.player1MmrDelta;
+                                if (typeof orig.player2MmrDelta === 'number' && typeof curP2Mmr === 'number') curP2Mmr -= orig.player2MmrDelta;
+                            }
+
+                            const p1SeasonPlayedBefore = Math.max(0, (e1Data?.played || 0) - (orig.isCompleted ? 1 : 0));
+                            const p2SeasonPlayedBefore = Math.max(0, (e2Data?.played || 0) - (orig.isCompleted ? 1 : 0));
+
+                            if (typeof curP1Mmr !== 'number' || curP1Mmr === 700 || (p1Data.overallPlayed || 0) === 0) {
+                                curP1Mmr = p1BaseMmr;
+                            } else if (isP1Div2 && p1SeasonPlayedBefore === 0 && (p1Data.overallPlayed || 0) < 20 && curP1Mmr >= 700) {
+                                curP1Mmr = 600;
+                            }
+
+                            if (typeof curP2Mmr !== 'number' || curP2Mmr === 700 || (p2Data.overallPlayed || 0) === 0) {
+                                curP2Mmr = p2BaseMmr;
+                            } else if (isP2Div2 && p2SeasonPlayedBefore === 0 && (p2Data.overallPlayed || 0) < 20 && curP2Mmr >= 700) {
+                                curP2Mmr = 600;
                             }
 
                             const delta = calculateMmrDelta(curP1Mmr, curP2Mmr, res);

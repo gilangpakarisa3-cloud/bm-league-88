@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, doc, writeBatch } from 'firebase/firestore';
 import type {
   Season,
   LeagueEntry,
@@ -122,12 +122,18 @@ export function useLeagueData() {
   const hallOfFameCollection = useMemoFirebase(
     () =>
       firestore
-        ? query(collection(firestore, 'hallOfFame'), orderBy('completedAt', 'desc'), limit(1))
+        ? query(collection(firestore, 'hallOfFame'), orderBy('completedAt', 'desc'), limit(5))
         : null,
     [firestore]
   );
   const { data: latestHallOfFame } = useCollection<SeasonRecord>(hallOfFameCollection);
-  const defendingChampionId = latestHallOfFame?.[0]?.winnerPlayerId;
+  const defendingChampionId = useMemo(() => {
+    if (!latestHallOfFame || latestHallOfFame.length === 0) return undefined;
+    if (activeSeasonId && latestHallOfFame[0]?.seasonId === activeSeasonId) {
+      return latestHallOfFame[1]?.winnerPlayerId;
+    }
+    return latestHallOfFame[0]?.winnerPlayerId;
+  }, [latestHallOfFame, activeSeasonId]);
 
   // 7. Derived Metrics
   const hasFixtures = useMemo(() => (matches || []).length > 0, [matches]);
@@ -180,6 +186,143 @@ export function useLeagueData() {
       'd LLL yyyy'
     )}`;
   }, [activeSeason]);
+
+  // 8. Auto-heal data Season Aktif (Normalisasi Baseline 700 & Koreksi Anomali MMR Chandra vs Adityo)
+  const healedSeasonRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      !firestore ||
+      !activeSeasonId ||
+      !activeSeason ||
+      !singleLeagueTable ||
+      singleLeagueTable.length === 0 ||
+      !allPlayers ||
+      allPlayers.length === 0 ||
+      !matches
+    ) {
+      return;
+    }
+    if (healedSeasonRef.current === activeSeasonId) return;
+
+    let hasUpdates = false;
+    const batch = writeBatch(firestore);
+
+    // a. Normalisasi Baseline Peserta (played === 0) yang masih menyimpan angka legacy 700 / salah baseline & sinkronisasi division
+    singleLeagueTable.forEach((entry) => {
+      if (entry.playerId) {
+        const playerDoc = allPlayers.find((p) => p.id === entry.playerId);
+        if (playerDoc) {
+          const isDiv2 = entry.division === 'div-2';
+          const currentMmr = playerDoc.mmr;
+          const playedCareer = playerDoc.overallPlayed || 0;
+          const isPlayedZero = (entry.played || 0) === 0;
+
+          const playerUpdates: any = {};
+
+          // Sinkronkan division jika berbeda dengan entry
+          if (entry.division && playerDoc.division !== entry.division) {
+            playerUpdates.division = entry.division;
+          }
+
+          if (isPlayedZero) {
+            if (isDiv2 && (currentMmr === 700 || (playedCareer < 20 && (currentMmr || 0) >= 750))) {
+              playerUpdates.division = 'div-2';
+              playerUpdates.mmr = 600;
+              playerUpdates.peakMmr = 600;
+            } else if (!isDiv2 && (currentMmr === 700 || (playedCareer === 0 && (currentMmr || 0) <= 650))) {
+              playerUpdates.division = 'div-1';
+              playerUpdates.mmr = 800;
+              playerUpdates.peakMmr = Math.max(playerDoc.peakMmr || 800, 800);
+            }
+          }
+
+          if (Object.keys(playerUpdates).length > 0) {
+            batch.update(doc(firestore, 'players', entry.playerId), playerUpdates);
+            hasUpdates = true;
+          }
+        }
+      }
+    });
+
+    // b. Deteksi dan koreksi match divisi 2 yang terhitung 600 vs 700 (delta +/- 30)
+    matches.forEach((m) => {
+      if (m.isCompleted && m.division === 'div-2' && Math.abs(m.player1MmrDelta || 0) === 30) {
+        const p1 = allPlayers.find((p) => p.id === m.player1Id);
+        const p2 = allPlayers.find((p) => p.id === m.player2Id);
+        const e1 = singleLeagueTable.find((e) => e.playerId === m.player1Id);
+        const e2 = singleLeagueTable.find((e) => e.playerId === m.player2Id);
+
+        const oldDelta1 = m.player1MmrDelta || 0;
+        const oldDelta2 = m.player2MmrDelta || 0;
+
+        const rawPreMmr1 = (p1?.mmr || 600) - oldDelta1;
+        const rawPreMmr2 = (p2?.mmr || 600) - oldDelta2;
+
+        // Hanya koreksi jika laga ini memang bermasalah akibat legacy MMR 700 dan merupakan laga ke-1 kedua atlet
+        if (!(rawPreMmr1 === 700 || rawPreMmr2 === 700) || !(e1?.played === 1 && e2?.played === 1)) {
+          return;
+        }
+
+        const s1 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group' ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
+        const s2 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group' ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
+        const res = s1 > s2 ? 'W' : (s1 < s2 ? 'L' : 'D');
+
+        // Laga 600 vs 600 normal menghasilkan delta +/- 25
+        const newDelta1 = res === 'W' ? 25 : (res === 'L' ? -25 : 0);
+        const newDelta2 = -newDelta1;
+
+        const matchDocRef = doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/matches`, m.id);
+        batch.update(matchDocRef, {
+          player1MmrDelta: newDelta1,
+          player2MmrDelta: newDelta2,
+        });
+
+        if (p1 && m.player1Id) {
+          let preMmr1 = rawPreMmr1;
+          if (preMmr1 >= 680) {
+            preMmr1 = 600;
+          }
+          const correctedMmr1 = preMmr1 + newDelta1;
+          const correctedPeak1 = (p1.peakMmr === 630 || p1.peakMmr === 700)
+            ? Math.max(600, correctedMmr1)
+            : Math.max(p1.peakMmr || correctedMmr1, correctedMmr1);
+
+          batch.update(doc(firestore, 'players', m.player1Id), {
+            mmr: correctedMmr1,
+            peakMmr: correctedPeak1,
+            division: 'div-2',
+          });
+        }
+
+        if (p2 && m.player2Id) {
+          let preMmr2 = rawPreMmr2;
+          if (preMmr2 >= 680) {
+            preMmr2 = 600;
+          }
+          const correctedMmr2 = preMmr2 + newDelta2;
+          const correctedPeak2 = (p2.peakMmr === 630 || p2.peakMmr === 700)
+            ? Math.max(600, correctedMmr2)
+            : Math.max(p2.peakMmr || 600, 600);
+
+          batch.update(doc(firestore, 'players', m.player2Id), {
+            mmr: correctedMmr2,
+            peakMmr: correctedPeak2,
+            division: 'div-2',
+          });
+        }
+
+        hasUpdates = true;
+      }
+    });
+
+    healedSeasonRef.current = activeSeasonId;
+
+    if (hasUpdates) {
+      batch.commit().catch((err) => {
+        console.error('Error executing MMR auto-heal:', err);
+      });
+    }
+  }, [firestore, activeSeasonId, activeSeason, singleLeagueTable, allPlayers, matches]);
 
   return {
     firestore,

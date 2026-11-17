@@ -231,9 +231,20 @@ export function TournamentBracket({ matches, playersById, teamsById, leagueTable
     return [...leagueTable].sort(sortFn).map((p, i) => ({ ...p, rank: i + 1 }));
   }, [leagueTable, season]);
 
+  const seasonDivisionMap = useMemo(() => {
+    const map: Record<string, 'div-1' | 'div-2'> = {};
+    (leagueTable || []).forEach(e => {
+      const pId = e.playerId || e.id;
+      if (pId && e.division) {
+        map[pId] = e.division;
+      }
+    });
+    return map;
+  }, [leagueTable]);
+
   const masterPlayersRanked = useMemo(() => {
-    return enrichPlayersWithMmrData(Object.values(playersById), null);
-  }, [playersById]);
+    return enrichPlayersWithMmrData(Object.values(playersById), null, seasonDivisionMap);
+  }, [playersById, seasonDivisionMap]);
 
   const getPlayerAnalysis = (playerId: string) => {
     if (!playerId || playerId === 'TBD' || playerId.includes('TBD') || playerId.includes('Loser')) return null;

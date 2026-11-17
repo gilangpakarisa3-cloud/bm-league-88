@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent } from './ui/card';
 import { getSeasonTheme } from '@/lib/season-theme';
-import { enrichPlayersWithMmrData, calculateMmrDelta, getTierFromMmr, TIER_STYLES } from '@/lib/mmr';
+import { enrichPlayersWithMmrData, calculateMmrDelta, getTierFromMmr, resolveEffectivePlayerMmr, TIER_STYLES } from '@/lib/mmr';
 
 import { StatChip } from './player-performance/stat-chip';
 import { IntelCard } from './player-performance/intel-card';
@@ -83,9 +83,20 @@ export function PlayerPerformanceDialog({
   const playersById = useMemo(() => (allPlayers || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, WithId<Player>>), [allPlayers]);
   const teamsById = useMemo(() => (allTeams || []).reduce((acc, t) => { acc[t.id] = t; return acc; }, {} as Record<string, WithId<Team>>), [allTeams]);
 
+  const seasonDivisionMap = useMemo(() => {
+    const map: Record<string, 'div-1' | 'div-2'> = {};
+    (singleLeagueTable || []).forEach(e => {
+      if (e.playerId && e.division) map[e.playerId] = e.division;
+    });
+    if (player?.playerId && player?.division) {
+      map[player.playerId] = player.division;
+    }
+    return map;
+  }, [singleLeagueTable, player]);
+
   const masterPlayersRanked = useMemo(() => {
-    return enrichPlayersWithMmrData(allPlayers, null);
-  }, [allPlayers]);
+    return enrichPlayersWithMmrData(allPlayers, null, seasonDivisionMap);
+  }, [allPlayers, seasonDivisionMap]);
 
   const performanceStats = useMemo(() => {
     if (!player || !activeSeason) return null;
@@ -115,6 +126,8 @@ export function PlayerPerformanceDialog({
     const isM2Calibrated = !!m2?.isCalibrated;
     const isAnyCalibrated = isCoop ? (isM1Calibrated || isM2Calibrated) : isM1Calibrated;
 
+    const effectivePlayerDiv = player?.division || seasonDivisionMap[player?.playerId || ''] || m1?.division || 'div-1';
+
     let displayMmr = 'N/C';
     let displayRank = 'N/C';
     let peakMmrVal = '800';
@@ -134,7 +147,7 @@ export function PlayerPerformanceDialog({
         peakMmrVal = String(m2.peakMmrRating);
       }
     } else {
-      if (isM1Calibrated && m1) {
+      if (m1) {
         displayMmr = String(m1.mmrRating);
         displayRank = String(m1.rank ?? 'N/C');
         peakMmrVal = String(m1.peakMmrRating);
@@ -147,15 +160,18 @@ export function PlayerPerformanceDialog({
       rank: displayRank,
       isCalibrated: true,
       isCoop: isCoop,
-      p1Mmr: m1 ? String(m1.mmrRating) : '600',
+      p1Mmr: m1 ? String(m1.mmrRating) : (effectivePlayerDiv === 'div-2' ? '600' : '800'),
       p2Mmr: m2 ? String(m2.mmrRating) : '600',
       legacyOvr: m1?.legacyOvrRating ? m1.legacyOvrRating.toFixed(0) : undefined
     };
 
-    const numMmr = Number(masterInfoSummary.mmr) || (m1?.mmrRating ?? 600);
+    const numMmr = Number(masterInfoSummary.mmr) || (m1?.mmrRating ?? (effectivePlayerDiv === 'div-2' ? 600 : 800));
     const careerPlayed = m1?.overallPlayed ?? (player as any).overallPlayed ?? player.played ?? 0;
     const currentRank = masterInfoSummary.rank !== 'N/C' ? Number(masterInfoSummary.rank) : null;
-    const tierId = m1?.tierId ?? getTierFromMmr(numMmr, careerPlayed, currentRank);
+    let tierId = m1?.tierId ?? getTierFromMmr(numMmr, careerPlayed, currentRank, effectivePlayerDiv);
+    if (effectivePlayerDiv === 'div-1' && numMmr >= 800 && tierId === 'AMATEUR') {
+      tierId = 'REGULER';
+    }
     const tierStyle = TIER_STYLES[tierId] || TIER_STYLES['AMATEUR'];
 
     // Hitung pergerakan delta dan saldo MMR kronologis (dari laga tertua ke terbaru)
@@ -167,7 +183,7 @@ export function PlayerPerformanceDialog({
         return timeA - timeB;
       });
 
-    const playerCurrentMmr = m1?.mmrRating ?? (player as any).mmr ?? 800;
+    const playerCurrentMmr = m1?.mmrRating ?? (player as any).mmr ?? (effectivePlayerDiv === 'div-2' ? 600 : 800);
 
     const matchDeltas = playerCompletedMatches.map(m => {
       const isPlayer1 = m.player1Id === playerIdToFilter;
@@ -182,7 +198,8 @@ export function PlayerPerformanceDialog({
 
       if (delta === null && !isCoop) {
         const opp = masterPlayersRanked.find(p => p.id === opponentId);
-        const oppMmr = opp?.mmrRating ?? 800;
+        const oppDiv = opp?.division || seasonDivisionMap[opponentId] || 'div-1';
+        const oppMmr = opp?.mmrRating ?? (oppDiv === 'div-2' ? 600 : 800);
         const isBo3 = m.player1Wins !== null && m.player1Wins !== undefined && m.round !== 'Group';
         const s1 = isBo3 ? (m.player1Wins ?? 0) : (m.player1Score ?? 0);
         const s2 = isBo3 ? (m.player2Wins ?? 0) : (m.player2Score ?? 0);
@@ -413,9 +430,13 @@ export function PlayerPerformanceDialog({
     const scoringRate = stats.played > 0 ? (stats.gf / stats.played).toFixed(2) : '0.00';
     const concedeRate = stats.played > 0 ? (stats.ga / stats.played).toFixed(2) : '0.00';
 
-    const groupSize = activeSeason?.type === 'Hybrid'
-      ? (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length
-      : totalPlayersInSeason;
+    const effectiveDiv = player?.division || seasonDivisionMap[player?.playerId || ''] || 'div-1';
+    let groupSize = totalPlayersInSeason;
+    if (activeSeason?.type === 'Hybrid') {
+      groupSize = (player.group === 'A' ? singleLeagueTable.filter(p => p.group === 'A') : singleLeagueTable.filter(p => p.group === 'B')).length;
+    } else if (activeSeason?.hasDivisions && !activeSeason?.isDiv2Merged && singleLeagueTable && singleLeagueTable.length > 0) {
+      groupSize = singleLeagueTable.filter(p => (effectiveDiv === 'div-2' ? p.division === 'div-2' : p.division !== 'div-2')).length;
+    }
 
     return {
       completedMatches,

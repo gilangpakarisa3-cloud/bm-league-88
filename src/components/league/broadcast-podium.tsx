@@ -6,7 +6,7 @@ import type { TISeasonTheme } from "@/lib/season-theme";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Crown, Award, User, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getTierFromMmr, TIER_STYLES } from "@/lib/mmr";
+import { getTierFromMmr, TIER_STYLES, resolveEffectivePlayerMmr } from "@/lib/mmr";
 
 interface BroadcastPodiumProps {
   topEntries: (WithId<LeagueEntry> & {
@@ -22,6 +22,7 @@ interface BroadcastPodiumProps {
   playersById?: Record<string, WithId<Player>>;
   hasDivisions?: boolean;
   isDivision2?: boolean;
+  defendingChampionId?: string;
 }
 
 export const BroadcastPodium = React.memo(({
@@ -33,6 +34,7 @@ export const BroadcastPodium = React.memo(({
   playersById = {},
   hasDivisions = false,
   isDivision2 = false,
+  defendingChampionId,
 }: BroadcastPodiumProps) => {
   if (!topEntries || topEntries.length < 3) return null;
 
@@ -53,28 +55,8 @@ export const BroadcastPodium = React.memo(({
     const playerObj = globalEnriched || entry.player || (pId ? playersById[pId] : undefined);
     const playerDivision = entry.division || (isDivision2 ? 'div-2' : (hasDivisions ? 'div-1' : playerObj?.division));
 
-    let mmr: number = globalEnriched?.mmrRating ?? playerObj?.mmr ?? (playerDivision === 'div-2' ? 600 : 800);
-    const isLowMatchOrNC = (playerObj?.overallPlayed || 0) < 20 || !playerObj?.mmr;
-    if (isLowMatchOrNC) {
-      if (playerDivision === 'div-1') {
-        mmr = Math.max(mmr, 800);
-      } else if (playerDivision === 'div-2') {
-        mmr = mmr || 600;
-      } else {
-        mmr = mmr || 800;
-      }
-    }
-
-    let tierId = (globalEnriched ? globalEnriched.tierId : null) as keyof typeof TIER_STYLES | null;
-    if (!tierId || (playerDivision === 'div-1' && tierId === 'AMATEUR' && mmr >= 800)) {
-      tierId = getTierFromMmr(mmr, playerObj?.overallPlayed || 0, null, playerDivision) as keyof typeof TIER_STYLES;
-    }
-    if (playerDivision === 'div-1' && mmr >= 800 && tierId === 'AMATEUR') {
-      tierId = 'REGULER';
-    }
-    const style = tierId && TIER_STYLES[tierId] ? TIER_STYLES[tierId] : null;
-
-    return { mmr: Math.round(mmr), tierId, style };
+    const resolved = resolveEffectivePlayerMmr(playerObj, playerDivision, globalEnriched);
+    return { mmr: resolved.mmr, tierId: resolved.tierId, style: resolved.tierStyle };
   };
 
   return (
@@ -105,6 +87,15 @@ export const BroadcastPodium = React.memo(({
           const isSecond = visualRank === 2;
           const isThird = visualRank === 3;
           const { mmr, tierId, style: mmrStyle } = getPlayerMmrInfo(entry);
+
+          const isDefendingChampion = Boolean(
+            defendingChampionId && (
+              entry.playerId === defendingChampionId ||
+              entry.id === defendingChampionId ||
+              (entry as any).player1Id === defendingChampionId ||
+              (entry as any).player2Id === defendingChampionId
+            )
+          );
 
           // Real relevant data: PTS (Points) as the hero number!
           const rankColor = isFirst
@@ -193,9 +184,10 @@ export const BroadcastPodium = React.memo(({
                   <Avatar
                     className={cn(
                       "border-2 transition-transform duration-300 group-hover/podium:scale-105 shadow-md",
+                      isDefendingChampion && !isFirst && "border-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.4)]",
                       isFirst ? "h-11 w-11 sm:h-14 sm:w-14" : "h-9 w-9 sm:h-12 sm:w-12"
                     )}
-                    style={{ borderColor: rankColor }}
+                    style={{ borderColor: isDefendingChampion && !isFirst ? '#FBBF24' : rankColor }}
                   >
                     <AvatarImage
                       src={entry.logoUrl || undefined}
@@ -207,6 +199,18 @@ export const BroadcastPodium = React.memo(({
                       <User className="w-4 h-4 sm:w-5 sm:h-5 text-white/40" />
                     </AvatarFallback>
                   </Avatar>
+
+                  {/* Floating Golden Crown Medallion for Defending Champion */}
+                  {isDefendingChampion && (
+                    <div
+                      className="absolute -top-1 -left-1 z-20 w-4 h-4 rounded bg-gradient-to-br from-yellow-300 via-amber-500 to-yellow-600 p-[1px] shadow-[0_0_10px_rgba(251,191,36,0.8)] flex items-center justify-center border border-black"
+                      title="Defending Champion — Juara Bertahan"
+                    >
+                      <div className="w-full h-full rounded-[3px] bg-black/85 flex items-center justify-center">
+                        <Crown className="w-2.5 h-2.5 text-amber-400 fill-amber-400 drop-shadow-[0_0_4px_rgba(251,191,36,0.9)]" />
+                      </div>
+                    </div>
+                  )}
 
                   {/* MMR Number Chip */}
                   <div
@@ -221,6 +225,19 @@ export const BroadcastPodium = React.memo(({
                 <h3 className="font-ti font-bold uppercase tracking-wide truncate w-full text-xs sm:text-sm text-white px-0.5">
                   {entry.playerName}
                 </h3>
+
+                {/* Defending Champion Podium Badge */}
+                {isDefendingChampion && (
+                  <div
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-0.5 mb-0.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 border border-amber-400/70 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
+                    title="Defending Champion — Juara Bertahan"
+                  >
+                    <Crown className="w-2 h-2 text-amber-300 fill-amber-400" />
+                    <span className="text-[6.5px] sm:text-[7.5px] font-headline font-bold uppercase tracking-[0.14em] bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 bg-clip-text text-transparent leading-none">
+                      CHAMP
+                    </span>
+                  </div>
+                )}
 
                 {/* Team Name */}
                 <p className="text-[7px] sm:text-[9px] font-body font-semibold uppercase tracking-[0.14em] text-white/40 truncate w-full">

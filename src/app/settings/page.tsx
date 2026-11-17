@@ -85,6 +85,7 @@ export default function SettingsPage() {
                 const nameKey = normalize(data.name);
                 currentPlayerMap[nameKey] = {
                     id: d.id,
+                    division: data.division,
                     existingMmr: typeof data.mmr === 'number' ? data.mmr : undefined,
                     existingPeakMmr: typeof data.peakMmr === 'number' ? data.peakMmr : undefined,
                     stats: {
@@ -262,7 +263,8 @@ export default function SettingsPage() {
             });
 
             uncalibrated.forEach(p => {
-                const calculatedMmr = 700 + (p.titlesWon * 100);
+                const baseMmr = p.division === 'div-2' ? 600 : 800;
+                const calculatedMmr = baseMmr + (p.titlesWon * 100);
                 p.stats.legacyOvr = 0;
                 p.stats.titlesCount = p.titlesWon;
 

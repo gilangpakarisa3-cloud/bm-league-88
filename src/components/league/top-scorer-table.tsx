@@ -26,7 +26,7 @@ import { useTranslation } from "@/hooks/use-translation";
 import { getSeasonTheme, type TISeasonTheme } from "@/lib/season-theme";
 import type { WithId, Team, Season, CoOpLeagueEntry, LeagueEntry, Match, Player } from "@/lib/types";
 import { LeagueTableSkeleton } from "./league-table-skeleton";
-import { enrichPlayersWithMmrData, getTierFromMmr, TIER_STYLES } from "@/lib/mmr";
+import { enrichPlayersWithMmrData, getTierFromMmr, TIER_STYLES, resolveEffectivePlayerMmr } from "@/lib/mmr";
 import { cn } from "@/lib/utils";
 
 interface TopScorerTableProps {
@@ -56,17 +56,28 @@ export const TopScorerTable = memo(({
     const secondaryHex = currentTheme.secondaryHex;
     const glowRgba = currentTheme.glowRgba;
 
+    const seasonDivisionMap = useMemo(() => {
+        const map: Record<string, 'div-1' | 'div-2'> = {};
+        (tableData || []).forEach(e => {
+            const pId = e.playerId || e.id;
+            if (pId && e.division) {
+                map[pId] = e.division;
+            }
+        });
+        return map;
+    }, [tableData]);
+
     // Enriched MMR map
     const enrichedGlobalPlayersMap = useMemo(() => {
         const playerList = Object.values(playersById);
         if (playerList.length === 0) return {};
-        const enriched = enrichPlayersWithMmrData(playerList, null);
+        const enriched = enrichPlayersWithMmrData(playerList, null, seasonDivisionMap);
         const map: Record<string, typeof enriched[0]> = {};
         enriched.forEach(p => {
           map[p.id] = p;
         });
         return map;
-    }, [playersById]);
+    }, [playersById, seasonDivisionMap]);
 
     const { topScorers, totalLeagueGoals, averageGpg } = useMemo(() => {
         if (!tableData || tableData.length === 0) {
@@ -270,30 +281,15 @@ export const TopScorerTable = memo(({
         const pId = scorer.id;
         const globalEnriched = enrichedGlobalPlayersMap[pId];
         const playerObj = globalEnriched || (playersById ? playersById[pId] : undefined);
-        const playerDivision = scorer.division || playerObj?.division || 'div-1';
+        const playerDivision = scorer.division || seasonDivisionMap[pId] || playerObj?.division || 'div-1';
 
-        let playerMmr: number = globalEnriched?.mmrRating ?? playerObj?.mmr ?? (playerDivision === 'div-2' ? 600 : 800);
-        const isLowMatchOrNC = (playerObj?.overallPlayed || 0) < 20 || !playerObj?.mmr;
-        if (isLowMatchOrNC) {
-            if (playerDivision === 'div-1') {
-                playerMmr = Math.max(playerMmr, 800);
-            } else if (playerDivision === 'div-2') {
-                playerMmr = playerMmr || 600;
-            } else {
-                playerMmr = playerMmr || 800;
-            }
-        }
+        const { mmr, tierId: mmrTierId, tierStyle: mmrStyle } = resolveEffectivePlayerMmr(
+            playerObj,
+            playerDivision,
+            globalEnriched
+        );
 
-        let mmrTierId = globalEnriched ? globalEnriched.tierId : null;
-        if (!mmrTierId || (playerDivision === 'div-1' && mmrTierId === 'AMATEUR' && playerMmr >= 800)) {
-            mmrTierId = getTierFromMmr(playerMmr, playerObj?.overallPlayed || 0, null, playerDivision);
-        }
-        if (playerDivision === 'div-1' && playerMmr >= 800 && mmrTierId === 'AMATEUR') {
-            mmrTierId = 'REGULER';
-        }
-        const mmrStyle = mmrTierId ? TIER_STYLES[mmrTierId] : null;
-
-        return { mmr: Math.round(playerMmr), mmrTierId, mmrStyle };
+        return { mmr, mmrTierId, mmrStyle };
     };
 
     if (isLoading) return <LeagueTableSkeleton isCoop={true} />;

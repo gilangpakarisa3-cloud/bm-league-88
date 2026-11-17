@@ -12,7 +12,7 @@ import {
 import type { LeagueEntry, Season, WithId, Player, Team, Match, CoOpLeagueEntry } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Activity, Zap, Shield, CheckCircle2, Flame, Binary } from "lucide-react";
+import { Trash2, User, Trophy, Award, LayoutGrid, Swords, Activity, Zap, Shield, CheckCircle2, Flame, Binary, Crown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTranslation } from "@/hooks/use-translation";
@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { resolveLogo } from "@/lib/logo-utils";
 import { getSeasonTheme, type TISeasonTheme } from "@/lib/season-theme";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { getTierFromMmr, TIER_STYLES, enrichPlayersWithMmrData } from "@/lib/mmr";
+import { getTierFromMmr, TIER_STYLES, enrichPlayersWithMmrData, resolveEffectivePlayerMmr } from "@/lib/mmr";
 import { BroadcastPodium } from "./broadcast-podium";
 
 interface SingleTableProps {
@@ -74,17 +74,31 @@ export const SingleTable = memo(({
   const activeTheme = theme || getSeasonTheme(null);
   const canRemovePlayer = seasonStatus === 'Not Started' && !!onRemovePlayer && isAdmin;
 
+  const seasonDivisionMap = useMemo(() => {
+    const map: Record<string, 'div-1' | 'div-2'> = {};
+    (tableData || []).forEach(e => {
+      const pId = e.playerId || e.id;
+      if (pId) {
+        const div = e.division || (isDivision2 ? 'div-2' : (hasDivisions ? 'div-1' : undefined));
+        if (div === 'div-1' || div === 'div-2') {
+          map[pId] = div;
+        }
+      }
+    });
+    return map;
+  }, [tableData, isDivision2, hasDivisions]);
+
   // Hitung Peringkat Global MMR dan Tier berdasarkan Ranking Player persis seperti di halaman Players
   const enrichedGlobalPlayersMap = useMemo(() => {
     const playerList = Object.values(playersById);
     if (playerList.length === 0) return {};
-    const enriched = enrichPlayersWithMmrData(playerList, null);
+    const enriched = enrichPlayersWithMmrData(playerList, null, seasonDivisionMap);
     const map: Record<string, typeof enriched[0]> = {};
     enriched.forEach(p => {
       map[p.id] = p;
     });
     return map;
-  }, [playersById]);
+  }, [playersById, seasonDivisionMap]);
 
   const playerFormsMap = useMemo(() => {
     if (!matches || matches.length === 0) return {};
@@ -170,6 +184,7 @@ export const SingleTable = memo(({
           playersById={playersById}
           hasDivisions={hasDivisions}
           isDivision2={isDivision2}
+          defendingChampionId={defendingChampionId}
         />
       )}
 
@@ -225,6 +240,15 @@ export const SingleTable = memo(({
             const isGroupHybrid = currentType === 'Hybrid';
             const playerForm = playerFormsMap[entry.playerId || entry.id] || [];
             const isFirst = entry.rank === 1;
+
+            const isDefendingChampion = Boolean(
+              defendingChampionId && (
+                entry.playerId === defendingChampionId ||
+                entry.id === defendingChampionId ||
+                (entry as any).player1Id === defendingChampionId ||
+                (entry as any).player2Id === defendingChampionId
+              )
+            );
 
             let isUpperBracketZone = false;
             let isLowerBracketZone = false;
@@ -293,30 +317,11 @@ export const SingleTable = memo(({
             const playerObj = globalEnriched || entry.player || (playerId ? playersById[playerId] : undefined);
             const playerDivision = entry.division || (isDivision2 ? 'div-2' : (hasDivisions ? 'div-1' : playerObj?.division));
 
-            // Jika player terdaftar di Divisi 1 pada season ini dan berstatus N/C / baseline,
-            // pastikan ratingnya minimal 800 (Reguler). Jika di Divisi 2, 600 (Amateur).
-            let playerMmr: number = globalEnriched?.mmrRating ?? playerObj?.mmr ?? (playerDivision === 'div-2' ? 600 : 800);
-            const isLowMatchOrNC = (playerObj?.overallPlayed || 0) < 20 || !playerObj?.mmr;
-            if (isLowMatchOrNC) {
-              if (playerDivision === 'div-1') {
-                playerMmr = Math.max(playerMmr, 800);
-              } else if (playerDivision === 'div-2') {
-                playerMmr = playerMmr || 600;
-              } else {
-                playerMmr = playerMmr || 800;
-              }
-            }
-
-            // Jika rating >= 800 dan di Divisi 1 (atau player ranking di luar 12 besar),
-            // pastikan tetap minimal tier REGULER (bukan AMATEUR) sesuai aturan khusus.
-            let mmrTierId = globalEnriched ? globalEnriched.tierId : null;
-            if (!mmrTierId || (playerDivision === 'div-1' && mmrTierId === 'AMATEUR' && playerMmr >= 800)) {
-              mmrTierId = getTierFromMmr(playerMmr, playerObj?.overallPlayed || 0, null, playerDivision);
-            }
-            if (playerDivision === 'div-1' && playerMmr >= 800 && mmrTierId === 'AMATEUR') {
-              mmrTierId = 'REGULER';
-            }
-            const mmrStyle = mmrTierId ? TIER_STYLES[mmrTierId] : null;
+            const { mmr: playerMmr, tierId: mmrTierId, tierStyle: mmrStyle } = resolveEffectivePlayerMmr(
+              playerObj,
+              playerDivision,
+              globalEnriched
+            );
 
             return (
               <TableRow
@@ -390,11 +395,27 @@ export const SingleTable = memo(({
                       )} />
                       <Avatar className={cn(
                         "h-7 w-7 sm:h-11 sm:w-11 xl:h-12 xl:w-12 rounded-lg sm:rounded-2xl border transition-all duration-300 shadow-md relative z-10",
-                        isFirst ? cn("border-2 scale-105", activeTheme.tagBorder) : "border-white/15 group-hover/node:scale-105"
+                        isDefendingChampion
+                          ? "border-amber-400/80 shadow-[0_0_14px_rgba(251,191,36,0.35)]"
+                          : isFirst
+                          ? cn("border-2 scale-105", activeTheme.tagBorder)
+                          : "border-white/15 group-hover/node:scale-105"
                       )}>
                         <AvatarImage key={entry.logoUrl} src={entry.logoUrl || undefined} alt={entry.playerName} className="object-cover" referrerPolicy="no-referrer" />
                         <AvatarFallback className="bg-black/60 font-black text-[9px] sm:text-xs rounded-lg sm:rounded-2xl"><User className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white/30" /></AvatarFallback>
                       </Avatar>
+
+                      {/* Floating Golden Crown Medallion for Defending Champion */}
+                      {isDefendingChampion && (
+                        <div
+                          className="absolute -top-1.5 -left-1.5 z-20 w-4 h-4 sm:w-5 sm:h-5 rounded-md sm:rounded-lg bg-gradient-to-br from-yellow-300 via-amber-500 to-yellow-600 p-[1px] shadow-[0_0_12px_rgba(251,191,36,0.8)] flex items-center justify-center border border-black"
+                          title="Defending Champion — Juara Bertahan"
+                        >
+                          <div className="w-full h-full rounded-[5px] sm:rounded-[6px] bg-black/85 flex items-center justify-center">
+                            <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400 fill-amber-400 drop-shadow-[0_0_4px_rgba(251,191,36,0.9)]" />
+                          </div>
+                        </div>
+                      )}
 
                       {/* Opsi 3: Avatar Floating MMR Badge */}
                       {playerMmr != null && mmrStyle && (
@@ -425,6 +446,21 @@ export const SingleTable = memo(({
                         >
                           {entry.playerName}
                         </span>
+
+                        {/* Sovereign Imperial Gold Badge untuk Juara Bertahan */}
+                        {isDefendingChampion && (
+                          <div
+                            className="relative inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/15 to-amber-500/25 border border-amber-400/70 shadow-[0_0_14px_rgba(251,191,36,0.3)] shrink-0 overflow-hidden group/champ"
+                            title="The King — Juara Bertahan Musim Sebelumnya"
+                          >
+                            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-200/25 to-transparent -translate-x-full group-hover/row:translate-x-full transition-transform duration-1000 pointer-events-none" />
+                            <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-300 fill-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.9)] shrink-0" />
+                            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.12em] sm:tracking-[0.16em] bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 bg-clip-text text-transparent leading-none whitespace-nowrap">
+                              <span className="sm:hidden">CHAMP</span>
+                              <span className="hidden sm:inline">JUARA BERTAHAN</span>
+                            </span>
+                          </div>
+                        )}
 
                         {/* Tulisan Tier Badge sesuai contoh Opsi 3 */}
                         {mmrStyle && (

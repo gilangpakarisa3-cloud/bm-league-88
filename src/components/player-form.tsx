@@ -100,6 +100,7 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
     if (!firestore) return;
     
     const selectedTeam = teams?.find(t => t.id === data.teamId);
+    const defaultBaseMmr = (player as any)?.division === 'div-2' ? 600 : 800;
     
     const playerData: Omit<Player, 'id'> = {
         name: data.name,
@@ -111,8 +112,8 @@ export function PlayerForm({ player, onSave }: PlayerFormProps) {
         overallLoss: player?.overallLoss ?? 0,
         overallGoalsFor: player?.overallGoalsFor ?? 0,
         overallGoalsAgainst: player?.overallGoalsAgainst ?? 0,
-        mmr: player?.mmr ?? 700,
-        peakMmr: player?.peakMmr ?? 700,
+        mmr: player?.mmr ?? defaultBaseMmr,
+        peakMmr: player?.peakMmr ?? defaultBaseMmr,
         legacyOvr: player?.legacyOvr ?? 0,
     };
 

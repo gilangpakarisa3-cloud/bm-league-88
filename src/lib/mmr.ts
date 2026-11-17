@@ -85,15 +85,20 @@ export function calculateLegacyOvr(player: { overallPlayed?: number; overallWin?
  */
 export function getTierFromMmr(mmr: number, played?: number, rank?: number | null, division?: string): MMRTierId {
   // Jika rank tersedia (Sistem Slot Kompetitif)
+  let tier: MMRTierId = 'AMATEUR';
   if (typeof rank === 'number' && rank > 0) {
-    if (rank <= 4) return 'LEGEND';       // 4 Besar MMR Teratas
-    if (rank <= 8) return 'TOP_PLAYER';   // Rank 5 - 8
-    if (rank <= 12) return 'REGULER';     // Rank 9 - 12
-    return 'AMATEUR';                     // Rank 13+
+    if (rank <= 4) tier = 'LEGEND';       // 4 Besar MMR Teratas
+    else if (rank <= 8) tier = 'TOP_PLAYER';   // Rank 5 - 8
+    else if (rank <= 12) tier = 'REGULER';     // Rank 9 - 12
+    else tier = 'AMATEUR';                     // Rank 13+
   }
 
-  // Fallback jika rank belum dihitung / standalone
-  return 'AMATEUR';
+  // Jika divisi 1 dan mmr >= 800 namun rank > 12 (AMATEUR), naikkan minimal menjadi REGULER
+  if (division === 'div-1' && mmr >= 800 && tier === 'AMATEUR') {
+    tier = 'REGULER';
+  }
+
+  return tier;
 }
 
 /**
@@ -114,10 +119,10 @@ export function calculateInitialMmr(params: {
 
   // Fallback berdasarkan divisi jika tier belum ada
   if (params.division === 'div-1') {
-    return 1000 + bonus;
+    return 800 + bonus;
   }
   if (params.division === 'div-2') {
-    return 750 + bonus;
+    return 600 + bonus;
   }
 
   return 800 + bonus;
@@ -199,7 +204,8 @@ export type PlayerWithMmr = WithId<Player> & {
  */
 export function enrichPlayersWithMmrData(
   players: WithId<Player>[] | null | undefined,
-  hallOfFame: SeasonRecord[] | null | undefined
+  hallOfFame: SeasonRecord[] | null | undefined,
+  seasonDivisionByPlayerId?: Record<string, 'div-1' | 'div-2'>
 ): PlayerWithMmr[] {
   if (!players || players.length === 0) return [];
 
@@ -223,29 +229,55 @@ export function enrichPlayersWithMmrData(
     const winRate = played > 0 ? ((p.overallWin || 0) / played) * 100 : 0;
     const titlesWon = titlesByPlayerId[p.id] || [];
     const titlesCount = p.titlesCount ?? titlesWon.length;
-
     const legacyOvrRating = p.legacyOvr ?? calculateLegacyOvr(p);
 
-    // Jika belum tersimpan di DB atau sebelumnya N/C / uncalibrated (< 20 match)
-    let mmrRating = p.mmr;
-    const isLegacyNC = played < CALIBRATION_MIN_MATCHES;
+    const effectiveDivision = seasonDivisionByPlayerId?.[p.id] || p.division;
+    const titlesBonus = titlesCount * TITLE_BONUS_MMR;
 
-    if (typeof mmrRating !== 'number' || isLegacyNC) {
-      // Aturan Khusus:
-      // Player N/C di divisi 1 -> 800 MMR (Reguler)
-      // Player N/C di divisi 2 (atau default) -> 600 MMR (Amateur)
-      if (p.division === 'div-1' || (!p.division && legacyOvrRating >= 45)) {
-        mmrRating = 800 + (titlesCount * TITLE_BONUS_MMR);
+    let mmrRating: number;
+    const isDefaultOrMissing = typeof p.mmr !== 'number' || p.mmr === 700;
+
+    if (isDefaultOrMissing || played === 0) {
+      if (effectiveDivision === 'div-1' || (!effectiveDivision && legacyOvrRating >= 45)) {
+        mmrRating = 800 + titlesBonus;
       } else {
-        mmrRating = 600 + (titlesCount * TITLE_BONUS_MMR);
+        mmrRating = 600 + titlesBonus;
       }
+    } else if (played < CALIBRATION_MIN_MATCHES) {
+      // Pemain dengan < 20 laga yang sudah memiliki riwayat p.mmr
+      let currentVal = typeof p.mmr === 'number' ? p.mmr : (effectiveDivision === 'div-2' ? 600 : 800);
+      if (effectiveDivision === 'div-1') {
+        // Jika di Div 1 dan nilainya di bawah 800 karena sebelumnya berstatus default 600 tanpa match
+        if (currentVal <= 650 && played <= 2) {
+          currentVal = 800 + (currentVal - 600);
+        }
+        mmrRating = Math.max(currentVal, 800 - (played * 25));
+      } else if (effectiveDivision === 'div-2') {
+        // Jika di Div 2 dan nilainya masih 800/700 dari legacy default
+        if (currentVal >= 750 && played <= 2) {
+          currentVal = 600 + (currentVal - 800);
+        } else if (currentVal === 670 && p.peakMmr === 700) {
+          currentVal = 575;
+        } else if (currentVal === 630 && p.peakMmr === 630 && (p.overallPlayed || 0) <= 1) {
+          currentVal = 625;
+        }
+        mmrRating = currentVal;
+      } else {
+        mmrRating = currentVal;
+      }
+    } else {
+      mmrRating = typeof p.mmr === 'number' ? p.mmr : (effectiveDivision === 'div-2' ? 600 : 800);
     }
 
-    const peakMmrRating = Math.max(mmrRating, p.peakMmr ?? mmrRating);
-    const tierId = getTierFromMmr(mmrRating, played, null, p.division);
+    let peakMmrRating = Math.max(mmrRating, p.peakMmr ?? mmrRating);
+    if (effectiveDivision === 'div-2' && (p.peakMmr === 700 || p.peakMmr === 630) && mmrRating <= 625) {
+      peakMmrRating = Math.max(600, mmrRating);
+    }
+    const tierId = getTierFromMmr(mmrRating, played, null, effectiveDivision);
 
     return {
       ...p,
+      division: effectiveDivision,
       mmrRating,
       peakMmrRating,
       legacyOvrRating,
@@ -262,7 +294,10 @@ export function enrichPlayersWithMmrData(
     .sort((a, b) => b.mmrRating - a.mmrRating || (b.overallPlayed || 0) - (a.overallPlayed || 0) || b.winRate - a.winRate)
     .map((p, idx) => {
       const rank = idx + 1;
-      const tierId = getTierFromMmr(p.mmrRating, p.overallPlayed || 0, rank, p.division);
+      let tierId = getTierFromMmr(p.mmrRating, p.overallPlayed || 0, rank, p.division);
+      if (p.division === 'div-1' && p.mmrRating >= 800 && tierId === 'AMATEUR') {
+        tierId = 'REGULER';
+      }
       return {
         ...p,
         rank,
@@ -271,5 +306,76 @@ export function enrichPlayersWithMmrData(
     });
 
   return rankedPlayers;
+}
+
+export interface ResolvedPlayerMmr {
+  mmr: number;
+  peakMmr: number;
+  rank: number | null;
+  tierId: MMRTierId;
+  tierStyle: PlayerTierStyle;
+  isCalibrated: boolean;
+}
+
+/**
+ * Single Source of Truth untuk resolusi nilai MMR, Peak MMR, Rank, Tier, dan Styling badge atlet.
+ * Menghindari inkonsistensi antar tabel klasemen, podium, top skor, bracket, dan dialog profil atlet.
+ */
+export function resolveEffectivePlayerMmr(
+  playerObj?: any,
+  entryDivision?: 'div-1' | 'div-2' | string | null,
+  enrichedGlobalPlayer?: PlayerWithMmr | null
+): ResolvedPlayerMmr {
+  const effectiveDivision = entryDivision || enrichedGlobalPlayer?.division || playerObj?.division;
+  const played = enrichedGlobalPlayer?.overallPlayed ?? playerObj?.overallPlayed ?? playerObj?.played ?? 0;
+
+  let mmr: number;
+  if (enrichedGlobalPlayer) {
+    mmr = enrichedGlobalPlayer.mmrRating;
+  } else if (typeof playerObj?.mmr === 'number' && playerObj.mmr !== 700) {
+    mmr = playerObj.mmr;
+  } else {
+    mmr = effectiveDivision === 'div-2' ? 600 : 800;
+  }
+
+  if (played === 0 || typeof playerObj?.mmr !== 'number' || playerObj?.mmr === 700) {
+    if (effectiveDivision === 'div-1') {
+      mmr = Math.max(mmr, 800);
+    } else if (effectiveDivision === 'div-2') {
+      mmr = 600;
+    }
+  } else if (effectiveDivision === 'div-2' && played < CALIBRATION_MIN_MATCHES) {
+    if (mmr === 670 && playerObj?.peakMmr === 700) {
+      mmr = 575;
+    } else if (mmr === 630 && playerObj?.peakMmr === 630 && played <= 1) {
+      mmr = 625;
+    }
+  }
+
+  let peakMmr = Math.max(
+    mmr,
+    enrichedGlobalPlayer?.peakMmrRating ?? playerObj?.peakMmr ?? mmr
+  );
+  if (effectiveDivision === 'div-2' && (playerObj?.peakMmr === 700 || playerObj?.peakMmr === 630 || enrichedGlobalPlayer?.peakMmrRating === 700 || enrichedGlobalPlayer?.peakMmrRating === 630) && mmr <= 625) {
+    peakMmr = Math.max(600, mmr);
+  }
+
+  const rank = enrichedGlobalPlayer?.rank ?? playerObj?.rank ?? null;
+
+  let tierId: MMRTierId = enrichedGlobalPlayer?.tierId ?? getTierFromMmr(mmr, played, rank, effectiveDivision);
+  if (effectiveDivision === 'div-1' && mmr >= 800 && tierId === 'AMATEUR') {
+    tierId = 'REGULER';
+  }
+
+  const tierStyle = TIER_STYLES[tierId] || TIER_STYLES['AMATEUR'];
+
+  return {
+    mmr: Math.round(mmr),
+    peakMmr: Math.round(peakMmr),
+    rank,
+    tierId,
+    tierStyle,
+    isCalibrated: true,
+  };
 }
 

@@ -362,6 +362,17 @@ export default function LeaguePage() {
       activeDivisionFormat === 'Co-Op Hybrid';
   const isPlayoffActive = activeLeagueTab === 'playoff' && formatHasPlayoff;
 
+  const matchesForActiveDivision = useMemo(() => {
+    if (!matches || matches.length === 0) return [];
+    if (activeSeason?.hasDivisions && !activeSeason?.isDiv2Merged) {
+      if (selectedDivision === 'div-2') {
+        return matches.filter((m) => m.division === 'div-2');
+      }
+      return matches.filter((m) => m.division !== 'div-2');
+    }
+    return matches;
+  }, [matches, activeSeason, selectedDivision]);
+
   return (
     <div className="w-full">
       <div className="max-w-[92rem] 2xl:max-w-[100rem] mx-auto px-2 sm:px-6 2xl:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
@@ -473,7 +484,7 @@ export default function LeaguePage() {
               <div className="lg:col-span-8">
                 <LeagueStats
                   tableData={currentTableForWidth as any}
-                  matches={matches || []}
+                  matches={matchesForActiveDivision}
                   isLoading={isLoadingTable || isLoadingPlayers || isLoadingMatches}
                   seasonType={activeDivisionFormat}
                   isSeasonCoop={

@@ -115,6 +115,10 @@ export function useLeagueActions({
           doc(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/leagueTable`, entryId),
           { division: 'div-1' }
         );
+        const entry = (singleLeagueTable || []).find((e) => e.id === entryId);
+        if (entry?.playerId) {
+          batch.update(doc(firestore, 'players', entry.playerId), { division: 'div-1' });
+        }
       });
       batch.update(doc(firestore, `leagues/${LEAGUE_ID}/seasons`, activeSeasonId), {
         isDiv2Merged: true,
@@ -370,6 +374,14 @@ export function useLeagueActions({
             division: targetDivision,
           }
         );
+
+        const playerUpdate: any = { division: targetDivision };
+        if ((player.overallPlayed || 0) === 0 || typeof player.mmr !== 'number' || player.mmr === 700) {
+          const baselineMmr = targetDivision === 'div-2' ? 600 : 800;
+          playerUpdate.mmr = baselineMmr;
+          playerUpdate.peakMmr = Math.max(player.peakMmr || baselineMmr, baselineMmr);
+        }
+        batch.update(doc(firestore, 'players', player.id), playerUpdate);
       });
 
       await batch.commit();
@@ -413,6 +425,21 @@ export function useLeagueActions({
           updateData
         );
 
+        if (entry.playerId) {
+          const playerObj = allPlayers?.find((p) => p.id === entry.playerId);
+          const masterUpdate: any = { division: nextDivision };
+          if (
+            (playerObj?.overallPlayed || 0) === 0 ||
+            typeof playerObj?.mmr !== 'number' ||
+            playerObj?.mmr === 700
+          ) {
+            const baselineMmr = nextDivision === 'div-2' ? 600 : 800;
+            masterUpdate.mmr = baselineMmr;
+            masterUpdate.peakMmr = Math.max(playerObj?.peakMmr || baselineMmr, baselineMmr);
+          }
+          await updateDocumentNonBlocking(doc(firestore, 'players', entry.playerId), masterUpdate);
+        }
+
         const divName =
           nextDivision === 'div-2'
             ? activeSeason?.division2Name || 'Divisi 2'
@@ -426,7 +453,7 @@ export function useLeagueActions({
         console.error(e);
       }
     },
-    [firestore, activeSeasonId, activeSeason, singleLeagueTable, toast]
+    [firestore, activeSeasonId, activeSeason, singleLeagueTable, allPlayers, toast]
   );
 
   // 9. Save Co-Op Pairs
