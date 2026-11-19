@@ -156,9 +156,9 @@ export function getSeasonTheme(season: WithId<Season> | null | undefined): TISea
   const explicitThemeKey = season?.themeKey && season.themeKey !== 'auto' ? season.themeKey : null;
   const lowerName = name.toLowerCase();
 
-  // Extract season number if available (e.g. "Season 5", "SEASON 4", "s3")
+  // Extract season number if available (e.g. "Season 6", "Season 5", "SEASON 4", "s3")
   const numMatch = lowerName.match(/season\s*(\d+)/i) || lowerName.match(/s(\d+)/i);
-  const seasonNum = numMatch ? parseInt(numMatch[1], 10) : 5;
+  const seasonNum = numMatch ? parseInt(numMatch[1], 10) : (season ? 6 : 6);
 
   const isS5 = explicitThemeKey === 'emerald' || (!explicitThemeKey && (lowerName.includes('season 5') || lowerName.includes('up skill') || seasonNum === 5));
   const isS4 = explicitThemeKey === 'crimson' || (!explicitThemeKey && (lowerName.includes('season 4') || lowerName.includes('penebusan dosa') || lowerName.includes('fokusgame3') || seasonNum === 4));

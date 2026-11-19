@@ -573,123 +573,206 @@ export default function HallOfFamePage() {
 
         {activeTab === 'div-1' ? (
           <>
-            {/* Championship Telemetry Stats Bar */}
+            {/* Championship Telemetry Stats Bar - TI Aegis Prestige */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              <div className="relative overflow-hidden rounded-2xl border border-yellow-400/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-yellow-400 transition-all">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-400/10 rounded-full blur-xl pointer-events-none" />
-                <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
-                  <span>SEASONS_CONCLUDED</span>
-                  <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+              {/* Card 1: Seasons Concluded */}
+              <div className="relative group overflow-hidden rounded-2xl bg-gradient-to-b from-yellow-500/15 via-[#0B0E17]/95 to-black/95 border border-yellow-400/40 hover:border-yellow-400 p-4 sm:p-5 text-center transition-all duration-300 shadow-[0_15px_40px_rgba(0,0,0,0.7)] hover:shadow-[0_0_25px_rgba(250,204,21,0.25)]">
+                {/* Top Laser Tracer */}
+                <div className="absolute top-0 left-4 right-4 h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent shadow-[0_0_15px_#facc15] group-hover:h-[3px] transition-all" />
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-16 bg-yellow-400/15 rounded-full blur-xl pointer-events-none" />
+
+                <div className="flex items-center justify-center gap-1.5 text-yellow-300/80 text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest mb-2">
+                  <Trophy className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+                  <span>SEASONS CONCLUDED</span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-yellow-400 tracking-tighter tabular-nums leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+
+                <div className="my-2 sm:my-3">
+                  <span className="text-4xl sm:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-yellow-100 to-yellow-400 drop-shadow-[0_2px_12px_rgba(250,204,21,0.4)]">
                     {championshipStats.totalSeasons}
                   </span>
-                  <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">EDITIONS</span>
                 </div>
-                <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-yellow-400 rounded-full w-full shadow-[0_0_10px_rgba(250,204,21,0.8)]" />
+
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-[10px] font-black uppercase tracking-wider font-mono">
+                  <span>🏆 OFFICIAL EDITIONS</span>
                 </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-amber-500 transition-all">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
-                <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
-                  <span>DYNASTY_LEADER</span>
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
+              {/* Card 2: Dynasty Leader */}
+              <div className="relative group overflow-hidden rounded-2xl bg-gradient-to-b from-amber-500/15 via-[#0B0E17]/95 to-black/95 border border-amber-400/40 hover:border-amber-400 p-4 sm:p-5 text-center transition-all duration-300 shadow-[0_15px_40px_rgba(0,0,0,0.7)] hover:shadow-[0_0_25px_rgba(251,191,36,0.25)]">
+                {/* Top Laser Tracer */}
+                <div className="absolute top-0 left-4 right-4 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_15px_#fbbf24] group-hover:h-[3px] transition-all" />
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-16 bg-amber-400/15 rounded-full blur-xl pointer-events-none" />
+
+                <div className="flex items-center justify-center gap-1.5 text-amber-300/80 text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest mb-2">
+                  <Crown className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+                  <span>DYNASTY LEADER</span>
                 </div>
-                <div className="flex items-baseline gap-2 truncate">
-                  <span className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate leading-none">
+
+                <div className="my-2 sm:my-3 px-1">
+                  <span className="block text-2xl sm:text-3xl font-black italic tracking-tight text-white uppercase truncate drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
                     {championshipStats.topChampion?.name || 'BELUM ADA'}
                   </span>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-[9px] font-black uppercase text-amber-400 font-mono">
-                  <span>{championshipStats.topChampion ? `${championshipStats.topChampion.count}X CHAMPION` : 'ACTIVE'}</span>
-                  <span>DYNASTY</span>
+
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(251,191,36,0.5)]">
+                  <span>👑 {championshipStats.topChampion ? `${championshipStats.topChampion.count}X CHAMPION` : 'DYNASTY'}</span>
                 </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-primary transition-all">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-primary/10 rounded-full blur-xl pointer-events-none" />
-                <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
-                  <span>CHAMPION_GOALS</span>
-                  <Flame className="w-3.5 h-3.5 text-primary" />
+              {/* Card 3: Champion Goals */}
+              <div className="relative group overflow-hidden rounded-2xl bg-gradient-to-b from-lime-500/15 via-[#0B0E17]/95 to-black/95 border border-lime-400/40 hover:border-lime-400 p-4 sm:p-5 text-center transition-all duration-300 shadow-[0_15px_40px_rgba(0,0,0,0.7)] hover:shadow-[0_0_25px_rgba(163,230,53,0.25)]">
+                {/* Top Laser Tracer */}
+                <div className="absolute top-0 left-4 right-4 h-[2px] bg-gradient-to-r from-transparent via-lime-400 to-transparent shadow-[0_0_15px_#a3e635] group-hover:h-[3px] transition-all" />
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-16 bg-lime-400/15 rounded-full blur-xl pointer-events-none" />
+
+                <div className="flex items-center justify-center gap-1.5 text-lime-300/80 text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest mb-2">
+                  <Flame className="w-3.5 h-3.5 text-lime-400 animate-pulse" />
+                  <span>CHAMPION GOALS</span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">
+
+                <div className="my-2 sm:my-3">
+                  <span className="text-4xl sm:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-lime-100 to-lime-400 drop-shadow-[0_2px_12px_rgba(163,230,53,0.4)]">
                     {championshipStats.totalFinalsGoals}
                   </span>
-                  <span className="text-[10px] font-black uppercase text-primary tracking-widest">GOALS</span>
                 </div>
-                <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full w-full shadow-[0_0_10px_rgba(204,253,1,0.8)]" />
+
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-lime-400/15 border border-lime-400/30 text-lime-300 text-[10px] font-black uppercase tracking-wider font-mono">
+                  <span>🔥 TOTAL SCORED</span>
                 </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-black/50 p-4 backdrop-blur-xl group hover:border-emerald-500 transition-all">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl pointer-events-none" />
-                <div className="flex items-center justify-between text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mb-2">
-                  <span>PEAK_AGGREGATE</span>
-                  <Target className="w-3.5 h-3.5 text-emerald-400" />
+              {/* Card 4: Peak Aggregate */}
+              <div className="relative group overflow-hidden rounded-2xl bg-gradient-to-b from-emerald-500/15 via-[#0B0E17]/95 to-black/95 border border-emerald-400/40 hover:border-emerald-400 p-4 sm:p-5 text-center transition-all duration-300 shadow-[0_15px_40px_rgba(0,0,0,0.7)] hover:shadow-[0_0_25px_rgba(52,211,153,0.25)]">
+                {/* Top Laser Tracer */}
+                <div className="absolute top-0 left-4 right-4 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#34d399] group-hover:h-[3px] transition-all" />
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-16 bg-emerald-400/15 rounded-full blur-xl pointer-events-none" />
+
+                <div className="flex items-center justify-center gap-1.5 text-emerald-300/80 text-[10px] sm:text-xs font-mono font-black uppercase tracking-widest mb-2">
+                  <Target className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  <span>PEAK AGGREGATE</span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter tabular-nums leading-none">
+
+                <div className="my-2 sm:my-3">
+                  <span className="text-4xl sm:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-emerald-100 to-emerald-400 drop-shadow-[0_2px_12px_rgba(52,211,153,0.4)]">
                     {championshipStats.highestPoints}
                   </span>
-                  <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">PTS MAX</span>
                 </div>
-                <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-400 rounded-full w-full shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300 text-[10px] font-black uppercase tracking-wider font-mono">
+                  <span>🎯 PTS RECORD</span>
                 </div>
               </div>
             </div>
 
-            {/* Dynasty Champions Podium Ribbon */}
+            {/* Dynasty Champions Podium Ribbon - TI Aegis Prestige Style */}
             {dynastyLeaders.length > 0 && (
-              <div className="p-5 rounded-3xl border border-white/10 bg-black/50 backdrop-blur-2xl">
-                <div className="flex items-center justify-between mb-4 px-2">
-                  <div className="flex items-center gap-2">
-                    <Medal className="w-4 h-4 text-yellow-400" />
-                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">
-                      ALL-TIME DYNASTY LEADERBOARD (KASTA TERTINGGI)
-                    </h3>
+              <div className="relative overflow-hidden rounded-3xl border border-yellow-400/30 bg-gradient-to-b from-[#121624]/90 via-[#090C15]/95 to-black/95 p-5 sm:p-6 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+                {/* Top Subtle Laser Line */}
+                <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-yellow-400/80 to-transparent shadow-[0_0_15px_#facc15]" />
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-72 h-20 bg-yellow-400/10 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-center justify-between mb-5 px-1 flex-wrap gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center text-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.3)]">
+                      <Medal className="w-4 h-4 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-black uppercase tracking-[0.25em] text-white">
+                        ALL-TIME DYNASTY LEADERBOARD
+                      </h3>
+                      <span className="text-[9px] font-mono font-bold text-yellow-400/70 uppercase tracking-widest block">
+                        KASTA TERTINGGI // HALL OF DYNASTY
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-[9px] font-mono font-black text-white/40 uppercase tracking-widest">
-                    TIER 1 PREMIER // VERIFIED
-                  </span>
+                  <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono font-black text-white/50 uppercase tracking-widest">
+                    <Crown className="w-3 h-3 text-yellow-400" />
+                    <span>TIER 1 PREMIER // VERIFIED</span>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {dynastyLeaders.map((leader, idx) => (
-                    <div
-                      key={leader.name}
-                      className="flex items-center justify-between p-3.5 rounded-2xl bg-black/60 border border-white/5 hover:border-yellow-400/40 transition-all group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={cn(
-                          "w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0",
-                          idx === 0 ? "bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.5)]" :
-                            idx === 1 ? "bg-slate-300 text-black" :
-                              idx === 2 ? "bg-amber-600 text-white" :
-                                "bg-white/10 text-white/60"
-                        )}>
-                          #{idx + 1}
-                        </div>
-                        <div className="min-w-0">
-                          <span className="block font-black text-sm uppercase tracking-tight text-white group-hover:text-yellow-400 transition-colors truncate">
-                            {leader.name}
-                          </span>
-                          <span className="block text-[9px] font-bold uppercase tracking-wider text-white/40 truncate">
-                            {leader.teamName}
-                          </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {dynastyLeaders.map((leader, idx) => {
+                    const isFirst = idx === 0;
+                    const isSecond = idx === 1;
+                    const isThird = idx === 2;
+
+                    return (
+                      <div
+                        key={leader.name}
+                        className={cn(
+                          "relative group overflow-hidden rounded-2xl p-4 transition-all duration-300 border backdrop-blur-xl shadow-lg",
+                          isFirst
+                            ? "bg-gradient-to-b from-yellow-500/15 via-[#0D101C]/95 to-black border-yellow-400/40 hover:border-yellow-400 hover:shadow-[0_0_25px_rgba(250,204,21,0.25)]"
+                            : isSecond
+                            ? "bg-gradient-to-b from-slate-400/10 via-[#0D101C]/95 to-black border-slate-300/30 hover:border-slate-300 hover:shadow-[0_0_25px_rgba(203,213,225,0.2)]"
+                            : isThird
+                            ? "bg-gradient-to-b from-amber-600/15 via-[#0D101C]/95 to-black border-amber-600/35 hover:border-amber-500 hover:shadow-[0_0_25px_rgba(217,119,6,0.2)]"
+                            : "bg-black/60 border-white/5 hover:border-white/20"
+                        )}
+                      >
+                        {/* Top Laser Tracer */}
+                        <div
+                          className={cn(
+                            "absolute top-0 left-3 right-3 h-[2px] transition-all group-hover:h-[3px]",
+                            isFirst
+                              ? "bg-gradient-to-r from-transparent via-yellow-400 to-transparent shadow-[0_0_12px_#facc15]"
+                              : isSecond
+                              ? "bg-gradient-to-r from-transparent via-slate-300 to-transparent shadow-[0_0_12px_#cbd5e1]"
+                              : isThird
+                              ? "bg-gradient-to-r from-transparent via-amber-500 to-transparent shadow-[0_0_12px_#f59e0b]"
+                              : "bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                          )}
+                        />
+
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Rank Badge Emblem */}
+                            <div
+                              className={cn(
+                                "w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-md font-mono",
+                                isFirst
+                                  ? "bg-gradient-to-br from-yellow-300 to-amber-500 text-black shadow-[0_0_15px_rgba(250,204,21,0.6)]"
+                                  : isSecond
+                                  ? "bg-gradient-to-br from-slate-200 to-slate-400 text-black shadow-[0_0_12px_rgba(203,213,225,0.5)]"
+                                  : isThird
+                                  ? "bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-[0_0_12px_rgba(217,119,6,0.5)]"
+                                  : "bg-white/10 text-white/70 border border-white/10"
+                              )}
+                            >
+                              {isFirst ? '👑' : `#${idx + 1}`}
+                            </div>
+
+                            <div className="min-w-0">
+                              <span className="block font-black text-sm sm:text-base uppercase tracking-tight text-white group-hover:text-yellow-400 transition-colors truncate drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                                {leader.name}
+                              </span>
+                              <span className="block text-[10px] font-bold uppercase tracking-wider text-white/50 truncate">
+                                {leader.teamName}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Trophy Badge */}
+                          <div
+                            className={cn(
+                              "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider font-mono shrink-0 flex items-center gap-1.5 border shadow-sm",
+                              isFirst
+                                ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-black border-yellow-300 shadow-[0_0_15px_rgba(250,204,21,0.4)]"
+                                : isSecond
+                                ? "bg-slate-300/15 border-slate-300/30 text-slate-200"
+                                : isThird
+                                ? "bg-amber-600/15 border-amber-500/30 text-amber-300"
+                                : "bg-white/5 border-white/10 text-white/60"
+                            )}
+                          >
+                            <Trophy className={cn("w-3 h-3", isFirst ? "text-black" : "text-yellow-400")} />
+                            <span>{leader.count}X JUARA</span>
+                          </div>
                         </div>
                       </div>
-
-                      <Badge className="bg-yellow-400/15 border border-yellow-400/30 text-yellow-400 text-[10px] font-black uppercase tracking-widest font-mono shrink-0">
-                        🏆 {leader.count}x JUARA
-                      </Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

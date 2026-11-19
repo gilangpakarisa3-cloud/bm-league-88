@@ -28,11 +28,26 @@ export function SeasonThemeProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
+  const [cachedSeason, setCachedSeason] = useState<WithId<Season> | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('bm_cached_active_season');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse cached season', e);
+      }
+    }
+    return null;
+  });
+
   const setActiveSeasonId = (id: string | null) => {
     setActiveSeasonIdState(id);
     if (typeof window !== 'undefined') {
       if (id) localStorage.setItem('bm_active_season_id', id);
-      else localStorage.removeItem('bm_active_season_id');
+      else {
+        localStorage.removeItem('bm_active_season_id');
+        localStorage.removeItem('bm_cached_active_season');
+      }
     }
   };
 
@@ -45,20 +60,54 @@ export function SeasonThemeProvider({ children }: { children: ReactNode }) {
   );
   const { data: seasons, isLoading } = useCollection<Season>(seasonsQuery);
 
+  // Helper to determine the best active season: prioritize 'In Progress', then newest
+  const resolveTargetSeason = (seasonList: WithId<Season>[]) => {
+    const inProgress = seasonList.find((s) => s.status === 'In Progress');
+    if (inProgress) return inProgress;
+    return seasonList[0];
+  };
+
   useEffect(() => {
     if (!seasons || seasons.length === 0) return;
+    const defaultSeason = resolveTargetSeason(seasons);
+
     if (!activeSeasonId) {
-      setActiveSeasonId(seasons[0].id);
+      setActiveSeasonId(defaultSeason.id);
     } else {
       const exists = seasons.some((s) => s.id === activeSeasonId);
-      if (!exists) setActiveSeasonId(seasons[0].id);
+      if (!exists) setActiveSeasonId(defaultSeason.id);
     }
   }, [seasons, activeSeasonId]);
 
-  const activeSeason = useMemo(
-    () => seasons?.find((s) => s.id === activeSeasonId) || (seasons && seasons.length > 0 ? seasons[0] : null),
-    [seasons, activeSeasonId]
-  );
+  const activeSeason = useMemo(() => {
+    if (seasons && seasons.length > 0) {
+      return (
+        seasons.find((s) => s.id === activeSeasonId) ||
+        resolveTargetSeason(seasons)
+      );
+    }
+    return cachedSeason;
+  }, [seasons, activeSeasonId, cachedSeason]);
+
+  // Sync active season to localStorage cache so next reloads load the exact theme instantly
+  useEffect(() => {
+    if (activeSeason && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(
+          'bm_cached_active_season',
+          JSON.stringify({
+            id: activeSeason.id,
+            name: activeSeason.name,
+            themeKey: activeSeason.themeKey || 'auto',
+            type: activeSeason.type,
+            status: activeSeason.status,
+          })
+        );
+      } catch (e) {
+        console.error('Failed to cache active season', e);
+      }
+    }
+  }, [activeSeason]);
 
   const theme = useMemo(() => getSeasonTheme(activeSeason), [activeSeason]);
 
