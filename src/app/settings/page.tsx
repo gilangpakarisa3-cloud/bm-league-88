@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
         try {
             const playersSnap = await getDocs(collection(firestore, 'players'));
-            const currentPlayerMap: Record<string, { id: string, existingMmr?: number, existingPeakMmr?: number, stats: any }> = {};
+            const currentPlayerMap: Record<string, { id: string, division?: string, existingMmr?: number, existingPeakMmr?: number, stats: any }> = {};
 
             const normalize = (name: string) => name.toLowerCase().replace(/\s|\./g, '').trim();
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Flame, Languages, Settings, Zap, Scan, Binary, Activity, Download } from 'lucide-react';
+import { UclStarballIcon } from '@/components/icons/ucl-crest';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -59,13 +60,17 @@ export function Header() {
               style={{ backgroundColor: `${theme.primaryHex}33` }}
             />
             <div
-              className="p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl transition-all duration-500 border border-black/20 relative z-10 group-hover:scale-105"
+              className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl transition-all duration-500 border border-black/20 relative z-10 group-hover:scale-105 flex items-center justify-center"
               style={{
                 background: `linear-gradient(135deg, ${theme.secondaryHex || theme.primaryHex}, ${theme.primaryHex})`,
                 boxShadow: `0 0 20px ${theme.glowRgba || theme.primaryHex}`,
               }}
             >
-              <Flame className="h-4 w-4 sm:h-6 sm:w-6 text-black" />
+              <UclStarballIcon
+                size={24}
+                starFill="#000000"
+                className="h-4 w-4 sm:h-6 sm:w-6 transition-transform duration-700 group-hover:rotate-45"
+              />
             </div>
           </div>
           <div className="flex flex-col">

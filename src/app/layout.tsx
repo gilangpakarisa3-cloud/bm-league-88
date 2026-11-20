@@ -24,7 +24,10 @@ export const metadata: Metadata = {
     title: 'BM LEAGUE 88',
   },
   icons: {
-    icon: '/icons/icon-192x192.png',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
     apple: '/icons/apple-touch-icon.png',
   },
 };

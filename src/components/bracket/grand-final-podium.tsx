@@ -10,6 +10,7 @@ import { getSeasonTheme, type TISeasonTheme as SeasonDesignTheme } from "@/lib/s
 import type { WithId, Team, Match, Season } from "@/lib/types";
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import { UclBigEarsTrophy, UclStarballIcon } from "@/components/icons/ucl-crest";
 
 export interface GrandFinalPodiumProps {
   bid: string;
@@ -153,6 +154,10 @@ export const GrandFinalPodium = ({
               style={{ backgroundColor: secondaryHex }}
             />
             <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] opacity-25" />
+            {/* UCL Starball Watermark Background */}
+            <div className="absolute -top-10 -right-10 w-64 h-64 opacity-[0.06] pointer-events-none flex items-center justify-center">
+              <UclStarballIcon size={260} starFill="#FFFFFF" />
+            </div>
           </div>
 
           {/* 1. HUD Telemetry Bar */}
@@ -205,8 +210,23 @@ export const GrandFinalPodium = ({
             </div>
           </div>
 
-          {/* 2. Tactical Head Title (TI Aegis Altar Inscription) */}
+          {/* 2. Tactical Head Title (TI Aegis Altar Inscription + UCL Big Ears Trophy) */}
           <div className="text-center space-y-1 relative z-10 px-1 py-1">
+            {/* UCL Big Ears Trophy Crown Mode */}
+            <div className="flex flex-col items-center justify-center py-1.5">
+              <div className="relative group/trophy transition-transform duration-500 hover:scale-105">
+                <div
+                  className="absolute inset-4 rounded-full blur-2xl opacity-50 pointer-events-none"
+                  style={{ backgroundColor: primaryHex }}
+                />
+                <UclBigEarsTrophy
+                  size={200}
+                  glowColor={primaryHex}
+                  className="w-40 h-44 sm:w-48 sm:h-52 2xl:w-56 2xl:h-60 relative z-10 drop-shadow-[0_14px_32px_rgba(251,191,36,0.45)]"
+                />
+              </div>
+            </div>
+
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-0.5 rounded-sm bg-black/60 border border-[#FBBF2466] text-[#FDE68A] font-mono text-[8px] sm:text-[9px] font-black uppercase tracking-[0.25em] shadow-[0_0_10px_rgba(251,191,36,0.15)]">
               <span className="text-[#FBBF24]">◆</span>
               <span>{divisionName ? `${seasonSeriesBadge} • ${divisionName.toUpperCase()}` : seasonSeriesBadge}</span>
