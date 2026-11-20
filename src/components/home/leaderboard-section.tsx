@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { resolveLogo } from '@/lib/logo-utils';
 import { LeaderboardTable, LeaderboardSkeleton } from './leaderboard-table';
 import { useGlobalSeasonTheme } from '@/context/season-theme-context';
+import { sortAndRankStandings } from '@/lib/tournament/tie-breaker';
 
 const TournamentBracket = dynamic(
   () => import('@/components/tournament-bracket').then((m) => m.TournamentBracket),
@@ -54,21 +55,16 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
   const activeSeason = useMemo(() => seasons?.find(s => s.id === activeSeasonId), [seasons, activeSeasonId]);
   const isCoopType = activeSeason?.type === 'Co-Op' || activeSeason?.type === 'Co-Op Hybrid';
   const isHybrid = activeSeason?.type === 'Hybrid' || activeSeason?.type === 'Co-Op Hybrid';
+  const hasDivisions = Boolean(activeSeason?.hasDivisions && !activeSeason?.isDiv2Merged);
+  const div1Name = activeSeason?.division1Name || 'Divisi 1';
+  const div2Name = activeSeason?.division2Name || 'Divisi 2';
+  const isNotStarted = activeSeason?.status === 'Not Started';
 
   const leagueTableQuery = useMemoFirebase(
     () => {
       if (!firestore || !activeSeasonId) return null;
       const tableName = isCoopType ? 'coopLeagueTable' : 'leagueTable';
-      
-      if (isCoopType) {
-        return query(collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`), orderBy('points', 'desc'));
-      }
-      return query(
-        collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`),
-        orderBy('points', 'desc'),
-        orderBy('goalDifference', 'desc'),
-        orderBy('goalsFor', 'desc')
-      );
+      return collection(firestore, `leagues/${LEAGUE_ID}/seasons/${activeSeasonId}/${tableName}`);
     },
     [firestore, activeSeasonId, isCoopType]
   );
@@ -157,18 +153,31 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
       const groupA = enrichedTable.filter((p: any) => p.group === 'A');
       const groupB = enrichedTable.filter((p: any) => p.group === 'B');
       return {
-        groupA: groupA.slice(0, 4).map((p: any, i: number) => ({ ...p, rank: i + 1 })),
-        groupB: groupB.slice(0, 4).map((p: any, i: number) => ({ ...p, rank: i + 1 })),
-        isHybrid: true
+        groupA: sortAndRankStandings(groupA, isNotStarted).slice(0, 4),
+        groupB: sortAndRankStandings(groupB, isNotStarted).slice(0, 4),
+        isHybrid: true,
+        hasDivisions: false,
       };
     }
 
-    const sorted = enrichedTable.map((entry: any, index: number) => ({...entry, rank: index + 1}));
+    if (hasDivisions) {
+      const div1 = enrichedTable.filter((p: any) => p.division !== 'div-2');
+      const div2 = enrichedTable.filter((p: any) => p.division === 'div-2');
+      return {
+        div1: sortAndRankStandings(div1, isNotStarted).slice(0, 8),
+        div2: sortAndRankStandings(div2, isNotStarted).slice(0, 8),
+        isHybrid: false,
+        hasDivisions: true,
+      };
+    }
+
+    const sorted = sortAndRankStandings(enrichedTable, isNotStarted);
     return {
       top: sorted.slice(0, 10),
-      isHybrid: false
+      isHybrid: false,
+      hasDivisions: false,
     };
-  }, [allLeaguePlayers, teamsById, playersById, isCoopType, isHybrid]);
+  }, [allLeaguePlayers, teamsById, playersById, isCoopType, isHybrid, hasDivisions, isNotStarted]);
 
   const isLoading = isLoadingSeasons || isLoadingTable || isLoadingTeams || isLoadingMatches;
 
@@ -329,6 +338,95 @@ export function LeaderboardSection({ onPlayoffStatusChange }: LeaderboardSection
                     <div className="relative z-10">
                       {leaderboardData.groupB && leaderboardData.groupB.length > 0 ? (
                         <LeaderboardTable players={leaderboardData.groupB} defendingChampionId={defendingChampionId} />
+                      ) : (
+                        <div className="p-10 sm:p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs flex flex-col items-center gap-3 sm:gap-4">
+                          <Zap className="w-8 h-8 sm:w-10 sm:h-10 opacity-30" />
+                          MENANTI SINYAL KICK-OFF
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </>
+            ) : leaderboardData.hasDivisions ? (
+              <>
+                {/* Division 1 Column */}
+                <div className="flex flex-col group/card relative">
+                  <div 
+                    className="absolute -inset-2 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" 
+                    style={{ backgroundColor: `${theme.primaryHex}0d` }}
+                  />
+                  
+                  <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-white/30 transition-all duration-500 z-10">
+                    <div 
+                      className="py-3 px-4 sm:py-4 sm:px-8 border-b border-white/10 flex items-center justify-between"
+                      style={{ background: `linear-gradient(90deg, ${theme.primaryHex}33, ${theme.primaryHex}1a, transparent)` }}
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div 
+                          className="p-1.5 sm:p-2 rounded-xl text-black shadow-lg"
+                          style={{ backgroundColor: theme.primaryHex, boxShadow: `0 0 15px ${theme.primaryHex}80` }}
+                        >
+                          <Award className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                        </div>
+                        <div>
+                          <h2 className="font-headline text-sm sm:text-xl font-black uppercase tracking-normal text-white leading-none">
+                            {div1Name} // STANDINGS
+                          </h2>
+                          <span className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: theme.primaryHex }}>Top Qualifiers</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/5 border border-white/10">
+                        <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5" style={{ color: theme.primaryHex }} />
+                        <span className="text-[7px] sm:text-[8px] font-black text-white/70 uppercase tracking-widest hidden xs:block">DIV_1</span>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10">
+                      {leaderboardData.div1 && leaderboardData.div1.length > 0 ? (
+                        <LeaderboardTable players={leaderboardData.div1} defendingChampionId={defendingChampionId} />
+                      ) : (
+                        <div className="p-10 sm:p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs flex flex-col items-center gap-3 sm:gap-4">
+                          <Zap className="w-8 h-8 sm:w-10 sm:h-10 opacity-30" />
+                          MENANTI SINYAL KICK-OFF
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Division 2 Column */}
+                <div className="flex flex-col group/card relative">
+                  <div 
+                    className="absolute -inset-2 rounded-[2.5rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" 
+                    style={{ backgroundColor: 'rgba(34,211,238,0.05)' }}
+                  />
+                  
+                  <Card className="relative flex flex-col overflow-hidden bg-black/70 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover/card:border-white/30 transition-all duration-500 z-10">
+                    <div 
+                      className="py-3 px-4 sm:py-4 sm:px-8 border-b border-white/10 flex items-center justify-between"
+                      style={{ background: 'linear-gradient(90deg, rgba(34,211,238,0.2), rgba(34,211,238,0.08), transparent)' }}
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="p-1.5 sm:p-2 rounded-xl text-black shadow-lg bg-cyan-400 shadow-cyan-400/50">
+                          <Award className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                        </div>
+                        <div>
+                          <h2 className="font-headline text-sm sm:text-xl font-black uppercase tracking-normal text-white leading-none">
+                            {div2Name} // STANDINGS
+                          </h2>
+                          <span className="text-[7.5px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-cyan-400">Challenger Roster</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/5 border border-white/10">
+                        <Binary className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400" />
+                        <span className="text-[7px] sm:text-[8px] font-black text-white/70 uppercase tracking-widest hidden xs:block">DIV_2</span>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10">
+                      {leaderboardData.div2 && leaderboardData.div2.length > 0 ? (
+                        <LeaderboardTable players={leaderboardData.div2} defendingChampionId={defendingChampionId} />
                       ) : (
                         <div className="p-10 sm:p-16 text-center text-white/20 font-black uppercase tracking-widest text-xs flex flex-col items-center gap-3 sm:gap-4">
                           <Zap className="w-8 h-8 sm:w-10 sm:h-10 opacity-30" />

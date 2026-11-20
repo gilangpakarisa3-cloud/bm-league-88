@@ -26,7 +26,6 @@ export function LeaderboardTable({ players, defendingChampionId }: LeaderboardTa
       <TableBody>
         {players.map((entry, index) => {
           const isFirst = index === 0;
-          const isBottom = players.length > 4 && index >= players.length - 2;
           const isDefendingChampion = defendingChampionId && (entry.playerId === defendingChampionId || entry.id === defendingChampionId);
 
           return (
@@ -43,8 +42,6 @@ export function LeaderboardTable({ players, defendingChampionId }: LeaderboardTa
                 style={
                   isFirst 
                     ? { backgroundColor: theme.primaryHex, boxShadow: `0 0 15px ${theme.primaryHex}` } 
-                    : isBottom 
-                    ? { backgroundColor: '#ef4444' } 
                     : { backgroundColor: 'transparent' }
                 }
               />

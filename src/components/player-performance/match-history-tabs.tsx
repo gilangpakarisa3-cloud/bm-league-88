@@ -56,12 +56,13 @@ export const HistoryTab = ({
   }
 
   return (
-    <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent">
+    <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-track-transparent">
       {completedMatches.map(match => (
         <div
           key={match.id}
-          className="group/match relative overflow-hidden transition-all duration-300 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-white/30 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-lg"
+          className="group/match relative overflow-hidden transition-all duration-300 border border-white/10 bg-black/60 backdrop-blur-xl hover:border-white/30 p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg"
         >
+          {/* Status Indicator Side Bar */}
           <div
             className={cn(
               "absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300",
@@ -74,6 +75,7 @@ export const HistoryTab = ({
             } : undefined}
           />
 
+          {/* ZONE 1: Badge Hasil + Info Pertandingan & Lawan */}
           <div className="flex items-center gap-3 sm:gap-4 relative z-10 min-w-0 flex-1">
             <div
               className={cn(
@@ -91,9 +93,9 @@ export const HistoryTab = ({
               {match.result === 'W' ? 'M' : match.result === 'L' ? 'K' : 'S'}
             </div>
 
-            <div className="min-w-0 flex-1 text-left space-y-0.5">
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="text-xs sm:text-sm font-black tracking-tight uppercase text-white pr-1" suppressHydrationWarning>
+            <div className="min-w-0 flex-1 text-left space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs sm:text-sm font-black tracking-tight uppercase text-white truncate max-w-[200px] sm:max-w-xs md:max-w-sm" title={match.opponent?.name || 'TBD'} suppressHydrationWarning>
                   vs {match.opponent?.name || 'TBD'}
                 </span>
                 <Badge
@@ -118,10 +120,11 @@ export const HistoryTab = ({
             </div>
           </div>
 
-          <div className="shrink-0 flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-3.5 relative z-10">
-            {/* Saldo MMR & Delta Pill */}
-            {typeof match.mmrDelta === 'number' && (
-              <div className="flex flex-col items-end gap-0.5 sm:gap-1 shrink-0">
+          {/* ZONE 2 & 3: MMR Impact & Scoreboard */}
+          <div className="shrink-0 flex items-center justify-between sm:justify-end gap-3 sm:gap-5 relative z-10 pt-2 sm:pt-0 border-t border-white/5 sm:border-0 pl-12 sm:pl-0">
+            {/* ZONE 2: Saldo MMR & Delta Pill */}
+            {typeof match.mmrDelta === 'number' ? (
+              <div className="flex flex-col items-start sm:items-end gap-0.5 sm:gap-1 shrink-0 min-w-[110px]">
                 <div
                   className={cn(
                     "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[10px] font-black uppercase tracking-wider shadow-sm transition-all duration-300",
@@ -151,10 +154,10 @@ export const HistoryTab = ({
                   </div>
                 )}
               </div>
-            )}
+            ) : <div className="hidden sm:block min-w-[110px]" />}
 
-            {/* Score Box */}
-            <div className="shrink-0 flex items-center gap-2 sm:gap-3 bg-black/80 px-3.5 sm:px-4 py-2 rounded-xl border border-white/10 shadow-inner">
+            {/* ZONE 3: Scoreboard Pod */}
+            <div className="shrink-0 flex items-center justify-center gap-2 sm:gap-3 bg-black/80 px-4 py-2 rounded-xl border border-white/10 shadow-inner min-w-[76px]">
               <span
                 className="text-lg sm:text-xl font-black tabular-nums"
                 style={match.isPlayer1 ? (

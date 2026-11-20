@@ -520,8 +520,8 @@ export function PlayerPerformanceDialog({
         }}
         className={cn(
           "!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2",
-          "w-[95vw] sm:w-[90vw] max-w-3xl",
-          "max-h-[90vh] flex flex-col",
+          "w-[95vw] sm:w-[92vw] max-w-4xl xl:max-w-5xl",
+          "max-h-[92vh] flex flex-col",
           "border border-white/15 p-0 overflow-hidden",
           "bg-black/95 backdrop-blur-3xl rounded-[2.5rem]",
           "z-50",
